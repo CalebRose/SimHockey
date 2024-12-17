@@ -1,0 +1,68 @@
+Sim College Hockey Teams,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
+id,Team Name,Mascot,Abbreviation,Conference ID,Conference,Coach (All schools are AI unless noted),City,State,Country,ArenaID,Arena,Arena Capacity,Record Attendance,First Played,Discord ID,Color One,Color Two,Color Three,Overall Grade,Offense Grade,Defense Grade,IsClub,IsActive,Players Progressed,Program,Prof. Development,Traditions,Facilities,Atmosphere,Coach Reputation,Academic Prestige
+1,Air Force,Falcons,USAF,1,AHA,,Colorado Springs,CO,USA,1,Cadet Ice Arena,2217,0,2027,,#a6a6a8,#00308f,,,,,,,,5,5,4,6,2,1,6
+2,Fairbanks,Nanooks,UAF,7,Independent,,Fairbanks,AK,USA,2,Carlson Center,4595,0,2027,,#236192,#FFCD00,#FFFFFF,,,,,,,5,5,4,5,4,1,4
+3,Anchorage,Seawolves,UAA,7,Independent,,Anchorage,AK,USA,3,Sullivan Arena,6451,0,2027,,#00583D,#FFC425,#FFFFFF,,,,,,,5,5,4,4,6,1,3
+4,American International,Yellow Jackets,AIC,1,AHA,,Springfield,MA,USA,4,MassMutual Center,6800,0,2027,,#000000,#FFB60F,#FFFFFF,,,,,,,5,5,3,4,7,1,2
+5,Arizona State,Sun Devils,ASU,6,NCHC,,Tempe,AZ,USA,5,Mullett Arena,4600,0,2027,,#990033,#FFB310,,,,,,,,5,5,4,5,4,1,6
+6,Army,Black Knights,ARMY,1,AHA,,West Point,NY,USA,6,Tate Rink,2648,0,2027,,#000000,#d3bc8d,,,,,,,,5,5,4,6,2,1,6
+7,Augustana,Vikings,AGUS,3,CCHA,,Sioux Falls,SD,USA,7,Midco Arena,3082,0,2027,,#0E1B3B,#FCD006,,,,,,,,5,5,3,3,3,1,2
+8,Bemidji State,Beavers,BEMI,3,CCHA,,Bemidji,MN,USA,8,Sanford Center,4700,0,2027,,#004D44,#D4B67C,#FFFFFF,,,,,,,5,5,4,3,4,1,3
+9,Bentley,Falcons,BENT,1,AHA,,Waltham,MA,USA,9,Bentley Arena,2240,0,2027,,#1B5FAA,#88898A,,,,,,,,5,5,3,4,2,1,5
+10,Boston College,Eagles,BC,5,Hockey East,,Chestnut Hill,MA,USA,10,Conte Forum,8606,0,2027,,#910039,#B38F59,,,,,,,,5,5,9,9,8,1,9
+11,Boston University,Terriers,BU,5,Hockey East,,Boston,MA,USA,11,Agganis Arena,6150,0,2027,,#CC0000,#231F20,#ffffff,,,,,,,5,5,9,9,6,1,9
+12,Bowling Green State,Falcons,BGSU,3,CCHA,,Bowling Green,OH,USA,12,Slater Family Ice Arena,5000,0,2027,,#4F2C1D,#FE5000,,,,,,,,5,5,6,7,5,1,6
+13,Brown,Bears,BRWN,4,ECAC,,Providence,RI,USA,13,Meehan Auditorium,3059,0,2027,,#4E3629,#7C2529,#000000,,,,,,,5,5,4,5,3,1,10
+14,Canisius,Golden Griffins,CANI,1,AHA,,Buffalo,NY,USA,14,LECOM Harborcenter,1800,0,2027,,#0C2340,#ffba00,#ffffff,,,,,,,5,5,3,4,1,1,4
+15,Clarkson,Golden Knights,CLRK,4,ECAC,,Potsdam,NY,USA,15,Cheel Arena,4200,0,2027,,#0D433B,#FAC922,#FFFFFE,,,,,,,5,5,7,6,4,1,6
+16,Colgate,Raiders,COLG,4,ECAC,,Colgate,NY,USA,16,Class of 1965 Arena,2222,0,2027,,#821019,#E10028,#000000,,,,,,,5,5,5,8,2,1,9
+17,Colorado College,Tigers,CC,6,NCHC,,Colorado Springs,CO,USA,17,Ed Robson Arena,3407,0,2027,,#000000,#F2AF36,,,,,,,,5,5,7,8,3,1,6
+18,UConn,Huskies,CONN,5,Hockey East,,Storrs,CT,USA,18,Toscano Family Ice Forum,2600,0,2027,,#000E2F,#FFFFFF,,,,,,,,5,5,4,5,2,1,6
+19,Cornell,Big Red,COR,4,ECAC,,Ithaca,NY,USA,19,Lynah Rink,4267,0,2027,,#B31B1B,#5E3920,#000000,,,,,,,5,5,7,7,4,1,9
+20,Dartmouth,Big Green,DART,4,ECAC,,Hanover,NH,USA,20,Thompson Arena,3500,0,2027,,#046A38,#000000,#FFFFFF,,,,,,,5,5,4,4,3,1,10
+21,Denver,Pioneers,DU,6,NCHC,,Denver,CO,USA,21,Magness Rena,6315,0,2027,,#8b2332,#8b6f4b,#ffffff,,,,,,,5,5,10,9,6,1,6
+22,Ferris State,Bulldogs,FRST,3,CCHA,,Big Rapids,MI,USA,22,Ewigleben Arena,2493,0,2027,,#BA0C2F,#FCC917,#FFFFFF,,,,,,,5,5,4,5,2,1,4
+23,Harvard,Crimson,HARV,4,ECAC,,Cambridge,MA,USA,23,Bright-Landry Hockey Center,3095,0,2027,,#A41034,#000000,#B6B6B6,,,,,,,5,5,7,7,3,1,10
+24,Holy Cross,Crusaders,HC,1,AHA,,Worcester,MA,USA,24,Hart Center,1600,0,2027,,#602D89,#FFFFFF,#000000,,,,,,,5,5,3,4,1,1,6
+25,Lake Superior State,Lakers,LSSU,3,CCHA,,Sault Ste. Marie,MI,USA,25,Taffy Abel Arena,4000,0,2027,,#003F87,#FFC61E,,,,,,,,5,5,7,5,4,1,4
+26,Lindenwood,Lions,LIND,7,Independent,,St. Charles,MO,USA,26,Centene Community Ice Center,2500,0,2027,,#B5A36A,#101820,#ffffff,,,,,,,5,5,4,2,2,1,2
+27,Long Island,Sharks,LIU,7,Independent,,Brooklyn,NY,USA,27,Islanders Iceworks,1500,0,2027,,#69B3E7,#FFC72C,#ffffff,,,,,,,5,5,3,4,1,1,4
+28,Maine,Black Bears,ME,5,Hockey East,,Orono,ME,USA,28,Harold Alfond Sports Arena,5125,0,2027,,#003263,#B0D7FF,#908C89,,,,,,,5,5,7,4,5,1,5
+29,UMass,Minutemen,MASS,5,Hockey East,,Amherst,MA,USA,29,Mullins Center,8387,0,2027,,#881c1c,#FFFFFF,,,,,,,,5,5,5,10,8,1,6
+30,UMass-Lowell,River Hawks,UML,5,Hockey East,,Lowell,MA,USA,30,Tsongas Center,6500,0,2027,,#003DA5,#C8102E,#FFFFFF,,,,,,,5,5,5,6,6,1,5
+31,Mercyhurst,Lakers,MRCY,1,AHA,,Erie,PA,USA,31,Mercyhurst Ice Center,1500,0,2027,,#07594D,#182752,#ffffff,,,,,,,5,5,4,4,1,1,4
+32,Merrimack,Warriors,MRMK,5,Hockey East,,North Andover,MA,USA,32,J. Thom Lawler Rink,2549,0,2027,,#003768,#fdb813,#ffffff,,,,,,,5,5,3,5,2,1,4
+33,Miami (OH),RedHawks,MIAO,6,NCHC,,Oxford,OH,USA,33,Goggin Ice Center,3642,0,2027,,#B61E2E,#FFFFFF,,,,,,,,5,5,5,7,3,1,6
+34,Michigan,Wolverines,MICH,2,Big Ten,,Ann Arbor,MI,USA,34,Yost Ice Arena,8100,0,2027,,#ffcb05,#00274c,,,,,,,,5,5,10,10,8,1,8
+35,Michigan State,Spartans,MSU,2,Big Ten,,East Lansing,MI,USA,35,Munn Ice Arena,6114,0,2027,,#FFFFFF,#18453B,,,,,,,,5,5,7,8,6,1,7
+36,Michigan Tech,Huskies,MTU,3,CCHA,,Houghton,MI,USA,36,MacInnes Student Ice Arena,4200,0,2027,,#000000,#FFCD00,,,,,,,,5,5,7,8,4,1,6
+37,Minnesota,Golden Gophers,MINN,2,Big Ten,,Minneapolis,MN,USA,37,Mariucci Arena,10000,0,2027,,#7a0019,#ffcc33,,,,,,,,5,5,9,9,9,1,8
+38,Minnesota-Duluth,Bulldogs,MND,6,NCHC,,Duluth,MN,USA,38,AMSOIL Arena,6726,0,2027,,#8E0A26,#FAB937,,,,,,,,5,5,7,5,7,1,5
+39,Minnesota State,Mavericks,MSU,3,CCHA,,Mankato,MN,USA,39,Mayo Clinic Health System Event Center,5280,0,2027,,#480059,#F7E400,#FFFFFF,,,,,,,5,5,5,7,5,1,5
+40,New Hampshire,Wildcats,UNH,5,Hockey East,,Durham,NH,USA,40,Whittemore Center,6501,0,2027,,#041e42,#BBBCBC,#FFFFFF,,,,,,,5,5,5,7,6,1,6
+41,Niagara,Purple Eagers,NU,1,AHA,,Lewiston,NY,USA,41,Dwyer Arena,1400,0,2027,,#ffffff,#582C83,#ffffff,,,,,,,5,5,4,5,1,1,4
+42,North Dakota,Fighting Hawks,UND,6,NCHC,,Grand Forks,ND,USA,42,Ralph Engelstad Arena,11643,0,2027,,#009A44,#AAAEAD,#000000,,,,,,,5,5,10,9,10,1,7
+43,Northeastern,Huskies,NE,5,Hockey East,,Boston,MA,USA,43,Matthews Arena,4666,0,2027,,#D41B2C,#000000,#ffffff,,,,,,,5,5,5,8,4,1,6
+44,Northern Michigan,Wildcats,NMU,3,CCHA,,Marquette,MI,USA,44,Berry Events Center,4300,0,2027,,#095339,#FFC425,,,,,,,,5,5,5,6,4,1,5
+45,Notre Dame,Fighting Irish,ND,2,Big Ten,,South Bend,IN,USA,45,Compton Family Ice Arena,5022,0,2027,,#0C2340,#C99700,,,,,,,,5,5,5,5,5,1,7
+46,Ohio State,Buckeyes,OSU,2,Big Ten,,Columbus,OH,USA,46,Value City Arena,17500,0,2027,,#bb0000,#666666,,,,,,,,5,5,5,10,10,1,7
+47,Nebraska-Omaha,Mavericks,UNO,6,NCHC,,Omaha,NE,USA,47,Baxter Arena,7898,0,2027,,#000000,#D71920,#ffffff,,,,,,,5,5,5,7,8,1,5
+48,Penn State,Nittany Lions,PNST,2,Big Ten,,State College,PA,USA,48,Pegula Ice Arena,6014,0,2027,,#041e42,#FFFFFF,,,,,,,,5,5,5,5,6,1,7
+49,Princeton,Tigers,PRIN,4,ECAC,,Princeton,NJ,USA,49,Hobey Baker Memorial Rink,2092,0,2027,,#FF671F,#000000,,,,,,,,5,5,4,4,2,1,10
+50,Providence,Friars,PROV,5,Hockey East,,Providence,RI,USA,50,Schneider Arena,3030,0,2027,,#8a8d8f,#000000,#ffffff,,,,,,,5,5,6,6,3,1,6
+51,Quinnipiac,Bobcats,QUIN,4,ECAC,,Hamden,CT,USA,51,M&T Bank Arena,3386,0,2027,,#0C2340,#FFB81C,#ffffff,,,,,,,5,5,6,9,3,1,6
+52,RPI,Engineers,RPI,4,ECAC,,Troy,NY,USA,52,Houston Field House,4780,0,2027,,#232020,#FFFFFF,,,,,,,,5,5,6,5,4,1,9
+53,Robert Morris,Colonials,RMU,1,AHA,,Moon Township,PA,USA,53,Clearview Arena,1200,0,2027,,#14234b,#a6192e,#ffffff,,,,,,,5,5,3,4,1,1,3
+54,Rochester,Tigers,RIT,1,AHA,,Rochester,NY,USA,54,Gene Polisseni Center,4300,0,2027,,#231F20,#F36917,#FFFFFF,,,,,,,5,5,5,5,4,1,8
+55,Sacred Heart,Pioneers,SHU,1,AHA,,Fairfield,CT,USA,55,Martire Family Arena,3600,0,2027,,#ce1141,#b1b3b6,#ffffff,,,,,,,5,5,3,4,3,1,4
+56,St. Cloud State,Huskies,STCL,6,NCHC,,St. Cloud,MN,USA,56,Herb Brooks National Hockey Center,8000,0,2027,,#A10209,#000000,,,,,,,,5,5,5,6,8,1,5
+57,St. Lawrence,Saints,STL,4,ECAC,,Canton,NY,USA,57,Appleton Arena,3200,0,2027,,#654134,#E7D1A0,#BE2032,,,,,,,5,5,6,2,3,1,5
+58,St. Thomas,Tommies,STMN,3,CCHA,,Saint Paul,MN,USA,58,Lee and Penny Anderson Arena,4000,0,2027,,#FFFFFF,#512773,#ffffff,,,,,,,5,5,4,4,4,1,4
+59,Stonehill,Skyhawks,STON,7,Independent,,Easton,MA,USA,59,Bridgewater Ice Arena,1000,0,2027,,#2F2975,#FFFFFF,#ffffff,,,,,,,5,5,2,3,1,1,3
+60,Union,Garnet Chargers,UNION,4,ECAC,,Schenectady,NY,USA,60,Achilles Rink,2225,0,2027,,#791328,#100F0D,#FFFFFF,,,,,,,5,5,5,5,2,1,6
+61,Vermont,Catamounts,VT,5,Hockey East,,Burlington,VT,USA,61,Gutterson Fieldhouse,4035,0,2027,,#154734,#FFC72C,#8B5B29,,,,,,,5,5,5,6,4,1,6
+62,WMU,Broncos,WMU,6,NCHC,,Kalamazoo,MI,USA,62,Lawson Arena,3667,0,2027,,#6c4023,#b5a167,,,,,,,,5,5,5,6,3,1,5
+63,Wisconsin,Badgers,WISC,2,Big Ten,,Madison,WI,USA,63,Kohl Center,15359,0,2027,,#FFFFFF,#c5050c,,,,,,,,5,5,8,8,10,1,7
+64,Yale,Bulldogs,YALE,4,ECAC,,New Haven,CT,USA,64,Ingalls Rink,3500,0,2027,,#00356B,#FFFFFF,,,,,,,,5,5,5,8,3,1,10
+65,Tennessee State,Tigers,TNST,7,Independent,,Nashville,TN,USA,65,Gentry Center,9100,0,2027,,#501214,#8D734A,,,,,,,,5,5,1,6,3,,1
+66,Binghamton,Bearkats,BING,7,Independent,,Binghamton,NY,USA,66,Visions Veterans Memorial Arena,4710,0,2027,,#005A43,#B1B3B3,#169B62,,,,,,,5,5,1,6,2,,3

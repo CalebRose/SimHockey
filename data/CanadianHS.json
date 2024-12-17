@@ -1,0 +1,126 @@
+{
+  "AB": [
+    { "City": "Calgary", "HighSchool": "Calgary Edge" },
+    { "City": "Calgary", "HighSchool": "Edge School" },
+    { "City": "Calgary", "HighSchool": "Calgary International Hockey Academy" },
+    { "City": "Calgary", "HighSchool": "Calgary Hitmen" },
+    { "City": "Dunmore", "HighSchool": "South Alberta Hockey Academy" },
+    { "City": "Edmonton", "HighSchool": "Northern Alberta Xtreme" },
+    { "City": "Edmonton", "HighSchool": "Edmonton Oil Kings" },
+    { "City": "Lethbridge", "HighSchool": "Lethbridge Hurricanes" },
+    { "City": "Medicine Hat", "HighSchool": "Medicine Hat Tigers" },
+    { "City": "Red Deer", "HighSchool": "Red Deer Rebels" }
+  ],
+  "BC": [
+    { "City": "Abbotsford", "HighSchool": "Yale Hockey Academy" },
+    { "City": "Burnaby", "HighSchool": "Burnaby Winter Club" },
+    { "City": "Burnaby", "HighSchool": "BWC Academy" },
+    { "City": "Delta", "HighSchool": "Delta Hockey Academy" },
+    { "City": "Kamloops", "HighSchool": "Kamloops Blazers" },
+    { "City": "Kelowna", "HighSchool": "Rink Hockey Academy" },
+    { "City": "Kelowna", "HighSchool": "Kelowna Rockets" },
+    { "City": "Langley", "HighSchool": "Vancouver Giants" },
+    { "City": "Penticton", "HighSchool": "Okanagan Hockey Academy" },
+    { "City": "Prince George", "HighSchool": "Prince George Cougars" },
+    { "City": "Shawnigan Lake", "HighSchool": "Shawnigan Lake School" },
+    { "City": "Vancouver", "HighSchool": "St. George’s School" },
+    { "City": "Victoria", "HighSchool": "Pacific Coast Hockey Academy" },
+    { "City": "Victoria", "HighSchool": "Victoria Royals" }
+  ],
+  "MB": [
+    { "City": "Brandon", "HighSchool": "Brandon Wheat Kings" },
+    { "City": "Pilot Mound", "HighSchool": "Pilot Mound Hockey Academy" },
+    { "City": "Winnipeg", "HighSchool": "Rink Hockey Academy Winnipeg" },
+    { "City": "Winnipeg", "HighSchool": "Balmoral Hall School" },
+    { "City": "Winnipeg", "HighSchool": "St. Mary’s Academy" },
+    { "City": "Winnipeg", "HighSchool": "Winnipeg ICE" }
+  ],
+  "NB": [
+    { "City": "Bathurst", "HighSchool": "Acadie-Bathurst Titan" },
+    { "City": "Moncton", "HighSchool": "Moncton Wildcats" },
+    { "City": "Saint John", "HighSchool": "Saint John Sea Dogs" }
+  ],
+  "NL": [
+    { "City": "Corner Brook", "HighSchool": "Western Kings U18" },
+    { "City": "Grand Falls-Windsor", "HighSchool": "Central Impact U18" },
+    { "City": "Harbour Grace", "HighSchool": "Tri Pen Osprey U18" },
+    { "City": "St. John's", "HighSchool": "East Coast Blizzard U18" },
+    { "City": "St. John's", "HighSchool": "Pinnacle Growlers U18" }
+  ],
+  "NS": [
+    { "City": "Berwick", "HighSchool": "Valley Wildcats U18" },
+    { "City": "Bridgewater", "HighSchool": "South Shore Mustangs U18" },
+    { "City": "Cole Harbour", "HighSchool": "Cole Harbour Wolfpack U18" },
+    { "City": "Dartmouth", "HighSchool": "Newbridge Academy Gladiators U18" },
+    { "City": "Halifax", "HighSchool": "Halifax McDonald's U18" },
+    { "City": "Halifax", "HighSchool": "Halifax Mooseheads" },
+    { "City": "New Glasgow", "HighSchool": "Pictou County Weeks U18" },
+    { "City": "Port Hood", "HighSchool": "Cape Breton West Islanders U18" },
+    { "City": "Sydney", "HighSchool": "Sydney Rush U18" },
+    { "City": "Sydney", "HighSchool": "Cape Breton Eagles" },
+    { "City": "Windsor", "HighSchool": "King’s-Edgehill School" }
+  ],
+  "ON": [
+    { "City": "Aurora", "HighSchool": "St. Andrews College Saints" },
+    { "City": "Barrie", "HighSchool": "Barrie Colts" },
+    { "City": "Brantford", "HighSchool": "Brantford Bulldogs" },
+    { "City": "Caledon", "HighSchool": "The Hill Academy" },
+    { "City": "Cornwall", "HighSchool": "Ontario Hockey Academy" },
+    { "City": "Fort Erie", "HighSchool": "Fort Erie International Academy" },
+    { "City": "Guelph", "HighSchool": "Guelph Storm" },
+    {
+      "City": "Hawkesbury",
+      "HighSchool": "Le Sommet International Hockey Academy"
+    },
+    { "City": "Kingston", "HighSchool": "Kingston Frontenacs" },
+    { "City": "Kitchener", "HighSchool": "Kitchener Rangers" },
+    { "City": "London", "HighSchool": "London Knights" },
+    { "City": "Mississauga", "HighSchool": "Mississauga Steelheads" },
+    { "City": "North Bay", "HighSchool": "North Bay Battalion" },
+    { "City": "Oshawa", "HighSchool": "Oshawa Generals" },
+    { "City": "Ottawa", "HighSchool": "Ottawa 67's" },
+    { "City": "Owen Sound", "HighSchool": "Owen Sound Attack" },
+    { "City": "Peterborough", "HighSchool": "Peterborough Petes" },
+    { "City": "Rockland", "HighSchool": "CIH Academy" },
+    { "City": "Sarnia", "HighSchool": "Sarnia Sting" },
+    { "City": "Sault Ste. Marie", "HighSchool": "Sault Ste. Marie Greyhounds" },
+    { "City": "St. Catharines", "HighSchool": "Ridley College" },
+    { "City": "St. Catharines", "HighSchool": "Niagara IceDogs" },
+    { "City": "Sudbury", "HighSchool": "Sudbury Wolves" },
+    { "City": "Thornhill", "HighSchool": "King Heights Academy" },
+    { "City": "Toronto", "HighSchool": "St. Michael’s College School" },
+    { "City": "Toronto", "HighSchool": "Upper Canada College" },
+    { "City": "Various Locations", "HighSchool": "Blyth Academy" },
+    { "City": "Windsor", "HighSchool": "Windsor Spitfires" }
+  ],
+  "PE": [
+    { "City": "Charlottetown", "HighSchool": "Mount Academy" },
+    { "City": "Charlottetown", "HighSchool": "Charlottetown Islanders" }
+  ],
+  "QC": [
+    { "City": "Baie-Comeau", "HighSchool": "Baie-Comeau Drakkar" },
+    { "City": "Boisbriand", "HighSchool": "Blainville-Boisbriand Armada" },
+    { "City": "Chicoutimi", "HighSchool": "Chicoutimi Saguenéens" },
+    { "City": "Drummondville", "HighSchool": "Drummondville Voltigeurs" },
+    { "City": "Gatineau", "HighSchool": "Gatineau Olympiques" },
+    { "City": "Quebec City", "HighSchool": "Quebec Remparts" },
+    { "City": "Rimouski", "HighSchool": "Rimouski Océanic" },
+    { "City": "Rouyn-Noranda", "HighSchool": "Rouyn-Noranda Huskies" },
+    { "City": "Shawinigan", "HighSchool": "Shawinigan Cataractes" },
+    { "City": "Sherbrooke", "HighSchool": "Sherbrooke Phoenix" },
+    { "City": "Val-d'Or", "HighSchool": "Val-d'Or Foreurs" },
+    { "City": "Victoriaville", "HighSchool": "Victoriaville Tigres" }
+  ],
+  "SK": [
+    { "City": "Moose Jaw", "HighSchool": "Moose Jaw Warriors" },
+    { "City": "Prince Albert", "HighSchool": "Prince Albert Raiders" },
+    { "City": "Regina", "HighSchool": "Regina Pats" },
+    { "City": "Saskatoon", "HighSchool": "Saskatoon Blades" },
+    { "City": "Swift Current", "HighSchool": "Swift Current Broncos" }
+  ],
+  "YT": [{ "City": "Whitehorse", "HighSchool": "Team Yukon U18" }],
+  "NWT": [
+    { "City": "Yellowknife", "HighSchool": "Team Northwest Territories U18" }
+  ],
+  "NVT": [{ "City": "Iqaluit", "HighSchool": "Team Nunavut U18" }]
+}
