@@ -113,3 +113,52 @@ func ReadCSV(path string) [][]string {
 
 	return rows
 }
+
+func GetLetterGrade(attr int, year int) string {
+	if year < 3 {
+		if attr > 20 {
+			return "A"
+		}
+		if attr > 15 {
+			return "B"
+		}
+		if attr > 11 {
+			return "C"
+		}
+		if attr > 7 {
+			return "D"
+		}
+		return "F"
+	}
+	if attr > 24 {
+		return "A+"
+	}
+	if attr > 21 {
+		return "A"
+	}
+	if attr > 18 {
+		return "A-"
+	}
+	if attr > 16 {
+		return "B+"
+	}
+	if attr > 14 {
+		return "B"
+	}
+	if attr > 12 {
+		return "B-"
+	}
+	if attr > 10 {
+		return "C+"
+	}
+	if attr > 8 {
+		return "C"
+	}
+	if attr > 6 {
+		return "C-"
+	}
+	if attr > 4 {
+		return "D"
+	}
+	return "F"
+}

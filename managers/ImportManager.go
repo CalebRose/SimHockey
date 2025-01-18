@@ -45,7 +45,6 @@ func ImportTeams() {
 		traditions := util.ConvertStringToInt(team[27])
 		facilities := util.ConvertStringToInt(team[28])
 		atmosphere := util.ConvertStringToInt(team[29])
-		reputation := 100
 		academicPrestige := util.ConvertStringToInt(team[31])
 
 		arena := structs.Arena{
@@ -77,14 +76,17 @@ func ImportTeams() {
 				ColorTwo:         colorTwo,
 				ColorThree:       colorThree,
 			},
-			ProgramPrestige:      uint8(program),
-			ProfessionalPrestige: uint8(profDev),
-			Traditions:           uint8(traditions),
-			Atmosphere:           uint8(atmosphere),
-			Facilities:           uint8(facilities),
-			AcademicPrestige:     uint8(academicPrestige),
-			ConferencePrestige:   5,
-			CoachReputation:      uint8(reputation),
+			ProfileAttributes: structs.ProfileAttributes{
+				ProgramPrestige:      uint8(program),
+				ProfessionalPrestige: uint8(profDev),
+				Traditions:           uint8(traditions),
+				Atmosphere:           uint8(atmosphere),
+				Facilities:           uint8(facilities),
+				Academics:            uint8(academicPrestige),
+				ConferencePrestige:   5,
+				CoachRating:          5,
+				SeasonMomentum:       5,
+			},
 		}
 		arenas = append(arenas, arena)
 		teams = append(teams, team)
@@ -100,8 +102,7 @@ func ImportTeams() {
 						AGZPass:       20,
 						AGZStickCheck: 20,
 						AGZBodyCheck:  20,
-						AZSlapshot:    20,
-						AZWristshot:   20,
+						AZShot:        20,
 						AZPass:        20,
 						AZAgility:     20,
 						AZStickCheck:  20,
@@ -134,8 +135,7 @@ func ImportTeams() {
 						AGZPass:       20,
 						AGZStickCheck: 20,
 						AGZBodyCheck:  20,
-						AZSlapshot:    20,
-						AZWristshot:   20,
+						AZShot:        20,
 						AZPass:        20,
 						AZAgility:     20,
 						AZStickCheck:  20,
@@ -168,8 +168,7 @@ func ImportTeams() {
 						AGZPass:       20,
 						AGZStickCheck: 20,
 						AGZBodyCheck:  20,
-						AZSlapshot:    20,
-						AZWristshot:   20,
+						AZShot:        20,
 						AZPass:        20,
 						AZAgility:     20,
 						AZStickCheck:  20,

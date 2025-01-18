@@ -14,6 +14,7 @@ type PlayBookDTO struct {
 	Goalies            []BaseLineup
 	CollegeRoster      []CollegePlayer
 	ProfessionalRoster []ProfessionalPlayer
+	ShootoutLineup     ShootoutPlayerIDs
 }
 
 type GameResultDTO struct {

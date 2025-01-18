@@ -118,9 +118,25 @@
     { "City": "Saskatoon", "HighSchool": "Saskatoon Blades" },
     { "City": "Swift Current", "HighSchool": "Swift Current Broncos" }
   ],
-  "YT": [{ "City": "Whitehorse", "HighSchool": "Team Yukon U18" }],
-  "NWT": [
-    { "City": "Yellowknife", "HighSchool": "Team Northwest Territories U18" }
+  "YT": [
+    { "City": "Whitehorse", "HighSchool": "Team Yukon U18" },
+    { "City": "Dawson City", "HighSchool": "Dawson City U18" },
+    { "City": "Watson City", "HighSchool": "Watson City U18" }
   ],
-  "NVT": [{ "City": "Iqaluit", "HighSchool": "Team Nunavut U18" }]
+  "NWT": [
+    { "City": "Yellowknife", "HighSchool": "Team Northwest Territories U18" },
+    { "City": "Fort Providence", "HighSchool": "Providence U18" },
+    { "City": "Rocher River", "HighSchool": "Rocher U18" },
+    { "City": "Lutselke", "HighSchool": "Team Lutselke U18" },
+    { "City": "Hay River", "HighSchool": "Hay River U18" },
+    { "City": "Inuvik", "HighSchool": "Team Inuvik U18" }
+  ],
+  "NVT": [
+    { "City": "Iqaluit", "HighSchool": "Team Nunavut U18" },
+    { "City": "Cambridge Bay", "HighSchool": "Team Cambridge U18" },
+    { "City": "Whale Cove", "HighSchool": "Whale Cove U18" },
+    { "City": "Taloyoak", "HighSchool": "Taloyoak U18" },
+    { "City": "Gjoa Haven", "HighSchool": "Team Gjoa U18" },
+    { "City": "Kinngait", "HighSchool": "Team Kinngait U18" }
+  ]
 }

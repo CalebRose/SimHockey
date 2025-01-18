@@ -25,15 +25,18 @@ func ApplyPenalty(gs *GameState, penalty Penalty, player GamePlayer) {
 
 func HandlePenaltyLogic(gs *GameState, penalty Penalty, duration int, player GamePlayer) {
 	// Put Player into Penalty Box
-	player.GoToPenaltyBox()
+	player.GoToPenaltyBox(penalty.PenaltyType > 2)
 
 	// Set Gamestate duration and power play team
 	powerPlayTeamID := gs.HomeTeamID
 	if player.TeamID == uint16(gs.HomeTeamID) {
 		powerPlayTeamID = gs.AwayTeamID
+		gs.HomeStrategy.ActivatePowerPlayer(player.ID, player.Position)
+	} else {
+		gs.AwayStrategy.ActivatePowerPlayer(player.ID, player.Position)
 	}
 
-	gs.SetPowerPlay(duration, int(powerPlayTeamID))
+	gs.SetPowerPlay(duration, int(powerPlayTeamID), penalty)
 }
 
 func HandleFight(gs *GameState) {
@@ -67,6 +70,7 @@ func SelectPenalty(player GamePlayer, typeID uint, context string) Penalty {
 	chance := util.GenerateFloatFromRange(0, totalWeight)
 	for _, p := range selectablePenalties {
 		if chance <= curr {
+			p.ApplyPlayerInfo(player.ID, player.Position)
 			return p
 		}
 		curr += p.Weight
@@ -150,4 +154,18 @@ func GetPenalty(id uint, penaltyType uint, name, sev, context string, weight flo
 		DisciplineReq: disReq,
 		Context:       context,
 	}
+}
+
+func GetSeverityID(severity string) uint8 {
+	if severity == MinorPenalty {
+		return 1
+	}
+	if severity == MajorPenalty {
+		return 2
+	}
+	if severity == GameMisconduct {
+		return 3
+	}
+	// Match Penalty
+	return 4
 }

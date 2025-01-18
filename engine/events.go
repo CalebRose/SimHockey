@@ -2,39 +2,48 @@ package engine
 
 import (
 	"math"
+	"strconv"
 
 	util "github.com/CalebRose/SimHockey/_util"
 	"github.com/CalebRose/SimHockey/structs"
 )
 
 func HandleBaseEvents(gs *GameState) {
-	pb := gs.PuckCarrier
-	homePossession := pb.TeamID == uint16(gs.HomeTeamID)
+	pc := gs.PuckCarrier
+	homePossession := pc.TeamID == uint16(gs.HomeTeamID)
 	switch gs.PuckLocation {
 	case HomeGoal:
 		handleGoalZoneEvents(gs, homePossession, false)
+		return
 	case HomeZone, AwayZone:
 		handleZoneEvents(gs, homePossession, gs.PuckLocation == HomeZone)
+		return
 	case NeutralZone:
 		handleNeutralZoneEvents(gs)
+		return
 	case AwayGoal:
 		handleGoalZoneEvents(gs, homePossession, true)
+		return
 	}
 }
 
 func handleGoalZoneEvents(gs *GameState, homePossession bool, isAwayGoal bool) {
 	if (homePossession && isAwayGoal) || (!homePossession && !isAwayGoal) {
 		handleOffensiveGoalZoneEvents(gs)
+		return
 	} else {
 		handleDefensiveGoalZoneEvents(gs)
+		return
 	}
 }
 
 func handleZoneEvents(gs *GameState, homePossession bool, isHomeZone bool) {
 	if (homePossession && isHomeZone) || (!homePossession && !isHomeZone) {
 		handleDefensiveZoneEvents(gs)
+		return
 	} else {
 		handleOffensiveZoneEvents(gs)
+		return
 	}
 }
 
@@ -62,14 +71,19 @@ func handleOffensiveGoalZoneEvents(gs *GameState) {
 	dr := util.GenerateFloatFromRange(1, float64(totalSkill))
 	if dr <= stickCheckCutoff {
 		handleDefenseCheck(gs, true)
+		return
 	} else if dr <= bodyCheckCutoff {
 		handleDefenseCheck(gs, false)
+		return
 	} else if dr <= passCheckCutoff {
 		handlePassCheck(gs)
+		return
 	} else if dr <= shotCutoff {
 		HandleShot(gs, true)
+		return
 	} else if dr <= penaltyCutoff {
 		handlePenalties(gs)
+		return
 	}
 }
 
@@ -80,51 +94,53 @@ func handleOffensiveZoneEvents(gs *GameState) {
 	attackStrategy := gs.GetLineStrategy(isHome, 1)
 	defendStrategy := gs.GetLineStrategy(!isHome, 2)
 	penalty := 1
-	slapshot := int(attackStrategy.AZSlapshot) + int(pb.AZSlapshot) + int(gs.Momentum)
-	wristshot := int(attackStrategy.AZWristshot) + int(pb.AZWristshot) + int(gs.Momentum)
+	wristshot := int(attackStrategy.AZShot) + int(pb.AZShot) + int(gs.Momentum)
 	agility := int(attackStrategy.AZAgility) + int(pb.AZAgility)
 	pass := int(attackStrategy.AZPass) + int(pb.AZPass)
 	stickCheck := int(defendStrategy.DZStickCheck)
 	bodyCheck := int(defendStrategy.DZBodyCheck)
-	totalSkill := slapshot + wristshot + stickCheck + bodyCheck + pass + penalty + int(agility)
+	totalSkill := wristshot + stickCheck + bodyCheck + pass + penalty + int(agility)
 	stickCheckCutoff := float64(stickCheck)
 	bodyCheckCutoff := stickCheckCutoff + float64(bodyCheck)
 	passCheckCutoff := bodyCheckCutoff + float64(pass)
 	agilityCutoff := passCheckCutoff + float64(agility)
-	slapshotCutoff := agilityCutoff + float64(slapshot)
-	wristshotCutoff := slapshotCutoff + float64(wristshot)
+	wristshotCutoff := agilityCutoff + float64(wristshot)
 	penaltyCutoff := wristshotCutoff + 1.0
 	dr := util.GenerateFloatFromRange(1, float64(totalSkill))
 	if dr <= stickCheckCutoff {
 		handleDefenseCheck(gs, true)
+		return
 	} else if dr <= bodyCheckCutoff {
 		handleDefenseCheck(gs, false)
+		return
 	} else if dr <= passCheckCutoff {
 		handlePassCheck(gs)
+		return
 	} else if dr <= agilityCutoff {
 		handleAgilityCheck(gs)
-	} else if dr <= slapshotCutoff {
-		HandleShot(gs, true)
+		return
 	} else if dr <= wristshotCutoff {
 		HandleShot(gs, false)
+		return
 	} else if dr <= penaltyCutoff {
 		handlePenalties(gs)
+		return
 	}
 }
 
 func handleDefensiveGoalZoneEvents(gs *GameState) {
 	// Movement, pass, defensive checks
-	pb := gs.PuckCarrier
-	isHome := pb.TeamID == uint16(gs.HomeTeamID)
+	pc := gs.PuckCarrier
+	isHome := pc.TeamID == uint16(gs.HomeTeamID)
 	attackStrategy := gs.GetLineStrategy(isHome, 1)
 	defendStrategy := gs.GetLineStrategy(!isHome, 2)
 	penalty := 1
-	agility := int(attackStrategy.DGZAgility) + int(pb.DGZAgility)
-	pass := int(attackStrategy.DGZPass) + int(pb.DGZPass)
+	agility := int(attackStrategy.DGZAgility) + int(pc.DGZAgility)
+	pass := int(attackStrategy.DGZPass) + int(pc.DGZPass)
 	stickCheck := int(defendStrategy.AGZStickCheck)
 	bodyCheck := int(defendStrategy.AGZBodyCheck)
 	faceOffCheck := 0
-	if pb.Position == Goalie {
+	if pc.Position == Goalie {
 		agility = 0
 		stickCheck = 0
 		bodyCheck = 0
@@ -144,18 +160,25 @@ func handleDefensiveGoalZoneEvents(gs *GameState) {
 		if !isHome {
 			newZone = AwayZone
 		}
+		_, zoneEnum := getZoneID(newZone, gs.HomeTeamID, gs.AwayTeamID)
 		gs.SetNewZone(newZone)
+		RecordPlay(gs, FaceoffID, GoalieHoldID, zoneEnum, 0, 0, 0, 0, 0, false, pc.ID, 0, 0, 0, pc.ID, false)
 		HandleFaceoff(gs)
 	} else if dr <= stickCheckCutoff {
 		handleDefenseCheck(gs, true)
+		return
 	} else if dr <= bodyCheckCutoff {
 		handleDefenseCheck(gs, false)
+		return
 	} else if dr <= passCheckCutoff {
 		handlePassCheck(gs)
+		return
 	} else if dr <= agilityCutoff {
 		handleAgilityCheck(gs)
+		return
 	} else if dr <= penaltyCutoff {
 		handlePenalties(gs)
+		return
 	}
 }
 
@@ -179,14 +202,19 @@ func handleDefensiveZoneEvents(gs *GameState) {
 	dr := util.GenerateFloatFromRange(1, float64(totalSkill))
 	if dr <= stickCheckCutoff {
 		handleDefenseCheck(gs, true)
+		return
 	} else if dr <= bodyCheckCutoff {
 		handleDefenseCheck(gs, false)
+		return
 	} else if dr <= passCheckCutoff {
 		handlePassCheck(gs)
+		return
 	} else if dr <= agilityCutoff {
 		handleAgilityCheck(gs)
+		return
 	} else if dr <= penaltyCutoff {
 		handlePenalties(gs)
+		return
 	}
 }
 
@@ -210,44 +238,58 @@ func handleNeutralZoneEvents(gs *GameState) {
 	dr := util.GenerateFloatFromRange(1, float64(totalSkill))
 	if dr <= stickCheckCutoff {
 		handleDefenseCheck(gs, true)
+		return
 	} else if dr <= bodyCheckCutoff {
 		handleDefenseCheck(gs, false)
+		return
 	} else if dr <= passCheckCutoff {
 		handlePassCheck(gs)
+		return
 	} else if dr <= agilityCutoff {
 		handleAgilityCheck(gs)
+		return
 	} else if dr <= penaltyCutoff {
 		handlePenalties(gs)
+		return
 	}
 }
 
 // handleDefenseCheck -- For preventing the defense from getting the puck
 func handleDefenseCheck(gs *GameState, isStickCheck bool) {
-	pb := gs.PuckCarrier
+	pc := gs.PuckCarrier
 	// Select player on defense
-	defendingTeamID := getDefendingTeamID(uint(pb.TeamID), gs.HomeTeamID, gs.AwayTeamID)
+	defendingTeamID := getDefendingTeamID(uint(pc.TeamID), gs.HomeTeamID, gs.AwayTeamID)
 	defender := selectDefendingPlayer(gs, defendingTeamID)
-
+	eventID := DexDefenseCheckID
+	if !isStickCheck {
+		eventID = PhysDefenseCheckID
+	}
+	secondsConsumed := util.GenerateIntFromRange(2, 4)
+	gs.SetSecondsConsumed(uint16(secondsConsumed))
 	chance := CalculatePenaltyChance()
 	if chance {
-		shouldReturn := handlePenalty(gs, !isStickCheck, defender)
+		shouldReturn := handlePenalty(gs, !isStickCheck, defender, eventID, pc.ID)
 		if shouldReturn {
 			return
 		}
 	}
 	diceRoll := util.GenerateIntFromRange(1, 20)
+	outcomeID := CarrierKeepsPuckID
 
 	// Critical checks
 	if diceRoll == CritFail {
 		// Defender gets puck
+		outcomeID = DefenseTakesPuckID
+		RecordPlay(gs, eventID, outcomeID, 0, 0, 0, 0, 0, 0, false, pc.ID, 0, 0, defender.ID, 0, false)
 		gs.SetPuckBearer(defender)
 		return
 	} else if diceRoll == CritSuccess {
 		// Defense DOES NOT get puck
+		RecordPlay(gs, eventID, outcomeID, 0, 0, 0, 0, 0, 0, false, pc.ID, 0, 0, defender.ID, 0, false)
 		return
 	} else {
 		// Determine if physical check or non-physical check
-		puckHandling := DiffReq + pb.HandlingMod
+		puckHandling := DiffReq + pc.HandlingMod
 		if isStickCheck {
 			puckHandling -= defender.StickCheckMod
 		} else {
@@ -255,16 +297,15 @@ func handleDefenseCheck(gs *GameState, isStickCheck bool) {
 		}
 
 		puckHandling = math.Max(puckHandling, 1.0)
-
 		if float64(diceRoll) < puckHandling {
 			// fmt.Println(pb.Team + " " + pb.FirstName + " " + pb.LastName + " holds onto the puck!")
 		} else {
 			// Logger(defender.FirstName + " GETS THE PUCK FOR " + defender.Team + "!")
+			outcomeID = DefenseTakesPuckID
 			gs.SetPuckBearer(defender)
 		}
+		RecordPlay(gs, eventID, outcomeID, 0, 0, 0, 0, 0, 0, false, pc.ID, 0, 0, defender.ID, 0, false)
 	}
-	secondsConsumed := util.GenerateIntFromRange(2, 4)
-	gs.SetSecondsConsumed(uint16(secondsConsumed))
 }
 
 func handleAgilityCheck(gs *GameState) {
@@ -278,15 +319,19 @@ func handleAgilityCheck(gs *GameState) {
 	critCheck := util.GenerateIntFromRange(1, 20)
 	secondsConsumed := util.GenerateIntFromRange(1, 4)
 	defenseCheck := true
+	isBreakaway := false
 	if critCheck == CritFail {
 		secondsConsumed += 3
 	} else if critCheck == CritSuccess || float64(critCheck) > DiffReq+agilityMod+momentumMod {
 		defenseCheck = false
 	}
 	if critCheck == CritSuccess {
+		isBreakaway = true
 		gs.TriggerBreakaway()
 	}
-
+	gs.SetSecondsConsumed(uint16(secondsConsumed))
+	eventId := AgilityCheckID
+	_, nextZoneEnum := getZoneID(nextZone, gs.HomeTeamID, gs.AwayTeamID)
 	if defenseCheck {
 		defendingTeamID := getDefendingTeamID(uint(pb.TeamID), gs.HomeTeamID, gs.AwayTeamID)
 		defender := selectDefendingPlayer(gs, defendingTeamID)
@@ -303,7 +348,7 @@ func handleAgilityCheck(gs *GameState) {
 		if chance {
 			// Logger("Defensive Stick Check in " + gs.PuckLocation + ".")
 			// Logger("Defensive Body Check in " + gs.PuckLocation + ".")
-			shouldReturn := handlePenalty(gs, coinFlip == Heads, defender)
+			shouldReturn := handlePenalty(gs, coinFlip == Heads, defender, eventId, pb.ID)
 			if shouldReturn {
 				return
 			}
@@ -312,9 +357,11 @@ func handleAgilityCheck(gs *GameState) {
 		puckHandling = math.Max(puckHandling, 1.0)
 
 		if float64(diceRoll) < puckHandling {
-			// fmt.Println(pb.Team + " " + pb.FirstName + " " + pb.LastName + " holds onto the puck!")
+			RecordPlay(gs, eventId, OffenseMovesUpID, nextZoneEnum, 0, 0, 0, 0, 0, false, pb.ID, 0, 0, defender.ID, 0, isBreakaway)
+			gs.SetNewZone(nextZone)
+			return
 		} else {
-			RecordPlay(gs, AgilityCheckID, DefenseStopAgilityID, 0, 0, 0, 0, pb.ID, 0, 0, defender.ID, 0, false)
+			RecordPlay(gs, eventId, DefenseStopAgilityID, 0, 0, 0, 0, 0, 0, false, pb.ID, 0, 0, defender.ID, 0, false)
 			gs.SetPuckBearer(defender)
 			// Logger(defender.FirstName + " GETS THE PUCK FOR " + defender.Team + "!")
 			return
@@ -323,12 +370,11 @@ func handleAgilityCheck(gs *GameState) {
 
 	// Logger(pb.FirstName + " " + pb.LastName + " moves up to " + nextZone + "!")
 	// Move up zone
+	RecordPlay(gs, eventId, OffenseMovesUpID, uint8(nextZoneEnum), 0, 0, 0, 0, 0, false, pb.ID, 0, 0, 0, 0, isBreakaway)
 	gs.SetNewZone(nextZone)
-	// Seconds consumed
-	gs.SetSecondsConsumed(uint16(secondsConsumed))
 }
 
-func handlePenalty(gs *GameState, isBodyCheck bool, defender GamePlayer) bool {
+func handlePenalty(gs *GameState, isBodyCheck bool, defender GamePlayer, eventID uint8, pcId uint) bool {
 	zoneID := 0
 	switch gs.PuckLocation {
 	case HomeGoal, AwayGoal:
@@ -344,6 +390,8 @@ func handlePenalty(gs *GameState, isBodyCheck bool, defender GamePlayer) bool {
 	}
 
 	if penalty.PenaltyID > 0 {
+		sevId := GetSeverityID(penalty.Severity)
+		RecordPlay(gs, eventID, uint8(penalty.PenaltyID), 0, 0, 0, 0, uint8(penalty.PenaltyID), sevId, penalty.IsFight, pcId, 0, 0, defender.ID, 0, false)
 		ApplyPenalty(gs, penalty, defender)
 		return true
 	}
@@ -361,8 +409,8 @@ func handlePassCheck(gs *GameState) {
 	safePass := CalculateSafePass(pb.PassMod, defender.StickCheckMod)
 
 	if !safePass {
-		RecordPlay(gs, PassCheckID, InterceptedPassID, 0, 0, 0, 0, pb.ID, 0, 0, defender.ID, 0, false)
 		gs.SetPuckBearer(defender)
+		RecordPlay(gs, PassCheckID, InterceptedPassID, 0, 0, 0, 0, 0, 0, false, pb.ID, 0, 0, defender.ID, 0, false)
 		// Logger(defender.FirstName + " INTERCEPTS THE PASS FOR " + defender.Team + "!")
 		return
 	}
@@ -376,7 +424,7 @@ func handlePassCheck(gs *GameState) {
 	HandleMissingPlayer(*retrievingPlayer, "PASSING PUCK")
 	secondsConsumed := util.GenerateIntFromRange(1, 3)
 	gs.SetSecondsConsumed(uint16(secondsConsumed))
-	RecordPlay(gs, PassCheckID, InterceptedPassID, 0, 0, 0, 0, pb.ID, receivingPlayer, 0, defender.ID, 0, false)
+	RecordPlay(gs, PassCheckID, ReceivedPassID, 0, 0, 0, 0, 0, 0, false, pb.ID, receivingPlayer, 0, defender.ID, 0, false)
 	gs.SetPuckBearer(*retrievingPlayer)
 	// Logger(pb.FirstName + " PASSES THE PUCK TO " + retrievingPlayer.FirstName + " " + retrievingPlayer.LastName + "!")
 }
@@ -411,7 +459,8 @@ func handlePenalties(gs *GameState) {
 	if penalty.PenaltyID == 0 {
 		return
 	}
-	RecordPlay(gs, PenaltyCheckID, penaltyTypeID, 0, 0, 0, uint8(penalty.PenaltyID), pb.ID, 0, 0, player.ID, secondPlayer.ID, false)
+	sevId := GetSeverityID(penalty.Severity)
+	RecordPlay(gs, PenaltyCheckID, penaltyTypeID, 0, 0, 0, 0, uint8(penalty.PenaltyID), sevId, penalty.IsFight, pb.ID, 0, 0, player.ID, secondPlayer.ID, false)
 
 	// Apply Penalty to Player
 	ApplyPenalty(gs, penalty, player)
@@ -443,10 +492,10 @@ func HandleFaceoff(gs *GameState) {
 		gs.SetFaceoffOnCenterIce(false)
 	}
 	// Select player who gets puck after faceoff
-	HandleFaceoffRetrieval(gs, homeFaceoffWin, uint(faceOffWinID))
+	HandleFaceoffRetrieval(gs, homeFaceoffWin, uint(faceOffWinID), homeCenter.ID, awayCenter.ID)
 }
 
-func HandleFaceoffRetrieval(gs *GameState, homeFaceoffWin bool, faceoffWinID uint) {
+func HandleFaceoffRetrieval(gs *GameState, homeFaceoffWin bool, faceoffWinID, homeCenterID, awayCenterID uint) {
 	puckLocation := NeutralZone
 	playerList := []GamePlayer{}
 	// Get Available Players in Home Forward Line
@@ -465,7 +514,7 @@ func HandleFaceoffRetrieval(gs *GameState, homeFaceoffWin bool, faceoffWinID uin
 	if !homeFaceoffWin {
 		outcomeID = AwayFaceoffWinID
 	}
-	RecordPlay(gs, FaceoffID, outcomeID, 0, 0, 0, 0, retrievingPlayer.ID, 0, 0, 0, 0, false)
+	RecordPlay(gs, FaceoffID, outcomeID, 0, 0, 0, 0, 0, 0, false, homeCenterID, awayCenterID, retrievingPlayer.ID, 0, 0, false)
 	// Logger(retrievingPlayer.Team + " gets the puck from the faceoff with " + retrievingPlayer.FirstName + " " + retrievingPlayer.LastName + " in possession!")
 }
 
@@ -490,17 +539,12 @@ func HandleReboundAfterShot(gs *GameState, eventID uint8, outcomeID uint8, puckC
 	reboundingPlayer, _ := findPlayerByID(reboundPlayerList, reboundCheck)
 	HandleMissingPlayer(*reboundingPlayer, "REBOUNDING AFTER SHOT")
 	// Record Play after inaccurate shot
-	RecordPlay(gs, eventID, outcomeID, 0, 0, 0, 0, puckCarrierID, reboundingPlayer.ID, 0, 0, goalieID, false)
+	RecordPlay(gs, eventID, outcomeID, 0, 0, 0, 0, 0, 0, false, puckCarrierID, reboundingPlayer.ID, 0, 0, goalieID, false)
 	gs.SetPuckBearer(*reboundingPlayer)
 	// Logger(reboundingPlayer.FirstName + " " + reboundingPlayer.LastName + " gets the puck for " + reboundingPlayer.Team + " on the rebound!")
 }
 
 func HandleShot(gs *GameState, isCloseShot bool) {
-	if isCloseShot {
-		// Logger("CLOSE SHOT EVENT")
-	} else {
-		// Logger("LONG SHOT EVENT")
-	}
 	pb := gs.PuckCarrier
 	isHome := pb.TeamID == uint16(gs.HomeTeamID)
 	goalie := GamePlayer{}
@@ -512,32 +556,32 @@ func HandleShot(gs *GameState, isCloseShot bool) {
 	goalKeepingMod := 0.0
 	eventTypeID := SlapshotCheckID
 	if isCloseShot {
-		accuracy = int(pb.SlapshotAccMod)
-		power = int(pb.SlapshotMod)
+		accuracy = int(pb.CloseShotAccMod)
+		power = int(pb.CloseShotPowerMod)
 		goalieMod = goalie.StrengthMod
 		goalKeepingMod = goalie.GoalkeepingMod
 	} else {
 		eventTypeID = WristshotCheckID
-		accuracy = int(pb.WristShotAccMod)
-		power = int(pb.WristShotMod)
+		accuracy = int(pb.LongShotAccMod)
+		power = int(pb.LongShotPowerMod)
 		goalieMod = goalie.AgilityMod
 		goalKeepingMod = float64(goalie.GoalieVision)
-
-		// Detect shotblocking
-		defendingTeamID := getDefendingTeamID(uint(pb.TeamID), gs.HomeTeamID, gs.AwayTeamID)
-		defender := selectBlockingPlayer(gs, defendingTeamID)
-		shotBlocked := CalculateShotBlock(defender.ShotblockingMod)
-		if shotBlocked {
-			secondsConsumed := util.GenerateIntFromRange(2, 5)
-			gs.SetSecondsConsumed(uint16(secondsConsumed))
-			RecordPlay(gs, eventTypeID, ShotBlockedID, 0, 0, 0, 0, pb.ID, 0, 0, defender.ID, goalie.ID, false)
-			gs.SetPuckBearer(defender)
-			return
-		}
 	}
+
+	// Seconds Consumed
 	secondsConsumed := util.GenerateIntFromRange(2, 5)
 	gs.SetSecondsConsumed(uint16(secondsConsumed))
-	accuracyCheck := CalculateAccuracy(float64(accuracy))
+
+	// Detect shotblocking
+	defendingTeamID := getDefendingTeamID(uint(pb.TeamID), gs.HomeTeamID, gs.AwayTeamID)
+	defender := selectBlockingPlayer(gs, defendingTeamID)
+	shotBlocked := CalculateShotBlock(defender.ShotblockingMod)
+	if shotBlocked {
+		RecordPlay(gs, eventTypeID, ShotBlockedID, 0, 0, 0, 0, 0, 0, false, pb.ID, 0, 0, defender.ID, goalie.ID, false)
+		gs.SetPuckBearer(defender)
+		return
+	}
+	accuracyCheck := CalculateAccuracy(float64(accuracy), isCloseShot)
 	if !accuracyCheck {
 		// Might need to record who gets the rebound...
 		HandleReboundAfterShot(gs, eventTypeID, InAccurateShotID, pb.ID, goalie.ID)
@@ -545,7 +589,7 @@ func HandleShot(gs *GameState, isCloseShot bool) {
 		return
 	}
 
-	baseCheck := 17.25
+	baseCheck := 17.125
 	// If Overtime, open more opportunities for shooting
 	if gs.IsOvertime {
 		baseCheck -= 0.75
@@ -560,16 +604,20 @@ func HandleShot(gs *GameState, isCloseShot bool) {
 
 	if shotAttempt {
 		// fmt.Println("SCORE BY " + pb.FirstName + " " + pb.LastName + " for " + pb.Team + "!")
-		RecordPlay(gs, eventTypeID, ShotOnGoalID, 0, 0, 0, 0, pb.ID, 0, gs.AssistingPlayer.ID, 0, goalie.ID, false)
+		RecordPlay(gs, eventTypeID, ShotOnGoalID, 0, 0, 0, 0, 0, 0, false, pb.ID, 0, gs.AssistingPlayer.ID, 0, goalie.ID, false)
 		gs.IncrementScore(isHome)
 		goalie.Stats.AddShotAgainst(true)
 	} else {
 		gs.AddShots(isHome)
 		goalie.Stats.AddShotAgainst(false)
 		pb.Stats.AddShot(false, false, false, false, false)
-		RecordPlay(gs, eventTypeID, GoalieSaveID, 0, 0, 0, 0, pb.ID, 0, gs.AssistingPlayer.ID, 0, goalie.ID, false)
+		if gs.PuckLocation == HomeZone {
+			gs.SetNewZone(HomeGoal)
+		} else if gs.PuckLocation == AwayZone {
+			gs.SetNewZone(AwayGoal)
+		}
+		RecordPlay(gs, eventTypeID, GoalieSaveID, 0, 0, 0, 0, 0, 0, false, pb.ID, 0, gs.AssistingPlayer.ID, 0, goalie.ID, false)
 		gs.SetPuckBearer(goalie)
-		// fmt.Println("SAVE BY " + goalie.Team + " " + goalie.FirstName + " " + goalie.LastName + "!")
 	}
 }
 
@@ -579,15 +627,27 @@ func HandleShootoutAttempt(gs *GameState) {
 	goalie := GamePlayer{}
 	goalieStrategy := gs.GetLineStrategy(!isHome, 3)
 	goalie = goalieStrategy.Players[0]
-	accuracy := int(pb.SlapshotAccMod)
-	power := int(pb.SlapshotMod)
+	slapPower := pb.CloseShotAccuracy + pb.CloseShotPower
+	wsPower := pb.LongShotPower + pb.LongShotAccuracy
+	accuracy := int(pb.CloseShotAccMod)
+	power := int(pb.CloseShotPowerMod)
+	isSlapshot := true
+	if wsPower > slapPower {
+		isSlapshot = false
+		accuracy = int(pb.LongShotAccMod)
+		power = int(pb.LongShotPowerMod)
+	}
+
+	accuracyCheck := CalculateAccuracy(float64(accuracy), isSlapshot)
+	if !accuracyCheck {
+		return
+	}
+
 	goalieMod := goalie.StrengthMod
 	goalKeepingMod := goalie.GoalkeepingMod
-
-	accuracyCheck := CalculateAccuracy(float64(accuracy))
-	if !accuracyCheck {
-		// If fails the accuracy check, add stat, then return
-		return
+	if !isSlapshot {
+		goalieMod = goalie.AgilityMod
+		goalKeepingMod = goalie.GoalieVisionMod
 	}
 
 	baseCheck := 12.0
@@ -625,43 +685,15 @@ func HandleOvertimeShootout(gs *GameState) {
 func formShootoutQueue(homeGP, awayGP GamePlaybook) []GamePlayer {
 	queue := []GamePlayer{}
 
-	homeForwards := homeGP.Forwards
-	awayForwards := awayGP.Forwards
-	homeDefenders := homeGP.Defenders
-	awayDefenders := awayGP.Defenders
-	homeBench := homeGP.BenchPlayers
-	awayBench := awayGP.BenchPlayers
+	homeLineup := getShootoutLineup(homeGP)
+	awayLineup := getShootoutLineup(awayGP)
 
-	// Loop through forward lines
-	// Each team has the same number of lines AND players
-	for i := 0; i < len(homeForwards); i++ {
-		hFLine := homeForwards[i]
-		aFLine := awayForwards[i]
-		for j := 0; j < len(hFLine.Players); j++ {
-			homePlayer := hFLine.Players[j]
-			awayPlayer := aFLine.Players[j]
-			queue = append(queue, homePlayer)
-			queue = append(queue, awayPlayer)
-		}
-	}
-
-	// Add defending players
-	for i := 0; i < len(homeDefenders); i++ {
-		hFLine := homeDefenders[i]
-		aFLine := awayDefenders[i]
-		for j := 0; j < len(hFLine.Players); j++ {
-			homePlayer := hFLine.Players[j]
-			awayPlayer := aFLine.Players[j]
-			queue = append(queue, homePlayer)
-			queue = append(queue, awayPlayer)
-		}
-	}
-
-	// Add Bench. Because the bench size may vary,
-	// only loop based on the smallest size of bench
-	for i := 0; i < len(homeBench) && i < len(awayBench); i++ {
-		homePlayer := homeBench[i]
-		awayPlayer := awayBench[i]
+	// Loop through the same 6 shooters
+	for i := 0; i < len(homeLineup); i++ {
+		homePlayer := homeLineup[i]
+		HandleMissingPlayer(homePlayer, "SHOOTOUT QUEUE, INDEX "+strconv.Itoa(i))
+		awayPlayer := awayLineup[i]
+		HandleMissingPlayer(awayPlayer, "SHOOTOUT QUEUE, INDEX "+strconv.Itoa(i))
 		queue = append(queue, homePlayer)
 		queue = append(queue, awayPlayer)
 	}
@@ -669,19 +701,59 @@ func formShootoutQueue(homeGP, awayGP GamePlaybook) []GamePlayer {
 	return queue
 }
 
-func RecordPlay(gs *GameState, eventID, outcomeID, injuryID, injuryType, injuryDuration, penaltyID uint8, pcID, ppID, apID, dpID, gpID uint, isBreakaway bool) {
-	pc := gs.PuckCarrier
-	zoneID := getZoneID(gs.PuckLocation, gs.HomeTeamID, gs.AwayTeamID)
+func getShootoutLineup(gp GamePlaybook) []GamePlayer {
+	lineupIDs := gp.ShootoutLineUp
+	forwards := gp.Forwards
+	defenders := gp.Defenders
+	allPlayers := []GamePlayer{}
+	queue := []GamePlayer{}
+	s1 := GamePlayer{}
+	s2 := GamePlayer{}
+	s3 := GamePlayer{}
+	s4 := GamePlayer{}
+	s5 := GamePlayer{}
+	s6 := GamePlayer{}
+	for _, f := range forwards {
+		allPlayers = append(allPlayers, f.Players...)
+	}
+	for _, d := range defenders {
+		allPlayers = append(allPlayers, d.Players...)
+	}
+
+	for _, p := range allPlayers {
+		if p.ID == lineupIDs.Shooter1ID {
+			s1 = p
+		} else if p.ID == lineupIDs.Shooter2ID {
+			s2 = p
+		} else if p.ID == lineupIDs.Shooter3ID {
+			s3 = p
+		} else if p.ID == lineupIDs.Shooter4ID {
+			s4 = p
+		} else if p.ID == lineupIDs.Shooter5ID {
+			s5 = p
+		} else if p.ID == lineupIDs.Shooter6ID {
+			s6 = p
+		}
+	}
+
+	queue = append(queue, s1, s2, s3, s4, s5, s6)
+
+	return queue
+}
+
+func RecordPlay(gs *GameState, eventID, outcomeID, nextZoneID, injuryID, injuryType, injuryDuration, penaltyID, severity uint8, isFight bool, pcID, ppID, apID, dpID, gpID uint, isBreakaway bool) {
+	_, zoneID := getZoneID(gs.PuckLocation, gs.HomeTeamID, gs.AwayTeamID)
 	play := structs.PlayByPlay{
 		Period:            gs.Period,
 		TimeOnClock:       gs.TimeOnClock,
 		SecondsConsumed:   uint8(gs.SecondsConsumed),
 		EventID:           eventID,
 		ZoneID:            uint8(zoneID),
+		NextZoneID:        nextZoneID,
 		Outcome:           outcomeID,
 		HomeTeamScore:     gs.HomeTeamScore,
 		AwayTeamScore:     gs.AwayTeamScore,
-		TeamID:            uint8(pc.TeamID),
+		TeamID:            uint8(gs.PossessingTeam),
 		PuckCarrierID:     pcID,
 		PassedPlayerID:    ppID,
 		AssistingPlayerID: apID,
@@ -691,6 +763,8 @@ func RecordPlay(gs *GameState, eventID, outcomeID, injuryID, injuryType, injuryD
 		InjuryType:        injuryType,
 		InjuryDuration:    injuryDuration,
 		PenaltyID:         penaltyID,
+		IsFight:           false,
+		Severity:          severity,
 		IsBreakaway:       isBreakaway,
 	}
 

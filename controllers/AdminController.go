@@ -22,7 +22,13 @@ func TestEngine(w http.ResponseWriter, r *http.Request) {
 }
 
 func GenerateTestData(w http.ResponseWriter, r *http.Request) {
-	managers.ImportTeams()
+	managers.GenerateTestRosters()
+
+	json.NewEncoder(w).Encode("Data Generated ran!")
+}
+
+func GenerateProTestData(w http.ResponseWriter, r *http.Request) {
+	managers.GenerateTestProPool()
 
 	json.NewEncoder(w).Encode("Data Generated ran!")
 }

@@ -1,0 +1,130 @@
+{
+  "Angermanland": [
+    { "City": "Ornskoldsvik", "HighSchool": "MODO Hockey U18" },
+    { "City": "Solleftea", "HighSchool": "Solleftea HK U18" }
+  ],
+  "Blekinge": [
+    { "City": "Karlskrona", "HighSchool": "Karlskrona HK U18" },
+    { "City": "Karlshamn", "HighSchool": "Morrums GOls HK U18" }
+  ],
+  "Bohuslan": [
+    { "City": "Uddevalla", "HighSchool": "Uddevalla HK U18" },
+    { "City": "Lysekil", "HighSchool": "Lysekils HK U18" }
+  ],
+  "Dalarna": [
+    { "City": "Leksand", "HighSchool": "Leksands IF U18" },
+    { "City": "Mora", "HighSchool": "Mora IK U18" }
+  ],
+  "Dalsland": [{ "City": "Amal", "HighSchool": "Amals SK U18" }],
+  "Gastrikland": [
+    { "City": "Gavle", "HighSchool": "Brynas IF U18" },
+    { "City": "Sandviken", "HighSchool": "Sandvikens HK U18" }
+  ],
+  "Gotland": [
+    { "City": "Visby", "HighSchool": "Visby/Roma HK U18" },
+    { "City": "Roma", "HighSchool": "Visby/Roma HK U18" }
+  ],
+  "Halland": [
+    { "City": "Halmstad", "HighSchool": "Halmstad Hammers HC U18" },
+    { "City": "Varbergs", "HighSchool": "Varbergs HK U18" }
+  ],
+  "Halsingland": [
+    { "City": "Hudiksvall", "HighSchool": "Hudiksvalls HC U18" },
+    { "City": "Bollnas", "HighSchool": "Bollnas IS U18" }
+  ],
+  "Harjedalen": [{ "City": "Sveg", "HighSchool": "Svegs IK U18" }],
+  "Jamtland": [
+    { "City": "Ostersund", "HighSchool": "Ostersunds IK U18" },
+    { "City": "Krokom", "HighSchool": "Krokoms SK U18" }
+  ],
+  "Lappland": [
+    { "City": "Kiruna", "HighSchool": "Kiruna IF U18" },
+    { "City": "Gallivare", "HighSchool": "Gallivare SK U18" }
+  ],
+  "Medelpad": [
+    { "City": "Sundsvall", "HighSchool": "Sundsvall HK U18" },
+    { "City": "Timra", "HighSchool": "Timra IK U18" }
+  ],
+  "Narke": [
+    { "City": "Orebro", "HighSchool": "Orebro HK U18" },
+    { "City": "Kumla", "HighSchool": "Kumla HC U18" }
+  ],
+  "Norrbotten": [
+    { "City": "Lulea", "HighSchool": "Lulea HF U18" },
+    { "City": "Pitea", "HighSchool": "Pitea HC U18" }
+  ],
+  "Oland": [{ "City": "Borgholm", "HighSchool": "Borgholms IF U18" }],
+  "Ostergotland": [
+    { "City": "Linkoping", "HighSchool": "Linkoping HC U18" },
+    { "City": "Norrkoping", "HighSchool": "HC Vita Hasten U18" }
+  ],
+  "Skane": [
+    { "City": "Malmo", "HighSchool": "Malmo Redhawks U18" },
+    { "City": "Helsingborg", "HighSchool": "Helsingborgs HC U18" }
+  ],
+  "Smaland": [
+    { "City": "Jonkoping", "HighSchool": "HV71 U18" },
+    { "City": "Vaxjo", "HighSchool": "Vaxjo Lakers HC U18" },
+    { "City": "Kalmar", "HighSchool": "Kalmar HC U18" },
+    { "City": "Vastervik", "HighSchool": "Vasterviks IK U18" }
+  ],
+  "Sodermanland": [
+    { "City": "Eskiltuna", "HighSchool": "Linden Hockey U18" },
+    { "City": "Nykoping", "HighSchool": "Nykopings SK U18" },
+    { "City": "Katrineholm", "HighSchool": "Katrineholms HF U18" }
+  ],
+  "Uppland": [
+    { "City": "Uppsala", "HighSchool": "Almtuna IS U18" },
+    { "City": "Enkopings", "HighSchool": "Enkopings SK HK U18" },
+    { "City": "Stockholm", "HighSchool": "Djurgardens IF U18" },
+    { "City": "Stockholm", "HighSchool": "AIK IF U18" },
+    { "City": "Stockholm", "HighSchool": "Hammarby IF U18" },
+    { "City": "Stockholm", "HighSchool": "SDE HF U18" },
+    { "City": "Stockholm", "HighSchool": "Nacka HK U18" },
+    { "City": "Stockholm", "HighSchool": "Haninge Anchors HC U18" },
+    { "City": "Stockholm", "HighSchool": "Sollentuna HC U18" },
+    { "City": "Stockholm", "HighSchool": "Vallentuna BK U18" },
+    { "City": "Stockholm", "HighSchool": "Täby HC U18" },
+    { "City": "Stockholm", "HighSchool": "Lidingö Vikings HC U18" },
+    { "City": "Stockholm", "HighSchool": "IFK Tumba IK U18" },
+    { "City": "Stockholm", "HighSchool": "Flemingsbergs IK U18" },
+    { "City": "Stockholm", "HighSchool": "Järfälla HC U18" },
+    { "City": "Stockholm", "HighSchool": "Värmdö HC U18" },
+    { "City": "Stockholm", "HighSchool": "Boo HC U18" },
+    { "City": "Stockholm", "HighSchool": "Saltsjöbadens IF U18" },
+    { "City": "Stockholm", "HighSchool": "Spånga IS IK U18" },
+    { "City": "Stockholm", "HighSchool": "Ekerö IK U18" },
+    { "City": "Stockholm", "HighSchool": "Göta Traneberg IK U18" },
+    { "City": "Stockholm", "HighSchool": "Kista HC U18" },
+    { "City": "Stockholm", "HighSchool": "Sundbybergs IK U18" },
+    { "City": "Stockholm", "HighSchool": "Waxholm HC U18" },
+    { "City": "Stockholm", "HighSchool": "Nynäshamns IF HC U18" },
+    { "City": "Stockholm", "HighSchool": "Farsta IF U18" },
+    { "City": "Stockholm", "HighSchool": "Trångsunds IF U18" },
+    { "City": "Stockholm", "HighSchool": "Viggbyholms IK U18" },
+    { "City": "Stockholm", "HighSchool": "Åkersberga IBF U18" },
+    { "City": "Stockholm", "HighSchool": "Bro IK U18" },
+    { "City": "Stockholm", "HighSchool": "Bålsta HC U18" },
+    { "City": "Stockholm", "HighSchool": "Sigtuna IF U18" },
+    { "City": "Stockholm", "HighSchool": "Rosersbergs IK U18" },
+    { "City": "Stockholm", "HighSchool": "Arlanda Wings HC U18" }
+  ],
+  "Varmland": [
+    { "City": "Karlstad", "HighSchool": "Farjestad BK U18" },
+    { "City": "Arvika", "HighSchool": "Arvika HC U18" }
+  ],
+  "Vasterbotten": [
+    { "City": "Umea", "HighSchool": "Bjorkloven U18" },
+    { "City": "Skelleftea", "HighSchool": "Skelleftea AIK U18" }
+  ],
+  "Vastergotland": [
+    { "City": "Gothenburg", "HighSchool": "Frolunda HC U18" },
+    { "City": "Gothenburg", "HighSchool": "Foxes U18" },
+    { "City": "Boras", "HighSchool": "Boras HC U18" },
+    { "City": "Skovde", "HighSchool": "Skovde IK U18" }
+  ],
+  "Vastmanland": [
+    { "City": "Vasteras", "HighSchool": "Vasteras IK U18" },
+    { "City": "Koping", "HighSchool": "Koping HC U18" }
+  ]
+}

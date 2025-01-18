@@ -33,6 +33,8 @@ type BaseGame struct {
 	IsPlayoffGame   bool
 	IsRivalryGame   bool
 	GameComplete    bool
+	IsOvertime      bool
+	IsShootout      bool
 	GameTitle       string // For rivalry match-ups, bowl games, championships, and more
 	NextGameID      uint
 	NextGameHOA     string

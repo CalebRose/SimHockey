@@ -52,23 +52,26 @@ func (p *Provider) InitDatabase() bool {
 	// db.AutoMigrate(&structs.CollegePlayerGameStats{})
 	// db.AutoMigrate(&structs.CollegePlayerSeasonStats{})
 	// db.AutoMigrate(&structs.CollegeLineup{})
+	// db.AutoMigrate(&structs.CollegeShootoutLineup{})
 	// db.AutoMigrate(&structs.CollegeTeam{})
 	// db.AutoMigrate(&structs.CollegeTeamSeasonStats{})
 	// db.AutoMigrate(&structs.CollegeTeamGameStats{})
 	// db.AutoMigrate(&structs.CollegeGame{})
 
-	// //
-	// // Professional
+	// Professional
+	// db.AutoMigrate(&structs.ProfessionalTeam{})
+	// db.AutoMigrate(&structs.ProfessionalTeamFranchise{})
 	// db.AutoMigrate(&structs.ProfessionalPlayer{})
 	// db.AutoMigrate(&structs.RetiredPlayer{})
 	// db.AutoMigrate(&structs.ProfessionalLineup{})
+	// db.AutoMigrate(&structs.ProfessionalShootoutLineup{})
 	// db.AutoMigrate(&structs.ProfessionalGame{})
 
-	// //
-	// // Recruiting
+	// Recruiting
 	// db.AutoMigrate(&structs.Recruit{})
-	// // Administrative
+	// Administrative
 	// db.AutoMigrate(&structs.Arena{})
+	// db.AutoMigrate(&structs.GlobalPlayer{})
 	// db.AutoMigrate(&structs.Timestamp{})
 	return true
 }

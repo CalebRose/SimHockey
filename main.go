@@ -72,7 +72,8 @@ func handleRequests() http.Handler {
 	// Admin
 	apiRouter.HandleFunc("/admin/ai/generate/lineups/", controllers.RunAILineups).Methods("GET")
 	apiRouter.HandleFunc("/admin/test/engine/", controllers.TestEngine).Methods("GET")
-	apiRouter.HandleFunc("/admin/generate/test/rosters/", controllers.GenerateTestData).Methods("GET")
+	apiRouter.HandleFunc("/admin/generate/test/college/rosters/", controllers.GenerateTestData).Methods("GET")
+	apiRouter.HandleFunc("/admin/generate/test/pro/rosters/", controllers.GenerateProTestData).Methods("GET")
 
 	// Websocket
 	myRouter.HandleFunc("/ws", ws.WebSocketHandler)

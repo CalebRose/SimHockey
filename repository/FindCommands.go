@@ -105,7 +105,30 @@ func FindCollegeLineupsByTeamID(TeamID string) []structs.CollegeLineup {
 	err := db.Where("team_id = ?", TeamID).Find(&lineups).Error
 	if err != nil {
 		log.Printf("Error querying for college teams: %v", err)
+	}
 
+	return lineups
+}
+
+func FindAllCollegeShootoutLineups() []structs.CollegeShootoutLineup {
+	db := dbprovider.GetInstance().GetDB()
+
+	var lineups []structs.CollegeShootoutLineup
+	err := db.Find(&lineups).Error
+	if err != nil {
+		log.Printf("Error querying for college lineups: %v", err)
+	}
+
+	return lineups
+}
+
+func FindCollegeShootoutLineupByTeamID(TeamID string) structs.CollegeShootoutLineup {
+	db := dbprovider.GetInstance().GetDB()
+
+	var lineups structs.CollegeShootoutLineup
+	err := db.Where("team_id = ?", TeamID).Find(&lineups).Error
+	if err != nil {
+		log.Printf("Error querying for college shootout lineups: %v", err)
 	}
 
 	return lineups
@@ -137,6 +160,42 @@ func FindProfessionalGamesByCurrentMatchup(weekID, seasonID, gameDay string) []s
 	return games
 }
 
+func FindCollegeGames(seasonID, teamID string) []structs.CollegeGame {
+	db := dbprovider.GetInstance().GetDB()
+
+	var games []structs.CollegeGame
+
+	query := db.Model(&games)
+	if len(seasonID) > 0 {
+		query = query.Where("season_id = ?", seasonID)
+	}
+	if len(teamID) > 0 {
+		query = query.Where("home_team_id = ? OR away_team_id = ?", teamID, teamID)
+	}
+	if err := query.Order("week_id asc").Find(&games).Error; err != nil {
+		return []structs.CollegeGame{}
+	}
+
+	return games
+}
+
+func FindProfessionalGames(seasonID, teamID string) []structs.ProfessionalGame {
+	db := dbprovider.GetInstance().GetDB()
+
+	var games []structs.ProfessionalGame
+	query := db.Model(&games)
+	if len(seasonID) > 0 {
+		query = query.Where("season_id = ?", seasonID)
+	}
+	if len(teamID) > 0 {
+		query = query.Where("home_team_id = ? OR away_team_id = ?", teamID, teamID)
+	}
+	if err := query.Order("week_id asc").Find(&games).Error; err != nil {
+		return []structs.ProfessionalGame{}
+	}
+	return games
+}
+
 func FindAllArenas() []structs.Arena {
 	var arenas []structs.Arena
 	db := dbprovider.GetInstance().GetDB()
@@ -145,4 +204,112 @@ func FindAllArenas() []structs.Arena {
 		log.Fatal(err)
 	}
 	return arenas
+}
+
+func FindAllCollegePolls(weekID, seasonID, username string) []structs.CollegePollSubmission {
+	db := dbprovider.GetInstance().GetDB()
+	submissions := []structs.CollegePollSubmission{}
+
+	query := db.Model(&submissions)
+
+	// Add conditional filtering based on provided parameters
+	if len(weekID) > 0 && len(seasonID) > 0 {
+		query = query.Where("week_id = ? AND season_id = ?", weekID, seasonID)
+	}
+	if len(username) > 0 {
+		query = query.Where("username = ?", username)
+	}
+
+	// Execute the query and handle errors
+	if err := query.Find(&submissions).Error; err != nil {
+		return []structs.CollegePollSubmission{}
+	}
+
+	return submissions
+}
+
+func FindAllCollegeStandings(seasonID, conferenceID, teamID string) []structs.CollegeStandings {
+	var standings []structs.CollegeStandings
+	db := dbprovider.GetInstance().GetDB()
+
+	query := db.Model(&standings)
+
+	if len(teamID) > 0 {
+		query = query.Where("team_id = ?", teamID)
+	}
+	if len(conferenceID) > 0 {
+		query = query.Where("conference_id = ?", conferenceID)
+	}
+	if len(seasonID) > 0 {
+		query = query.Where("season_id = ?", seasonID)
+	}
+
+	if err := query.Order("points desc").Order("conference_losses asc").Order("conference_wins desc").
+		Order("total_losses asc").Order("total_wins desc").Find(&standings).Error; err != nil {
+		return []structs.CollegeStandings{}
+	}
+
+	return standings
+}
+
+func FindAllProfessionalStandings(seasonID, conferenceID, teamID string) []structs.ProfessionalStandings {
+	var standings []structs.ProfessionalStandings
+	db := dbprovider.GetInstance().GetDB()
+
+	query := db.Model(&standings)
+
+	if len(teamID) > 0 {
+		query = query.Where("team_id = ?", teamID)
+	}
+	if len(conferenceID) > 0 {
+		query = query.Where("conference_id = ?", conferenceID)
+	}
+	if len(seasonID) > 0 {
+		query = query.Where("season_id = ?", seasonID)
+	}
+
+	if err := query.Order("points desc").Order("conference_losses asc").Order("conference_wins desc").
+		Order("total_losses asc").Order("total_wins desc").Find(&standings).Error; err != nil {
+		return []structs.ProfessionalStandings{}
+	}
+
+	return standings
+}
+
+func FindCollegePollSubmission(id, weekID, seasonID, username string) structs.CollegePollSubmission {
+	db := dbprovider.GetInstance().GetDB()
+
+	submission := structs.CollegePollSubmission{}
+	// Add conditional filtering based on provided parameters
+	query := db.Model(&submission)
+	if len(weekID) > 0 && len(seasonID) > 0 {
+		query = query.Where("week_id = ? AND season_id = ?", weekID, seasonID)
+	}
+	if len(username) > 0 {
+		query = query.Where("username = ?", username)
+	}
+	if len(id) > 0 {
+		query = query.Where("id = ?", id)
+	}
+
+	if err := query.Find(&submission).Error; err != nil {
+		return structs.CollegePollSubmission{}
+	}
+
+	return submission
+}
+
+func FindCollegePollOfficial(seasonID string) []structs.CollegePollOfficial {
+	db := dbprovider.GetInstance().GetDB()
+	officialPoll := []structs.CollegePollOfficial{}
+	query := db.Model(&officialPoll)
+	if len(seasonID) > 0 {
+		query = query.Where("season_id = ?", seasonID)
+	}
+
+	if err := query.Find(&officialPoll).Error; err != nil {
+		return []structs.CollegePollOfficial{}
+	}
+
+	return officialPoll
 }

@@ -39,6 +39,11 @@ func LoadLineStrategies(lines []structs.BaseLineup, rosterMap map[uint]GamePlaye
 		ls := LineStrategy{
 			Players:     players,
 			Allocations: l.Allocations,
+			CenterID:    l.CenterID,
+			Forward1ID:  l.Forward1ID,
+			Forward2ID:  l.Forward2ID,
+			Defender1ID: l.Defender1ID,
+			Defender2ID: l.Defender2ID,
 		}
 		lineStrategies = append(lineStrategies, ls)
 	}

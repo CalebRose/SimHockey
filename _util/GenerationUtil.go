@@ -3,8 +3,6 @@ package util
 import (
 	"fmt"
 	"strings"
-
-	"github.com/CalebRose/SimHockey/structs"
 )
 
 func GetPositionList() []string {
@@ -15,16 +13,19 @@ func GetPositionList() []string {
 
 func GetStarRating() int {
 	roll := GenerateIntFromRange(1, 1000)
-	if roll < 40 {
+	if roll < 2 {
+		return 6
+	}
+	if roll < 42 {
 		return 5
 	}
-	if roll < 120 {
+	if roll < 122 {
 		return 4
 	}
-	if roll < 350 {
+	if roll < 352 {
 		return 3
 	}
-	if roll < 650 {
+	if roll < 652 {
 		return 2
 	}
 	return 1
@@ -32,7 +33,7 @@ func GetStarRating() int {
 
 // Pick a US state or Canadian province for which the player is from
 func PickState() string {
-	states := []structs.Locale{
+	states := []Locale{
 		{Name: "MN", Weight: 50},
 		{Name: "MI", Weight: 45},
 		{Name: "MA", Weight: 40},
@@ -101,7 +102,7 @@ func PickState() string {
 }
 
 func PickProvince() string {
-	provinces := []structs.Locale{
+	provinces := []Locale{
 		{Name: "ON", Weight: 40},
 		{Name: "QC", Weight: 20},
 		{Name: "BC", Weight: 10},
@@ -130,6 +131,152 @@ func PickProvince() string {
 		randomWeight -= province.Weight
 	}
 	return "ON"
+}
+
+func PickSwedishRegion() string {
+	provinces := []Locale{
+		{Name: "Angermanland", Weight: 10},
+		{Name: "Blekinge", Weight: 10},
+		{Name: "Bohuslan", Weight: 10},
+		{Name: "Dalarna", Weight: 10},
+		{Name: "Dalsland", Weight: 5},
+		{Name: "Gastrikland", Weight: 8},
+		{Name: "Gotland", Weight: 5},
+		{Name: "Halland", Weight: 8},
+		{Name: "Halsingland", Weight: 6},
+		{Name: "Harjedalen", Weight: 4},
+		{Name: "Jamtland", Weight: 6},
+		{Name: "Lappland", Weight: 5},
+		{Name: "Medelpad", Weight: 8},
+		{Name: "Narke", Weight: 7},
+		{Name: "Norrbotten", Weight: 9},
+		{Name: "Oland", Weight: 3},
+		{Name: "Ostergotland", Weight: 10},
+		{Name: "Skane", Weight: 10},
+		{Name: "Smaland", Weight: 10},
+		{Name: "Sodermanland", Weight: 10},
+		{Name: "Uppland", Weight: 40},
+		{Name: "Varmland", Weight: 8},
+		{Name: "Vasterbotten", Weight: 9},
+		{Name: "Vastergotland", Weight: 10},
+		{Name: "Vastmanland", Weight: 7},
+	}
+
+	totalWeight := 0
+	for _, province := range provinces {
+		totalWeight += province.Weight
+	}
+
+	randomWeight := GenerateIntFromRange(0, totalWeight)
+	for _, province := range provinces {
+		if randomWeight < province.Weight {
+			return province.Name
+		}
+		randomWeight -= province.Weight
+	}
+	return "Uppland"
+}
+
+func PickRussianRegion() string {
+	provinces := []Locale{
+		{Name: "Adygea", Weight: 5},
+		{Name: "Altai Krai", Weight: 5},
+		{Name: "Altai Republic", Weight: 5},
+		{Name: "Amur Oblast", Weight: 5},
+		{Name: "Arkhangelsk Oblast", Weight: 5},
+		{Name: "Astrakhan Oblast", Weight: 5},
+		{Name: "Bashkortostan", Weight: 10},
+		{Name: "Belgorod Oblast", Weight: 5},
+		{Name: "Bryansk Oblast", Weight: 5},
+		{Name: "Buryatia", Weight: 5},
+		{Name: "Chechnya", Weight: 5},
+		{Name: "Chelyabinsk Oblast", Weight: 10},
+		{Name: "Chukotka Autonomous Okrug", Weight: 3},
+		{Name: "Chuvashia", Weight: 5},
+		{Name: "Dagestan", Weight: 5},
+		{Name: "Ingushetia", Weight: 3},
+		{Name: "Irkutsk Oblast", Weight: 5},
+		{Name: "Ivanovo Oblast", Weight: 5},
+		{Name: "Jewish Autonomous Oblast", Weight: 3},
+		{Name: "Kabardino-Balkaria", Weight: 5},
+		{Name: "Kaliningrad Oblast", Weight: 5},
+		{Name: "Kalmykia", Weight: 3},
+		{Name: "Kaluga Oblast", Weight: 5},
+		{Name: "Kamchatka Krai", Weight: 3},
+		{Name: "Karachay-Cherkessia", Weight: 5},
+		{Name: "Karelia", Weight: 5},
+		{Name: "Kemerovo Oblast", Weight: 8},
+		{Name: "Khabarovsk Krai", Weight: 5},
+		{Name: "Khakassia", Weight: 5},
+		{Name: "Khanty-Mansi Autonomous Okrug", Weight: 8},
+		{Name: "Kirov Oblast", Weight: 5},
+		{Name: "Komi", Weight: 5},
+		{Name: "Kostroma Oblast", Weight: 3},
+		{Name: "Krasnodar Krai", Weight: 10},
+		{Name: "Krasnoyarsk Krai", Weight: 13},
+		{Name: "Kurgan Oblast", Weight: 5},
+		{Name: "Kursk Oblast", Weight: 5},
+		{Name: "Leningrad Oblast", Weight: 8},
+		{Name: "Lipetsk Oblast", Weight: 5},
+		{Name: "Magadan Oblast", Weight: 3},
+		{Name: "Mari El", Weight: 3},
+		{Name: "Mordovia", Weight: 5},
+		{Name: "Moscow", Weight: 40},
+		{Name: "Moscow Oblast", Weight: 30},
+		{Name: "Murmansk Oblast", Weight: 5},
+		{Name: "Nenets Autonomous Okrug", Weight: 2},
+		{Name: "Nizhny Novgorod Oblast", Weight: 10},
+		{Name: "North Ossetia-Alania", Weight: 3},
+		{Name: "Novgorod Oblast", Weight: 5},
+		{Name: "Novosibirsk Oblast", Weight: 13},
+		{Name: "Omsk Oblast", Weight: 10},
+		{Name: "Orenburg Oblast", Weight: 8},
+		{Name: "Oryol Oblast", Weight: 5},
+		{Name: "Penza Oblast", Weight: 5},
+		{Name: "Perm Krai", Weight: 8},
+		{Name: "Primorsky Krai", Weight: 8},
+		{Name: "Pskov Oblast", Weight: 3},
+		{Name: "Rostov Oblast", Weight: 8},
+		{Name: "Ryazan Oblast", Weight: 5},
+		{Name: "Sakha (Yakutia)", Weight: 3},
+		{Name: "Sakhalin Oblast", Weight: 3},
+		{Name: "Samara Oblast", Weight: 10},
+		{Name: "Saratov Oblast", Weight: 5},
+		{Name: "Saint Petersburg", Weight: 30},
+		{Name: "Smolensk Oblast", Weight: 5},
+		{Name: "Stavropol Krai", Weight: 5},
+		{Name: "Sverdlovsk Oblast", Weight: 10},
+		{Name: "Tambov Oblast", Weight: 5},
+		{Name: "Tatarstan", Weight: 10},
+		{Name: "Tomsk Oblast", Weight: 5},
+		{Name: "Tuva", Weight: 3},
+		{Name: "Tula Oblast", Weight: 5},
+		{Name: "Tver Oblast", Weight: 5},
+		{Name: "Tyumen Oblast", Weight: 8},
+		{Name: "Udmurtia", Weight: 5},
+		{Name: "Ulyanovsk Oblast", Weight: 5},
+		{Name: "Vladimir Oblast", Weight: 5},
+		{Name: "Volgograd Oblast", Weight: 5},
+		{Name: "Vologda Oblast", Weight: 5},
+		{Name: "Voronezh Oblast", Weight: 8},
+		{Name: "Yamalo-Nenets Autonomous Okrug", Weight: 5},
+		{Name: "Yaroslavl Oblast", Weight: 8},
+		{Name: "Zabaykalsky Krai", Weight: 5},
+	}
+
+	totalWeight := 0
+	for _, province := range provinces {
+		totalWeight += province.Weight
+	}
+
+	randomWeight := GenerateIntFromRange(0, totalWeight)
+	for _, province := range provinces {
+		if randomWeight < province.Weight {
+			return province.Name
+		}
+		randomWeight -= province.Weight
+	}
+	return "Moscow"
 }
 
 // getStateAbbreviation returns the two-letter state abbreviation for a given state name.
@@ -230,13 +377,13 @@ func GeneratePotential(pos, arch, attr string) uint8 {
 		if arch == Enforcer && (attr == Agility || attr == Strength || attr == PuckHandling) {
 			mean += 10
 		}
-		if arch == Enforcer && (attr == SlapshotPower || attr == WristShotPower) {
+		if arch == Enforcer && (attr == CloseShotPower || attr == LongShotPower) {
 			mean -= 10
 		}
 		if arch == Grinder && (attr == BodyChecking || attr == Strength || attr == StickChecking || attr == Passing) {
 			mean += 10
 		}
-		if arch == Grinder && (attr == SlapshotPower || attr == SlapshotAccuracy || attr == WristShotPower || attr == WristShotAccuracy || attr == PuckHandling) {
+		if arch == Grinder && (attr == CloseShotPower || attr == CloseShotAccuracy || attr == LongShotPower || attr == LongShotAccuracy || attr == PuckHandling) {
 			mean -= 10
 		}
 		if arch == Playmaker && (attr == Passing || attr == PuckHandling) {
@@ -245,16 +392,16 @@ func GeneratePotential(pos, arch, attr string) uint8 {
 		if arch == Playmaker && (attr == Strength) {
 			mean -= 10
 		}
-		if arch == Power && (attr == SlapshotPower || attr == Strength) {
+		if arch == Power && (attr == CloseShotPower || attr == Strength) {
 			mean += 10
 		}
-		if arch == Power && (attr == BodyChecking || attr == StickChecking || attr == WristShotPower) {
+		if arch == Power && (attr == BodyChecking || attr == StickChecking || attr == LongShotPower) {
 			mean -= 10
 		}
-		if arch == Sniper && (attr == WristShotPower || attr == WristShotAccuracy || attr == Passing) {
+		if arch == Sniper && (attr == LongShotPower || attr == LongShotAccuracy || attr == Passing) {
 			mean += 10
 		}
-		if arch == Sniper && (attr == BodyChecking || attr == StickChecking || attr == WristShotPower) {
+		if arch == Sniper && (attr == BodyChecking || attr == StickChecking || attr == LongShotPower) {
 			mean -= 10
 		}
 		if arch == TwoWay && (attr == Passing || attr == BodyChecking || attr == StickChecking) {
@@ -270,19 +417,19 @@ func GeneratePotential(pos, arch, attr string) uint8 {
 		if arch == Defensive && (attr == BodyChecking || attr == Strength || attr == StickChecking || attr == ShotBlocking) {
 			mean += 10
 		}
-		if arch == Defensive && (attr == WristShotAccuracy || attr == WristShotPower || attr == SlapshotAccuracy || attr == SlapshotPower || attr == PuckHandling) {
+		if arch == Defensive && (attr == LongShotAccuracy || attr == LongShotPower || attr == CloseShotAccuracy || attr == CloseShotPower || attr == PuckHandling) {
 			mean -= 10
 		}
-		if arch == Offensive && (attr == WristShotAccuracy || attr == WristShotPower || attr == Passing || attr == StickChecking || attr == PuckHandling) {
+		if arch == Offensive && (attr == LongShotAccuracy || attr == LongShotPower || attr == Passing || attr == StickChecking || attr == PuckHandling) {
 			mean += 10
 		}
-		if arch == Offensive && (attr == BodyChecking || attr == Strength || attr == SlapshotAccuracy || attr == SlapshotPower || attr == ShotBlocking) {
+		if arch == Offensive && (attr == BodyChecking || attr == Strength || attr == CloseShotAccuracy || attr == CloseShotPower || attr == ShotBlocking) {
 			mean -= 10
 		}
 		if arch == TwoWay && (attr == BodyChecking || attr == Passing || attr == StickChecking) {
 			mean += 10
 		}
-		if arch == TwoWay && (attr == PuckHandling || attr == Agility || attr == SlapshotAccuracy || attr == SlapshotPower) {
+		if arch == TwoWay && (attr == PuckHandling || attr == Agility || attr == CloseShotAccuracy || attr == CloseShotPower) {
 			mean -= 10
 		}
 	} else if pos == Goalie {
@@ -393,15 +540,15 @@ func getPositionMean(pos string, venerable bool) (float64, float64) {
 func getPositionMeanMap() map[bool]map[string][]float64 {
 	return map[bool]map[string][]float64{
 		true: {
-			Center:   []float64{39, 2},
+			Center:   []float64{35, 2},
 			Forward:  []float64{32, 1},
-			Defender: []float64{35, 1},
-			Goalie:   []float64{35, 1},
+			Defender: []float64{34, 1},
+			Goalie:   []float64{34, 1},
 		},
 		false: {
-			Center:   []float64{32, 2},
-			Forward:  []float64{26, 0.67},
-			Defender: []float64{26, 0.67},
+			Center:   []float64{30, 2},
+			Forward:  []float64{28, 0.67},
+			Defender: []float64{28, 0.67},
 			Goalie:   []float64{29, 1.33},
 		},
 	}

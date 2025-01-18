@@ -35,3 +35,59 @@ func SaveCollegeLineupRecord(lineupRecord structs.CollegeLineup, db *gorm.DB) {
 		log.Panicln("Could not save college player " + strconv.Itoa(int(lineupRecord.ID)))
 	}
 }
+
+func SaveCollegeShootoutLineupRecord(lineupRecord structs.CollegeShootoutLineup, db *gorm.DB) {
+	err := db.Save(&lineupRecord).Error
+	if err != nil {
+		log.Panicln("Could not save college player " + strconv.Itoa(int(lineupRecord.TeamID)))
+	}
+}
+
+func SaveProfessionalLineupRecord(lineupRecord structs.ProfessionalLineup, db *gorm.DB) {
+	err := db.Save(&lineupRecord).Error
+	if err != nil {
+		log.Panicln("Could not save college player " + strconv.Itoa(int(lineupRecord.ID)))
+	}
+}
+
+func SaveProfessionalShootoutLineupRecord(lineupRecord structs.ProfessionalShootoutLineup, db *gorm.DB) {
+	err := db.Save(&lineupRecord).Error
+	if err != nil {
+		log.Panicln("Could not save college player " + strconv.Itoa(int(lineupRecord.TeamID)))
+	}
+}
+
+func SaveCollegeGameRecord(gameRecord structs.CollegeGame, db *gorm.DB) {
+	err := db.Save(&gameRecord).Error
+	if err != nil {
+		log.Panicln("Could not save college player " + strconv.Itoa(int(gameRecord.ID)))
+	}
+}
+
+func SaveProfessionalGameRecord(gameRecord structs.ProfessionalGame, db *gorm.DB) {
+	err := db.Save(&gameRecord).Error
+	if err != nil {
+		log.Panicln("Could not save college player " + strconv.Itoa(int(gameRecord.ID)))
+	}
+}
+
+func SaveCollegePollSubmissionRecord(pollRecord structs.CollegePollSubmission, db *gorm.DB) {
+	err := db.Save(&pollRecord).Error
+	if err != nil {
+		log.Panicln("Could not save college player " + strconv.Itoa(int(pollRecord.ID)))
+	}
+}
+
+func SaveCollegeStandingsRecord(standingsRecord structs.CollegeStandings, db *gorm.DB) {
+	err := db.Save(&standingsRecord).Error
+	if err != nil {
+		log.Panicln("Could not save college player " + strconv.Itoa(int(standingsRecord.ID)))
+	}
+}
+
+func SaveProfessionalStandingsRecord(standingsRecord structs.ProfessionalStandings, db *gorm.DB) {
+	err := db.Save(&standingsRecord).Error
+	if err != nil {
+		log.Panicln("Could not save college player " + strconv.Itoa(int(standingsRecord.ID)))
+	}
+}

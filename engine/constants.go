@@ -1,74 +1,80 @@
 package engine
 
-const HomeGoal string = "Home Goal"
-const HomeZone string = "Home Zone"
-const NeutralZone string = "Neutral Zone"
-const AwayZone string = "Away Zone"
-const AwayGoal string = "Away Goal"
-const Defender string = "D"
-const Forward string = "F"
-const Center string = "C"
-const Goalie string = "G"
-const Rebound string = "Rebound"
-const Defense string = "Defense"
-const ShotBlock string = "ShotBlock"
-const Faceoff string = "Faceoff"
-const Pass string = "Pass"
-const EasyReq float64 = 8
-const BaseReq float64 = 10
-const DiffReq float64 = 14
-const CritSuccess int = 20
-const CritFail int = 1
-const Heads int = 1
-const Tails int = 1
-const ModifierFactor float64 = 1.3 // Adjust as needed for your testing
-const ScaleFactor float64 = 1.7    // Adjust as needed for your testing
-const MinorPenalty string = "Minor Penalty"
-const MajorPenalty string = "Major Penalty"
-const Misconduct string = "Misconduct"
-const GameMisconduct string = "Game Misconduct"
-const MatchPenalty string = "Match Penalty"
-const BodyCheck string = "BodyCheck"
-const StickCheck string = "StickCheck"
-const General string = "General"
-const Fight string = "Fight"
-const ShootoutMomenumModifier float64 = 0.375
-const RegularPeriodTime uint16 = 1200
-const OvertimePeriodTime uint16 = 300
-const MaxTimeOnClock uint16 = 65000
+const (
+	HomeGoal                string  = "Home Goal"
+	HomeZone                string  = "Home Zone"
+	NeutralZone             string  = "Neutral Zone"
+	AwayZone                string  = "Away Zone"
+	AwayGoal                string  = "Away Goal"
+	Defender                string  = "D"
+	Forward                 string  = "F"
+	Center                  string  = "C"
+	Goalie                  string  = "G"
+	Rebound                 string  = "Rebound"
+	Defense                 string  = "Defense"
+	ShotBlock               string  = "ShotBlock"
+	Faceoff                 string  = "Faceoff"
+	Pass                    string  = "Pass"
+	EasyReq                 float64 = 8
+	BaseReq                 float64 = 10
+	DiffReq                 float64 = 14
+	CritSuccess             int     = 20
+	CritFail                int     = 1
+	Heads                   int     = 1
+	Tails                   int     = 1
+	ModifierFactor          float64 = 1.3 // Adjust as needed for your testing
+	ScaleFactor             float64 = 1.7 // Adjust as needed for your testing
+	MinorPenalty            string  = "Minor Penalty"
+	MajorPenalty            string  = "Major Penalty"
+	Misconduct              string  = "Misconduct"
+	GameMisconduct          string  = "Game Misconduct"
+	MatchPenalty            string  = "Match Penalty"
+	BodyCheck               string  = "BodyCheck"
+	StickCheck              string  = "StickCheck"
+	General                 string  = "General"
+	Fight                   string  = "Fight"
+	ShootoutMomenumModifier float64 = 0.375
+	RegularPeriodTime       uint16  = 1200
+	OvertimePeriodTime      uint16  = 300
+	MaxTimeOnClock          uint16  = 65000
+)
 
 // Event Constants
-const FaceoffID uint8 = 1
-const PhysDefenseCheckID uint8 = 2
-const DexDefenseCheckID uint8 = 3
-const PassCheckID uint8 = 4
-const AgilityCheckID uint8 = 5
-const WristshotCheckID uint8 = 6
-const SlapshotCheckID uint8 = 7
-const PenaltyCheckID uint8 = 8
+const (
+	// Event IDs
+	FaceoffID          uint8 = 1
+	PhysDefenseCheckID uint8 = 2
+	DexDefenseCheckID  uint8 = 3
+	PassCheckID        uint8 = 4
+	AgilityCheckID     uint8 = 5
+	WristshotCheckID   uint8 = 6
+	SlapshotCheckID    uint8 = 7
+	PenaltyCheckID     uint8 = 8
 
-// Zone IDs
-const HomeGoalZoneID uint8 = 9
-const HomeZoneID uint8 = 10
-const NeutralZoneID uint8 = 11
-const AwayZoneID uint8 = 12
-const AwayGoalZoneID uint8 = 13
+	// Zone IDs
+	HomeGoalZoneID uint8 = 9
+	HomeZoneID     uint8 = 10
+	NeutralZoneID  uint8 = 11
+	AwayZoneID     uint8 = 12
+	AwayGoalZoneID uint8 = 13
 
-// Outcome IDs
-const DefenseTakesPuckID uint8 = 14
-const CarrierKeepsPuckID uint8 = 15
-const DefenseStopAgilityID uint8 = 16
-const OffenseMovesUpID uint8 = 17
-const GeneralPenaltyID uint8 = 18
-const FightPenaltyID uint8 = 20
-const InterceptedPassID uint8 = 21
-const ReceivedPassID uint8 = 22
-const HomeFaceoffWinID uint8 = 23
-const AwayFaceoffWinID uint8 = 24
-const InAccurateShotID uint8 = 25
-const ShotBlockedID uint8 = 26
-const GoalieSaveID uint8 = 27
-const GoalieReboundID uint8 = 28
-const ShotOnGoalID uint8 = 29
+	// Outcome IDs
+	DefenseTakesPuckID   uint8 = 14
+	CarrierKeepsPuckID   uint8 = 15
+	DefenseStopAgilityID uint8 = 16
+	OffenseMovesUpID     uint8 = 17
+	GeneralPenaltyID     uint8 = 18
+	FightPenaltyID       uint8 = 20
+	InterceptedPassID    uint8 = 21
+	ReceivedPassID       uint8 = 22
+	HomeFaceoffWinID     uint8 = 23
+	AwayFaceoffWinID     uint8 = 24
+	InAccurateShotID     uint8 = 25
+	ShotBlockedID        uint8 = 26
+	GoalieSaveID         uint8 = 27
+	GoalieReboundID      uint8 = 28
+	ShotOnGoalID         uint8 = 29
+	GoalieHoldID         uint8 = 30
+)
 
 // PenaltyIDs

@@ -1,6 +1,9 @@
 package structs
 
-import "gorm.io/gorm"
+import (
+	util "github.com/CalebRose/SimHockey/_util"
+	"gorm.io/gorm"
+)
 
 // Weights for archetypes
 var archetypeWeights = map[string]map[string]map[string]float64{
@@ -9,11 +12,11 @@ var archetypeWeights = map[string]map[string]map[string]float64{
 			"PuckHandling":      1.1,
 			"Strength":          1.3,
 			"Agility":           1.1,
-			"WristShotPower":    0.75,
-			"SlapshotPower":     0.75,
+			"LongShotPower":     0.75,
+			"CloseShotPower":    0.75,
 			"Faceoffs":          1,
-			"SlapshotAccuracy":  1,
-			"WristShotAccuracy": 1,
+			"CloseShotAccuracy": 1,
+			"LongShotAccuracy":  1,
 			"Passing":           1,
 			"BodyChecking":      1,
 			"StickChecking":     1,
@@ -28,10 +31,10 @@ var archetypeWeights = map[string]map[string]map[string]float64{
 			"Passing":           1.3,
 			"Strength":          1.2,
 			"PuckHandling":      0.8,
-			"WristShotAccuracy": 0.85,
-			"SlapshotAccuracy":  0.85,
-			"WristShotPower":    0.85,
-			"SlapshotPower":     0.85,
+			"LongShotAccuracy":  0.85,
+			"CloseShotAccuracy": 0.85,
+			"LongShotPower":     0.85,
+			"CloseShotPower":    0.85,
 			"Agility":           1,
 			"Faceoffs":          1,
 			"ShotBlocking":      1,
@@ -45,10 +48,10 @@ var archetypeWeights = map[string]map[string]map[string]float64{
 			"PuckHandling":      1.1,
 			"Strength":          0.7,
 			"Agility":           1,
-			"SlapshotAccuracy":  1,
-			"SlapshotPower":     1,
-			"WristShotAccuracy": 1,
-			"WristShotPower":    1,
+			"CloseShotAccuracy": 1,
+			"CloseShotPower":    1,
+			"LongShotAccuracy":  1,
+			"LongShotPower":     1,
 			"BodyChecking":      1,
 			"StickChecking":     1,
 			"ShotBlocking":      1,
@@ -58,14 +61,14 @@ var archetypeWeights = map[string]map[string]map[string]float64{
 		},
 		"Power": {
 			"Strength":          1.2,
-			"SlapshotPower":     1.2,
-			"WristShotPower":    0.8,
+			"CloseShotPower":    1.2,
+			"LongShotPower":     0.8,
 			"StickChecking":     0.9,
 			"BodyChecking":      0.9,
 			"Agility":           1,
 			"Faceoffs":          1,
-			"SlapshotAccuracy":  1,
-			"WristShotAccuracy": 1,
+			"CloseShotAccuracy": 1,
+			"LongShotAccuracy":  1,
 			"Passing":           1,
 			"PuckHandling":      1,
 			"ShotBlocking":      1,
@@ -74,16 +77,16 @@ var archetypeWeights = map[string]map[string]map[string]float64{
 			"GoalieRebound":     1,
 		},
 		"Sniper": {
-			"WristShotPower":    1.15,
-			"WristShotAccuracy": 1.2,
+			"LongShotPower":     1.15,
+			"LongShotAccuracy":  1.2,
 			"Passing":           1.15,
 			"StickChecking":     0.9,
 			"BodyChecking":      0.9,
-			"SlapshotPower":     0.9,
+			"CloseShotPower":    0.9,
 			"Strength":          0.8,
 			"Agility":           1,
 			"Faceoffs":          1,
-			"SlapshotAccuracy":  1,
+			"CloseShotAccuracy": 1,
 			"PuckHandling":      1,
 			"ShotBlocking":      1,
 			"Goalkeeping":       1,
@@ -98,10 +101,10 @@ var archetypeWeights = map[string]map[string]map[string]float64{
 			"Strength":          0.9,
 			"Agility":           1,
 			"Faceoffs":          1,
-			"SlapshotAccuracy":  1,
-			"SlapshotPower":     1,
-			"WristShotAccuracy": 1,
-			"WristShotPower":    1,
+			"CloseShotAccuracy": 1,
+			"CloseShotPower":    1,
+			"LongShotAccuracy":  1,
+			"LongShotPower":     1,
 			"ShotBlocking":      1,
 			"Goalkeeping":       1,
 			"GoalieVision":      1,
@@ -113,11 +116,11 @@ var archetypeWeights = map[string]map[string]map[string]float64{
 			"PuckHandling":      1.1,
 			"Strength":          1.3,
 			"Agility":           1.1,
-			"WristShotPower":    0.75,
-			"SlapshotPower":     0.75,
+			"LongShotPower":     0.75,
+			"CloseShotPower":    0.75,
 			"Faceoffs":          1,
-			"SlapshotAccuracy":  1,
-			"WristShotAccuracy": 1,
+			"CloseShotAccuracy": 1,
+			"LongShotAccuracy":  1,
 			"Passing":           1,
 			"BodyChecking":      1,
 			"StickChecking":     1,
@@ -132,10 +135,10 @@ var archetypeWeights = map[string]map[string]map[string]float64{
 			"Passing":           1.3,
 			"Strength":          1.2,
 			"PuckHandling":      0.8,
-			"WristShotAccuracy": 0.85,
-			"SlapshotAccuracy":  0.85,
-			"WristShotPower":    0.85,
-			"SlapshotPower":     0.85,
+			"LongShotAccuracy":  0.85,
+			"CloseShotAccuracy": 0.85,
+			"LongShotPower":     0.85,
+			"CloseShotPower":    0.85,
 			"Agility":           1,
 			"Faceoffs":          1,
 			"ShotBlocking":      1,
@@ -149,10 +152,10 @@ var archetypeWeights = map[string]map[string]map[string]float64{
 			"Strength":          0.7,
 			"Agility":           1,
 			"Faceoffs":          1,
-			"SlapshotAccuracy":  1,
-			"SlapshotPower":     1,
-			"WristShotAccuracy": 1,
-			"WristShotPower":    1,
+			"CloseShotAccuracy": 1,
+			"CloseShotPower":    1,
+			"LongShotAccuracy":  1,
+			"LongShotPower":     1,
 			"BodyChecking":      1,
 			"StickChecking":     1,
 			"ShotBlocking":      1,
@@ -162,14 +165,14 @@ var archetypeWeights = map[string]map[string]map[string]float64{
 		},
 		"Power": {
 			"Strength":          1.2,
-			"SlapshotPower":     1.2,
-			"WristShotPower":    0.8,
+			"CloseShotPower":    1.2,
+			"LongShotPower":     0.8,
 			"StickChecking":     0.9,
 			"BodyChecking":      0.9,
 			"Agility":           1,
 			"Faceoffs":          1,
-			"SlapshotAccuracy":  1,
-			"WristShotAccuracy": 1,
+			"CloseShotAccuracy": 1,
+			"LongShotAccuracy":  1,
 			"Passing":           1,
 			"PuckHandling":      1,
 			"ShotBlocking":      1,
@@ -178,16 +181,16 @@ var archetypeWeights = map[string]map[string]map[string]float64{
 			"GoalieRebound":     1,
 		},
 		"Sniper": {
-			"WristShotPower":    1.15,
-			"WristShotAccuracy": 1.2,
+			"LongShotPower":     1.15,
+			"LongShotAccuracy":  1.2,
 			"Passing":           1.15,
 			"StickChecking":     0.9,
 			"BodyChecking":      0.9,
-			"SlapshotPower":     0.9,
+			"CloseShotPower":    0.9,
 			"Strength":          0.8,
 			"Agility":           1,
 			"Faceoffs":          1,
-			"SlapshotAccuracy":  1,
+			"CloseShotAccuracy": 1,
 			"PuckHandling":      1,
 			"ShotBlocking":      1,
 			"Goalkeeping":       1,
@@ -201,10 +204,10 @@ var archetypeWeights = map[string]map[string]map[string]float64{
 			"PuckHandling":      0.9,
 			"Agility":           0.9,
 			"Faceoffs":          1,
-			"SlapshotAccuracy":  1,
-			"SlapshotPower":     1,
-			"WristShotAccuracy": 1,
-			"WristShotPower":    1,
+			"CloseShotAccuracy": 1,
+			"CloseShotPower":    1,
+			"LongShotAccuracy":  1,
+			"LongShotPower":     1,
 			"Strength":          1,
 			"ShotBlocking":      1,
 			"Goalkeeping":       1,
@@ -219,10 +222,10 @@ var archetypeWeights = map[string]map[string]map[string]float64{
 			"Strength":          1.15,
 			"ShotBlocking":      1.15,
 			"PuckHandling":      0.9,
-			"WristShotAccuracy": 0.85,
-			"SlapshotAccuracy":  0.85,
-			"WristShotPower":    0.85,
-			"SlapshotPower":     0.85,
+			"LongShotAccuracy":  0.85,
+			"CloseShotAccuracy": 0.85,
+			"LongShotPower":     0.85,
+			"CloseShotPower":    0.85,
 			"Agility":           1,
 			"Faceoffs":          1,
 			"Passing":           1,
@@ -237,10 +240,10 @@ var archetypeWeights = map[string]map[string]map[string]float64{
 			"PuckHandling":      0.7,
 			"StickChecking":     0.75,
 			"Faceoffs":          1,
-			"SlapshotAccuracy":  1,
-			"SlapshotPower":     1,
-			"WristShotAccuracy": 1,
-			"WristShotPower":    1,
+			"CloseShotAccuracy": 1,
+			"CloseShotPower":    1,
+			"LongShotAccuracy":  1,
+			"LongShotPower":     1,
 			"Passing":           1,
 			"ShotBlocking":      1,
 			"Goalkeeping":       1,
@@ -250,14 +253,14 @@ var archetypeWeights = map[string]map[string]map[string]float64{
 		"Offensive": {
 			"Passing":           1.15,
 			"PuckHandling":      1.15,
-			"WristShotAccuracy": 1.15,
-			"WristShotPower":    1.15,
+			"LongShotAccuracy":  1.15,
+			"LongShotPower":     1.15,
 			"StickChecking":     1.2,
 			"BodyChecking":      0.8,
 			"Strength":          0.85,
 			"ShotBlocking":      0.85,
-			"SlapshotAccuracy":  0.85,
-			"SlapshotPower":     0.85,
+			"CloseShotAccuracy": 0.85,
+			"CloseShotPower":    0.85,
 			"Agility":           1,
 			"Faceoffs":          1,
 			"Goalkeeping":       1,
@@ -270,10 +273,10 @@ var archetypeWeights = map[string]map[string]map[string]float64{
 			"Passing":           1.2,
 			"PuckHandling":      0.9,
 			"Agility":           0.9,
-			"SlapshotAccuracy":  0.9,
-			"SlapshotPower":     0.9,
-			"WristShotAccuracy": 0.9,
-			"WristShotPower":    0.9,
+			"CloseShotAccuracy": 0.9,
+			"CloseShotPower":    0.9,
+			"LongShotAccuracy":  0.9,
+			"LongShotPower":     0.9,
 			"Faceoffs":          1,
 			"Strength":          1,
 			"ShotBlocking":      1,
@@ -289,10 +292,10 @@ var archetypeWeights = map[string]map[string]map[string]float64{
 			"Goalkeeping":       0.75,
 			"Agility":           0.75,
 			"Faceoffs":          1,
-			"SlapshotAccuracy":  1,
-			"SlapshotPower":     1,
-			"WristShotAccuracy": 1,
-			"WristShotPower":    1,
+			"CloseShotAccuracy": 1,
+			"CloseShotPower":    1,
+			"LongShotAccuracy":  1,
+			"LongShotPower":     1,
 			"Passing":           1,
 			"PuckHandling":      1,
 			"BodyChecking":      1,
@@ -306,10 +309,10 @@ var archetypeWeights = map[string]map[string]map[string]float64{
 			"Goalkeeping":       1.1,
 			"Agility":           1.1,
 			"Faceoffs":          1,
-			"SlapshotAccuracy":  1,
-			"SlapshotPower":     1,
-			"WristShotAccuracy": 1,
-			"WristShotPower":    1,
+			"CloseShotAccuracy": 1,
+			"CloseShotPower":    1,
+			"LongShotAccuracy":  1,
+			"LongShotPower":     1,
 			"Passing":           1,
 			"PuckHandling":      1,
 			"BodyChecking":      1,
@@ -323,10 +326,10 @@ var archetypeWeights = map[string]map[string]map[string]float64{
 			"Goalkeeping":       0.75,
 			"Agility":           0.75,
 			"Faceoffs":          1,
-			"SlapshotAccuracy":  1,
-			"SlapshotPower":     1,
-			"WristShotAccuracy": 1,
-			"WristShotPower":    1,
+			"CloseShotAccuracy": 1,
+			"CloseShotPower":    1,
+			"LongShotAccuracy":  1,
+			"LongShotPower":     1,
 			"Passing":           1,
 			"PuckHandling":      1,
 			"BodyChecking":      1,
@@ -364,10 +367,10 @@ type BasePlayer struct {
 	Overall              uint8
 	Agility              uint8 // How fast a player can go in a zone without a defense check
 	Faceoffs             uint8 // Ability to win faceoffs
-	WristShotAccuracy    uint8 // Accuracy on non-close shots
-	WristShotPower       uint8 // Power on non-close shots. High power means less shotblocking
-	SlapshotAccuracy     uint8 // Accuracy on close shots. Great on pass plays
-	SlapshotPower        uint8 // Power on Close shots
+	LongShotAccuracy     uint8 // Accuracy on non-close shots
+	LongShotPower        uint8 // Power on non-close shots. High power means less shotblocking
+	CloseShotAccuracy    uint8 // Accuracy on close shots. Great on pass plays
+	CloseShotPower       uint8 // Power on Close shots
 	OneTimer             uint8 // Shots bassed on passing. Essentially a modifier that gets greater with each pass in a zone
 	Passing              uint8 // Passing ability
 	PuckHandling         uint8 // Ability to handle the puck when going between zones.
@@ -397,31 +400,36 @@ type BasePlayer struct {
 	Competitiveness      uint8 // How competitive the player is in games. Modifier on morale
 	TeamLoyalty          uint8 // How likely a player will stay at their current program
 	PlaytimePreference   uint8 // How likely the player wants to be on the rink
-	HomeStatePreference  uint8 // How likely the player cares about being near home (where applicable)
-	ProgramPref          uint8
-	ProfDevPref          uint8
-	TraditionsPref       uint8
-	FacilitiesPref       uint8
-	AtmospherePref       uint8
-	AcademicsPref        uint8
-	ConferencePrestige   uint8
-	PlayerMorale         uint8 // Overall Morale of the player; used for transfer intention & FA
+	PlayerMorale         uint8
 	Personality          string
 	RelativeID           uint
 	RelativeType         uint
 	Notes                string
 	HasProgressed        bool
+	PlayerPreferences
 	// Individual weight modifiers (-10 to 10)
 	Allocations
+}
+
+type PlayerPreferences struct {
+	ProgramPref        uint8
+	ProfDevPref        uint8
+	TraditionsPref     uint8
+	FacilitiesPref     uint8
+	AtmospherePref     uint8
+	AcademicsPref      uint8
+	ConferencePref     uint8
+	CoachPref          uint8
+	SeasonMomentumPref uint8
 }
 
 type BasePlayerProgressions struct {
 	Agility              int // How fast a player can go in a zone without a defense check
 	Faceoffs             int // Ability to win faceoffs
-	WristShotAccuracy    int // Accuracy on non-close shots
-	WristShotPower       int // Power on non-close shots. High power means less shotblocking
-	SlapshotAccuracy     int // Accuracy on close shots. Great on pass plays
-	SlapshotPower        int // Power on Close shots
+	LongShotAccuracy     int // Accuracy on non-close shots
+	LongShotPower        int // Power on non-close shots. High power means less shotblocking
+	CloseShotAccuracy    int // Accuracy on close shots. Great on pass plays
+	CloseShotPower       int // Power on Close shots
 	OneTimer             int // Shots bassed on passing. Essentially a modifier that gets greater with each pass in a zone
 	Passing              int // Passing ability
 	PuckHandling         int // Ability to handle the puck when going between zones.
@@ -439,10 +447,10 @@ func (b *BasePlayer) Progress(progressions BasePlayerProgressions) {
 	b.HasProgressed = true
 	b.Agility = ProgressAttribute(b.Agility, progressions.Agility)
 	b.Faceoffs = ProgressAttribute(b.Faceoffs, progressions.Faceoffs)
-	b.SlapshotAccuracy = ProgressAttribute(b.SlapshotAccuracy, progressions.SlapshotAccuracy)
-	b.SlapshotPower = ProgressAttribute(b.SlapshotPower, progressions.SlapshotPower)
-	b.WristShotAccuracy = ProgressAttribute(b.WristShotAccuracy, progressions.WristShotAccuracy)
-	b.WristShotPower = ProgressAttribute(b.WristShotPower, progressions.WristShotPower)
+	b.CloseShotAccuracy = ProgressAttribute(b.CloseShotAccuracy, progressions.CloseShotAccuracy)
+	b.CloseShotPower = ProgressAttribute(b.CloseShotPower, progressions.CloseShotPower)
+	b.LongShotAccuracy = ProgressAttribute(b.LongShotAccuracy, progressions.LongShotAccuracy)
+	b.LongShotPower = ProgressAttribute(b.LongShotPower, progressions.LongShotPower)
 	b.Passing = ProgressAttribute(b.Passing, progressions.Passing)
 	b.PuckHandling = ProgressAttribute(b.PuckHandling, progressions.PuckHandling)
 	b.Strength = ProgressAttribute(b.Strength, progressions.Strength)
@@ -475,36 +483,65 @@ func (b *BasePlayer) GetOverall() {
 		switch attr {
 		case "Agility":
 			value = b.Agility
+
 		case "Faceoffs":
-			value = b.Faceoffs
-		case "WristShotAccuracy":
-			value = b.WristShotAccuracy
-		case "WristShotPower":
-			value = b.WristShotPower
-		case "SlapshotAccuracy":
-			value = b.SlapshotAccuracy
-		case "SlapshotPower":
-			value = b.SlapshotPower
+			if b.Position != util.Goalie {
+				value = b.Faceoffs
+			}
+		case "LongShotAccuracy":
+			if b.Position != util.Goalie {
+				value = b.LongShotAccuracy
+			}
+		case "LongShotPower":
+			if b.Position != util.Goalie {
+				value = b.LongShotPower
+			}
+		case "CloseShotAccuracy":
+			if b.Position != util.Goalie {
+				value = b.CloseShotAccuracy
+			}
+		case "CloseShotPower":
+			if b.Position != util.Goalie {
+				value = b.CloseShotPower
+			}
 		case "Passing":
 			value = b.Passing
 		case "PuckHandling":
-			value = b.PuckHandling
+			if b.Position != util.Goalie {
+				value = b.PuckHandling
+			}
+
 		case "Strength":
 			value = b.Strength
 		case "BodyChecking":
-			value = b.BodyChecking
+			if b.Position != util.Goalie {
+				value = b.BodyChecking
+			}
 		case "StickChecking":
-			value = b.StickChecking
+			if b.Position != util.Goalie {
+				value = b.StickChecking
+			}
+
 		case "ShotBlocking":
-			value = b.ShotBlocking
+			if b.Position != util.Goalie {
+				value = b.ShotBlocking
+			}
 		case "GoalieVision":
-			value = b.GoalieVision
+			if b.Position == util.Goalie {
+				value = b.GoalieVision
+			}
+
 		case "Goalkeeping":
-			value = b.Goalkeeping
+			if b.Position == util.Goalie {
+				value = b.Goalkeeping
+			}
+
 			// Add other attributes as needed
 		}
 		weightedSum += float64(value) * weight
-		totalWeight += weight
+		if value > 0 {
+			totalWeight += weight
+		}
 	}
 
 	// Normalize to 1–50 range
@@ -520,10 +557,10 @@ type BasePotentials struct {
 	// Each attribute has a chance to grow at a different rate. These are all small modifiers
 	AgilityPotential           uint8 // Ability to switch between zones
 	FaceoffsPotential          uint8 // Ability to win faceoffs
-	SlapshotAccuracyPotential  uint8 // Accuracy on close shots
-	SlapshotPowerPotential     uint8 // Power on close shots. High power means less shotblocking
-	WristShotAccuracyPotential uint8 // Accuracy on far shots. Great on pass plays
-	WristShotPowerPotential    uint8 // Accuracy on far shots
+	CloseShotAccuracyPotential uint8 // Accuracy on close shots
+	CloseShotPowerPotential    uint8 // Power on close shots. High power means less shotblocking
+	LongShotAccuracyPotential  uint8 // Accuracy on far shots. Great on pass plays
+	LongShotPowerPotential     uint8 // Accuracy on far shots
 	PassingPotential           uint8 // Power on close shots. Great on pass plays
 	PuckHandlingPotential      uint8 // Ability to handle the puck when going between zones.
 	StrengthPotential          uint8 // General modifier on all physical attributes. Also used in fights
@@ -579,7 +616,15 @@ type ProfessionalPlayer struct {
 	BasePlayer
 	BasePotentials
 	BaseInjuryData
-	Year int
+	Year          int
+	Marketability uint8   // How marketable / in demand a player's jersey will be
+	JerseyPrice   float32 // Price of jersey, can be set by user
+}
+
+func (cp *ProfessionalPlayer) ProgressPlayer(progressions BasePlayerProgressions) {
+	cp.Progress(progressions)
+	cp.Year++
+	cp.GetOverall()
 }
 
 type RetiredPlayer struct {
@@ -591,15 +636,18 @@ type Recruit struct {
 	BasePlayer
 	BasePotentials
 	BaseInjuryData
-	IsSigned        bool
-	College         string
-	IsCustomCroot   bool
-	CustomCrootFor  string
-	RecruitModifier float64
-	RivalsRank      float64
-	ESPNRank        float64
-	Rank247         float64
-	TopRankModifier float64
+	IsSigned              bool
+	College               string
+	IsCustomCroot         bool
+	CustomCrootFor        string
+	RecruitModifier       float32
+	RivalsRank            float32
+	ESPNRank              float32
+	Rank247               float32
+	TopRankModifier       float32
+	RecruitingModifier    float32                // For signing threshold
+	RecruitingStatus      string                 // For signing progress
+	RecruitPlayerProfiles []RecruitPlayerProfile `gorm:"foreignKey:RecruitID"`
 }
 
 func (r *Recruit) AssignCollege(abbr string) {

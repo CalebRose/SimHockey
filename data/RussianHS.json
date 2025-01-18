@@ -1,0 +1,204 @@
+{
+  "Adygea": [{ "City": "Maykop", "HighSchool": "Adygea U18" }],
+  "Altai Krai": [{ "City": "Barnaul", "HighSchool": "Altai Krai U18" }],
+  "Altai Republic": [
+    { "City": "Gorno-Altaysk", "HighSchool": "Altai Republic U18" }
+  ],
+  "Amur Oblast": [
+    { "City": "Blagoveshchensk", "HighSchool": "Amur Oblast U18" }
+  ],
+  "Arkhangelsk Oblast": [
+    { "City": "Arkhangelsk", "HighSchool": "Arkhangelsk Oblast U18" }
+  ],
+  "Astrakhan Oblast": [
+    { "City": "Astrakhan", "HighSchool": "HK Astrakhan U18" }
+  ],
+  "Bashkortostan": [
+    { "City": "Ufa", "HighSchool": "Salavat Yulaev Ufa U18" },
+    { "City": "Neftekamsk", "HighSchool": "Toros Neftekamsk U18" }
+  ],
+  "Belgorod Oblast": [{ "City": "Belgorod", "HighSchool": "HK Belgorod U18" }],
+  "Bryansk Oblast": [{ "City": "Bryansk", "HighSchool": "HK Bryansk U18" }],
+  "Buryatia": [{ "City": "Ulan-Ude", "HighSchool": "HK Buryatia U18" }],
+  "Chechnya": [{ "City": "Grozny", "HighSchool": "HK Grozny U18" }],
+  "Chelyabinsk Oblast": [
+    { "City": "Chelyabinsk", "HighSchool": "Traktor Chelyabinsk U18" },
+    { "City": "Chelyabinsk", "HighSchool": "Belye Medvedi U18" },
+    { "City": "Magnitogorsk", "HighSchool": "Metallurg Magnitogorsk U18" }
+  ],
+  "Chukotka Autonomous Okrug": [
+    { "City": "Anadyr", "HighSchool": "HK Chukotka U18" }
+  ],
+  "Chuvashia": [{ "City": "Cheboksary", "HighSchool": "HK Cheboksary U18" }],
+  "Dagestan": [{ "City": "Makhachkala", "HighSchool": "HK Dagestan U18" }],
+  "Ingushetia": [{ "City": "Magas", "HighSchool": "HK Ingushetia U18" }],
+  "Irkutsk Oblast": [{ "City": "Irkutsk", "HighSchool": "Yermak Angarsk U18" }],
+  "Ivanovo Oblast": [{ "City": "Ivanovo", "HighSchool": "HK Ivanovo U18" }],
+  "Jewish Autonomous Oblast": [
+    { "City": "Birobidzhan", "HighSchool": "HK Birobidzhan U18" }
+  ],
+  "Kabardino-Balkaria": [{ "City": "Nalchik", "HighSchool": "HK Nalchik U18" }],
+  "Kaliningrad Oblast": [
+    { "City": "Kaliningrad", "HighSchool": "Feniks Kaliningrad U18" }
+  ],
+  "Kalmykia": [{ "City": "Elista", "HighSchool": "HK Kalmykia U18" }],
+  "Kaluga Oblast": [{ "City": "Kaluga", "HighSchool": "Kosmos Kaluga U18" }],
+  "Kamchatka Krai": [
+    { "City": "Petropavlovsk-Kamchatsky", "HighSchool": "HK Kamchatka U18" }
+  ],
+  "Karachay-Cherkessia": [
+    { "City": "Cherkessk", "HighSchool": "HK Cherkessk U18" }
+  ],
+  "Karelia": [{ "City": "Petrozavodsk", "HighSchool": "HK Karelia U18" }],
+  "Kemerovo Oblast": [
+    { "City": "Kemerovo", "HighSchool": "Kuznetskie Medvedi U18" },
+    { "City": "Novokuznetsk", "HighSchool": "Metallurg Novokuznetsk U18" }
+  ],
+  "Khabarovsk Krai": [
+    { "City": "Khabarovsk", "HighSchool": "Amur Khabarovsk U18" }
+  ],
+  "Khakassia": [{ "City": "Abakan", "HighSchool": "HK Khakassia U18" }],
+  "Khanty-Mansi Autonomous Okrug": [
+    { "City": "Khanty-Mansiysk", "HighSchool": "Mamonty Yugry U18" },
+    { "City": "Surgut", "HighSchool": "Olimpiyets Surgut U18" }
+  ],
+  "Kirov Oblast": [{ "City": "Kirov", "HighSchool": "HK Kirov U18" }],
+  "Komi": [
+    { "City": "Syktyvkar", "HighSchool": "HK Komi U18" },
+    { "City": "Vorkuta", "HighSchool": "Dynamo Vorkuta U18" }
+  ],
+  "Kostroma Oblast": [{ "City": "Kostroma", "HighSchool": "HK Kostroma U18" }],
+  "Krasnodar Krai": [
+    { "City": "Krasnodar", "HighSchool": "HK Krasnodar U18" },
+    { "City": "Sochi", "HighSchool": "HK Sochi U18" }
+  ],
+  "Krasnoyarsk Krai": [
+    { "City": "Krasnoyarsk", "HighSchool": "Sokol Krasnoyarsk U18" },
+    { "City": "Norilsk", "HighSchool": "Spartak Norilsk U18" },
+    { "City": "Krasnoyarsk", "HighSchool": "Krasnoyarskie Rysi" }
+  ],
+  "Kurgan Oblast": [{ "City": "Kurgan", "HighSchool": "HK Kurgan U18" }],
+  "Kursk Oblast": [{ "City": "Kursk", "HighSchool": "HK Kursk U18" }],
+  "Leningrad Oblast": [
+    { "City": "Gatchina", "HighSchool": "HK Gatchina U18" },
+    { "City": "Vyborg", "HighSchool": "HK Vyborg U18" }
+  ],
+  "Lipetsk Oblast": [{ "City": "Lipetsk", "HighSchool": "HK Lipetsk U18" }],
+  "Magadan Oblast": [{ "City": "Magadan", "HighSchool": "HK Magadan U18" }],
+  "Mari El": [{ "City": "Yoshkar-Ola", "HighSchool": "HK Mari El U18" }],
+  "Mordovia": [{ "City": "Saransk", "HighSchool": "Mordovia Saransk U18" }],
+  "Moscow": [
+    { "City": "Moscow", "HighSchool": "CSKA Moscow U18" },
+    { "City": "Moscow", "HighSchool": "Dynamo Moscow U18" },
+    { "City": "Moscow", "HighSchool": "Spartak Moscow U18" },
+    { "City": "Moscow", "HighSchool": "Krylya Sovetov Moscow U18" },
+    { "City": "Moscow", "HighSchool": "MHK Spartak Moscow U18" }
+  ],
+  "Moscow Oblast": [
+    { "City": "Mytishchi", "HighSchool": "Atlant Mytishchi U18" },
+    { "City": "Podolsk", "HighSchool": "Vityaz Podolsk U18" },
+    { "City": "Balashikha", "HighSchool": "HK Balashikha U18" },
+    { "City": "Voskresensk", "HighSchool": "Khimik Voskresensk U18" },
+    { "City": "Tver", "HighSchool": "THK Tver U18" }
+  ],
+  "Murmansk Oblast": [
+    { "City": "Murmansk", "HighSchool": "Arktika Murmansk U18" }
+  ],
+  "Nenets Autonomous Okrug": [
+    { "City": "Naryan-Mar", "HighSchool": "HK Naryan-Mar U18" }
+  ],
+  "Nizhny Novgorod Oblast": [
+    { "City": "Nizhny Novgorod", "HighSchool": "Torpedo Nizhny Novgorod U18" }
+  ],
+  "North Ossetia-Alania": [
+    { "City": "Vladikavkaz", "HighSchool": "HK Vladikavkaz U18" }
+  ],
+  "Novgorod Oblast": [
+    { "City": "Veliky Novgorod", "HighSchool": "HK Novgorod U18" }
+  ],
+  "Novosibirsk Oblast": [
+    { "City": "Novosibirsk", "HighSchool": "Sibir Novosibirsk U18" }
+  ],
+  "Omsk Oblast": [{ "City": "Omsk", "HighSchool": "Avangard Omsk U18" }],
+  "Orenburg Oblast": [
+    { "City": "Orenburg", "HighSchool": "Sarmaty Orenburg U18" },
+    { "City": "Orsk", "HighSchool": "Yuzhny Ural Orsk U18" }
+  ],
+  "Oryol Oblast": [{ "City": "Oryol", "HighSchool": "HK Oryol U18" }],
+  "Penza Oblast": [{ "City": "Penza", "HighSchool": "Dizel Penza U18" }],
+  "Perm Krai": [{ "City": "Perm", "HighSchool": "Molot Perm U18" }],
+  "Primorsky Krai": [
+    { "City": "Vladivostok", "HighSchool": "Admiral Vladivostok U18" },
+    { "City": "Ussuriysk", "HighSchool": "Taifun Primorsky Krai U18" }
+  ],
+  "Pskov Oblast": [{ "City": "Pskov", "HighSchool": "HK Pskov U18" }],
+  "Rostov Oblast": [{ "City": "Rostov-on-Don", "HighSchool": "HK Rostov U18" }],
+  "Ryazan Oblast": [
+    { "City": "Ryazan", "HighSchool": "Ryazan-VDV U18" },
+    { "City": "Ryazan", "HighSchool": "Olimpiysky Ryazan U18" }
+  ],
+  "Sakha (Yakutia)": [
+    { "City": "Yakutsk", "HighSchool": "HK Yakutsk U18" },
+    { "City": "Yakutsk", "HighSchool": "Spartak Yakutsk U18" }
+  ],
+  "Sakhalin Oblast": [
+    { "City": "Yuzhno-Sakhalinsk", "HighSchool": "HK Sakhalin U18" }
+  ],
+  "Samara Oblast": [
+    { "City": "Samara", "HighSchool": "CSK VVS Samara U18" },
+    { "City": "Tolyatti", "HighSchool": "Lada Tolyatti U18" }
+  ],
+  "Saratov Oblast": [
+    { "City": "Saratov", "HighSchool": "Kristall Saratov U18" }
+  ],
+  "Saint Petersburg": [
+    { "City": "Saint Petersburg", "HighSchool": "SKA Saint Petersburg U18" },
+    {
+      "City": "Saint Petersburg",
+      "HighSchool": "Dynamo-Yunior St. Petersburg U18"
+    },
+    { "City": "Saint Petersburg", "HighSchool": "Forward St. Petersburg U18" },
+    { "City": "Saint Petersburg", "HighSchool": "GoodGoal St. Petersburg U18" },
+    { "City": "Saint Petersburg", "HighSchool": "Nevsky St. Petersburg U18" }
+  ],
+  "Smolensk Oblast": [
+    { "City": "Smolensk", "HighSchool": "Slavutich Smolensk U18" }
+  ],
+  "Stavropol Krai": [{ "City": "Stavropol", "HighSchool": "HK Stavropol U18" }],
+  "Sverdlovsk Oblast": [
+    { "City": "Yekaterinburg", "HighSchool": "Avtomobilist Yekaterinburg U18" },
+    { "City": "Nizhny Tagil", "HighSchool": "Sputnik Nizhny Tagil U18" }
+  ],
+  "Tambov Oblast": [{ "City": "Tambov", "HighSchool": "HK Tambov U18" }],
+  "Tatarstan": [
+    { "City": "Kazan", "HighSchool": "Ak Bars Kazan U18" },
+    { "City": "Nizhnekamsk", "HighSchool": "Neftekhimik Nizhnekamsk U18" }
+  ],
+  "Tomsk Oblast": [{ "City": "Tomsk", "HighSchool": "HK Tomsk U18" }],
+  "Tuva": [{ "City": "Kyzyl", "HighSchool": "HK Tuva U18" }],
+  "Tula Oblast": [{ "City": "Tula", "HighSchool": "HK Tula U18" }],
+  "Tver Oblast": [{ "City": "Tver", "HighSchool": "THK Tver U18" }],
+  "Tyumen Oblast": [{ "City": "Tyumen", "HighSchool": "Rubin Tyumen U18" }],
+  "Udmurtia": [{ "City": "Izhevsk", "HighSchool": "Izhstal Izhevsk U18" }],
+  "Ulyanovsk Oblast": [
+    { "City": "Ulyanovsk", "HighSchool": "Volga Ulyanovsk U18" }
+  ],
+  "Vladimir Oblast": [{ "City": "Vladimir", "HighSchool": "HK Vladimir U18" }],
+  "Volgograd Oblast": [
+    { "City": "Volgograd", "HighSchool": "HK Volgograd U18" }
+  ],
+  "Vologda Oblast": [
+    { "City": "Cherepovets", "HighSchool": "Severstal Cherepovets U18" }
+  ],
+  "Voronezh Oblast": [
+    { "City": "Voronezh", "HighSchool": "Buran Voronezh U18" },
+    { "City": "Voronezh", "HighSchool": "Spartak Beylor U18" }
+  ],
+  "Yamalo-Nenets Autonomous Okrug": [
+    { "City": "Salekhard", "HighSchool": "HK Yamal U18" }
+  ],
+  "Yaroslavl Oblast": [
+    { "City": "Yaroslavl", "HighSchool": "Lokomotiv Yaroslavl U18" }
+  ],
+  "Zabaykalsky Krai": [{ "City": "Chita", "HighSchool": "HK Chita U18" }]
+}

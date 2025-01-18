@@ -27,9 +27,10 @@ type GameState struct {
 	AwayTeamWin           bool
 	TieGame               bool
 	GameComplete          bool
-	PowerPlayTime         uint8
 	IsPowerPlay           bool
 	PowerPlayTeamID       uint
+	PowerPlayIDCount      uint
+	ActivePowerPlays      []PowerPlayState
 	Zones                 []string // Home Goal, Home Zone, Neutral Zone, Away Zone, Away Goal
 	PuckLocation          string
 	PuckCarrier           GamePlayer
@@ -40,6 +41,17 @@ type GameState struct {
 	IsPlayoffGame         bool
 	Collector             structs.PbPCollector
 }
+
+type PowerPlayState struct {
+	PowerPlayID     uint
+	PowerPlayTeamID uint
+	PenaltyInfo     Penalty
+	PowerPlayTime   uint16
+}
+
+// Todo -- Change powerplay structure to a list of Power Play Objects. Iterate over list and decrement over time.
+// If a score is made, check list for who the powerplay team is and if they scored. Then return penalized player
+// and remove powerplay item from list
 
 func (gs *GameState) RecordPlay(play structs.PlayByPlay) {
 	gs.Collector.AppendPlay(play)
@@ -80,6 +92,17 @@ func handleNewPeriod(gs *GameState) {
 func reduceTimeOnClock(gs *GameState) {
 	// Calculate remaining time
 	gs.TimeOnClock -= gs.SecondsConsumed
+	if len(gs.ActivePowerPlays) > 0 {
+		for _, pp := range gs.ActivePowerPlays {
+			if pp.PowerPlayTime > 0 {
+				pp.PowerPlayTime -= gs.SecondsConsumed
+				if pp.PowerPlayTime > MaxTimeOnClock {
+					pp.PowerPlayTime = 0
+					gs.TurnOffPowerPlay(pp)
+				}
+			}
+		}
+	}
 
 	// Ensure time doesn't overflow
 	if gs.TimeOnClock > MaxTimeOnClock {
@@ -88,19 +111,54 @@ func reduceTimeOnClock(gs *GameState) {
 }
 
 func handleLineups(gs *GameState) {
-	gs.HomeStrategy.HandleLineups(int(gs.SecondsConsumed))
-	gs.AwayStrategy.HandleLineups(int(gs.SecondsConsumed))
+	gs.HomeStrategy.HandleLineups(int(gs.SecondsConsumed), gs.IsPowerPlay)
+	gs.AwayStrategy.HandleLineups(int(gs.SecondsConsumed), gs.IsPowerPlay)
 }
 
 func (gs *GameState) SetSecondsConsumed(seconds uint16) {
 	gs.SecondsConsumed += seconds
 }
 
-func (gs *GameState) SetPowerPlay(duration, teamID int) {
-	gs.Momentum = 0
-	gs.PowerPlayTime = uint8(duration)
+func (gs *GameState) SetPowerPlay(duration, teamID int, penalty Penalty) {
+	gs.ResetMomentum()
+	id := gs.PowerPlayIDCount
+	gs.PowerPlayIDCount++
+	pp := PowerPlayState{
+		PowerPlayID:     id,
+		PowerPlayTime:   uint16(duration),
+		PowerPlayTeamID: uint(teamID),
+		PenaltyInfo:     penalty,
+	}
+	gs.ActivePowerPlays = append(gs.ActivePowerPlays, pp)
 	gs.IsPowerPlay = true
-	gs.PowerPlayTeamID = uint(teamID)
+	if gs.PowerPlayTeamID == 0 {
+		gs.PowerPlayTeamID = uint(teamID)
+	} else if gs.PowerPlayTeamID > 0 {
+		// Even power play
+		gs.PowerPlayTeamID = 0
+	}
+}
+
+func (gs *GameState) TurnOffPowerPlay(powerPlay PowerPlayState) {
+	homePowerPlay := gs.HomeTeamID == powerPlay.PowerPlayTeamID
+	if homePowerPlay {
+		// Yeah I might need to just setup the new structure
+		gs.AwayStrategy.ReturnPlayerFromPowerPlay(powerPlay.PenaltyInfo.PenalizedPlayerID, powerPlay.PenaltyInfo.PenalizedPlayerPosition)
+	} else {
+		gs.HomeStrategy.ReturnPlayerFromPowerPlay(powerPlay.PenaltyInfo.PenalizedPlayerID, powerPlay.PenaltyInfo.PenalizedPlayerPosition)
+	}
+	gs.FilterActivePowerPlayList(powerPlay.PowerPlayID)
+	gs.IsPowerPlay = len(gs.ActivePowerPlays) > 0
+}
+
+func (gs *GameState) FilterActivePowerPlayList(powerPlayID uint) {
+	activeList := []PowerPlayState{}
+	for _, pp := range gs.ActivePowerPlays {
+		if pp.PowerPlayID != powerPlayID {
+			activeList = append(activeList, pp)
+		}
+	}
+	gs.ActivePowerPlays = activeList
 }
 
 func (gs *GameState) SetNewZone(zone string) {
@@ -188,6 +246,16 @@ func (gs *GameState) IncrementScore(isHome bool) {
 	gs.SetFaceoffOnCenterIce(true)
 	gs.SetNewZone(NeutralZone)
 	gs.SetPuckBearer(GamePlayer{})
+	if gs.IsPowerPlay {
+		for _, pp := range gs.ActivePowerPlays {
+			if ((isHome && pp.PowerPlayTeamID == gs.HomeTeamID) ||
+				(!isHome && pp.PowerPlayTeamID == gs.AwayTeamID)) &&
+				pp.PenaltyInfo.PenaltyType == 1 {
+				gs.TurnOffPowerPlay(pp)
+				break
+			}
+		}
+	}
 }
 
 func (gs *GameState) AddShots(isHome bool) {
@@ -198,6 +266,13 @@ func (gs *GameState) AddShots(isHome bool) {
 		gs.AwayTeamStats.AddShot(false, false, false, false, false)
 		gs.HomeTeamStats.AddShotAgainst(false)
 	}
+}
+
+func (gs *GameState) GetPlaybook(isHome bool) GamePlaybook {
+	if isHome {
+		return gs.HomeStrategy
+	}
+	return gs.AwayStrategy
 }
 
 func (gs *GameState) GetLineStrategy(isHome bool, lineUpType int) LineStrategy {
@@ -251,6 +326,42 @@ type GamePlaybook struct {
 	MinForwardStaminaThreshold  int
 	MinDefenderStaminaThreshold int
 	BenchPlayers                []GamePlayer
+	CenterOut                   bool
+	Forward1Out                 bool
+	Forward2Out                 bool
+	Defender1Out                bool
+	Defender2Out                bool
+	ShootoutLineUp              structs.ShootoutPlayerIDs
+	RosterMap                   map[uint]GamePlayer
+}
+
+func (gp *GamePlaybook) ActivatePowerPlayer(playerID uint, position string) {
+	gp.HandlePositionToggle(playerID, position, true)
+}
+
+func (gp *GamePlaybook) ReturnPlayerFromPowerPlay(powerPlayID uint, powerPlayPostion string) {
+	// Iterate through forwards and defenders to find the penalized player and return them in play
+	if powerPlayPostion == Forward {
+		gp.Forwards[gp.CurrentForwards].ReturnPlayerFromPowerPlay(powerPlayID)
+	} else if powerPlayPostion == Defender {
+		gp.Defenders[gp.CurrentDefenders].ReturnPlayerFromPowerPlay(powerPlayID)
+	}
+	gp.HandlePositionToggle(powerPlayID, powerPlayPostion, false)
+}
+
+func (gp *GamePlaybook) HandlePositionToggle(playerID uint, position string, isOut bool) {
+	enum := gp.getPlayerPositionEnum(playerID, position)
+	if enum == 1 {
+		gp.CenterOut = isOut
+	} else if enum == 2 {
+		gp.Forward1Out = isOut
+	} else if enum == 3 {
+		gp.Forward2Out = isOut
+	} else if enum == 4 {
+		gp.Defender1Out = isOut
+	} else if enum == 5 {
+		gp.Defender2Out = isOut
+	}
 }
 
 func (gp *GamePlaybook) HandlePlusMinus(isScore bool, puckBearerID, assistingPlayerID uint) {
@@ -306,6 +417,29 @@ func (gp *GamePlaybook) filterOutPlayer(playerID uint) {
 	}
 }
 
+func (gp *GamePlaybook) getPlayerPositionEnum(playerID uint, position string) uint {
+	// Return an enum (1 == C, 2 == F1, 3 == F2, 4 == D1, 5==D2) that will indicate which position to shutoff during a power play.
+	if position == Center {
+		return 1
+	}
+	if position == Forward {
+		currentForwards := gp.Forwards[gp.CurrentForwards]
+		for idx, p := range currentForwards.Players {
+			if p.ID == playerID {
+				return 1 + uint(idx)
+			}
+		}
+	} else if position == Defender {
+		currentDefenders := gp.Defenders[gp.CurrentDefenders]
+		for idx, p := range currentDefenders.Players {
+			if p.ID == playerID {
+				return 4 + uint(idx)
+			}
+		}
+	}
+	return 0
+}
+
 func (gp *GamePlaybook) handleLineReplacement(players []GamePlayer, playerID uint, requiredCount, lineType uint) []GamePlayer {
 	filteredPlayers, queue := filterOutPlayerFromLineup(players, playerID, lineType)
 
@@ -343,7 +477,7 @@ func (gp *GamePlaybook) InitializeStamina() {
 	}
 }
 
-func (gp *GamePlaybook) HandleLineups(secondsConsumed int) {
+func (gp *GamePlaybook) HandleLineups(secondsConsumed int, isPowerPlay bool) {
 	for idx := range gp.Forwards {
 		if idx == gp.CurrentForwards {
 			gp.Forwards[idx].DecrementStamina()
@@ -403,9 +537,22 @@ func (gp *GamePlaybook) getNextLine(lineType uint) []GamePlayer {
 type LineStrategy struct {
 	structs.Allocations
 	Players        []GamePlayer
+	CenterID       uint
+	Forward1ID     uint
+	Forward2ID     uint
+	Defender1ID    uint
+	Defender2ID    uint
 	TotalStamina   int
 	CurrentStamina int
 	Threshold      int
+}
+
+func (ls *LineStrategy) ReturnPlayerFromPowerPlay(playerID uint) {
+	for _, p := range ls.Players {
+		if p.ID == playerID {
+			p.ReturnToPlay()
+		}
+	}
 }
 
 func (ls *LineStrategy) SetNewLineup(players []GamePlayer) {
@@ -453,26 +600,27 @@ func (ls *LineStrategy) HandleTimeOnIce(secondsConsumed int) {
 type GamePlayer struct {
 	ID uint
 	structs.BasePlayer
-	CurrentStamina  int
-	OneTimerMod     float64
-	AgilityMod      float64
-	StrengthMod     float64
-	WristShotMod    float64
-	WristShotAccMod float64
-	SlapshotMod     float64
-	SlapshotAccMod  float64
-	FaceoffMod      float64
-	HandlingMod     float64
-	PassMod         float64
-	StickCheckMod   float64
-	BodyCheckMod    float64
-	GoalkeepingMod  float64
-	GoalieVisionMod float64
-	ShotblockingMod float64
-	IsOut           bool
-	FoulOut         bool
-	SubstituteID    uint
-	Stats           PlayerStatsDTO
+	CurrentStamina    int
+	OneTimerMod       float64
+	AgilityMod        float64
+	StrengthMod       float64
+	LongShotPowerMod  float64
+	LongShotAccMod    float64
+	CloseShotPowerMod float64
+	CloseShotAccMod   float64
+	FaceoffMod        float64
+	HandlingMod       float64
+	PassMod           float64
+	StickCheckMod     float64
+	BodyCheckMod      float64
+	GoalkeepingMod    float64
+	GoalieVisionMod   float64
+	ShotblockingMod   float64
+	IsOut             bool
+	FoulOut           bool
+	ForcedOut         bool
+	SubstituteID      uint
+	Stats             PlayerStatsDTO
 }
 
 func (g *GamePlayer) MapFromCollegePlayer(c structs.CollegePlayer) {
@@ -486,10 +634,10 @@ func (g *GamePlayer) CalculateModifiers() {
 	g.OneTimerMod = calculateAttributeModifier(float64(g.OneTimer), ModifierFactor)
 	g.AgilityMod = calculateAttributeModifier(float64(g.Agility), ModifierFactor)
 	g.StrengthMod = calculateAttributeModifier(float64(g.Strength), ModifierFactor)
-	g.WristShotAccMod = calculateAttributeModifier(float64(g.WristShotAccuracy), ModifierFactor)
-	g.WristShotMod = calculateAttributeModifier(float64(g.WristShotPower), ModifierFactor)
-	g.SlapshotMod = calculateAttributeModifier(float64(g.SlapshotPower), ModifierFactor)
-	g.SlapshotAccMod = calculateAttributeModifier(float64(g.SlapshotAccuracy), ModifierFactor)
+	g.LongShotAccMod = calculateAttributeModifier(float64(g.LongShotAccuracy), ModifierFactor)
+	g.LongShotPowerMod = calculateAttributeModifier(float64(g.LongShotPower), ModifierFactor)
+	g.CloseShotPowerMod = calculateAttributeModifier(float64(g.CloseShotPower), ModifierFactor)
+	g.CloseShotAccMod = calculateAttributeModifier(float64(g.CloseShotAccuracy), ModifierFactor)
 	g.FaceoffMod = calculateAttributeModifier(float64(g.Faceoffs), ModifierFactor)
 	g.HandlingMod = calculateAttributeModifier(float64(g.PuckHandling), ModifierFactor)
 	g.PassMod = calculateAttributeModifier(float64(g.Passing), ModifierFactor)
@@ -500,12 +648,17 @@ func (g *GamePlayer) CalculateModifiers() {
 	g.ShotblockingMod = calculateAttributeModifier(float64(g.ShotBlocking), ModifierFactor)
 }
 
-func (g *GamePlayer) GoToPenaltyBox() {
+func (g *GamePlayer) GoToPenaltyBox(outOfGame bool) {
 	g.IsOut = true
+	if outOfGame {
+		g.ForcedOut = true
+	}
 }
 
 func (g *GamePlayer) ReturnToPlay() {
-	g.IsOut = false
+	if !g.ForcedOut {
+		g.IsOut = false
+	}
 }
 
 // Util Structs
@@ -516,15 +669,22 @@ type PlayerWeight struct {
 }
 
 type Penalty struct {
-	PenaltyID     uint
-	PenaltyName   string
-	PenaltyType   uint // 0 == Can occur anywhere, 1 == Defending Zones, 2== Goal Defending Zones
-	Severity      string
-	Weight        float64
-	IsFight       bool
-	AggressionReq uint8
-	DisciplineReq uint8
-	Context       string
+	PenaltyID               uint
+	PenaltyName             string
+	PenaltyType             uint // 0 == Can occur anywhere, 1 == Defending Zones, 2== Goal Defending Zones
+	Severity                string
+	Weight                  float64
+	IsFight                 bool
+	AggressionReq           uint8
+	DisciplineReq           uint8
+	Context                 string
+	PenalizedPlayerID       uint
+	PenalizedPlayerPosition string
+}
+
+func (p *Penalty) ApplyPlayerInfo(id uint, position string) {
+	p.PenalizedPlayerID = id
+	p.PenalizedPlayerPosition = position
 }
 
 // Line Management Functions and Structs

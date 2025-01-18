@@ -9,11 +9,13 @@ func (c *PbPCollector) AppendPlay(play PlayByPlay) {
 }
 
 type PlayByPlay struct {
+	GameID            uint
 	Period            uint8
 	TimeOnClock       uint16
 	SecondsConsumed   uint8
 	EventID           uint8 // Enum
 	ZoneID            uint8 // Enum
+	NextZoneID        uint8 // Enum
 	Outcome           uint8 // Enum
 	HomeTeamScore     uint8
 	AwayTeamScore     uint8
@@ -27,5 +29,7 @@ type PlayByPlay struct {
 	InjuryType        uint8
 	InjuryDuration    uint8
 	PenaltyID         uint8
+	Severity          uint8
+	IsFight           bool
 	IsBreakaway       bool
 }

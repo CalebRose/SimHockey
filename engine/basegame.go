@@ -7,14 +7,17 @@ import (
 	"github.com/CalebRose/SimHockey/structs"
 )
 
-func RunGames(games []structs.GameDTO) {
+func RunGames(games []structs.GameDTO) []GameState {
+	results := []GameState{}
 	fmt.Println("Running Games...")
 	for _, g := range games {
-		RunTheGame(g)
+		res := RunTheGame(g)
+		results = append(results, res)
 	}
+	return results
 }
 
-func RunTheGame(game structs.GameDTO) {
+func RunTheGame(game structs.GameDTO) GameState {
 	gs := generateGameState(game)
 	gs.HomeStrategy.InitializeStamina()
 	gs.AwayStrategy.InitializeStamina()
@@ -36,6 +39,7 @@ func RunTheGame(game structs.GameDTO) {
 	}
 
 	logGameResults(gs)
+	return gs
 }
 
 // Play a single period
@@ -113,6 +117,7 @@ func generateGameState(game structs.GameDTO) GameState {
 
 func loadGamePlaybook(isCollegeGame bool, pb structs.PlayBookDTO) GamePlaybook {
 	gameRoster := LoadGameRoster(isCollegeGame, pb.CollegeRoster, pb.ProfessionalRoster)
+	rosterMap := getGameRosterMap(gameRoster)
 	forwardLines, defenderLines, goalieLines, activeIDs := LoadAllLineStrategies(pb, gameRoster)
 	benchPlayers := LoadBenchPlayers(activeIDs, gameRoster)
 	return GamePlaybook{
@@ -123,5 +128,7 @@ func loadGamePlaybook(isCollegeGame bool, pb structs.PlayBookDTO) GamePlaybook {
 		CurrentDefenders: 0,
 		CurrentGoalie:    0,
 		BenchPlayers:     benchPlayers,
+		ShootoutLineUp:   pb.ShootoutLineup,
+		RosterMap:        rosterMap,
 	}
 }

@@ -57,3 +57,69 @@ func MakeCollegeLineupMap(lineups []structs.CollegeLineup) map[uint][]structs.Co
 
 	return lineupMap
 }
+
+func MakeCollegeShootoutLineupMap(lineups []structs.CollegeShootoutLineup) map[uint]structs.CollegeShootoutLineup {
+	lineupMap := make(map[uint]structs.CollegeShootoutLineup)
+
+	for _, l := range lineups {
+		lineupMap[uint(l.TeamID)] = l
+	}
+
+	return lineupMap
+}
+
+func MakeProfessionalLineupMap(lineups []structs.ProfessionalLineup) map[uint][]structs.ProfessionalLineup {
+	lineupMap := make(map[uint][]structs.ProfessionalLineup)
+
+	for _, l := range lineups {
+		if len(lineupMap[uint(l.TeamID)]) > 0 {
+			lineupMap[uint(l.TeamID)] = append(lineupMap[uint(l.TeamID)], l)
+		} else {
+			lineupMap[uint(l.TeamID)] = []structs.ProfessionalLineup{l}
+		}
+	}
+
+	return lineupMap
+}
+
+func MakeProfessionalShootoutLineupMap(lineups []structs.ProfessionalShootoutLineup) map[uint]structs.ProfessionalShootoutLineup {
+	lineupMap := make(map[uint]structs.ProfessionalShootoutLineup)
+
+	for _, l := range lineups {
+		lineupMap[uint(l.TeamID)] = l
+	}
+
+	return lineupMap
+}
+
+func MakeCollegeStandingsMap(standings []structs.CollegeStandings) map[uint]structs.CollegeStandings {
+	standingsMap := make(map[uint]structs.CollegeStandings)
+	for _, stat := range standings {
+		standingsMap[uint(stat.TeamID)] = stat
+	}
+
+	return standingsMap
+}
+
+func MakeProfessionalStandingsMap(standings []structs.ProfessionalStandings) map[uint]structs.ProfessionalStandings {
+	standingsMap := make(map[uint]structs.ProfessionalStandings)
+	for _, stat := range standings {
+		standingsMap[uint(stat.TeamID)] = stat
+	}
+
+	return standingsMap
+}
+
+func MakeRecruitProfileMapByRecruitID(profiles []structs.RecruitPlayerProfile) map[uint][]structs.RecruitPlayerProfile {
+	profileMap := make(map[uint][]structs.RecruitPlayerProfile)
+
+	for _, p := range profiles {
+		if len(profileMap[uint(p.RecruitID)]) > 0 {
+			profileMap[uint(p.RecruitID)] = append(profileMap[uint(p.RecruitID)], p)
+		} else {
+			profileMap[uint(p.RecruitID)] = []structs.RecruitPlayerProfile{p}
+		}
+	}
+
+	return profileMap
+}

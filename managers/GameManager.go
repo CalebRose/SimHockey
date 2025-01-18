@@ -13,7 +13,16 @@ func RunGames() {
 	// Get GameDTOs
 	gameDTOs := PrepareGames()
 	// RUN THE GAMES!
-	engine.RunGames(gameDTOs)
+	results := engine.RunGames(gameDTOs)
+	teamMap := GetCollegeTeamMap()
+	collegePlayerMap := GetCollegePlayersMap()
+	for _, r := range results {
+		// Iterate through all lines, players, accumulate stats to upload
+
+		// Iterate through Play By Plays and record them to a CSV
+		pbps := r.Collector.PlayByPlays
+		WritePlayByPlayCSVFile(pbps, "test_results/test_five/"+r.HomeTeam+"_vs_"+r.AwayTeam+".csv", collegePlayerMap, teamMap)
+	}
 }
 
 func PrepareGames() []structs.GameDTO {
@@ -29,6 +38,7 @@ func PrepareGames() []structs.GameDTO {
 	// College Only
 	collegeTeamRosterMap := GetAllCollegePlayersMapByTeam()
 	collegeLineupMap := GetCollegeLineupsMap()
+	collegeShootoutLineupMap := GetCollegeShootoutLineups()
 	// weekID := strconv.Itoa(int(ts.WeekID))
 	// seasonID := strconv.Itoa(int(ts.SeasonID))
 	// gameDay := ts.GetGameDay()
@@ -54,8 +64,10 @@ func PrepareGames() []structs.GameDTO {
 			atr := collegeTeamRosterMap[c.AwayTeamID]
 			htl := collegeLineupMap[c.HomeTeamID]
 			atl := collegeLineupMap[c.AwayTeamID]
-			hp := getCollegePlaybookDTO(htl, htr)
-			ap := getCollegePlaybookDTO(atl, atr)
+			htsl := collegeShootoutLineupMap[c.HomeTeamID]
+			atsl := collegeShootoutLineupMap[c.AwayTeamID]
+			hp := getCollegePlaybookDTO(htl, htr, htsl)
+			ap := getCollegePlaybookDTO(atl, atr, atsl)
 			capacity := 0
 
 			arena := arenaMap[c.ArenaID]
@@ -88,39 +100,39 @@ func PrepareGames() []structs.GameDTO {
 
 func GetCollegeGamesForTesting() []structs.CollegeGame {
 	games := []structs.CollegeGame{
-		generateCollegeGame(22, 38, "Ferris State", "Minnesota-Duluth"),
-		generateCollegeGame(17, 2, "Colorado College", "Fairbanks"),
-		generateCollegeGame(57, 11, "St. Lawrence", "Boston University"),
-		generateCollegeGame(4, 50, "American International", "Providence"),
-		generateCollegeGame(41, 1, "Niagara", "Air Force"),
-		generateCollegeGame(18, 28, "UConn", "Maine"),
-		generateCollegeGame(15, 26, "Clarkson", "Lindenwood"),
-		generateCollegeGame(30, 31, "UMass-Lowell", "Marcyhurst"),
-		generateCollegeGame(35, 42, "Michigan State", "North Dakota"),
-		generateCollegeGame(47, 45, "Omaha", "Notre Dame"),
-		generateCollegeGame(48, 62, "Penn State", "WMU"),
-		generateCollegeGame(13, 56, "Brown", "St. Cloud State"),
-		generateCollegeGame(23, 20, "Harvard", "Dartmouth"),
-		generateCollegeGame(34, 32, "Michigan", "Merrimack"),
-		generateCollegeGame(63, 53, "Wisconsin", "Robert Morris"),
-		generateCollegeGame(55, 64, "Sacred Heart", "Yale"),
-		generateCollegeGame(9, 66, "Bentley", "Binghamton"),
-		generateCollegeGame(40, 29, "New Hampshire", "UMass"),
-		generateCollegeGame(49, 54, "Princeton", "Rochester"),
-		generateCollegeGame(58, 65, "St. Thomas", "Tennessee State"),
-		generateCollegeGame(6, 3, "Army", "Anchorage"),
-		generateCollegeGame(7, 51, "Augustana", "Quinnipiac"),
-		generateCollegeGame(37, 5, "Minnesota", "Arizona State"),
-		generateCollegeGame(16, 33, "Colgate", "Miami (OH)"),
-		generateCollegeGame(61, 12, "Vermont", "Bowling Green State"),
-		generateCollegeGame(7, 59, "Bemidji State", "Stonehill"),
-		generateCollegeGame(44, 10, "Northern Michigan", "Boston College"),
-		generateCollegeGame(21, 52, "Denver", "RPI"),
-		generateCollegeGame(46, 24, "Ohio State", "Holy Cross"),
-		generateCollegeGame(39, 25, "Minnesota State", "Lake Superior State"),
-		generateCollegeGame(43, 19, "Northeastern", "Cornell"),
-		generateCollegeGame(60, 36, "Union", "Michigan Tech"),
-		generateCollegeGame(14, 27, "Canisius", "Long Island"),
+		// generateCollegeGame(63, 38, "Wisconsin", "Minnesota-Duluth"),
+		// generateCollegeGame(22, 45, "Ferris State", "Notre Dame"),
+		// generateCollegeGame(38, 4, "Minnesota-Duluth", "American International"),
+		// generateCollegeGame(48, 14, "Penn State", "Canisius"),
+		// generateCollegeGame(1, 42, "Air Force", "North Dakota"),
+		// generateCollegeGame(28, 15, "Maine", "Clarkson"),
+		// generateCollegeGame(11, 53, "Boston U", "Robert Morris"),
+		// generateCollegeGame(56, 17, "St. Cloud State", "Colorado College"),
+		// generateCollegeGame(32, 30, "Merrimack", "UMass-Lowell"),
+		// generateCollegeGame(20, 60, "Dartmouth", "Union"),
+		// generateCollegeGame(27, 55, "Long Island", "Sacred Heart"),
+		// generateCollegeGame(50, 31, "Providence", "Mercyhurst"),
+		// generateCollegeGame(29, 41, "UMass", "Niagara"),
+		// generateCollegeGame(49, 35, "Princeton", "Michigan State"),
+		// generateCollegeGame(6, 66, "Army", "Binghamton"),
+		// generateCollegeGame(7, 64, "Augustana", "Yale"),
+		// generateCollegeGame(13, 62, "Brown", "WMU"),
+		// generateCollegeGame(58, 16, "St. Thomas", "Colgate"),
+		// generateCollegeGame(23, 47, "Harvard", "Omaha"),
+		generateCollegeGame(18, 37, "UConn", "Minnesota"),
+		// generateCollegeGame(26, 9, "Lindenwood", "Bentley"),
+		// generateCollegeGame(8, 63, "Bemidji State", "Wisconsin"),
+		generateCollegeGame(10, 61, "Boston College", "Vermont"),
+		// generateCollegeGame(65, 34, "Tennessee State", "Michigan"),
+		// generateCollegeGame(54, 21, "Rochester", "Denver"),
+		// generateCollegeGame(36, 52, "Michigan Tech", "RPI"),
+		// generateCollegeGame(40, 46, "New Hampshire", "Ohio State"),
+		// generateCollegeGame(39, 43, "Minnesota State", "Northeastern"),
+		// generateCollegeGame(3, 51, "Anchorage", "Quinnipiac"),
+		// generateCollegeGame(33, 12, "Miami (OH)", "Bowling Green"),
+		// generateCollegeGame(5, 44, "Arizona State", "Northern Michigan"),
+		// generateCollegeGame(25, 59, "Lake Superior State", "Stonehill"),
+		// generateCollegeGame(24, 19, "Holy Cross", "Cornell"),
 	}
 	return games
 }
@@ -133,18 +145,35 @@ func GetProfessionalGamesForCurrentMatchup(weekID, seasonID, gameDay string) []s
 	return repository.FindProfessionalGamesByCurrentMatchup(weekID, seasonID, gameDay)
 }
 
+func GetCollegeGamesByTeamIDAndSeasonID(teamID, seasonID string) []structs.CollegeGame {
+	return repository.FindCollegeGames(seasonID, teamID)
+}
+
+func GetProfessionalGamesByTeamIDAndSeasonID(teamID, seasonID string) []structs.ProfessionalGame {
+	return repository.FindProfessionalGames(seasonID, teamID)
+}
+
+func GetCollegeGamesBySeasonID(seasonID string) []structs.CollegeGame {
+	return repository.FindCollegeGames(seasonID, "")
+}
+
+func GetProfessionalGamesBySeasonID(seasonID string) []structs.ProfessionalGame {
+	return repository.FindProfessionalGames(seasonID, "")
+}
+
 func GetArenaMap() map[uint]structs.Arena {
 	arenas := repository.FindAllArenas()
 	return MakeArenaMap(arenas)
 }
 
-func getCollegePlaybookDTO(lineups []structs.CollegeLineup, roster []structs.CollegePlayer) structs.PlayBookDTO {
+func getCollegePlaybookDTO(lineups []structs.CollegeLineup, roster []structs.CollegePlayer, shootoutLineup structs.CollegeShootoutLineup) structs.PlayBookDTO {
 	forwards, defenders, goalies := getCollegeForwardDefenderGoalieLineups(lineups)
 	return structs.PlayBookDTO{
-		Forwards:      forwards,
-		Defenders:     defenders,
-		Goalies:       goalies,
-		CollegeRoster: roster,
+		Forwards:       forwards,
+		Defenders:      defenders,
+		Goalies:        goalies,
+		CollegeRoster:  roster,
+		ShootoutLineup: shootoutLineup.ShootoutPlayerIDs,
 	}
 }
 

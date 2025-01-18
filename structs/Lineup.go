@@ -35,6 +35,49 @@ type LineupPlayerIDs struct {
 	GoalieID    uint
 }
 
+type CollegeShootoutLineup struct {
+	ShootoutPlayerIDs
+}
+
+type ProfessionalShootoutLineup struct {
+	ShootoutPlayerIDs
+}
+
+type ShootoutPlayerIDs struct {
+	ID               uint
+	TeamID           uint
+	Shooter1ID       uint
+	Shooter1ShotType uint8 // 1 == Close, 2 == Long
+	Shooter2ID       uint
+	Shooter2ShotType uint8 // 1 == Close, 2 == Long
+	Shooter3ID       uint
+	Shooter3ShotType uint8 // 1 == Close, 2 == Long
+	Shooter4ID       uint
+	Shooter4ShotType uint8 // 1 == Close, 2 == Long
+	Shooter5ID       uint
+	Shooter5ShotType uint8 // 1 == Close, 2 == Long
+	Shooter6ID       uint
+	Shooter6ShotType uint8 // 1 == Close, 2 == Long
+}
+
+func (s *ShootoutPlayerIDs) AssignIDs(s1, s2, s3, s4, s5, s6 uint) {
+	s.Shooter1ID = s1
+	s.Shooter2ID = s2
+	s.Shooter3ID = s3
+	s.Shooter4ID = s4
+	s.Shooter5ID = s5
+	s.Shooter6ID = s6
+}
+
+func (s *ShootoutPlayerIDs) AssignShotTypes(st1, st2, st3, st4, st5, st6 uint8) {
+	s.Shooter1ShotType = st1
+	s.Shooter2ShotType = st2
+	s.Shooter3ShotType = st3
+	s.Shooter4ShotType = st4
+	s.Shooter5ShotType = st5
+	s.Shooter6ShotType = st6
+}
+
 type Allocations struct {
 	// AGZ == Attacking Goal Zone
 	AGZShot       uint8
@@ -42,8 +85,7 @@ type Allocations struct {
 	AGZStickCheck uint8
 	AGZBodyCheck  uint8
 	// AZ == Attacking Zone
-	AZSlapshot   uint8
-	AZWristshot  uint8
+	AZShot       uint8
 	AZPass       uint8
 	AZAgility    uint8
 	AZStickCheck uint8
