@@ -3,6 +3,9 @@ package util
 import (
 	"fmt"
 	"strings"
+
+	"golang.org/x/text/cases"
+	"golang.org/x/text/language"
 )
 
 func GetPositionList() []string {
@@ -11,9 +14,15 @@ func GetPositionList() []string {
 	}
 }
 
-func GetStarRating() int {
+func GetStarRating(isCustom bool) int {
 	roll := GenerateIntFromRange(1, 1000)
-	if roll < 2 {
+	if isCustom {
+		roll -= 100
+	}
+	if roll < 0 {
+		roll = 1
+	}
+	if roll < 2 && !isCustom {
 		return 6
 	}
 	if roll < 42 {
@@ -336,7 +345,8 @@ func GetStateAbbreviation(state string) (string, error) {
 	}
 
 	// Normalize the input by trimming spaces and capitalizing the first letter of each word
-	normalizedState := strings.Title(strings.ToLower(strings.TrimSpace(state)))
+	caser := cases.Title(language.English)
+	normalizedState := caser.String(strings.ToLower(strings.TrimSpace(state)))
 
 	// Check if the state exists in the map
 	if abbreviation, ok := stateAbbreviations[normalizedState]; ok {
@@ -362,11 +372,11 @@ func PickPosition() string {
 
 func GetArchetype(pos string) string {
 	if pos == Center || pos == Forward {
-		return PickFromStringList([]string{Enforcer, Grinder, Playmaker, Power, Sniper, "Two-Way"})
+		return PickFromStringList([]string{Enforcer, Grinder, Playmaker, Power, Sniper, TwoWay})
 	} else if pos == Defender {
-		return PickFromStringList([]string{"Defensive", Enforcer, "Offensive", "Two-Way"})
+		return PickFromStringList([]string{Defensive, Defensive, Enforcer, Offensive, TwoWay})
 	} else if pos == Goalie {
-		return PickFromStringList([]string{"Stand-Up", "Hybrid", "Butterfly"})
+		return PickFromStringList([]string{StandUp, Hybrid, Butterfly})
 	}
 	return ""
 }
@@ -520,19 +530,32 @@ func GetWeightedPotentialGrade(rating int) string {
 
 func GetPrimeAge(pos, arch string) int {
 	venerable := false
+	vulnerable := false
 	vDiceRoll := GenerateIntFromRange(1, 10000)
 	chance := getVenerableChance(pos)
+	cutShortChance := 9990
 	if vDiceRoll < chance {
 		venerable = true
+	} else if vDiceRoll > cutShortChance {
+		vulnerable = true
 	}
 
-	mean, stddev := getPositionMean(pos, venerable)
+	mean, stddev := getPositionMean(pos, venerable, vulnerable)
 
 	age := GenerateNormalizedIntFromMeanStdev(mean, stddev)
 	return int(age)
 }
 
-func getPositionMean(pos string, venerable bool) (float64, float64) {
+func getPositionMean(pos string, venerable, shortenedCareer bool) (float64, float64) {
+	if shortenedCareer {
+		shortenedMap := map[string][]float64{
+			Center:   []float64{26, 2},
+			Forward:  []float64{26, 2},
+			Defender: []float64{26, 2},
+			Goalie:   []float64{26, 2},
+		}
+		return shortenedMap[pos][0], shortenedMap[pos][1]
+	}
 	meanMap := getPositionMeanMap()
 	return meanMap[venerable][pos][0], meanMap[venerable][pos][1]
 }
@@ -541,21 +564,21 @@ func getPositionMeanMap() map[bool]map[string][]float64 {
 	return map[bool]map[string][]float64{
 		true: {
 			Center:   []float64{35, 2},
-			Forward:  []float64{32, 1},
+			Forward:  []float64{33, 1},
 			Defender: []float64{34, 1},
 			Goalie:   []float64{34, 1},
 		},
 		false: {
 			Center:   []float64{30, 2},
-			Forward:  []float64{28, 0.67},
-			Defender: []float64{28, 0.67},
-			Goalie:   []float64{29, 1.33},
+			Forward:  []float64{29, 0.67},
+			Defender: []float64{29, 0.67},
+			Goalie:   []float64{30, 1.33},
 		},
 	}
 }
 
 func getVenerableChance(pos string) int {
-	return 10
+	return 20
 }
 
 func GetPersonality() string {

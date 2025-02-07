@@ -34,7 +34,7 @@ func FindAllRecruits(includeProfiles, includeIsSigned, isSigned, orderByOverall 
 		query = query.Where("is_signed = ?", isSigned)
 	}
 
-	if err := query.Find(&recruits).Error; err != nil {
+	if err := query.Order("composite_rank desc").Find(&recruits).Error; err != nil {
 		return []structs.Recruit{}
 	}
 
@@ -65,7 +65,7 @@ func FindCollegeRecruitRecord(id string, includePlayerProfiles bool) structs.Rec
 	return recruits
 }
 
-func FindRecruitPlayerProfileRecords(profileID string, includeRecruit, orderByOverall bool) []structs.RecruitPlayerProfile {
+func FindRecruitPlayerProfileRecords(profileID, recruitID string, includeRecruit, orderByOverall bool) []structs.RecruitPlayerProfile {
 	db := dbprovider.GetInstance().GetDB()
 
 	var croots []structs.RecruitPlayerProfile
@@ -78,6 +78,10 @@ func FindRecruitPlayerProfileRecords(profileID string, includeRecruit, orderByOv
 
 	if len(profileID) > 0 {
 		query = query.Where("profile_id = ?", profileID)
+	}
+
+	if len(recruitID) > 0 {
+		query = query.Where("recruit_id = ?", recruitID)
 	}
 
 	if orderByOverall {
@@ -122,7 +126,7 @@ func FindRecruitPlayerProfileRecord(recruitID, profileID string) structs.Recruit
 }
 
 func CreateRecruitProfileRecord(db *gorm.DB, record structs.RecruitPlayerProfile) error {
-	if err := db.Create(record).Error; err != nil {
+	if err := db.Create(&record).Error; err != nil {
 		return err
 	}
 
@@ -131,7 +135,78 @@ func CreateRecruitProfileRecord(db *gorm.DB, record structs.RecruitPlayerProfile
 
 func SaveRecruitProfileRecord(db *gorm.DB, record structs.RecruitPlayerProfile) error {
 	record.Recruit = structs.Recruit{}
-	if err := db.Save(record).Error; err != nil {
+	if err := db.Save(&record).Error; err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func FindTeamRecruitingProfiles(aiOnly bool) []structs.RecruitingTeamProfile {
+	db := dbprovider.GetInstance().GetDB()
+
+	var profiles []structs.RecruitingTeamProfile
+
+	query := db.Model(&profiles)
+
+	if aiOnly {
+		query = query.Where("is_ai = ?", true)
+	}
+
+	if err := query.Find(&profiles).Error; err != nil {
+		return []structs.RecruitingTeamProfile{}
+	}
+
+	return profiles
+}
+
+func FindTeamRecruitingProfile(teamID string, includeRecruit, includeSignedRecruitsOnly bool) structs.RecruitingTeamProfile {
+	db := dbprovider.GetInstance().GetDB()
+
+	var profile structs.RecruitingTeamProfile
+
+	query := db.Model(&profile)
+
+	if len(teamID) > 0 {
+		query = query.Where("id = ?", teamID)
+	}
+
+	if includeRecruit {
+		query = query.Preload("Recruits.Recruit.RecruitPlayerProfiles", func(db *gorm.DB) *gorm.DB {
+			return db.Order("total_points DESC").Where("total_points > 0")
+		})
+	} else if includeSignedRecruitsOnly {
+		query = query.Preload("Recruits.Recruit", func(db *gorm.DB) *gorm.DB {
+			return db.Order("total_points DESC").Where("team_id = ? AND is_signed = true", teamID)
+		})
+	}
+
+	if err := query.Find(&profile).Error; err != nil {
+		return structs.RecruitingTeamProfile{}
+	}
+
+	return profile
+}
+
+func CreateTeamProfileRecord(db *gorm.DB, record structs.RecruitingTeamProfile) error {
+	if err := db.Create(&record).Error; err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func SaveTeamProfileRecord(db *gorm.DB, record structs.RecruitingTeamProfile) error {
+	record.Recruits = nil
+	if err := db.Save(&record).Error; err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func CreatePointAllocationRecord(db *gorm.DB, record structs.RecruitPointAllocation) error {
+	if err := db.Create(&record).Error; err != nil {
 		return err
 	}
 

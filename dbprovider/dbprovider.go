@@ -54,24 +54,40 @@ func (p *Provider) InitDatabase() bool {
 	// db.AutoMigrate(&structs.CollegeLineup{})
 	// db.AutoMigrate(&structs.CollegeShootoutLineup{})
 	// db.AutoMigrate(&structs.CollegeTeam{})
+	// db.AutoMigrate(&structs.CollegeTeamRequest{})
 	// db.AutoMigrate(&structs.CollegeTeamSeasonStats{})
 	// db.AutoMigrate(&structs.CollegeTeamGameStats{})
 	// db.AutoMigrate(&structs.CollegeGame{})
+	// db.AutoMigrate(&structs.CollegeStandings{})
 
 	// Professional
+	// db.AutoMigrate(&structs.ExtensionOffer{})
+	// db.AutoMigrate(&structs.FreeAgencyOffer{})
+	// db.AutoMigrate(&structs.ProCapsheet{})
+	// db.AutoMigrate(&structs.ProContract{})
+	// db.AutoMigrate(&structs.ProfessionalPlayerGameStats{})
+	// db.AutoMigrate(&structs.ProfessionalPlayerSeasonStats{})
 	// db.AutoMigrate(&structs.ProfessionalTeam{})
 	// db.AutoMigrate(&structs.ProfessionalTeamFranchise{})
+	// db.AutoMigrate(&structs.ProfessionalTeamGameStats{})
+	// db.AutoMigrate(&structs.ProfessionalTeamSeasonStats{})
 	// db.AutoMigrate(&structs.ProfessionalPlayer{})
 	// db.AutoMigrate(&structs.RetiredPlayer{})
 	// db.AutoMigrate(&structs.ProfessionalLineup{})
 	// db.AutoMigrate(&structs.ProfessionalShootoutLineup{})
 	// db.AutoMigrate(&structs.ProfessionalGame{})
+	// db.AutoMigrate(&structs.ProfessionalStandings{})
+	// db.AutoMigrate(&structs.ProTeamRequest{})
+	// db.AutoMigrate(&structs.WaiverOffer{})
 
 	// Recruiting
 	// db.AutoMigrate(&structs.Recruit{})
+
 	// Administrative
 	// db.AutoMigrate(&structs.Arena{})
 	// db.AutoMigrate(&structs.GlobalPlayer{})
+	// db.AutoMigrate(&structs.NewsLog{})
+	// db.AutoMigrate(&structs.Notification{})
 	// db.AutoMigrate(&structs.Timestamp{})
 	return true
 }

@@ -21,16 +21,32 @@ func FindTimestamp() structs.Timestamp {
 	return timestamp
 }
 
+func FindLatestGlobalPlayerRecord() structs.GlobalPlayer {
+	db := dbprovider.GetInstance().GetDB()
+
+	var lastPlayerRecord structs.GlobalPlayer
+	err := db.Last(&lastPlayerRecord).Error
+	if err != nil {
+		return lastPlayerRecord
+	}
+
+	return lastPlayerRecord
+}
+
 // College Players
-func FindAllCollegePlayers() []structs.CollegePlayer {
+func FindAllCollegePlayers(teamID string) []structs.CollegePlayer {
 	db := dbprovider.GetInstance().GetDB()
 
 	var CollegePlayers []structs.CollegePlayer
 
-	err := db.Find(&CollegePlayers).Error
-	if err != nil {
-		log.Printf("Error querying for college players: %v", err)
+	query := db.Model(&CollegePlayers)
 
+	if len(teamID) > 0 {
+		query = query.Where("team_id = ?", teamID)
+	}
+
+	if err := query.Find(&CollegePlayers).Error; err != nil {
+		return []structs.CollegePlayer{}
 	}
 
 	return CollegePlayers
@@ -62,27 +78,36 @@ func FindAllHistoricCollegePlayers() []structs.HistoricCollegePlayer {
 	return CollegePlayers
 }
 
-func FindAllCollegeTeams() []structs.CollegeTeam {
+// Professional Players
+func FindAllProPlayers(teamID string) []structs.ProfessionalPlayer {
 	db := dbprovider.GetInstance().GetDB()
 
-	var CollegeTeams []structs.CollegeTeam
-	err := db.Find(&CollegeTeams).Error
+	var proPlayers []structs.ProfessionalPlayer
+
+	query := db.Model(&proPlayers)
+
+	if len(teamID) > 0 {
+		query = query.Where("team_id = ?", teamID)
+	}
+
+	if err := query.Order("overall desc").Find(&proPlayers).Error; err != nil {
+		return []structs.ProfessionalPlayer{}
+	}
+
+	return proPlayers
+}
+
+func FindAllHistoricProPlayers() []structs.RetiredPlayer {
+	db := dbprovider.GetInstance().GetDB()
+
+	var retiredPlayers []structs.RetiredPlayer
+	err := db.Find(&retiredPlayers).Error
 	if err != nil {
-		log.Printf("Error querying for college teams: %v", err)
+		log.Printf("Error querying for college players: %v", err)
 
 	}
 
-	return CollegeTeams
-}
-
-func FindAllAvailableCollegeTeams() []structs.CollegeTeam {
-	db := dbprovider.GetInstance().GetDB()
-
-	var teams []structs.CollegeTeam
-
-	db.Where("coach IN (?,?)", "", "AI").Find(&teams)
-
-	return teams
+	return retiredPlayers
 }
 
 func FindAllCollegeLineups() []structs.CollegeLineup {
@@ -126,6 +151,55 @@ func FindCollegeShootoutLineupByTeamID(TeamID string) structs.CollegeShootoutLin
 	db := dbprovider.GetInstance().GetDB()
 
 	var lineups structs.CollegeShootoutLineup
+	err := db.Where("team_id = ?", TeamID).Find(&lineups).Error
+	if err != nil {
+		log.Printf("Error querying for college shootout lineups: %v", err)
+	}
+
+	return lineups
+}
+
+func FindAllProLineups() []structs.ProfessionalLineup {
+	db := dbprovider.GetInstance().GetDB()
+
+	var lineups []structs.ProfessionalLineup
+	err := db.Find(&lineups).Error
+	if err != nil {
+		log.Printf("Error querying for college teams: %v", err)
+
+	}
+
+	return lineups
+}
+
+func FindProLineupsByTeamID(TeamID string) []structs.ProfessionalLineup {
+	db := dbprovider.GetInstance().GetDB()
+
+	var lineups []structs.ProfessionalLineup
+	err := db.Where("team_id = ?", TeamID).Find(&lineups).Error
+	if err != nil {
+		log.Printf("Error querying for college teams: %v", err)
+	}
+
+	return lineups
+}
+
+func FindAllProShootoutLineups() []structs.ProfessionalShootoutLineup {
+	db := dbprovider.GetInstance().GetDB()
+
+	var lineups []structs.ProfessionalShootoutLineup
+	err := db.Find(&lineups).Error
+	if err != nil {
+		log.Printf("Error querying for college lineups: %v", err)
+	}
+
+	return lineups
+}
+
+func FindProShootoutLineupByTeamID(TeamID string) structs.ProfessionalShootoutLineup {
+	db := dbprovider.GetInstance().GetDB()
+
+	var lineups structs.ProfessionalShootoutLineup
 	err := db.Where("team_id = ?", TeamID).Find(&lineups).Error
 	if err != nil {
 		log.Printf("Error querying for college shootout lineups: %v", err)
@@ -312,4 +386,16 @@ func FindCollegePollOfficial(seasonID string) []structs.CollegePollOfficial {
 	}
 
 	return officialPoll
+}
+
+func FindCapsheetRecords() []structs.ProCapsheet {
+	db := dbprovider.GetInstance().GetDB()
+
+	capsheets := []structs.ProCapsheet{}
+
+	err := db.Find(&capsheets).Error
+	if err != nil {
+		log.Fatal(err)
+	}
+	return capsheets
 }

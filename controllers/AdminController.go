@@ -21,20 +21,32 @@ func TestEngine(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode("Game ran!")
 }
 
-func GenerateTestData(w http.ResponseWriter, r *http.Request) {
-	managers.GenerateTestRosters()
+func GenerateProTeams(w http.ResponseWriter, r *http.Request) {
+	managers.ImportProTeams()
+
+	json.NewEncoder(w).Encode("Data Generated ran!")
+}
+
+func GenerateInitialRosters(w http.ResponseWriter, r *http.Request) {
+	managers.GenerateInitialRosters()
 
 	json.NewEncoder(w).Encode("Data Generated ran!")
 }
 
 func GenerateProTestData(w http.ResponseWriter, r *http.Request) {
-	managers.GenerateTestProPool()
+	managers.GenerateInitialProPool()
 
 	json.NewEncoder(w).Encode("Data Generated ran!")
 }
 
-func RunAILineups(w http.ResponseWriter, r *http.Request) {
+func RunAICollegeLineups(w http.ResponseWriter, r *http.Request) {
 	managers.RunLineupsForAICollegeTeams()
+
+	json.NewEncoder(w).Encode("Data Generated ran!")
+}
+
+func RunAIProLineups(w http.ResponseWriter, r *http.Request) {
+	managers.RunLineupsForAIProTeams()
 
 	json.NewEncoder(w).Encode("Data Generated ran!")
 }

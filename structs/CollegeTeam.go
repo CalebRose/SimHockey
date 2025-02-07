@@ -26,6 +26,10 @@ type BaseTeam struct {
 	DefenseGrade     string
 }
 
+func (bt *BaseTeam) AssignDiscordID(id string) {
+	bt.DiscordID = id
+}
+
 type ProfileAttributes struct {
 	ProgramPrestige      uint8
 	ProfessionalPrestige uint8
@@ -48,9 +52,53 @@ type CollegeTeam struct {
 	ProfileAttributes
 }
 
+func (t *CollegeTeam) AssignToUser(username string) {
+	t.IsUserCoached = true
+	t.Coach = username
+}
+
+func (t *CollegeTeam) RemoveUser() {
+	t.IsUserCoached = false
+	t.Coach = ""
+}
+
 type ProfessionalTeam struct {
 	gorm.Model
 	BaseTeam
+	Owner      string
+	GM         string
+	Scout      string
+	Marketing  string
+	DivisionID uint8
+	Division   string
+}
+
+func (t *ProfessionalTeam) AssignUser(username, role string) {
+	if role == "Owner" {
+		t.Owner = username
+	} else if role == "GM" {
+		t.GM = username
+	} else if role == "Scout" {
+		t.Scout = username
+	} else if role == "Coach" {
+		t.Coach = username
+	} else {
+		t.Marketing = username
+	}
+}
+
+func (t *ProfessionalTeam) RemoveUser(role string) {
+	if role == "Owner" {
+		t.Owner = ""
+	} else if role == "GM" {
+		t.GM = ""
+	} else if role == "Scout" {
+		t.Scout = ""
+	} else if role == "Coach" {
+		t.Coach = ""
+	} else {
+		t.Marketing = ""
+	}
 }
 
 type ProfessionalTeamFranchise struct {

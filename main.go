@@ -70,10 +70,22 @@ func handleRequests() http.Handler {
 	myRouter.HandleFunc("/health", HealthCheck.Handler).Methods("GET")
 
 	// Admin
-	apiRouter.HandleFunc("/admin/ai/generate/lineups/", controllers.RunAILineups).Methods("GET")
+	apiRouter.HandleFunc("/admin/ai/generate/college/lineups/", controllers.RunAICollegeLineups).Methods("GET")
+	apiRouter.HandleFunc("/admin/ai/generate/pro/lineups/", controllers.RunAIProLineups).Methods("GET")
 	apiRouter.HandleFunc("/admin/test/engine/", controllers.TestEngine).Methods("GET")
-	apiRouter.HandleFunc("/admin/generate/test/college/rosters/", controllers.GenerateTestData).Methods("GET")
-	apiRouter.HandleFunc("/admin/generate/test/pro/rosters/", controllers.GenerateProTestData).Methods("GET")
+	// apiRouter.HandleFunc("/admin/generate/test/pro/teams/", controllers.GenerateProTeams).Methods("GET")
+	// apiRouter.HandleFunc("/admin/generate/init/college/rosters/", controllers.GenerateInitialRosters).Methods("GET")
+	// apiRouter.HandleFunc("/admin/generate/test/pro/rosters/", controllers.GenerateProTestData).Methods("GET")
+
+	// Bootstrap
+	apiRouter.HandleFunc("/bootstrap/{collegeID}/{proID}", controllers.BootstrapHockeyData).Methods("GET")
+
+	// Exports
+	apiRouter.HandleFunc("/export/pro/players/all", controllers.ExportAllProPlayers).Methods("GET")
+
+	// Requests
+	apiRouter.HandleFunc("/requests/view/chl/{teamID}", controllers.ViewCHLTeamUponRequest).Methods("GET")
+	apiRouter.HandleFunc("/requests/view/phl/{teamID}", controllers.ViewPHLTeamUponRequest).Methods("GET")
 
 	// Websocket
 	myRouter.HandleFunc("/ws", ws.WebSocketHandler)

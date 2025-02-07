@@ -1,6 +1,8 @@
 package engine
 
-import "github.com/CalebRose/SimHockey/structs"
+import (
+	"github.com/CalebRose/SimHockey/structs"
+)
 
 type GameState struct {
 	HomeTeamID            uint
@@ -33,8 +35,8 @@ type GameState struct {
 	ActivePowerPlays      []PowerPlayState
 	Zones                 []string // Home Goal, Home Zone, Neutral Zone, Away Zone, Away Goal
 	PuckLocation          string
-	PuckCarrier           GamePlayer
-	AssistingPlayer       GamePlayer
+	PuckCarrier           *GamePlayer
+	AssistingPlayer       *GamePlayer
 	Momentum              float64
 	PossessingTeam        uint // Use the ID of the team
 	IsCollegeGame         bool
@@ -169,16 +171,20 @@ func (gs *GameState) SetFaceoffOnCenterIce(check bool) {
 	gs.FaceoffOnCenterIce = check
 }
 
-func (gs *GameState) SetPuckBearer(player GamePlayer) {
-	if gs.PuckCarrier.TeamID != player.TeamID {
-		gs.ResetMomentum()
-		gs.AssistingPlayer = GamePlayer{}
+func (gs *GameState) SetPuckBearer(player *GamePlayer) {
+	if gs.PuckCarrier != nil {
+		if gs.PuckCarrier.ID > 0 && gs.PuckCarrier.TeamID != player.TeamID {
+			gs.ResetMomentum()
+			gs.AssistingPlayer = &GamePlayer{}
+		} else {
+			gs.Momentum += 0.125
+			gs.AssistingPlayer = gs.PuckCarrier
+		}
+		gs.PuckCarrier = player
+		gs.PossessingTeam = uint(player.TeamID)
 	} else {
-		gs.Momentum += 0.125
-		gs.AssistingPlayer = gs.PuckCarrier
+		gs.PuckCarrier = &GamePlayer{}
 	}
-	gs.PuckCarrier = player
-	gs.PossessingTeam = uint(player.TeamID)
 }
 
 func (gs *GameState) TriggerBreakaway() {
@@ -189,8 +195,8 @@ func (gs *GameState) ResetMomentum() {
 	gs.Momentum = 0
 }
 
-func (gs *GameState) GetCenter(isHome bool) GamePlayer {
-	var currentLineup []GamePlayer
+func (gs *GameState) GetCenter(isHome bool) *GamePlayer {
+	var currentLineup []*GamePlayer
 	if isHome {
 		s := gs.HomeStrategy
 		idx := s.CurrentForwards
@@ -230,22 +236,22 @@ func (gs *GameState) CalculateWinner() {
 func (gs *GameState) IncrementScore(isHome bool) {
 	if isHome {
 		gs.HomeTeamScore += 1
-		gs.HomeTeamStats.AddShot(true, !gs.IsPowerPlay, gs.IsPowerPlay, gs.IsPowerPlay && gs.PowerPlayTeamID != uint(gs.PuckCarrier.TeamID), gs.Period > 3)
+		gs.HomeTeamStats.AddShot(true, !gs.IsPowerPlay, gs.IsPowerPlay, gs.IsPowerPlay && gs.PowerPlayTeamID != uint(gs.PuckCarrier.TeamID), gs.Period > 3, gs.Period)
 		gs.AwayTeamStats.AddShotAgainst(true)
 	} else {
 		gs.AwayTeamScore += 1
-		gs.AwayTeamStats.AddShot(true, !gs.IsPowerPlay, gs.IsPowerPlay, gs.IsPowerPlay && gs.PowerPlayTeamID != uint(gs.PuckCarrier.TeamID), gs.Period > 3)
+		gs.AwayTeamStats.AddShot(true, !gs.IsPowerPlay, gs.IsPowerPlay, gs.IsPowerPlay && gs.PowerPlayTeamID != uint(gs.PuckCarrier.TeamID), gs.Period > 3, gs.Period)
 		gs.HomeTeamStats.AddShotAgainst(true)
 	}
-	gs.PuckCarrier.Stats.AddShot(true, !gs.IsPowerPlay, gs.IsPowerPlay, gs.IsPowerPlay && gs.PowerPlayTeamID != uint(gs.PuckCarrier.TeamID), gs.Period > 3)
+	gs.PuckCarrier.AddShot(true, !gs.IsPowerPlay, gs.IsPowerPlay, gs.IsPowerPlay && gs.PowerPlayTeamID != uint(gs.PuckCarrier.TeamID), gs.Period > 3)
 	if gs.AssistingPlayer.ID > 0 {
 		gs.AssistingPlayer.Stats.AddAssist(!gs.IsPowerPlay, gs.IsPowerPlay, gs.IsPowerPlay && gs.PowerPlayTeamID != uint(gs.PuckCarrier.TeamID))
 	}
 	gs.HomeStrategy.HandlePlusMinus(isHome, gs.PuckCarrier.ID, gs.AssistingPlayer.ID)
-	gs.AwayStrategy.HandlePlusMinus(isHome, gs.PuckCarrier.ID, gs.AssistingPlayer.ID)
+	gs.AwayStrategy.HandlePlusMinus(!isHome, gs.PuckCarrier.ID, gs.AssistingPlayer.ID)
 	gs.SetFaceoffOnCenterIce(true)
 	gs.SetNewZone(NeutralZone)
-	gs.SetPuckBearer(GamePlayer{})
+	gs.SetPuckBearer(&GamePlayer{})
 	if gs.IsPowerPlay {
 		for _, pp := range gs.ActivePowerPlays {
 			if ((isHome && pp.PowerPlayTeamID == gs.HomeTeamID) ||
@@ -260,10 +266,10 @@ func (gs *GameState) IncrementScore(isHome bool) {
 
 func (gs *GameState) AddShots(isHome bool) {
 	if isHome {
-		gs.HomeTeamStats.AddShot(false, false, false, false, false)
+		gs.HomeTeamStats.AddShot(false, false, false, false, false, 0)
 		gs.AwayTeamStats.AddShotAgainst(false)
 	} else {
-		gs.AwayTeamStats.AddShot(false, false, false, false, false)
+		gs.AwayTeamStats.AddShot(false, false, false, false, false, 0)
 		gs.HomeTeamStats.AddShotAgainst(false)
 	}
 }
@@ -291,14 +297,14 @@ func (gs *GameState) GetLineStrategy(isHome bool, lineUpType int) LineStrategy {
 	return pb.Goalies[pb.CurrentGoalie]
 }
 
-func GetGamePlayerByPosition(currentLineup []GamePlayer, pos string) GamePlayer {
+func GetGamePlayerByPosition(currentLineup []*GamePlayer, pos string) *GamePlayer {
 	for _, p := range currentLineup {
-		if p.Position != "C" || p.IsOut {
+		if p.Position != pos || p.IsOut {
 			continue
 		}
 		return p
 	}
-	return GamePlayer{}
+	return &GamePlayer{}
 }
 
 func (gs *GameState) GetLineupType(isHome bool) int {
@@ -325,14 +331,14 @@ type GamePlaybook struct {
 	CurrentGoalie               int
 	MinForwardStaminaThreshold  int
 	MinDefenderStaminaThreshold int
-	BenchPlayers                []GamePlayer
+	BenchPlayers                []*GamePlayer
 	CenterOut                   bool
 	Forward1Out                 bool
 	Forward2Out                 bool
 	Defender1Out                bool
 	Defender2Out                bool
 	ShootoutLineUp              structs.ShootoutPlayerIDs
-	RosterMap                   map[uint]GamePlayer
+	RosterMap                   map[uint]*GamePlayer
 }
 
 func (gp *GamePlaybook) ActivatePowerPlayer(playerID uint, position string) {
@@ -440,11 +446,11 @@ func (gp *GamePlaybook) getPlayerPositionEnum(playerID uint, position string) ui
 	return 0
 }
 
-func (gp *GamePlaybook) handleLineReplacement(players []GamePlayer, playerID uint, requiredCount, lineType uint) []GamePlayer {
+func (gp *GamePlaybook) handleLineReplacement(players []*GamePlayer, playerID uint, requiredCount, lineType uint) []*GamePlayer {
 	filteredPlayers, queue := filterOutPlayerFromLineup(players, playerID, lineType)
 
 	for len(filteredPlayers) < int(requiredCount) {
-		var replacement GamePlayer
+		var replacement *GamePlayer
 
 		// Check if a substitution ID exists for the current queue player
 		if queue.SubstitutionID > 0 {
@@ -521,7 +527,7 @@ func (gp *GamePlaybook) CheckAndRotateLineup() {
 	}
 }
 
-func (gp *GamePlaybook) getNextLine(lineType uint) []GamePlayer {
+func (gp *GamePlaybook) getNextLine(lineType uint) []*GamePlayer {
 	if lineType == 1 {
 		for i := gp.CurrentForwards + 1; i < len(gp.Forwards); i++ {
 			return gp.Forwards[i].Players
@@ -531,12 +537,12 @@ func (gp *GamePlaybook) getNextLine(lineType uint) []GamePlayer {
 			return gp.Defenders[i].Players
 		}
 	}
-	return []GamePlayer{}
+	return []*GamePlayer{}
 }
 
 type LineStrategy struct {
 	structs.Allocations
-	Players        []GamePlayer
+	Players        []*GamePlayer
 	CenterID       uint
 	Forward1ID     uint
 	Forward2ID     uint
@@ -555,7 +561,7 @@ func (ls *LineStrategy) ReturnPlayerFromPowerPlay(playerID uint) {
 	}
 }
 
-func (ls *LineStrategy) SetNewLineup(players []GamePlayer) {
+func (ls *LineStrategy) SetNewLineup(players []*GamePlayer) {
 	ls.Players = players
 }
 
@@ -661,6 +667,58 @@ func (g *GamePlayer) ReturnToPlay() {
 	}
 }
 
+func (p *GamePlayer) AdjustPlusMinus(isScore bool) {
+	p.Stats.AdjustPlusMinus(isScore)
+}
+
+func (p *GamePlayer) AddShot(isScore, isEvenStrength, isPowerPlay, isShorthanded, isOvertime bool) {
+	p.Stats.AddShot(isScore, isEvenStrength, isPowerPlay, isShorthanded, isOvertime)
+}
+
+func (p *GamePlayer) AddGoal(isEvenStrength, isPowerPlay, isShorthanded, isOvertime bool) {
+	p.Stats.AddGoal(isEvenStrength, isPowerPlay, isShorthanded, isOvertime)
+}
+
+func (p *GamePlayer) AddGoalAgainst() {
+	p.Stats.AddGoalAgainst()
+}
+
+func (p *GamePlayer) AddAssist(isEvenStrength, isPowerPlay, isShorthanded bool) {
+	p.Stats.AddAssist(isEvenStrength, isPowerPlay, isShorthanded)
+}
+
+func (p *GamePlayer) AddTimeOnIce(seconds int, isPenalty bool) {
+	p.Stats.AddTimeOnIce(seconds, isPenalty)
+}
+
+func (p *GamePlayer) AddPenaltyTime(seconds int) {
+	p.Stats.AddPenaltyTime(seconds)
+}
+
+func (p *GamePlayer) AddShotAgainst(isScore bool) {
+	p.Stats.AddShotAgainst(isScore)
+}
+
+func (p *GamePlayer) AddShotBlocked() {
+	p.Stats.AddShotBlocked()
+}
+
+func (p *GamePlayer) AddDefensiveHit(isBodyCheck bool) {
+	p.Stats.AddDefensiveHit(isBodyCheck)
+}
+
+func (p *GamePlayer) AddFaceoff(isWin bool) {
+	p.Stats.AddFaceoff(isWin)
+}
+
+func (p *GamePlayer) AddShutout() {
+	p.Stats.AddShutout()
+}
+
+func (p *GamePlayer) AddGoalieStat(scoreType int, isOvertimeLoss bool) {
+	p.Stats.AddGoalieStat(scoreType, isOvertimeLoss)
+}
+
 // Util Structs
 // PlayerWeight -- For event checks
 type PlayerWeight struct {
@@ -690,14 +748,14 @@ func (p *Penalty) ApplyPlayerInfo(id uint, position string) {
 // Line Management Functions and Structs
 type RemovalQueue struct {
 	PlayerID       uint
-	Player         GamePlayer
+	Player         *GamePlayer
 	SubstitutionID uint
 	LineType       uint
 	Idx            uint
 }
 
-func filterOutPlayerFromLineup(players []GamePlayer, playerID uint, lineType uint) ([]GamePlayer, RemovalQueue) {
-	filtered := []GamePlayer{}
+func filterOutPlayerFromLineup(players []*GamePlayer, playerID uint, lineType uint) ([]*GamePlayer, RemovalQueue) {
+	filtered := []*GamePlayer{}
 	queue := RemovalQueue{}
 
 	for _, p := range players {
@@ -716,7 +774,7 @@ func filterOutPlayerFromLineup(players []GamePlayer, playerID uint, lineType uin
 	return filtered, queue
 }
 
-func GetPlayerFromLine(playerID uint, players []GamePlayer) RemovalQueue {
+func GetPlayerFromLine(playerID uint, players []*GamePlayer) RemovalQueue {
 	for _, p := range players {
 		if p.ID == playerID {
 			return RemovalQueue{
@@ -729,14 +787,14 @@ func GetPlayerFromLine(playerID uint, players []GamePlayer) RemovalQueue {
 	return RemovalQueue{}
 }
 
-func popPlayerFromBench(bench []GamePlayer) (GamePlayer, []GamePlayer) {
+func popPlayerFromBench(bench []*GamePlayer) (*GamePlayer, []*GamePlayer) {
 	if len(bench) == 0 {
-		return GamePlayer{}, bench
+		return &GamePlayer{}, bench
 	}
 	return bench[0], bench[1:]
 }
 
-func playerIDInLineup(playerID uint, players []GamePlayer) bool {
+func playerIDInLineup(playerID uint, players []*GamePlayer) bool {
 	for _, p := range players {
 		if p.ID == playerID {
 			return true
@@ -752,6 +810,10 @@ type TeamStatDTO struct {
 	GoalsAgainst         uint16
 	Assists              uint16
 	Points               uint16
+	Period1Score         uint8
+	Period2Score         uint8
+	Period3Score         uint8
+	OTScore              uint8
 	PlusMinus            int8
 	PenaltyMinutes       uint16
 	EvenStrengthGoals    uint8
@@ -816,10 +878,19 @@ func (t *TeamStatDTO) AddPenaltyTime(seconds int) {
 	t.PenaltyMinutes += uint16(seconds)
 }
 
-func (t *TeamStatDTO) AddShot(isScore, isEvenStrength, isPowerPlay, isShorthanded, isOvertime bool) {
+func (t *TeamStatDTO) AddShot(isScore, isEvenStrength, isPowerPlay, isShorthanded, isOvertime bool, period uint8) {
 	t.Shots++
 	if isScore {
 		t.AddGoal(isEvenStrength, isPowerPlay, isShorthanded, isOvertime)
+		if period == 1 {
+			t.Period1Score += 1
+		} else if period == 2 {
+			t.Period2Score += 1
+		} else if period == 3 {
+			t.Period3Score += 1
+		} else if period > 3 {
+			t.OTScore += 1
+		}
 	}
 
 	t.ShootingPercentage = float32(t.GoalsFor) / float32(t.Shots)
@@ -878,6 +949,9 @@ type PlayerStatsDTO struct {
 	GoalsAgainst         uint16
 	SavePercentage       float32
 	Shutouts             uint16
+	ShotsBlocked         uint16
+	BodyChecks           uint16
+	StickChecks          uint16
 }
 
 func (p *PlayerStatsDTO) AdjustPlusMinus(isScore bool) {
@@ -957,6 +1031,18 @@ func (p *PlayerStatsDTO) AddShotAgainst(isScore bool) {
 	}
 
 	p.SavePercentage = float32(p.Saves) / float32(p.ShotsAgainst)
+}
+
+func (p *PlayerStatsDTO) AddShotBlocked() {
+	p.ShotsBlocked += 1
+}
+
+func (p *PlayerStatsDTO) AddDefensiveHit(isBodyCheck bool) {
+	if isBodyCheck {
+		p.BodyChecks += 1
+	} else {
+		p.StickChecks += 1
+	}
 }
 
 func (p *PlayerStatsDTO) AddFaceoff(isWin bool) {

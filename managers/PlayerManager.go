@@ -7,7 +7,7 @@ import (
 
 // College Functions
 func GetAllCollegePlayers() []structs.CollegePlayer {
-	return repository.FindAllCollegePlayers()
+	return repository.FindAllCollegePlayers("")
 }
 
 func GetAllHistoricCollegePlayers() []structs.HistoricCollegePlayer {
@@ -19,7 +19,7 @@ func GetCollegePlayersByTeamID(TeamID string) []structs.CollegePlayer {
 }
 
 func GetCollegePlayersMap() map[uint]structs.CollegePlayer {
-	players := repository.FindAllCollegePlayers()
+	players := repository.FindAllCollegePlayers("")
 	return MakeCollegePlayerMap(players)
 }
 
@@ -29,8 +29,34 @@ func GetCollegePlayerMapByTeamID(TeamID string) map[uint]structs.CollegePlayer {
 }
 
 func GetAllCollegePlayersMapByTeam() map[uint][]structs.CollegePlayer {
-	players := repository.FindAllCollegePlayers()
+	players := repository.FindAllCollegePlayers("")
 	return MakeCollegePlayerMapByTeamID(players)
 }
 
 // Professional Functions
+func GetAllProPlayers() []structs.ProfessionalPlayer {
+	return repository.FindAllProPlayers("")
+}
+
+func GetAllRetiredPlayers() []structs.RetiredPlayer {
+	return repository.FindAllHistoricProPlayers()
+}
+
+func GetProPlayersByTeamID(TeamID string) []structs.ProfessionalPlayer {
+	return repository.FindAllProPlayers(TeamID)
+}
+
+func GetProPlayersMap() map[uint]structs.ProfessionalPlayer {
+	players := repository.FindAllProPlayers("")
+	return MakeProfessionalPlayerMap(players)
+}
+
+func GetProPlayerMapByTeamID(TeamID string) map[uint]structs.ProfessionalPlayer {
+	players := repository.FindAllProPlayers(TeamID)
+	return MakeProfessionalPlayerMap(players)
+}
+
+func GetAllProPlayersMapByTeam() map[uint][]structs.ProfessionalPlayer {
+	players := repository.FindAllProPlayers("")
+	return MakeProfessionalPlayerMapByTeamID(players)
+}

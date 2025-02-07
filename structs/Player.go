@@ -296,7 +296,7 @@ var archetypeWeights = map[string]map[string]map[string]float64{
 			"CloseShotPower":    1,
 			"LongShotAccuracy":  1,
 			"LongShotPower":     1,
-			"Passing":           1,
+			"Passing":           0.85,
 			"PuckHandling":      1,
 			"BodyChecking":      1,
 			"StickChecking":     1,
@@ -313,7 +313,7 @@ var archetypeWeights = map[string]map[string]map[string]float64{
 			"CloseShotPower":    1,
 			"LongShotAccuracy":  1,
 			"LongShotPower":     1,
-			"Passing":           1,
+			"Passing":           0.85,
 			"PuckHandling":      1,
 			"BodyChecking":      1,
 			"StickChecking":     1,
@@ -330,7 +330,7 @@ var archetypeWeights = map[string]map[string]map[string]float64{
 			"CloseShotPower":    1,
 			"LongShotAccuracy":  1,
 			"LongShotPower":     1,
-			"Passing":           1,
+			"Passing":           0.85,
 			"PuckHandling":      1,
 			"BodyChecking":      1,
 			"StickChecking":     1,
@@ -552,6 +552,11 @@ func (b *BasePlayer) GetOverall() {
 	}
 }
 
+func (cp *BasePlayer) AssignTeam(teamID uint, team string) {
+	cp.TeamID = uint16(teamID)
+	cp.Team = team
+}
+
 type BasePotentials struct {
 	// Potential Attributes
 	// Each attribute has a chance to grow at a different rate. These are all small modifiers
@@ -596,15 +601,14 @@ type CollegePlayer struct {
 	DraftedTeam        string
 }
 
-func (cp *CollegePlayer) AssignTeam(teamID uint, team string) {
-	cp.TeamID = uint16(teamID)
-	cp.Team = team
-}
-
 func (cp *CollegePlayer) ProgressPlayer(progressions BasePlayerProgressions) {
 	cp.Progress(progressions)
 	cp.Year++
 	cp.GetOverall()
+}
+
+func (cp *CollegePlayer) AssignID(id uint) {
+	cp.ID = id
 }
 
 type HistoricCollegePlayer struct {
@@ -616,15 +620,30 @@ type ProfessionalPlayer struct {
 	BasePlayer
 	BasePotentials
 	BaseInjuryData
-	Year          int
-	Marketability uint8   // How marketable / in demand a player's jersey will be
-	JerseyPrice   float32 // Price of jersey, can be set by user
+	CollegeID         uint
+	Year              int
+	IsAffiliatePlayer bool
+	IsWaived          bool
+	IsFreeAgent       bool
+	AffiliateTeamID   uint
+	Marketability     uint8                           // How marketable / in demand a player's jersey will be
+	JerseyPrice       float32                         // Price of jersey, can be set by user
+	Stats             []ProfessionalPlayerGameStats   `gorm:"foreignKey:PlayerID"`
+	SeasonStats       []ProfessionalPlayerSeasonStats `gorm:"foreignKey:PlayerID"`
+	Contract          ProContract                     `gorm:"foreignKey:PlayerID"`
+	Offers            []FreeAgencyOffer               `gorm:"foreignKey:PlayerID"`
+	WaiverOffer       []WaiverOffer                   `gorm:"foreignKey:PlayerID"`
+	Extensions        []ExtensionOffer                `gorm:"foreignKey:PlayerID"`
 }
 
 func (cp *ProfessionalPlayer) ProgressPlayer(progressions BasePlayerProgressions) {
 	cp.Progress(progressions)
 	cp.Year++
 	cp.GetOverall()
+}
+
+func (cp *ProfessionalPlayer) AssignID(id uint) {
+	cp.ID = id
 }
 
 type RetiredPlayer struct {
@@ -641,6 +660,7 @@ type Recruit struct {
 	IsCustomCroot         bool
 	CustomCrootFor        string
 	RecruitModifier       float32
+	CompositeRank         float32
 	RivalsRank            float32
 	ESPNRank              float32
 	Rank247               float32
@@ -676,6 +696,28 @@ func (r *Recruit) AssignTwinData(lastName, city, state, highschool string) {
 	r.City = city
 	r.State = state
 	r.HighSchool = highschool
+}
+
+func (r *Recruit) ApplySigningStatus(num, threshold float32, signing bool) {
+	percentage := num / threshold
+
+	if threshold == 0 || num == 0 || percentage < 0.26 {
+		r.RecruitingStatus = "Not Ready"
+	} else if percentage < 0.51 {
+		r.RecruitingStatus = "Hearing Offers"
+	} else if percentage < 0.76 {
+		r.RecruitingStatus = "Narrowing Down Offers"
+	} else if percentage < 0.96 {
+		r.RecruitingStatus = "Finalizing Decisions"
+	} else if percentage < 1 {
+		r.RecruitingStatus = "Ready to Sign"
+	} else {
+		r.RecruitingStatus = "Signed"
+	}
+
+	if signing {
+		r.RecruitingStatus = "Signed"
+	}
 }
 
 /*

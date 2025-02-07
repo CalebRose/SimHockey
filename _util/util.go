@@ -162,3 +162,33 @@ func GetLetterGrade(attr int, year int) string {
 	}
 	return "F"
 }
+
+func GetPotentialGrade(potential int) string {
+	if potential > 85 {
+		return "A+"
+	} else if potential > 75 {
+		return "A"
+	} else if potential > 70 {
+		return "A-"
+	} else if potential > 65 {
+		return "B+"
+	} else if potential > 60 {
+		return "B"
+	} else if potential > 55 {
+		return "B-"
+	} else if potential > 50 {
+		return "C+"
+	} else if potential > 40 {
+		return "C"
+	} else if potential > 35 {
+		return "C-"
+	} else if potential > 30 {
+		return "D+"
+	} else if potential > 25 {
+		return "D"
+	} else if potential > 20 {
+		return "D-"
+	} else {
+		return "F"
+	}
+}

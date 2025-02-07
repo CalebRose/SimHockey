@@ -200,6 +200,8 @@ type RecruitPlayerProfile struct {
 	CurrentWeeksPoints float32
 	PreviousWeekPoints float32
 	Modifier           float32
+	IsHomeState        bool
+	IsPipelineState    bool
 	SpendingCount      uint8
 	Scholarship        bool
 	ScholarshipRevoked bool
@@ -449,4 +451,155 @@ type CreateRecruitProfileDto struct {
 	Team          CollegeTeam
 	PlayerRecruit Recruit
 	Recruiter     string
+}
+
+type UpdateRecruitProfileDto struct {
+	RecruitPointsID   int
+	RecruitID         int
+	ProfileID         int
+	Team              string
+	WeekID            int
+	AllocationID      int
+	SpentPoints       int
+	RewardScholarship bool
+	RevokeScholarship bool
+}
+
+type CrootProfile struct {
+	ID                 uint
+	SeasonID           uint
+	RecruitID          uint
+	ProfileID          uint
+	TotalPoints        float32
+	CurrentWeeksPoints float32
+	Modifier           float32
+	SpendingCount      uint8
+	Scholarship        bool
+	ScholarshipRevoked bool
+	IsCloseToHome      bool
+	IsPipeline         bool
+	TeamAbbreviation   string
+	RemovedFromBoard   bool
+	IsSigned           bool
+	IsLocked           bool
+	CaughtCheating     bool
+	Recruit            Croot
+}
+
+func (cp *CrootProfile) Map(rp RecruitPlayerProfile, c Croot) {
+	cp.ID = rp.ID
+	cp.SeasonID = rp.SeasonID
+	cp.RecruitID = rp.RecruitID
+	cp.ProfileID = rp.ProfileID
+	cp.TotalPoints = rp.TotalPoints
+	cp.CurrentWeeksPoints = rp.CurrentWeeksPoints
+	cp.SpendingCount = rp.SpendingCount
+	cp.Modifier = rp.Modifier
+	cp.Scholarship = rp.Scholarship
+	cp.ScholarshipRevoked = rp.ScholarshipRevoked
+	cp.IsCloseToHome = rp.IsHomeState
+	cp.IsPipeline = rp.IsPipelineState
+	cp.RemovedFromBoard = rp.RemovedFromBoard
+	cp.IsSigned = rp.IsSigned
+	cp.IsLocked = rp.IsLocked
+	cp.CaughtCheating = rp.CaughtCheating
+	cp.Recruit = c
+}
+
+// Sorting Funcs
+type ByCrootProfileTotal []CrootProfile
+
+func (rp ByCrootProfileTotal) Len() int      { return len(rp) }
+func (rp ByCrootProfileTotal) Swap(i, j int) { rp[i], rp[j] = rp[j], rp[i] }
+func (rp ByCrootProfileTotal) Less(i, j int) bool {
+	return rp[i].TotalPoints > rp[j].TotalPoints
+}
+
+type SimTeamBoardResponse struct {
+	ID                        uint
+	TeamID                    uint
+	Team                      string
+	State                     string
+	ScholarshipsAvailable     int
+	WeeklyPoints              float32
+	SpentPoints               float32
+	TotalCommitments          uint
+	RecruitClassSize          uint
+	BaseEfficiencyScore       float32
+	RecruitingEfficiencyScore float32
+	PreviousOverallWinPer     float32
+	PreviousConferenceWinPer  float32
+	CurrentOverallWinPer      float32
+	CurrentConferenceWinPer   float32
+	ESPNScore                 float32
+	RivalsScore               float32
+	Rank247Score              float32
+	CompositeScore            float32
+	IsAI                      bool
+	IsUserTeam                bool
+	BattlesWon                uint
+	BattlesLost               uint
+	AIMinThreshold            uint
+	AIMaxThreshold            uint
+	AIStarMin                 uint
+	AIStarMax                 uint
+	AIAutoOfferscholarships   bool
+	OffensiveScheme           string
+	DefensiveScheme           string
+	Recruiter                 string
+	RecruitingClassRank       int
+	Recruits                  []CrootProfile
+}
+
+func (stbr *SimTeamBoardResponse) Map(rtp RecruitingTeamProfile, c []CrootProfile) {
+	stbr.ID = rtp.ID
+	stbr.TeamID = rtp.TeamID
+	stbr.Team = rtp.Team
+	stbr.IsAI = rtp.IsAI
+	stbr.State = rtp.State
+	stbr.ScholarshipsAvailable = int(rtp.ScholarshipsAvailable)
+	stbr.WeeklyPoints = rtp.WeeklyPoints
+	stbr.SpentPoints = rtp.SpentPoints
+	stbr.TotalCommitments = uint(rtp.TotalCommitments)
+	stbr.ESPNScore = rtp.ESPNScore
+	stbr.RivalsScore = rtp.RivalsScore
+	stbr.Rank247Score = rtp.Rank247Score
+	stbr.CompositeScore = rtp.CompositeScore
+	stbr.RecruitingClassRank = int(rtp.RecruitingClassRank)
+	stbr.Recruits = c
+	stbr.RecruitClassSize = uint(rtp.RecruitClassSize)
+	stbr.IsUserTeam = rtp.IsUserTeam
+	stbr.BattlesWon = uint(rtp.BattlesWon)
+	stbr.BattlesLost = uint(rtp.BattlesLost)
+	stbr.AIMinThreshold = uint(rtp.AIMinThreshold)
+	stbr.AIMaxThreshold = uint(rtp.AIMaxThreshold)
+	stbr.AIStarMin = uint(rtp.AIStarMin)
+	stbr.AIStarMax = uint(rtp.AIStarMax)
+	stbr.Recruiter = rtp.Recruiter
+}
+
+// UpdateRecruitingBoardDTO - Data Transfer Object from UI to API
+type UpdateRecruitingBoardDTO struct {
+	Profile  RecruitingTeamProfile
+	Recruits []RecruitPlayerProfile
+	TeamID   int
+}
+
+type RecruitPointAllocation struct {
+	gorm.Model
+	RecruitID          uint
+	TeamProfileID      uint
+	RecruitProfileID   uint
+	WeekID             uint
+	Points             float32
+	ModAffectedPoints  float32
+	IsHomeStateApplied bool
+	IsPipelineApplied  bool
+	CaughtCheating     bool
+}
+
+type RecruitingOdds struct {
+	Odds          int
+	IsCloseToHome bool
+	IsPipeline    bool
 }

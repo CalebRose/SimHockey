@@ -62,7 +62,7 @@ func ProgressCollegePlayer(player structs.CollegePlayer, SeasonID string, stats 
 	// 	averageTimeOnIce = minutes / 34 // Total regular season games
 	// }
 
-	growth := GetGrowth(int(player.Age), int(player.PrimeAge), int(player.Regression), float64(player.DecayRate))
+	growth := GetGrowth(int(player.Age), int(player.PrimeAge), int(player.Regression), float64(player.DecayRate), true)
 
 	metMinutesOrRedshirt := true
 
@@ -118,7 +118,7 @@ func ProgressProPlayer(player structs.ProfessionalPlayer, SeasonID string, stats
 	// 	averageTimeOnIce = minutes / 34 // Total regular season games
 	// }
 
-	growth := GetGrowth(int(player.Age), int(player.PrimeAge), int(player.Regression), float64(player.DecayRate))
+	growth := GetGrowth(int(player.Age), int(player.PrimeAge), int(player.Regression), float64(player.DecayRate), false)
 
 	metMinutesOrRedshirt := true
 
@@ -183,7 +183,7 @@ func calculateAttributeGrowth(player *structs.BasePlayer, pots *structs.BasePote
 	}
 
 	// Attributes not attributing to a goalie should not be progressing
-	if player.Position == "G" && (attribute != "Goalkeeping" && attribute != "GoalieVision" && attribute != "GoalieRebound" && attribute != "Strength" && attribute != "Agility") {
+	if player.Position == util.Goalie && (attribute != util.Goalkeeping && attribute != util.GoalieVision && attribute != util.GoalieRebound && attribute != util.Passing && attribute != util.Strength && attribute != util.Agility) {
 		return 0
 	}
 
@@ -201,18 +201,21 @@ func calculateAttributeGrowth(player *structs.BasePlayer, pots *structs.BasePote
 	return scaledGrowth
 }
 
-func GetGrowth(age, primeage, regression int, decayRate float64) int {
+func GetGrowth(age, primeage, regression int, decayRate float64, isCollege bool) int {
 	if age == primeage || age == primeage+1 {
 		return rand.Intn(1)
 	}
 	if age < primeage {
-		return GetPrePrimeGrowth(age, primeage)
+		return GetPrePrimeGrowth(age, primeage, isCollege)
 	}
 	return GetPostPrimeGrowth(age, primeage, regression, decayRate)
 }
 
-func GetPrePrimeGrowth(age, primeage int) int {
+func GetPrePrimeGrowth(age, primeage int, isCollege bool) int {
 	baseGrowth := 4.5
+	if isCollege {
+		baseGrowth = 7.5
+	}
 
 	ageDifference := float64(age / primeage)
 	ageMultiplier := 1 - ageDifference

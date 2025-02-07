@@ -67,4 +67,10 @@ const (
 	GoalieReboundID      uint8 = 28
 	ShotOnGoalID         uint8 = 29
 	GoalieHoldID         uint8 = 30
+
+	// Recruiting
+	USA    string = "USA"
+	Canada string = "Canada"
+	Sweden string = "Sweden"
+	Russia string = "Russia"
 )

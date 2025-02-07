@@ -26,6 +26,31 @@ func MakeCollegePlayerMapByTeamID(players []structs.CollegePlayer) map[uint][]st
 	return playerMap
 }
 
+// Pro Players
+func MakeProfessionalPlayerMap(players []structs.ProfessionalPlayer) map[uint]structs.ProfessionalPlayer {
+	playerMap := make(map[uint]structs.ProfessionalPlayer)
+
+	for _, p := range players {
+		playerMap[p.ID] = p
+	}
+
+	return playerMap
+}
+
+func MakeProfessionalPlayerMapByTeamID(players []structs.ProfessionalPlayer) map[uint][]structs.ProfessionalPlayer {
+	playerMap := make(map[uint][]structs.ProfessionalPlayer)
+
+	for _, p := range players {
+		if len(playerMap[uint(p.TeamID)]) > 0 {
+			playerMap[uint(p.TeamID)] = append(playerMap[uint(p.TeamID)], p)
+		} else {
+			playerMap[uint(p.TeamID)] = []structs.ProfessionalPlayer{p}
+		}
+	}
+
+	return playerMap
+}
+
 func MakeArenaMap(arenas []structs.Arena) map[uint]structs.Arena {
 	arenaMap := make(map[uint]structs.Arena)
 
@@ -66,6 +91,14 @@ func MakeCollegeShootoutLineupMap(lineups []structs.CollegeShootoutLineup) map[u
 	}
 
 	return lineupMap
+}
+
+func MakeProTeamMap(teams []structs.ProfessionalTeam) map[uint]structs.ProfessionalTeam {
+	teamMap := make(map[uint]structs.ProfessionalTeam)
+	for _, t := range teams {
+		teamMap[t.ID] = t
+	}
+	return teamMap
 }
 
 func MakeProfessionalLineupMap(lineups []structs.ProfessionalLineup) map[uint][]structs.ProfessionalLineup {
@@ -122,4 +155,38 @@ func MakeRecruitProfileMapByRecruitID(profiles []structs.RecruitPlayerProfile) m
 	}
 
 	return profileMap
+}
+
+func MakeRecruitProfileMapByProfileID(profiles []structs.RecruitPlayerProfile) map[uint][]structs.RecruitPlayerProfile {
+	profileMap := make(map[uint][]structs.RecruitPlayerProfile)
+
+	for _, p := range profiles {
+		if len(profileMap[uint(p.RecruitID)]) > 0 {
+			profileMap[uint(p.ProfileID)] = append(profileMap[uint(p.ProfileID)], p)
+		} else {
+			profileMap[uint(p.ProfileID)] = []structs.RecruitPlayerProfile{p}
+		}
+	}
+
+	return profileMap
+}
+
+func MakeTeamProfileMap(profiles []structs.RecruitingTeamProfile) map[uint]*structs.RecruitingTeamProfile {
+	profileMap := make(map[uint]*structs.RecruitingTeamProfile)
+
+	for _, p := range profiles {
+		profileMap[uint(p.ID)] = &p
+	}
+
+	return profileMap
+}
+
+func MakeCapsheetMap(capsheets []structs.ProCapsheet) map[uint]structs.ProCapsheet {
+	capsheetMap := make(map[uint]structs.ProCapsheet)
+
+	for _, p := range capsheets {
+		capsheetMap[uint(p.ID)] = p
+	}
+
+	return capsheetMap
 }

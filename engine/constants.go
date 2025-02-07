@@ -18,6 +18,7 @@ const (
 	EasyReq                 float64 = 8
 	BaseReq                 float64 = 10
 	DiffReq                 float64 = 14
+	ToughReq                float64 = 17
 	CritSuccess             int     = 20
 	CritFail                int     = 1
 	Heads                   int     = 1

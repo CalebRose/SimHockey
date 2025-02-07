@@ -80,6 +80,21 @@ func CreateCollegeTeamRecordsBatch(db *gorm.DB, teams []structs.CollegeTeam, bat
 	return nil
 }
 
+func CreateProTeamRecordsBatch(db *gorm.DB, teams []structs.ProfessionalTeam, batchSize int) error {
+	total := len(teams)
+	for i := 0; i < total; i += batchSize {
+		end := i + batchSize
+		if end > total {
+			end = total
+		}
+
+		if err := db.CreateInBatches(teams[i:end], batchSize).Error; err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
 func CreateArenaRecordsBatch(db *gorm.DB, teams []structs.Arena, batchSize int) error {
 	total := len(teams)
 	for i := 0; i < total; i += batchSize {
@@ -96,6 +111,21 @@ func CreateArenaRecordsBatch(db *gorm.DB, teams []structs.Arena, batchSize int) 
 }
 
 func CreateCollegeLineupRecordsBatch(db *gorm.DB, lineups []structs.CollegeLineup, batchSize int) error {
+	total := len(lineups)
+	for i := 0; i < total; i += batchSize {
+		end := i + batchSize
+		if end > total {
+			end = total
+		}
+
+		if err := db.CreateInBatches(lineups[i:end], batchSize).Error; err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func CreateProfessionalLineupRecordsBatch(db *gorm.DB, lineups []structs.ProfessionalLineup, batchSize int) error {
 	total := len(lineups)
 	for i := 0; i < total; i += batchSize {
 		end := i + batchSize

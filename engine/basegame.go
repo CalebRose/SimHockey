@@ -110,6 +110,8 @@ func generateGameState(game structs.GameDTO) GameState {
 		IsOvertimeShootout: false,
 		GameComplete:       false,
 		TieGame:            false,
+		PuckCarrier:        &GamePlayer{},
+		AssistingPlayer:    &GamePlayer{},
 	}
 
 	return gs

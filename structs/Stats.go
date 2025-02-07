@@ -1,6 +1,9 @@
 package structs
 
+import "gorm.io/gorm"
+
 type BasePlayerStats struct {
+	gorm.Model
 	PlayerID             uint
 	TeamID               uint
 	SeasonID             uint
@@ -38,6 +41,7 @@ type BasePlayerStats struct {
 }
 
 type BaseTeamStats struct {
+	gorm.Model
 	TeamID               uint
 	Team                 string
 	GoalsFor             uint16
@@ -105,6 +109,7 @@ type CollegeTeamSeasonStats struct {
 type CollegeTeamGameStats struct {
 	WeekID uint
 	GameID uint
+	BaseTeamStats
 }
 
 type ProfessionalPlayerSeasonStats struct {
@@ -124,4 +129,5 @@ type ProfessionalTeamSeasonStats struct {
 }
 
 type ProfessionalTeamGameStats struct {
+	BaseTeamStats
 }

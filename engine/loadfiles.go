@@ -2,7 +2,7 @@ package engine
 
 import "github.com/CalebRose/SimHockey/structs"
 
-func LoadAllLineStrategies(pb structs.PlayBookDTO, gameRoster []GamePlayer) ([]LineStrategy, []LineStrategy, []LineStrategy, []uint) {
+func LoadAllLineStrategies(pb structs.PlayBookDTO, gameRoster []*GamePlayer) ([]LineStrategy, []LineStrategy, []LineStrategy, []uint) {
 	rosterMap := getGameRosterMap(gameRoster)
 
 	pbfl := pb.Forwards
@@ -19,12 +19,12 @@ func LoadAllLineStrategies(pb structs.PlayBookDTO, gameRoster []GamePlayer) ([]L
 	return forwardLines, defenderLines, goalieLines, activeIDs
 }
 
-func LoadLineStrategies(lines []structs.BaseLineup, rosterMap map[uint]GamePlayer) ([]LineStrategy, []uint) {
+func LoadLineStrategies(lines []structs.BaseLineup, rosterMap map[uint]*GamePlayer) ([]LineStrategy, []uint) {
 	lineStrategies := []LineStrategy{}
 	activeIDs := []uint{}
-	players := []GamePlayer{}
-	for _, l := range lines {
 
+	for _, l := range lines {
+		players := []*GamePlayer{}
 		if l.LineType == 1 {
 			players = append(players, rosterMap[l.CenterID], rosterMap[l.Forward1ID], rosterMap[l.Forward2ID])
 			activeIDs = append(activeIDs, l.CenterID, l.Forward1ID, l.Forward2ID)
@@ -51,18 +51,18 @@ func LoadLineStrategies(lines []structs.BaseLineup, rosterMap map[uint]GamePlaye
 	return lineStrategies, activeIDs
 }
 
-func LoadGameRoster(isCollegeGame bool, collegePlayers []structs.CollegePlayer, professionalPlayers []structs.ProfessionalPlayer) []GamePlayer {
+func LoadGameRoster(isCollegeGame bool, collegePlayers []structs.CollegePlayer, professionalPlayers []structs.ProfessionalPlayer) []*GamePlayer {
 	if isCollegeGame {
 		return LoadCollegeRoster(collegePlayers)
 	}
 	return LoadProfessionalRoster(professionalPlayers)
 }
 
-func LoadCollegeRoster(roster []structs.CollegePlayer) []GamePlayer {
-	players := []GamePlayer{}
+func LoadCollegeRoster(roster []structs.CollegePlayer) []*GamePlayer {
+	players := []*GamePlayer{}
 	for _, p := range roster {
 		gp := LoadCollegePlayer(p)
-		players = append(players, gp)
+		players = append(players, &gp)
 	}
 	return players
 }
@@ -78,11 +78,11 @@ func LoadCollegePlayer(p structs.CollegePlayer) GamePlayer {
 	return gamePlayer
 }
 
-func LoadProfessionalRoster(roster []structs.ProfessionalPlayer) []GamePlayer {
-	players := []GamePlayer{}
+func LoadProfessionalRoster(roster []structs.ProfessionalPlayer) []*GamePlayer {
+	players := []*GamePlayer{}
 	for _, p := range roster {
 		gp := LoadProfessionalPlayer(p)
-		players = append(players, gp)
+		players = append(players, &gp)
 	}
 	return players
 }
@@ -98,8 +98,8 @@ func LoadProfessionalPlayer(p structs.ProfessionalPlayer) GamePlayer {
 	return gamePlayer
 }
 
-func getGameRosterMap(roster []GamePlayer) map[uint]GamePlayer {
-	rosterMap := make(map[uint]GamePlayer)
+func getGameRosterMap(roster []*GamePlayer) map[uint]*GamePlayer {
+	rosterMap := make(map[uint]*GamePlayer)
 
 	for _, p := range roster {
 		rosterMap[p.ID] = p
@@ -108,8 +108,8 @@ func getGameRosterMap(roster []GamePlayer) map[uint]GamePlayer {
 	return rosterMap
 }
 
-func LoadBenchPlayers(activeIDs []uint, roster []GamePlayer) []GamePlayer {
-	benchPlayers := []GamePlayer{}
+func LoadBenchPlayers(activeIDs []uint, roster []*GamePlayer) []*GamePlayer {
+	benchPlayers := []*GamePlayer{}
 	activeIDMap := make(map[uint]bool)
 
 	for _, id := range activeIDs {
