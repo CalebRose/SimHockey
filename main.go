@@ -70,6 +70,7 @@ func handleRequests() http.Handler {
 	myRouter.HandleFunc("/health", HealthCheck.Handler).Methods("GET")
 
 	// Admin
+	apiRouter.HandleFunc("/admin/generate/ts/models/", controllers.CreateTSModelsFile).Methods("GET")
 	apiRouter.HandleFunc("/admin/ai/generate/college/lineups/", controllers.RunAICollegeLineups).Methods("GET")
 	apiRouter.HandleFunc("/admin/ai/generate/pro/lineups/", controllers.RunAIProLineups).Methods("GET")
 	apiRouter.HandleFunc("/admin/test/engine/", controllers.TestEngine).Methods("GET")
@@ -86,6 +87,8 @@ func handleRequests() http.Handler {
 	// Requests
 	apiRouter.HandleFunc("/requests/view/chl/{teamID}", controllers.ViewCHLTeamUponRequest).Methods("GET")
 	apiRouter.HandleFunc("/requests/view/phl/{teamID}", controllers.ViewPHLTeamUponRequest).Methods("GET")
+	apiRouter.HandleFunc("/chl/requests/create", controllers.CreateCHLTeamRequest).Methods("POST")
+	apiRouter.HandleFunc("/phl/requests/create", controllers.CreatePHLTeamRequest).Methods("POST")
 
 	// Websocket
 	myRouter.HandleFunc("/ws", ws.WebSocketHandler)

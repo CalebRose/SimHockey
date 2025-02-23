@@ -84,7 +84,6 @@ type TeamSeasonStats struct {
 	PenaltyKillNetPercentage float32
 	ShotsPerGame             float32
 	ShotsAgainstPerGame      float32
-	FaceOffWinPercentage     float32
 }
 
 type CollegePlayerSeasonStats struct {
