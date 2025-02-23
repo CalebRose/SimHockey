@@ -28,7 +28,7 @@ jobs:
           go build -v ./...
 
       - name: Log in to Docker Registry
-        run: echo ${{ secrets.DOCKER_P }} | docker login simhck.azurecr.io --username ${{ secrets.DOCKER_U }} --password-stdin
+        run: echo "${{ secrets.DOCKER_P }}" | docker login simhck.azurecr.io --username "${{ secrets.DOCKER_U }}" --password-stdin
 
       - name: Build Docker Image
         run: docker build -t simhck.azurecr.io/simhck:latest .
