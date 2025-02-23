@@ -1,0 +1,4 @@
+{
+  "appService.defaultWebAppToDeploy": "/subscriptions/e4eacac5-9f5b-4bd0-95be-a225a16ece41/resourceGroups/asp-sim-hockey_group/providers/Microsoft.Web/sites/simhck",
+  "appService.deploySubpath": "."
+}
