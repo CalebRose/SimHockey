@@ -29,3 +29,8 @@ func (r *TeamRequest) RejectTeamRequest() {
 	r.IsApproved = false
 	r.IsActive = false
 }
+
+type TeamRequestsResponse struct {
+	CollegeRequests []CollegeTeamRequest
+	ProRequest      []ProTeamRequest
+}

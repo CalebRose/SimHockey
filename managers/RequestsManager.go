@@ -3,6 +3,7 @@ package managers
 import (
 	"sort"
 	"strconv"
+	"sync"
 
 	"github.com/CalebRose/SimHockey/dbprovider"
 	"github.com/CalebRose/SimHockey/repository"
@@ -57,6 +58,34 @@ func GetProTeamForAvailableTeamsPage(teamID string) structs.TeamRecordResponse {
 	historicalDataResponse.AddTopPlayers(topPlayers)
 
 	return historicalDataResponse
+}
+
+func GetAllHCKRequests() structs.TeamRequestsResponse {
+
+	var wg sync.WaitGroup
+	wg.Add(2)
+
+	var (
+		collegeRequests []structs.CollegeTeamRequest
+		proRequests     []structs.ProTeamRequest
+	)
+
+	go func() {
+		defer wg.Done()
+		collegeRequests = repository.FindAllCHLTeamRequests(false)
+	}()
+
+	go func() {
+		defer wg.Done()
+		proRequests = repository.FindAllPHLTeamRequests(false)
+	}()
+
+	wg.Wait()
+
+	return structs.TeamRequestsResponse{
+		CollegeRequests: collegeRequests,
+		ProRequest:      proRequests,
+	}
 }
 
 func CreateCHLTeamRequest(request structs.CollegeTeamRequest) {

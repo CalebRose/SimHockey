@@ -13,7 +13,7 @@ type RequestQuery struct {
 	Role     string
 }
 
-func GetAllCHLTeamRequests(isApproved bool) []structs.CollegeTeamRequest {
+func FindAllCHLTeamRequests(isApproved bool) []structs.CollegeTeamRequest {
 	db := dbprovider.GetInstance().GetDB()
 	var teamRequests []structs.CollegeTeamRequest
 
@@ -24,7 +24,7 @@ func GetAllCHLTeamRequests(isApproved bool) []structs.CollegeTeamRequest {
 	return teamRequests
 }
 
-func GetAllPHLTeamRequests(isApproved bool) []structs.ProTeamRequest {
+func FindAllPHLTeamRequests(isApproved bool) []structs.ProTeamRequest {
 	db := dbprovider.GetInstance().GetDB()
 	var teamRequests []structs.ProTeamRequest
 

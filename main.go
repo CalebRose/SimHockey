@@ -85,10 +85,15 @@ func handleRequests() http.Handler {
 	apiRouter.HandleFunc("/export/pro/players/all", controllers.ExportAllProPlayers).Methods("GET")
 
 	// Requests
+	apiRouter.HandleFunc("/admin/requests/hck/", controllers.GetAllHCKRequests).Methods("GET")
 	apiRouter.HandleFunc("/requests/view/chl/{teamID}", controllers.ViewCHLTeamUponRequest).Methods("GET")
 	apiRouter.HandleFunc("/requests/view/phl/{teamID}", controllers.ViewPHLTeamUponRequest).Methods("GET")
+	apiRouter.HandleFunc("/chl/requests/approve", controllers.ApproveCHLTeamRequest).Methods("POST")
+	apiRouter.HandleFunc("/phl/requests/approve", controllers.ApprovePHLTeamRequest).Methods("POST")
 	apiRouter.HandleFunc("/chl/requests/create", controllers.CreateCHLTeamRequest).Methods("POST")
 	apiRouter.HandleFunc("/phl/requests/create", controllers.CreatePHLTeamRequest).Methods("POST")
+	apiRouter.HandleFunc("/chl/requests/reject", controllers.RejectCHLTeamRequest).Methods("POST")
+	apiRouter.HandleFunc("/phl/requests/reject", controllers.RejectPHLTeamRequest).Methods("POST")
 
 	// Websocket
 	myRouter.HandleFunc("/ws", ws.WebSocketHandler)
