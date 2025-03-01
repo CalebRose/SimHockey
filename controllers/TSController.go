@@ -78,7 +78,8 @@ func CreateTSModelsFile(w http.ResponseWriter, r *http.Request) {
 		Add(structs.ProfessionalTeamGameStats{}).
 		Add(structs.NewsLog{}).
 		Add(structs.Notification{}).
-		Add(structs.Timestamp{})
+		Add(structs.Timestamp{}).
+		Add(structs.TeamRequestsResponse{})
 	err := converter.ConvertToFile("ts/models.ts")
 	if err != nil {
 		panic(err.Error())
