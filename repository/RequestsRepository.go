@@ -13,23 +13,23 @@ type RequestQuery struct {
 	Role     string
 }
 
-func FindAllCHLTeamRequests(isApproved bool) []structs.CollegeTeamRequest {
+func FindAllCHLTeamRequests(isActive bool) []structs.CollegeTeamRequest {
 	db := dbprovider.GetInstance().GetDB()
 	var teamRequests []structs.CollegeTeamRequest
 
 	query := db.Model(&teamRequests)
-	if err := query.Where("is_approved = ?", isApproved).Find(&teamRequests).Error; err != nil {
+	if err := query.Where("is_active = ?", isActive).Find(&teamRequests).Error; err != nil {
 		return []structs.CollegeTeamRequest{}
 	}
 	return teamRequests
 }
 
-func FindAllPHLTeamRequests(isApproved bool) []structs.ProTeamRequest {
+func FindAllPHLTeamRequests(isActive bool) []structs.ProTeamRequest {
 	db := dbprovider.GetInstance().GetDB()
 	var teamRequests []structs.ProTeamRequest
 
 	query := db.Model(&teamRequests)
-	if err := query.Where("is_approved = ?", isApproved).Find(&teamRequests).Error; err != nil {
+	if err := query.Where("is_active = ?", isActive).Find(&teamRequests).Error; err != nil {
 		return []structs.ProTeamRequest{}
 	}
 	return teamRequests
