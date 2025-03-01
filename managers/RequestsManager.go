@@ -98,7 +98,10 @@ func CreateCHLTeamRequest(request structs.CollegeTeamRequest) {
 
 	if existingRequest.ID == 0 {
 		repository.CreateCHLTeamRequest(db, request)
+		return
 	}
+	existingRequest.Reactivate()
+	repository.SaveCHLTeamRequest(db, existingRequest)
 }
 
 func CreatePHLTeamRequest(request structs.ProTeamRequest) {
@@ -112,7 +115,10 @@ func CreatePHLTeamRequest(request structs.ProTeamRequest) {
 
 	if existingRequest.ID == 0 {
 		repository.CreatePHLTeamRequest(db, request)
+		return
 	}
+	existingRequest.Reactivate()
+	repository.SavePHLTeamRequest(db, structs.ProTeamRequest(existingRequest))
 }
 
 func ApproveCHLTeamRequest(request structs.CollegeTeamRequest) structs.CollegeTeamRequest {

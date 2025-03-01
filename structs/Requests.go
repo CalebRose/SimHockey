@@ -30,6 +30,11 @@ func (r *TeamRequest) RejectTeamRequest() {
 	r.IsActive = false
 }
 
+func (r *TeamRequest) Reactivate() {
+	r.IsApproved = false
+	r.IsActive = true
+}
+
 type TeamRequestsResponse struct {
 	CollegeRequests []CollegeTeamRequest
 	ProRequest      []ProTeamRequest

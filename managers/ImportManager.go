@@ -201,7 +201,7 @@ func ImportCollegeTeams() {
 
 func ImportProTeams() {
 	db := dbprovider.GetInstance().GetDB()
-	filePath := filepath.Join(os.Getenv("ROOT"), "data", "phl_teams_test.csv")
+	filePath := filepath.Join(os.Getenv("ROOT"), "data", "phl_teams.csv")
 	teamsCSV := util.ReadCSV(filePath)
 	teams := []structs.ProfessionalTeam{}
 	arenas := []structs.Arena{}
@@ -232,9 +232,9 @@ func ImportProTeams() {
 		record := 0
 		firstYear := 2025
 		discordId := ""
-		colorOne := team[16]
-		colorTwo := team[17]
-		colorThree := team[18]
+		colorOne := team[22]
+		colorTwo := team[23]
+		colorThree := team[24]
 
 		arena := structs.Arena{
 			Name:             arenaName,
@@ -376,7 +376,7 @@ func ImportProTeams() {
 		}
 	}
 
-	repository.CreateArenaRecordsBatch(db, arenas, 20)
-	repository.CreateProTeamRecordsBatch(db, teams, 20)
-	repository.CreateProfessionalLineupRecordsBatch(db, proLineups, 50)
+	// repository.CreateArenaRecordsBatch(db, arenas, 20)
+	repository.CreateProTeamRecordsBatch(db, teams, 24)
+	// repository.CreateProfessionalLineupRecordsBatch(db, proLineups, 50)
 }
