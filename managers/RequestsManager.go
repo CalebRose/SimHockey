@@ -72,12 +72,12 @@ func GetAllHCKRequests() structs.TeamRequestsResponse {
 
 	go func() {
 		defer wg.Done()
-		collegeRequests = repository.FindAllCHLTeamRequests(false)
+		collegeRequests = repository.FindAllCHLTeamRequests(true)
 	}()
 
 	go func() {
 		defer wg.Done()
-		proRequests = repository.FindAllPHLTeamRequests(false)
+		proRequests = repository.FindAllPHLTeamRequests(true)
 	}()
 
 	wg.Wait()
