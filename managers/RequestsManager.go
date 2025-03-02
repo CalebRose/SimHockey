@@ -243,7 +243,7 @@ func RemoveUserFromCollegeTeam(teamID string) {
 	CreateNewsLog("CHL", username+" has decided to step down as the head coach of the "+team.TeamName+" "+team.Mascot+"!", "CoachJob", 0, ts)
 }
 
-func RemoveUserFromNFLTeam(request structs.ProTeamRequest) {
+func RemoveUserFromProTeam(request structs.ProTeamRequest) {
 	db := dbprovider.GetInstance().GetDB()
 
 	teamID := strconv.Itoa(int(request.TeamID))

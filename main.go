@@ -96,6 +96,10 @@ func handleRequests() http.Handler {
 	apiRouter.HandleFunc("/chl/requests/reject", controllers.RejectCHLTeamRequest).Methods("POST")
 	apiRouter.HandleFunc("/phl/requests/reject", controllers.RejectPHLTeamRequest).Methods("POST")
 
+	// Teams
+	apiRouter.HandleFunc("/chl/teams/remove/{teamID}", controllers.RemoveUserFromCollegeTeam).Methods("GET")
+	apiRouter.HandleFunc("/phl/teams/remove/user", controllers.RemoveUserFromProTeam).Methods("POST")
+
 	// Websocket
 	myRouter.HandleFunc("/ws", ws.WebSocketHandler)
 

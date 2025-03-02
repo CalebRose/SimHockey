@@ -23,6 +23,7 @@ type ProTeamRequest struct {
 
 func (r *TeamRequest) ApproveTeamRequest() {
 	r.IsApproved = true
+	r.IsActive = false
 }
 
 func (r *TeamRequest) RejectTeamRequest() {
