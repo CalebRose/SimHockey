@@ -1,6 +1,7 @@
 package managers
 
 import (
+	"strconv"
 	"sync"
 
 	"github.com/CalebRose/SimHockey/structs"
@@ -45,6 +46,9 @@ func GetBootstrapData(collegeID, proID string) structs.BootstrapData {
 
 	freeAgencyCh := make(chan structs.FreeAgencyResponse, 1)
 
+	ts := GetTimestamp()
+	seasonID := strconv.Itoa(int(ts.SeasonID))
+
 	// Start concurrent queries
 	wg.Add(2)
 	go func() {
@@ -77,7 +81,7 @@ func GetBootstrapData(collegeID, proID string) structs.BootstrapData {
 		}()
 		go func() {
 			defer wg.Done()
-			collegeGames = GetCollegeGamesBySeasonID("")
+			collegeGames = GetCollegeGamesBySeasonID(seasonID)
 		}()
 		go func() {
 			defer wg.Done()
@@ -89,7 +93,7 @@ func GetBootstrapData(collegeID, proID string) structs.BootstrapData {
 		}()
 		go func() {
 			defer wg.Done()
-			collegeStandings = GetAllCollegeStandingsBySeasonID("")
+			collegeStandings = GetAllCollegeStandingsBySeasonID(seasonID)
 		}()
 		go func() {
 			defer wg.Done()

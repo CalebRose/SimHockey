@@ -199,7 +199,7 @@ func RevokeScholarshipFromRecruit(dto structs.UpdateRecruitProfileDto) (structs.
 	)
 
 	if !crootProfile.Scholarship {
-		fmt.Printf("\nCannot revoke an inexistant scholarship from Recruit " + strconv.Itoa(int(crootProfile.RecruitID)))
+		fmt.Printf("%s", "\nCannot revoke an inexistant scholarship from Recruit "+strconv.Itoa(int(crootProfile.RecruitID)))
 		return crootProfile, teamProfile
 	}
 

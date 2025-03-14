@@ -8,10 +8,7 @@ import (
 func CreateHockeyRecruitRecordsBatch(db *gorm.DB, croots []structs.Recruit, batchSize int) error {
 	total := len(croots)
 	for i := 0; i < total; i += batchSize {
-		end := i + batchSize
-		if end > total {
-			end = total
-		}
+		end := min(i+batchSize, total)
 
 		if err := db.CreateInBatches(croots[i:end], batchSize).Error; err != nil {
 			return err
@@ -23,10 +20,7 @@ func CreateHockeyRecruitRecordsBatch(db *gorm.DB, croots []structs.Recruit, batc
 func CreateCollegeHockeyPlayerRecordsBatch(db *gorm.DB, players []structs.CollegePlayer, batchSize int) error {
 	total := len(players)
 	for i := 0; i < total; i += batchSize {
-		end := i + batchSize
-		if end > total {
-			end = total
-		}
+		end := min(i+batchSize, total)
 
 		if err := db.CreateInBatches(players[i:end], batchSize).Error; err != nil {
 			return err

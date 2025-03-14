@@ -28,6 +28,10 @@ func GetCollegePlayerMapByTeamID(TeamID string) map[uint]structs.CollegePlayer {
 	return MakeCollegePlayerMap(players)
 }
 
+func GetCollegePlayerByID(id string) structs.CollegePlayer {
+	return repository.FindCollegePlayer(id)
+}
+
 func GetAllCollegePlayersMapByTeam() map[uint][]structs.CollegePlayer {
 	players := repository.FindAllCollegePlayers("")
 	return MakeCollegePlayerMapByTeamID(players)

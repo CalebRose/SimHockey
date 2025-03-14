@@ -512,3 +512,48 @@ func WriteProPlayersExport(w http.ResponseWriter, players []structs.Professional
 		}
 	}
 }
+
+func WriteCollegePlayersExport(w http.ResponseWriter, players []structs.CollegePlayer) {
+	ts := GetTimestamp()
+	w.Header().Set("Content-Disposition", "attachment;filename="+strconv.Itoa(int(ts.Season))+"_chl_players.csv")
+	w.Header().Set("Transfer-Encoding", "chunked")
+	writer := csv.NewWriter(w)
+
+	writer.Write(getHeaderRow())
+
+	for _, p := range players {
+		idStr := strconv.Itoa(int(p.ID))
+
+		playerRow := []string{
+			idStr, p.Team, p.FirstName, p.LastName, p.Position, p.Archetype, strconv.Itoa(int(p.Height)), strconv.Itoa(int(p.Weight)), p.City, p.State, p.Country,
+			strconv.Itoa(int(p.Stars)), strconv.Itoa(int(p.Age)), util.GetLetterGrade(int(p.Overall), p.Year), util.GetLetterGrade(int(p.Agility), p.Year), util.GetLetterGrade(int(p.Faceoffs), p.Year), util.GetLetterGrade(int(p.LongShotAccuracy), p.Year),
+			util.GetLetterGrade(int(p.LongShotPower), p.Year), util.GetLetterGrade(int(p.CloseShotAccuracy), p.Year), util.GetLetterGrade(int(p.CloseShotPower), p.Year), util.GetLetterGrade(int(p.Passing), p.Year), util.GetLetterGrade(int(p.PuckHandling), p.Year), util.GetLetterGrade(int(p.Strength), p.Year),
+			util.GetLetterGrade(int(p.BodyChecking), p.Year), util.GetLetterGrade(int(p.StickChecking), p.Year), util.GetLetterGrade(int(p.ShotBlocking), p.Year), util.GetLetterGrade(int(p.Goalkeeping), p.Year), util.GetLetterGrade(int(p.GoalieVision), p.Year), util.GetPotentialGrade(int(p.Stamina)),
+			util.GetPotentialGrade(int(p.InjuryRating)), "?", "?", "?", "?",
+			"?", "?", "?", "?",
+			"?", "?", "?", "?",
+			"?", "?",
+		}
+
+		err := writer.Write(playerRow)
+		if err != nil {
+			log.Fatal("Cannot write player row to CSV", err)
+		}
+
+		writer.Flush()
+		err = writer.Error()
+		if err != nil {
+			log.Fatal("Error while writing to file ::", err)
+		}
+	}
+}
+
+func getHeaderRow() []string {
+	return []string{"ID", "Team", "First Name", "Last Name", "Position", "Archetype",
+		"Height", "Weight", "City", "Region", "Country", "Stars", "Age", "Overall",
+		util.Agility, util.Faceoffs, util.LongShotAccuracy, util.LongShotPower, util.CloseShotAccuracy,
+		util.CloseShotPower, util.Passing, util.PuckHandling, util.Strength, util.BodyChecking, util.StickChecking,
+		util.ShotBlocking, util.Goalkeeping, util.GoalieVision, "Stamina", "Injury Rating", "Agility Pot.", "Faceoffs Pot.", "Long Shot Accuracy Pot.", "Long Shot Power Pot.",
+		"Close Shot Accuracy Pot.", "Close Shot Power Pot.", "Passing Pot.", "Puck Handling Pot.",
+		"Strength Pot.", "Body Checking Pot.", "Stick Checking Pot.", "Shot Blocking Pot.", "Goalkeeping Pot.", "Goalie Vision Pot."}
+}

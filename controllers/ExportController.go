@@ -14,3 +14,11 @@ func ExportAllProPlayers(w http.ResponseWriter, r *http.Request) {
 
 	json.NewEncoder(w).Encode("Players Exported")
 }
+
+func ExportAllCollegePlayers(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "text/csv")
+	players := managers.GetAllCollegePlayers()
+	managers.WriteCollegePlayersExport(w, players)
+
+	json.NewEncoder(w).Encode("Players Exported")
+}

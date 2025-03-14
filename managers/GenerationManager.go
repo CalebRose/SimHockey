@@ -74,8 +74,17 @@ func (pg *CrootGenerator) generatePlayer() (structs.Recruit, structs.GlobalPlaye
 	coachTeamAbbr := ""
 	notes := ""
 	star := util.GetStarRating(false)
-	state := util.PickState()
+	state := ""
 	country := pickCountry()
+	if country == util.USA {
+		state = util.PickState()
+	} else if country == util.Canada {
+		state = util.PickProvince()
+	} else if country == util.Sweden {
+		state = util.PickSwedishRegion()
+	} else if country == util.Russia {
+		state = util.PickRussianRegion()
+	}
 	pickedEthnicity := pickLocale(country)
 	countryNames := pg.nameMap[pickedEthnicity]
 	firstNameList := countryNames["first_names"]
@@ -83,7 +92,7 @@ func (pg *CrootGenerator) generatePlayer() (structs.Recruit, structs.GlobalPlaye
 	fName := util.PickFromStringList(firstNameList)
 	firstName := pg.caser.String(strings.ToLower(fName))
 	lastName := ""
-	roof := 100
+	roof := 150
 	relativeRoll := util.GenerateIntFromRange(1, roof)
 	relativeIdx := 0
 	if relativeRoll == roof {
@@ -99,6 +108,7 @@ func (pg *CrootGenerator) generatePlayer() (structs.Recruit, structs.GlobalPlaye
 			relativeID = int(cp.ID)
 			lastName = cp.LastName
 			state = cp.State
+			country = cp.Country
 			notes = "Brother of " + cp.Team + " " + cp.Position + " " + cp.FirstName + " " + cp.LastName
 		} else if relativeType == 3 {
 			fmt.Println("COUSIN")
@@ -117,6 +127,7 @@ func (pg *CrootGenerator) generatePlayer() (structs.Recruit, structs.GlobalPlaye
 				lastName = pg.caser.String(strings.ToLower(lName))
 			}
 			state = cp.State
+			country = cp.Country
 			notes = "Cousin of " + cp.Team + " " + cp.Position + " " + cp.FirstName + " " + cp.LastName
 		} else if relativeType == 4 {
 			// Half Brother
@@ -135,6 +146,7 @@ func (pg *CrootGenerator) generatePlayer() (structs.Recruit, structs.GlobalPlaye
 				lastName = pg.caser.String(strings.ToLower(lName))
 			}
 			state = cp.State
+			country = cp.Country
 			notes = "Half-Brother of " + cp.Team + " " + cp.Position + " " + cp.FirstName + " " + cp.LastName
 		} else if relativeType == 5 {
 			// Twin
@@ -144,15 +156,22 @@ func (pg *CrootGenerator) generatePlayer() (structs.Recruit, structs.GlobalPlaye
 			relativeType = 1
 		}
 	}
-	if relativeType == 1 || relativeType == 5 {
+	if relativeType == 1 || relativeType == 5 || lastName == "" {
 		lName := util.PickFromStringList(lastNameList)
 		lastName = pg.caser.String(strings.ToLower(lName))
+	}
+	if state == "" && country == util.USA {
+		state = util.PickState()
 	}
 
 	pickedPosition := util.PickPosition()
 	crootLocations := pg.usCrootLocations[state]
-	if country == "Canada" {
+	if country == util.Canada {
 		crootLocations = pg.cnCrootLocations[state]
+	} else if country == util.Sweden {
+		crootLocations = pg.svCrootLocations[state]
+	} else if country == util.Russia {
+		crootLocations = pg.ruCrootLocations[state]
 	}
 	player := createRecruit(pickedPosition, "", star, firstName, lastName, pg.attributeBlob, country, state, "", "", crootLocations)
 	player.AssignRelativeData(uint(relativeID), uint(relativeType), uint(coachTeamID), coachTeamAbbr, notes)
@@ -163,6 +182,7 @@ func (pg *CrootGenerator) generatePlayer() (structs.Recruit, structs.GlobalPlaye
 	}
 
 	globalPlayer.AssignID(pg.newID)
+	player.AssignID(pg.newID)
 	return player, globalPlayer
 }
 
@@ -276,10 +296,12 @@ func GenerateCroots() {
 		teamMap:           GetCollegeTeamMap(),
 		usCrootLocations:  getCrootLocations("HS"),
 		cnCrootLocations:  getCrootLocations("CanadianHS"),
+		svCrootLocations:  getCrootLocations("SwedenHS"),
+		ruCrootLocations:  getCrootLocations("RussianHS"),
 		attributeBlob:     getAttributeBlob(),
 		positionList:      util.GetPositionList(),
 		newID:             lastPlayerRecord.ID + 1,
-		requiredPlayers:   util.GenerateIntFromRange(6400, 6601),
+		requiredPlayers:   util.GenerateIntFromRange(462, 660),
 		count:             0,
 		star5:             0,
 		star4:             0,
@@ -299,10 +321,10 @@ func GenerateCroots() {
 	// Croot Stats
 	generator.OutputRecruitStats()
 
-	// repository.CreateHockeyRecruitRecordsBatch(db, generator.CrootList, 500)
-	// repository.CreateGlobalPlayerRecordsBatch(db, generator.GlobalList, 500)
+	repository.CreateHockeyRecruitRecordsBatch(db, generator.CrootList, 500)
+	repository.CreateGlobalPlayerRecordsBatch(db, generator.GlobalList, 500)
 	ts.ToggleGeneratedCroots()
-	// repository.SaveTimestamp(ts, db)
+	repository.SaveTimestamp(ts, db)
 	// AssignAllRecruitRanks()
 }
 
@@ -310,11 +332,11 @@ func GenerateInitialRosters() {
 	db := dbprovider.GetInstance().GetDB()
 	lastPlayerRecord := repository.FindLatestGlobalPlayerRecord()
 	latestID := lastPlayerRecord.ID + 1
-	collegeTeams := GetCollegeTeamMap()
 	cpList := []structs.CollegePlayer{}
 	globalList := []structs.GlobalPlayer{}
-	filePath := filepath.Join(os.Getenv("ROOT"), "data", "gen", "init_roster.csv")
-	playersCSV := util.ReadCSV(filePath)
+	// filePath := filepath.Join(os.Getenv("ROOT"), "data", "gen", "init_roster.csv")
+	// playersCSV := util.ReadCSV(filePath)
+	teams := GetAllCollegeTeams()
 	generator := CrootGenerator{
 		nameMap:           getInternationalNameMap(),
 		collegePlayerList: GetAllCollegePlayers(),
@@ -340,46 +362,45 @@ func GenerateInitialRosters() {
 		caser:             cases.Title(language.English),
 		pickedEthnicity:   "",
 	}
-	for idx, row := range playersCSV {
-		if idx == 0 {
-			continue
-		}
-		yearStr := row[4]
-		year := util.ConvertStringToInt(yearStr)
-		age := 18 + year - 1
-		teamIDstr := row[0]
-		teamID := util.ConvertStringToInt(teamIDstr)
-		team := collegeTeams[uint(teamID)]
-		p, _ := generator.createCustomPlayer(row[5], row)
-		cp := structs.CollegePlayer{
-			BasePlayer:     p.BasePlayer,
-			BasePotentials: p.BasePotentials,
-			BaseInjuryData: p.BaseInjuryData,
-			Year:           1,
-		}
-		cp.AssignTeam(team.ID, team.Abbreviation)
-		cp.AssignID(latestID)
+	for _, team := range teams {
+		teamID := team.ID
+		queue := getCollegeGenList(teamID)
 
-		for j := cp.Age; j < uint8(age); j++ {
-			cp = ProgressCollegePlayer(cp, "1", []structs.CollegePlayerGameStats{})
+		for _, dto := range queue {
+			year := dto.Year
+			pos := dto.Pos
+			age := 18 + year - 1
+			p, _ := generator.createInitialPlayer(pos)
+			cp := structs.CollegePlayer{
+				BasePlayer:     p.BasePlayer,
+				BasePotentials: p.BasePotentials,
+				BaseInjuryData: p.BaseInjuryData,
+				Year:           1,
+			}
+			cp.AssignTeam(team.ID, team.Abbreviation)
+			cp.AssignID(latestID)
+
+			for j := cp.Age; j < uint8(age); j++ {
+				cp = ProgressCollegePlayer(cp, "1", []structs.CollegePlayerGameStats{})
+			}
+			cpList = append(cpList, cp)
+
+			globalPlayer := structs.GlobalPlayer{
+				Model: gorm.Model{
+					ID: latestID,
+				},
+				RecruitID:            latestID,
+				CollegePlayerID:      latestID,
+				ProfessionalPlayerID: latestID,
+			}
+			latestID++
+
+			globalList = append(globalList, globalPlayer)
+
 		}
-		cpList = append(cpList, cp)
-
-		globalPlayer := structs.GlobalPlayer{
-			Model: gorm.Model{
-				ID: latestID,
-			},
-			RecruitID:            latestID,
-			CollegePlayerID:      latestID,
-			ProfessionalPlayerID: latestID,
-		}
-		latestID++
-
-		globalList = append(globalList, globalPlayer)
-
 	}
-	repository.CreateCollegeHockeyPlayerRecordsBatch(db, cpList, 500)
-	repository.CreateGlobalPlayerRecordsBatch(db, globalList, 500)
+	repository.CreateCollegeHockeyPlayerRecordsBatch(db, cpList, 100)
+	repository.CreateGlobalPlayerRecordsBatch(db, globalList, 100)
 
 }
 
@@ -420,7 +441,7 @@ func GenerateInitialProPool() {
 		pickedEthnicity:   "",
 	}
 	positionNeedIdx := 0
-	for idx, _ := range proTeams {
+	for idx := range proTeams {
 		if idx > 24 {
 			break
 		}
@@ -485,6 +506,9 @@ func GenerateInitialProPool() {
 func createRecruit(position, arch string, stars int, firstName, lastName string, blob map[string]map[string]map[string]map[string]interface{}, country, state, cit, hs string, hsBlob []structs.CrootLocation) structs.Recruit {
 	age := 18
 	city, highSchool := cit, hs
+	if country == util.Russia {
+		fmt.Println("PING!")
+	}
 	if state != "" && len(hsBlob) > 0 {
 		city, highSchool = getCityAndHighSchool(hsBlob)
 	}
@@ -781,32 +805,6 @@ func (pg *CrootGenerator) createInitialPlayer(position string) (structs.Recruit,
 	return player, globalPlayer
 }
 
-func (pg *CrootGenerator) createCustomPlayer(position string, row []string) (structs.Recruit, structs.GlobalPlayer) {
-	relativeType := 0
-	relativeID := 0
-	coachTeamID := 0
-	coachTeamAbbr := ""
-	notes := "Custom Generated Player"
-	star := util.GetStarRating(true)
-	state := row[8]
-	country := row[7]
-	firstName := row[2]
-	lastName := row[3]
-	city := row[9]
-	hs := row[10]
-
-	player := createRecruit(position, row[6], star, firstName, lastName, pg.attributeBlob, country, state, city, hs, []structs.CrootLocation{})
-	player.AssignRelativeData(uint(relativeID), uint(relativeType), uint(coachTeamID), coachTeamAbbr, notes)
-	globalPlayer := structs.GlobalPlayer{
-		CollegePlayerID:      pg.newID,
-		RecruitID:            pg.newID,
-		ProfessionalPlayerID: pg.newID,
-	}
-
-	globalPlayer.AssignID(pg.newID)
-	return player, globalPlayer
-}
-
 func getCityAndHighSchool(schools []structs.CrootLocation) (string, string) {
 	if len(schools) == 0 {
 		fmt.Println("NO SCHOOLS?!")
@@ -1018,10 +1016,10 @@ func pickLocale(country string) string {
 
 func pickCountry() string {
 	countries := []util.Locale{
-		{Name: "Canada", Weight: 40},
-		{Name: "USA", Weight: 35},
-		{Name: "Sweden", Weight: 14},
-		{Name: "Russia", Weight: 14},
+		{Name: "USA", Weight: 62},
+		{Name: "Canada", Weight: 50},
+		{Name: "Sweden", Weight: 20},
+		{Name: "Russia", Weight: 20},
 		{Name: "Finland", Weight: 8},
 		{Name: "Czech Republic", Weight: 6},
 		{Name: "Slovakia", Weight: 5},
@@ -1364,4 +1362,120 @@ func getAttributeBlob() map[string]map[string]map[string]map[string]interface{} 
 	}
 
 	return payload
+}
+
+func getCollegeGenList(id uint) []structs.CollegeGenObj {
+	if id == 38 {
+		return []structs.CollegeGenObj{{Year: 4, Pos: "F"}, {Year: 4, Pos: "F"}, {Year: 4, Pos: "G"}, {Year: 4, Pos: util.PickFromStringList([]string{"C", "F", "D"})},
+			{Year: 3, Pos: "D"}, {Year: 3, Pos: "F"}, {Year: 3, Pos: "C"}, {Year: 3, Pos: util.PickFromStringList([]string{"C", "F", "D"})},
+			{Year: 2, Pos: "F"}, {Year: 2, Pos: "G"}, {Year: 2, Pos: "D"}, {Year: 2, Pos: util.PickFromStringList([]string{"C", "F", "D"})},
+			{Year: 1, Pos: "C"}, {Year: 1, Pos: "F"}, {Year: 1, Pos: "D"}, {Year: 1, Pos: util.PickFromStringList([]string{"C", "F", "D"})}}
+	}
+	if id == 3 {
+		return []structs.CollegeGenObj{{Year: 4, Pos: "F"}, {Year: 4, Pos: "C"}, {Year: 4, Pos: "D"}, {Year: 4, Pos: util.PickFromStringList([]string{"C", "F", "D"})},
+			{Year: 3, Pos: "G"}, {Year: 3, Pos: "F"}, {Year: 3, Pos: "D"}, {Year: 3, Pos: util.PickFromStringList([]string{"C", "F", "D"})},
+			{Year: 2, Pos: "F"}, {Year: 2, Pos: "C"}, {Year: 2, Pos: "D"}, {Year: 2, Pos: util.PickFromStringList([]string{"C", "F", "D"})},
+			{Year: 1, Pos: "D"}, {Year: 1, Pos: "G"}, {Year: 1, Pos: "D"}, {Year: 1, Pos: util.PickFromStringList([]string{"C", "F", "D"})}}
+	}
+	if id == 4 {
+		return []structs.CollegeGenObj{{Year: 4, Pos: "D"}, {Year: 4, Pos: "C"}, {Year: 4, Pos: "D"}, {Year: 4, Pos: util.PickFromStringList([]string{"C", "F", "D"})},
+			{Year: 3, Pos: "G"}, {Year: 3, Pos: "F"}, {Year: 3, Pos: "F"}, {Year: 3, Pos: util.PickFromStringList([]string{"C", "F", "D"})},
+			{Year: 2, Pos: "G"}, {Year: 2, Pos: "D"}, {Year: 2, Pos: "D"}, {Year: 2, Pos: util.PickFromStringList([]string{"C", "F", "D"})},
+			{Year: 1, Pos: "F"}, {Year: 1, Pos: "C"}, {Year: 1, Pos: "D"}, {Year: 1, Pos: util.PickFromStringList([]string{"C", "F", "D"})}}
+	}
+	if id == 21 {
+		return []structs.CollegeGenObj{{Year: 4, Pos: "F"}, {Year: 4, Pos: "C"}, {Year: 4, Pos: "D"}, {Year: 4, Pos: util.PickFromStringList([]string{"C", "F", "D"})},
+			{Year: 3, Pos: "G"}, {Year: 3, Pos: "F"}, {Year: 3, Pos: "D"}, {Year: 3, Pos: util.PickFromStringList([]string{"C", "F", "D"})},
+			{Year: 2, Pos: "F"}, {Year: 2, Pos: "D"}, {Year: 2, Pos: "D"}, {Year: 2, Pos: util.PickFromStringList([]string{"C", "F", "D"})},
+			{Year: 1, Pos: "D"}, {Year: 1, Pos: "G"}, {Year: 1, Pos: "F"}, {Year: 1, Pos: util.PickFromStringList([]string{"C", "F", "D"})}}
+	}
+	if id == 27 {
+		return []structs.CollegeGenObj{{Year: 4, Pos: "F"}, {Year: 4, Pos: "G"}, {Year: 4, Pos: "D"}, {Year: 4, Pos: util.PickFromStringList([]string{"C", "F", "D"})},
+			{Year: 3, Pos: "F"}, {Year: 3, Pos: "F"}, {Year: 3, Pos: "D"}, {Year: 3, Pos: util.PickFromStringList([]string{"C", "F", "D"})},
+			{Year: 2, Pos: "D"}, {Year: 2, Pos: "C"}, {Year: 2, Pos: "G"}, {Year: 2, Pos: util.PickFromStringList([]string{"C", "F", "D"})},
+			{Year: 1, Pos: "F"}, {Year: 1, Pos: "D"}, {Year: 1, Pos: "F"}, {Year: 1, Pos: util.PickFromStringList([]string{"C", "F", "D"})}}
+	}
+	if id == 2 {
+		return []structs.CollegeGenObj{{Year: 4, Pos: "F"}, {Year: 4, Pos: "G"}, {Year: 4, Pos: "D"}, {Year: 4, Pos: util.PickFromStringList([]string{"C", "F", "D"})},
+			{Year: 3, Pos: "C"}, {Year: 3, Pos: "G"}, {Year: 3, Pos: "D"}, {Year: 3, Pos: util.PickFromStringList([]string{"C", "F", "D"})},
+			{Year: 2, Pos: "C"}, {Year: 2, Pos: "G"}, {Year: 2, Pos: "D"}, {Year: 2, Pos: util.PickFromStringList([]string{"C", "F", "D"})},
+			{Year: 1, Pos: "D"}, {Year: 1, Pos: "D"}, {Year: 1, Pos: "F"}, {Year: 1, Pos: util.PickFromStringList([]string{"C", "F", "D"})}}
+	}
+	if id == 8 {
+		return []structs.CollegeGenObj{{Year: 4, Pos: "F"}, {Year: 4, Pos: "G"}, {Year: 4, Pos: "D"}, {Year: 4, Pos: util.PickFromStringList([]string{"C", "F", "D"})},
+			{Year: 3, Pos: "C"}, {Year: 3, Pos: "F"}, {Year: 3, Pos: "D"}, {Year: 3, Pos: util.PickFromStringList([]string{"C", "F", "D"})},
+			{Year: 2, Pos: "F"}, {Year: 2, Pos: "G"}, {Year: 2, Pos: "D"}, {Year: 2, Pos: util.PickFromStringList([]string{"C", "F", "D"})},
+			{Year: 1, Pos: "D"}, {Year: 1, Pos: "C"}, {Year: 1, Pos: "F"}, {Year: 1, Pos: util.PickFromStringList([]string{"C", "F", "D"})}}
+	}
+	if id == 62 {
+		return []structs.CollegeGenObj{{Year: 4, Pos: "D"}, {Year: 4, Pos: "C"}, {Year: 4, Pos: "D"}, {Year: 4, Pos: util.PickFromStringList([]string{"C", "F", "D"})},
+			{Year: 3, Pos: "G"}, {Year: 3, Pos: "F"}, {Year: 3, Pos: "C"}, {Year: 3, Pos: util.PickFromStringList([]string{"C", "F", "D"})},
+			{Year: 2, Pos: "G"}, {Year: 2, Pos: "F"}, {Year: 2, Pos: "D"}, {Year: 2, Pos: util.PickFromStringList([]string{"C", "F", "D"})},
+			{Year: 1, Pos: "D"}, {Year: 1, Pos: "C"}, {Year: 1, Pos: "F"}, {Year: 1, Pos: util.PickFromStringList([]string{"C", "F", "D"})}}
+	}
+	if id == 63 {
+		return []structs.CollegeGenObj{{Year: 4, Pos: "F"}, {Year: 4, Pos: "G"}, {Year: 4, Pos: "D"}, {Year: 4, Pos: util.PickFromStringList([]string{"C", "F", "D"})},
+			{Year: 3, Pos: "C"}, {Year: 3, Pos: "F"}, {Year: 3, Pos: "D"}, {Year: 3, Pos: util.PickFromStringList([]string{"C", "F", "D"})},
+			{Year: 2, Pos: "F"}, {Year: 2, Pos: "G"}, {Year: 2, Pos: "D"}, {Year: 2, Pos: util.PickFromStringList([]string{"C", "F", "D"})},
+			{Year: 1, Pos: "D"}, {Year: 1, Pos: "C"}, {Year: 1, Pos: "F"}, {Year: 1, Pos: util.PickFromStringList([]string{"C", "F", "D"})}}
+	}
+	if id == 24 {
+		return []structs.CollegeGenObj{{Year: 4, Pos: "F"}, {Year: 4, Pos: "D"}, {Year: 4, Pos: "D"}, {Year: 4, Pos: util.PickFromStringList([]string{"C", "F", "D"})},
+			{Year: 3, Pos: "G"}, {Year: 3, Pos: "C"}, {Year: 3, Pos: "D"}, {Year: 3, Pos: util.PickFromStringList([]string{"C", "F", "D"})},
+			{Year: 2, Pos: "F"}, {Year: 2, Pos: "C"}, {Year: 2, Pos: "D"}, {Year: 2, Pos: util.PickFromStringList([]string{"C", "F", "D"})},
+			{Year: 1, Pos: "F"}, {Year: 1, Pos: "G"}, {Year: 1, Pos: "F"}, {Year: 1, Pos: util.PickFromStringList([]string{"C", "F", "D"})}}
+	}
+	if id == 61 {
+		return []structs.CollegeGenObj{{Year: 4, Pos: "F"}, {Year: 4, Pos: "G"}, {Year: 4, Pos: "D"}, {Year: 4, Pos: util.PickFromStringList([]string{"C", "F", "D"})},
+			{Year: 3, Pos: "C"}, {Year: 3, Pos: "D"}, {Year: 3, Pos: "D"}, {Year: 3, Pos: util.PickFromStringList([]string{"C", "F", "D"})},
+			{Year: 2, Pos: "F"}, {Year: 2, Pos: "C"}, {Year: 2, Pos: "G"}, {Year: 2, Pos: util.PickFromStringList([]string{"C", "F", "D"})},
+			{Year: 1, Pos: "D"}, {Year: 1, Pos: "F"}, {Year: 1, Pos: "F"}, {Year: 1, Pos: util.PickFromStringList([]string{"C", "F", "D"})}}
+	}
+	if id == 5 {
+		return []structs.CollegeGenObj{{Year: 4, Pos: "D"}, {Year: 4, Pos: "G"}, {Year: 4, Pos: "D"}, {Year: 4, Pos: util.PickFromStringList([]string{"C", "F", "D"})},
+			{Year: 3, Pos: "G"}, {Year: 3, Pos: "D"}, {Year: 3, Pos: "D"}, {Year: 3, Pos: util.PickFromStringList([]string{"C", "F", "D"})},
+			{Year: 2, Pos: "F"}, {Year: 2, Pos: "C"}, {Year: 2, Pos: "G"}, {Year: 2, Pos: util.PickFromStringList([]string{"C", "F", "D"})},
+			{Year: 1, Pos: "C"}, {Year: 1, Pos: "D"}, {Year: 1, Pos: "F"}, {Year: 1, Pos: util.PickFromStringList([]string{"C", "F", "D"})}}
+	}
+	if id == 34 {
+		return []structs.CollegeGenObj{{Year: 4, Pos: "F"}, {Year: 4, Pos: "G"}, {Year: 4, Pos: "D"}, {Year: 4, Pos: util.PickFromStringList([]string{"C", "F", "D"})},
+			{Year: 3, Pos: "C"}, {Year: 3, Pos: "F"}, {Year: 3, Pos: "D"}, {Year: 3, Pos: util.PickFromStringList([]string{"C", "F", "D"})},
+			{Year: 2, Pos: "F"}, {Year: 2, Pos: "C"}, {Year: 2, Pos: "G"}, {Year: 2, Pos: util.PickFromStringList([]string{"C", "F", "D"})},
+			{Year: 1, Pos: "D"}, {Year: 1, Pos: "D"}, {Year: 1, Pos: "F"}, {Year: 1, Pos: util.PickFromStringList([]string{"C", "F", "D"})}}
+	}
+	if id == 53 {
+		return []structs.CollegeGenObj{{Year: 4, Pos: "F"}, {Year: 4, Pos: "F"}, {Year: 4, Pos: "D"}, {Year: 4, Pos: util.PickFromStringList([]string{"C", "F", "D"})},
+			{Year: 3, Pos: "G"}, {Year: 3, Pos: "C"}, {Year: 3, Pos: "D"}, {Year: 3, Pos: util.PickFromStringList([]string{"C", "F", "D"})},
+			{Year: 2, Pos: "F"}, {Year: 2, Pos: "D"}, {Year: 2, Pos: "D"}, {Year: 2, Pos: util.PickFromStringList([]string{"C", "F", "D"})},
+			{Year: 1, Pos: "D"}, {Year: 1, Pos: "G"}, {Year: 1, Pos: "F"}, {Year: 1, Pos: util.PickFromStringList([]string{"C", "F", "D"})}}
+	}
+	if id == 10 {
+		return []structs.CollegeGenObj{{Year: 4, Pos: "F"}, {Year: 4, Pos: "C"}, {Year: 4, Pos: "D"}, {Year: 4, Pos: util.PickFromStringList([]string{"C", "F", "D"})},
+			{Year: 3, Pos: "C"}, {Year: 3, Pos: "F"}, {Year: 3, Pos: "D"}, {Year: 3, Pos: util.PickFromStringList([]string{"C", "F", "D"})},
+			{Year: 2, Pos: "F"}, {Year: 2, Pos: "C"}, {Year: 2, Pos: "D"}, {Year: 2, Pos: util.PickFromStringList([]string{"C", "F", "D"})},
+			{Year: 1, Pos: "D"}, {Year: 1, Pos: "C"}, {Year: 1, Pos: "F"}, {Year: 1, Pos: util.PickFromStringList([]string{"C", "F", "D"})}}
+	}
+	if id == 31 {
+		return []structs.CollegeGenObj{{Year: 4, Pos: "G"}, {Year: 4, Pos: "C"}, {Year: 4, Pos: "D"}, {Year: 4, Pos: util.PickFromStringList([]string{"C", "F", "D"})},
+			{Year: 3, Pos: "G"}, {Year: 3, Pos: "F"}, {Year: 3, Pos: "D"}, {Year: 3, Pos: util.PickFromStringList([]string{"C", "F", "D"})},
+			{Year: 2, Pos: "G"}, {Year: 2, Pos: "D"}, {Year: 2, Pos: "D"}, {Year: 2, Pos: util.PickFromStringList([]string{"C", "F", "D"})},
+			{Year: 1, Pos: "D"}, {Year: 1, Pos: "C"}, {Year: 1, Pos: "F"}, {Year: 1, Pos: util.PickFromStringList([]string{"C", "F", "D"})}}
+	}
+	if id == 51 {
+		return []structs.CollegeGenObj{{Year: 4, Pos: "C"}, {Year: 4, Pos: "F"}, {Year: 4, Pos: "D"}, {Year: 4, Pos: "D"}, {Year: 4, Pos: "G"}, {Year: 4, Pos: util.PickFromStringList([]string{"C", "F", "D"})},
+			{Year: 3, Pos: "C"}, {Year: 3, Pos: "F"}, {Year: 3, Pos: "F"}, {Year: 3, Pos: "D"}, {Year: 3, Pos: "G"}, {Year: 3, Pos: util.PickFromStringList([]string{"C", "F", "D"})},
+			{Year: 2, Pos: "F"}, {Year: 2, Pos: "F"}, {Year: 2, Pos: "D"}, {Year: 2, Pos: "G"}, {Year: 2, Pos: util.PickFromStringList([]string{"C", "F", "D"})},
+			{Year: 1, Pos: "C"}, {Year: 1, Pos: "F"}, {Year: 1, Pos: "D"}, {Year: 1, Pos: "D"}, {Year: 1, Pos: "G"}, {Year: 1, Pos: util.PickFromStringList([]string{"C", "F", "D"})}}
+	}
+	if id == 16 {
+		return []structs.CollegeGenObj{{Year: 4, Pos: "C"}, {Year: 4, Pos: "F"}, {Year: 4, Pos: "F"}, {Year: 4, Pos: "D"}, {Year: 4, Pos: "D"}, {Year: 4, Pos: "G"}, {Year: 4, Pos: util.PickFromStringList([]string{"C", "F", "D"})},
+			{Year: 3, Pos: "C"}, {Year: 3, Pos: "F"}, {Year: 3, Pos: "D"}, {Year: 3, Pos: util.PickFromStringList([]string{"C", "F", "D"})},
+			{Year: 2, Pos: "C"}, {Year: 2, Pos: "D"}, {Year: 2, Pos: "G"}, {Year: 2, Pos: util.PickFromStringList([]string{"C", "F", "D"})},
+			{Year: 1, Pos: "F"}, {Year: 1, Pos: "D"}, {Year: 1, Pos: "G"}, {Year: 1, Pos: util.PickFromStringList([]string{"C", "F", "D"})}}
+	}
+
+	return []structs.CollegeGenObj{{Year: 4, Pos: "C"}, {Year: 4, Pos: "F"}, {Year: 4, Pos: "F"}, {Year: 4, Pos: "D"}, {Year: 4, Pos: "D"}, {Year: 4, Pos: "G"}, {Year: 4, Pos: util.PickFromStringList([]string{"C", "F", "D"})},
+		{Year: 3, Pos: "C"}, {Year: 3, Pos: "F"}, {Year: 3, Pos: "F"}, {Year: 3, Pos: "D"}, {Year: 3, Pos: "D"}, {Year: 3, Pos: "G"}, {Year: 3, Pos: util.PickFromStringList([]string{"C", "F", "D"})},
+		{Year: 2, Pos: "C"}, {Year: 2, Pos: "F"}, {Year: 2, Pos: "F"}, {Year: 2, Pos: "D"}, {Year: 2, Pos: "D"}, {Year: 2, Pos: "G"}, {Year: 2, Pos: util.PickFromStringList([]string{"C", "F", "D"})},
+		{Year: 1, Pos: "C"}, {Year: 1, Pos: "F"}, {Year: 1, Pos: "F"}, {Year: 1, Pos: "D"}, {Year: 1, Pos: "D"}, {Year: 1, Pos: "G"}, {Year: 1, Pos: util.PickFromStringList([]string{"C", "F", "D"})}}
 }

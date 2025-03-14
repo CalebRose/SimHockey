@@ -463,13 +463,7 @@ func (b *BasePlayer) Progress(progressions BasePlayerProgressions) {
 }
 
 func ProgressAttribute(attr uint8, additive int) uint8 {
-	sum := int(attr) + additive
-	if sum > 50 {
-		sum = 50
-	}
-	if sum < 1 {
-		sum = 1
-	}
+	sum := max(min(int(attr)+additive, 50), 1)
 	return uint8(sum)
 }
 
@@ -599,16 +593,57 @@ type CollegePlayer struct {
 	TransferLikeliness string
 	DraftedTeamID      uint
 	DraftedTeam        string
+	DraftedRound       uint
+	DraftPickID        uint
+	DraftedPick        uint
+	Stats              []CollegePlayerGameStats `gorm:"foreignKey:CollegePlayerID"`
+	SeasonStats        CollegePlayerSeasonStats `gorm:"foreignKey:CollegePlayerID"`
+	Profiles           []TransferPortalProfile  `gorm:"foreignKey:CollegePlayerID"`
 }
 
 func (cp *CollegePlayer) ProgressPlayer(progressions BasePlayerProgressions) {
 	cp.Progress(progressions)
 	cp.Year++
+	if cp.IsRedshirting {
+		cp.CompleteRedshirt()
+	}
 	cp.GetOverall()
 }
 
 func (cp *CollegePlayer) AssignID(id uint) {
 	cp.ID = id
+}
+
+func (cp *CollegePlayer) RedshirtPlayer() {
+	cp.IsRedshirting = true
+}
+
+func (cp *CollegePlayer) CompleteRedshirt() {
+	cp.IsRedshirting = false
+	cp.IsRedshirt = true
+}
+
+func (cp *CollegePlayer) WillTransfer() {
+	cp.TransferStatus = 2
+	cp.PreviousTeam = cp.Team
+	cp.PreviousTeamID = uint8(cp.TeamID)
+	cp.Team = ""
+	cp.TeamID = 0
+}
+
+func (cp *CollegePlayer) WillReturn() {
+	cp.TransferStatus = 0
+	cp.Team = cp.PreviousTeam
+	cp.TeamID = uint16(cp.PreviousTeamID)
+	cp.PreviousTeam = ""
+	cp.PreviousTeamID = 0
+}
+
+func (cp *CollegePlayer) SignWithNewTeam(teamID int, teamAbbr string) {
+	cp.TransferStatus = 0
+	cp.Team = teamAbbr
+	cp.TeamID = uint16(teamID)
+	cp.TransferLikeliness = ""
 }
 
 type HistoricCollegePlayer struct {
@@ -625,7 +660,18 @@ type ProfessionalPlayer struct {
 	IsAffiliatePlayer bool
 	IsWaived          bool
 	IsFreeAgent       bool
-	AffiliateTeamID   uint
+	IsOnTradeBlock    bool
+	IsAcceptingOffers bool
+	IsNegotiating     bool
+	DraftedTeamID     uint8
+	DraftedTeam       string
+	DraftedRound      uint8
+	DraftPickID       uint
+	DraftedPick       uint16
+	MinimumValue      float32
+	HasProgressed     bool
+	Rejections        int8
+	AffiliateTeamID   uint16
 	Marketability     uint8                           // How marketable / in demand a player's jersey will be
 	JerseyPrice       float32                         // Price of jersey, can be set by user
 	Stats             []ProfessionalPlayerGameStats   `gorm:"foreignKey:PlayerID"`
@@ -640,6 +686,71 @@ func (cp *ProfessionalPlayer) ProgressPlayer(progressions BasePlayerProgressions
 	cp.Progress(progressions)
 	cp.Year++
 	cp.GetOverall()
+}
+
+func (np *ProfessionalPlayer) ToggleIsFreeAgent() {
+	np.PreviousTeamID = uint8(np.TeamID)
+	np.PreviousTeam = np.Team
+	np.IsFreeAgent = true
+	np.TeamID = 0
+	np.Team = ""
+	np.IsAcceptingOffers = true
+	np.IsNegotiating = false
+	np.IsOnTradeBlock = false
+	np.IsAffiliatePlayer = false
+	np.Rejections = 0
+	np.IsWaived = false
+}
+
+func (np *ProfessionalPlayer) SignPlayer(TeamID uint, Abbr string) {
+	np.IsFreeAgent = false
+	np.IsWaived = false
+	np.TeamID = uint16(TeamID)
+	np.Team = Abbr
+	np.IsAcceptingOffers = false
+	np.IsNegotiating = false
+	np.IsAffiliatePlayer = false
+}
+
+func (np *ProfessionalPlayer) ToggleAffiliation() {
+	np.IsAffiliatePlayer = !np.IsAffiliatePlayer
+	np.IsNegotiating = false
+	if np.IsAffiliatePlayer {
+		np.IsAcceptingOffers = true
+	}
+}
+
+func (np *ProfessionalPlayer) ToggleTradeBlock() {
+	np.IsOnTradeBlock = !np.IsOnTradeBlock
+}
+
+func (np *ProfessionalPlayer) RemoveFromTradeBlock() {
+	np.IsOnTradeBlock = false
+}
+
+func (cp *ProfessionalPlayer) WaivePlayer() {
+	cp.PreviousTeamID = uint8(cp.TeamID)
+	cp.PreviousTeam = cp.Team
+	cp.TeamID = 0
+	cp.Team = ""
+	cp.RemoveFromTradeBlock()
+	cp.IsWaived = true
+}
+
+func (np *ProfessionalPlayer) ConvertWaivedPlayerToFA() {
+	np.IsWaived = false
+	np.IsFreeAgent = true
+	np.IsAcceptingOffers = true
+}
+
+func (np *ProfessionalPlayer) ToggleIsNegotiating() {
+	np.IsNegotiating = true
+	np.IsAcceptingOffers = false
+}
+
+func (np *ProfessionalPlayer) WaitUntilAfterDraft() {
+	np.IsNegotiating = false
+	np.IsAcceptingOffers = false
 }
 
 func (cp *ProfessionalPlayer) AssignID(id uint) {
@@ -668,6 +779,10 @@ type Recruit struct {
 	RecruitingModifier    float32                // For signing threshold
 	RecruitingStatus      string                 // For signing progress
 	RecruitPlayerProfiles []RecruitPlayerProfile `gorm:"foreignKey:RecruitID"`
+}
+
+func (r *Recruit) AssignID(id uint) {
+	r.ID = id
 }
 
 func (r *Recruit) AssignCollege(abbr string) {
@@ -719,38 +834,3 @@ func (r *Recruit) ApplySigningStatus(num, threshold float32, signing bool) {
 		r.RecruitingStatus = "Signed"
 	}
 }
-
-/*
-    // New attributes for in-depth simulation
-    OneTimers     uint8 // Ability to execute one-timer shots effectively
-    Deception     uint8 // Ability to fake out opponents and goalies
-    Endurance      uint8 // Stamina for prolonged play without fatigue
-    OffensiveAwareness uint8 // Ability to read plays and position offensively
-    DefensiveAwareness uint8 // Ability to read plays and position defensively
-    Leadership    uint8 // Influence on team morale and performance
-    PenaltyKilling uint8 // Effectiveness in killing penalties
-    PowerPlay     uint8 // Effectiveness during power plays
-    ShotCreativity uint8 // Ability to create unique shot opportunities
-    Breakaway     uint8 // Skill in one-on-one situations with the goalie
-    AgilityWithPuck uint8 // Agility while handling the puck
-    FaceoffDefense uint8 // Ability to defend against faceoff
-	// Additional attributes for gameplay depth
-    ShotRelease   uint8 // Speed of shot release
-    DefensivePositioning uint8 // Ability to position oneself defensively
-    OffensivePositioning uint8 // Ability to position oneself offensively
-    CheckingPower  uint8 // Strength of body checks
-    StickHandling  uint8 // Skill in maneuvering the puck with the stick
-    GameSense      uint8 // Overall understanding of the game and decision-making
-    ClutchFactor    uint8 // Performance under pressure in critical moments
-    AgilityInTraffic uint8 // Ability to maneuver in crowded areas
-    TransitionPlay uint8 // Skill in transitioning from defense to offense
-    ShotSelection  uint8 // Ability to choose the right shot in various situations
-    Communication  uint8 // Effectiveness in communicating with teammates
-    Recovery       uint8 // Ability to recover quickly from falls or hits
-    FaceoffOffense uint8 // Ability to win offensive faceoffs
-    FaceoffDefense uint8 // Ability to win defensive faceoffs
-    GoalieVision   uint8 // Goalkeeper's ability to track the puck
-    GoalieReboundControl uint8 // Goalkeeper's ability to control rebounds
-    PenaltyDrawing uint8 // Ability to draw penalties from opponents
-    EnduranceRecovery uint8 // Speed of recovery after exertion
-*/

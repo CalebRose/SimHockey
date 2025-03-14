@@ -76,6 +76,7 @@ func handleRequests() http.Handler {
 	// apiRouter.HandleFunc("/admin/test/engine/", controllers.TestEngine).Methods("GET")
 	// apiRouter.HandleFunc("/admin/generate/test/pro/teams/", controllers.GenerateProTeams).Methods("GET")
 	// apiRouter.HandleFunc("/admin/generate/init/college/rosters/", controllers.GenerateInitialRosters).Methods("GET")
+	apiRouter.HandleFunc("/admin/generate/college/recruits/", controllers.GenerateCroots).Methods("GET")
 	// apiRouter.HandleFunc("/admin/generate/test/pro/rosters/", controllers.GenerateProTestData).Methods("GET")
 
 	// Bootstrap
@@ -83,6 +84,7 @@ func handleRequests() http.Handler {
 
 	// Exports
 	apiRouter.HandleFunc("/export/pro/players/all", controllers.ExportAllProPlayers).Methods("GET")
+	apiRouter.HandleFunc("/export/college/players/all", controllers.ExportAllCollegePlayers).Methods("GET")
 
 	// Requests
 	apiRouter.HandleFunc("/admin/import/pro/teams/", controllers.GenerateProTeams).Methods("GET")
@@ -95,6 +97,15 @@ func handleRequests() http.Handler {
 	apiRouter.HandleFunc("/phl/requests/create", controllers.CreatePHLTeamRequest).Methods("POST")
 	apiRouter.HandleFunc("/chl/requests/reject", controllers.RejectCHLTeamRequest).Methods("POST")
 	apiRouter.HandleFunc("/phl/requests/reject", controllers.RejectPHLTeamRequest).Methods("POST")
+
+	// Roster Page
+	apiRouter.HandleFunc("/chl/roster/cut/{playerID}", controllers.CutCHLPlayerFromRoster).Methods("GET")
+	apiRouter.HandleFunc("/chl/roster/redshirt/{playerID}", controllers.RedshirtCHLPlayer).Methods("GET")
+	apiRouter.HandleFunc("/chl/roster/promise/{playerID}", controllers.PromiseCHLPlayer).Methods("POST")
+	apiRouter.HandleFunc("/phl/roster/cut/{playerID}", controllers.CutPHLPlayerFromRoster).Methods("GET")
+	apiRouter.HandleFunc("/phl/roster/affiliate/{playerID}", controllers.SendPHLPlayerToAffiliate).Methods("GET")
+	apiRouter.HandleFunc("/phl/roster/tradeblock/{playerID}", controllers.SendPHLPlayerToTradeBlock).Methods("GET")
+	apiRouter.HandleFunc("/phl/roster/extend/{playerID}", controllers.ExtendPHLPlayer).Methods("POST")
 
 	// Teams
 	apiRouter.HandleFunc("/chl/teams/remove/{teamID}", controllers.RemoveUserFromCollegeTeam).Methods("GET")

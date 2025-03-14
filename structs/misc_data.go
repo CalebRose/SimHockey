@@ -53,3 +53,8 @@ func (t *TopPlayer) MapProPlayer(player ProfessionalPlayer) {
 	t.Overall = int(player.Overall)
 	t.OverallGrade = util.GetLetterGrade(int(player.Overall), player.Year)
 }
+
+type CollegeGenObj struct {
+	Year int
+	Pos  string
+}

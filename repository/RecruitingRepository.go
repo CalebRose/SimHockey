@@ -3,6 +3,7 @@ package repository
 import (
 	"errors"
 	"log"
+	"strconv"
 
 	"github.com/CalebRose/SimHockey/dbprovider"
 	"github.com/CalebRose/SimHockey/structs"
@@ -211,4 +212,11 @@ func CreatePointAllocationRecord(db *gorm.DB, record structs.RecruitPointAllocat
 	}
 
 	return nil
+}
+
+func SaveCollegeHockeyRecruitRecord(recruitRecord structs.Recruit, db *gorm.DB) {
+	err := db.Save(&recruitRecord).Error
+	if err != nil {
+		log.Panicln("Could not save college player " + strconv.Itoa(int(recruitRecord.ID)))
+	}
 }

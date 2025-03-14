@@ -15,20 +15,6 @@ func SaveTimestamp(ts structs.Timestamp, db *gorm.DB) {
 	}
 }
 
-func SaveCollegeHockeyPlayerRecord(playerRecord structs.CollegePlayer, db *gorm.DB) {
-	err := db.Save(&playerRecord).Error
-	if err != nil {
-		log.Panicln("Could not save college player " + strconv.Itoa(int(playerRecord.ID)))
-	}
-}
-
-func SaveCollegeHockeyRecruitRecord(recruitRecord structs.Recruit, db *gorm.DB) {
-	err := db.Save(&recruitRecord).Error
-	if err != nil {
-		log.Panicln("Could not save college player " + strconv.Itoa(int(recruitRecord.ID)))
-	}
-}
-
 func SaveCollegeLineupRecord(lineupRecord structs.CollegeLineup, db *gorm.DB) {
 	err := db.Save(&lineupRecord).Error
 	if err != nil {

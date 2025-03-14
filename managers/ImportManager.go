@@ -376,7 +376,7 @@ func ImportProTeams() {
 		}
 	}
 
-	// repository.CreateArenaRecordsBatch(db, arenas, 20)
+	repository.CreateArenaRecordsBatch(db, arenas, 20)
 	repository.CreateProTeamRecordsBatch(db, teams, 24)
-	// repository.CreateProfessionalLineupRecordsBatch(db, proLineups, 50)
+	repository.CreateProfessionalLineupRecordsBatch(db, proLineups, 50)
 }

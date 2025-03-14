@@ -50,3 +50,9 @@ func RunAIProLineups(w http.ResponseWriter, r *http.Request) {
 
 	json.NewEncoder(w).Encode("Data Generated ran!")
 }
+
+func GenerateCroots(w http.ResponseWriter, r *http.Request) {
+	managers.GenerateCroots()
+
+	json.NewEncoder(w).Encode("Data Generated ran!")
+}

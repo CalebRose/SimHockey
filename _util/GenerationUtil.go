@@ -47,47 +47,47 @@ func PickState() string {
 		{Name: "MI", Weight: 45},
 		{Name: "MA", Weight: 40},
 		{Name: "NY", Weight: 40},
-		{Name: "IL", Weight: 38},
-		{Name: "WI", Weight: 37},
-		{Name: "PA", Weight: 37},
-		{Name: "ND", Weight: 35},
-		{Name: "CO", Weight: 34},
-		{Name: "OH", Weight: 33},
-		{Name: "CT", Weight: 27},
-		{Name: "VT", Weight: 27},
-		{Name: "AK", Weight: 27},
-		{Name: "NH", Weight: 18}, // Collective weight for less prominent states
-		{Name: "RI", Weight: 18}, // Collective weight for less prominent states
-		{Name: "ME", Weight: 18}, // Collective weight for less prominent states
-		{Name: "NJ", Weight: 16}, // Collective weight for less prominent states
-		{Name: "IN", Weight: 12}, // Collective weight for less prominent states
-		{Name: "DE", Weight: 11}, // Collective weight for less prominent states
-		{Name: "NE", Weight: 10}, // Collective weight for less prominent states
-		{Name: "MT", Weight: 10}, // Collective weight for less prominent states
-		{Name: "MD", Weight: 5},  // Collective weight for less prominent states
-		{Name: "VA", Weight: 5},  // Collective weight for less prominent states
-		{Name: "MO", Weight: 5},  // Collective weight for less prominent states
-		{Name: "CA", Weight: 5},  // Collective weight for less prominent states
-		{Name: "OR", Weight: 5},  // Collective weight for less prominent states
-		{Name: "WA", Weight: 5},  // Collective weight for less prominent states
-		{Name: "IA", Weight: 3},  // Collective weight for less prominent states
-		{Name: "NM", Weight: 3},  // Collective weight for less prominent states
+		{Name: "IL", Weight: 30},
+		{Name: "WI", Weight: 29},
+		{Name: "PA", Weight: 29},
+		{Name: "ND", Weight: 27},
+		{Name: "CO", Weight: 26},
+		{Name: "OH", Weight: 25},
+		{Name: "CT", Weight: 19},
+		{Name: "VT", Weight: 19},
+		{Name: "AK", Weight: 19},
+		{Name: "NH", Weight: 10}, // Collective weight for less prominent states
+		{Name: "RI", Weight: 10}, // Collective weight for less prominent states
+		{Name: "ME", Weight: 10}, // Collective weight for less prominent states
+		{Name: "NJ", Weight: 10}, // Collective weight for less prominent states
+		{Name: "IN", Weight: 4},  // Collective weight for less prominent states
+		{Name: "DE", Weight: 3},  // Collective weight for less prominent states
+		{Name: "NE", Weight: 2},  // Collective weight for less prominent states
+		{Name: "MT", Weight: 3},  // Collective weight for less prominent states
+		{Name: "MD", Weight: 1},  // Collective weight for less prominent states
+		{Name: "VA", Weight: 1},  // Collective weight for less prominent states
+		{Name: "MO", Weight: 3},  // Collective weight for less prominent states
+		{Name: "CA", Weight: 3},  // Collective weight for less prominent states
+		{Name: "OR", Weight: 1},  // Collective weight for less prominent states
+		{Name: "WA", Weight: 3},  // Collective weight for less prominent states
+		{Name: "IA", Weight: 1},  // Collective weight for less prominent states
+		{Name: "NM", Weight: 1},  // Collective weight for less prominent states
 		{Name: "SD", Weight: 3},  // Collective weight for less prominent states
-		{Name: "AZ", Weight: 3},  // Collective weight for less prominent states
-		{Name: "UT", Weight: 3},  // Collective weight for less prominent states
-		{Name: "WY", Weight: 3},  // Collective weight for less prominent states
-		{Name: "ID", Weight: 3},  // Collective weight for less prominent states
-		{Name: "NV", Weight: 3},  // Collective weight for less prominent states
+		{Name: "AZ", Weight: 2},  // Collective weight for less prominent states
+		{Name: "UT", Weight: 1},  // Collective weight for less prominent states
+		{Name: "WY", Weight: 1},  // Collective weight for less prominent states
+		{Name: "ID", Weight: 1},  // Collective weight for less prominent states
+		{Name: "NV", Weight: 1},  // Collective weight for less prominent states
 		{Name: "TN", Weight: 3},  // Collective weight for less prominent states
-		{Name: "NC", Weight: 3},  // Collective weight for less prominent states
-		{Name: "TX", Weight: 3},  // Collective weight for less prominent states
+		{Name: "NC", Weight: 2},  // Collective weight for less prominent states
+		{Name: "TX", Weight: 2},  // Collective weight for less prominent states
 		{Name: "KY", Weight: 1},  // Collective weight for less prominent states
 		{Name: "WV", Weight: 1},  // Collective weight for less prominent states
 		{Name: "SC", Weight: 1},  // Collective weight for less prominent states
 		{Name: "GA", Weight: 1},  // Collective weight for less prominent states
 		{Name: "AL", Weight: 1},  // Collective weight for less prominent states
 		{Name: "MS", Weight: 1},  // Collective weight for less prominent states
-		{Name: "FL", Weight: 1},  // Collective weight for less prominent states
+		{Name: "FL", Weight: 2},  // Collective weight for less prominent states
 		{Name: "AR", Weight: 1},  // Collective weight for less prominent states
 		{Name: "LA", Weight: 1},  // Collective weight for less prominent states
 		{Name: "OK", Weight: 1},  // Collective weight for less prominent states
