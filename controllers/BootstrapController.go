@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"encoding/json"
+	"log"
 	"net/http"
 
 	"github.com/CalebRose/SimHockey/managers"
@@ -13,5 +14,11 @@ func BootstrapHockeyData(w http.ResponseWriter, r *http.Request) {
 	collegeID := vars["collegeID"]
 	proID := vars["proID"]
 	data := managers.GetBootstrapData(collegeID, proID)
-	json.NewEncoder(w).Encode(data)
+	w.Header().Set("Content-Type", "application/json")
+	log.Printf("Bootstrap Data: %+v", data)
+	err := json.NewEncoder(w).Encode(data)
+	if err != nil {
+		log.Printf("Failed to encode JSON response: %v", err)
+		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+	}
 }

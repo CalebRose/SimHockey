@@ -1,6 +1,7 @@
 package structs
 
 import (
+	"math"
 	"sort"
 
 	util "github.com/CalebRose/SimHockey/_util"
@@ -389,6 +390,9 @@ func (c *Croot) Map(r Recruit) {
 		mod = 1
 	}
 	c.TotalRank = (r.RivalsRank + r.ESPNRank + r.Rank247) / r.TopRankModifier
+	if math.IsNaN(float64(c.TotalRank)) {
+		c.TotalRank = 0
+	}
 
 	var totalPoints float32 = 0
 	var runningThreshold float32 = 0
