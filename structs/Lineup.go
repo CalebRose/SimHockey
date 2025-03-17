@@ -82,11 +82,13 @@ type Allocations struct {
 	// AGZ == Attacking Goal Zone
 	AGZShot       uint8
 	AGZPass       uint8
+	AGZPassBack   uint8
 	AGZStickCheck uint8
 	AGZBodyCheck  uint8
 	// AZ == Attacking Zone
 	AZShot       uint8
 	AZPass       uint8
+	AZLongPass   uint8
 	AZAgility    uint8
 	AZStickCheck uint8
 	AZBodyCheck  uint8
@@ -97,11 +99,13 @@ type Allocations struct {
 	NBodyCheck  uint8
 	// DZ Defending Zone
 	DZPass       uint8
+	DZPassBack   uint8
 	DZAgility    uint8
 	DZStickCheck uint8
 	DZBodyCheck  uint8
 	// DGZ == Defending Goal Zone
 	DGZPass       uint8
+	DGZLongPass   uint8
 	DGZAgility    uint8
 	DGZStickCheck uint8
 	DGZBodyCheck  uint8

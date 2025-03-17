@@ -596,8 +596,8 @@ type CollegePlayer struct {
 	DraftedRound       uint
 	DraftPickID        uint
 	DraftedPick        uint
-	Stats              []CollegePlayerGameStats `gorm:"foreignKey:CollegePlayerID"`
-	SeasonStats        CollegePlayerSeasonStats `gorm:"foreignKey:CollegePlayerID"`
+	Stats              []CollegePlayerGameStats `gorm:"foreignKey:PlayerID"`
+	SeasonStats        CollegePlayerSeasonStats `gorm:"foreignKey:PlayerID"`
 	Profiles           []TransferPortalProfile  `gorm:"foreignKey:CollegePlayerID"`
 }
 
