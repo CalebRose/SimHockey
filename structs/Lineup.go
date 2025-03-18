@@ -83,6 +83,7 @@ type Allocations struct {
 	AGZShot       uint8
 	AGZPass       uint8
 	AGZPassBack   uint8
+	AGZAgility    uint8
 	AGZStickCheck uint8
 	AGZBodyCheck  uint8
 	// AZ == Attacking Zone
