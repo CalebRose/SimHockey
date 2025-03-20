@@ -51,7 +51,7 @@ func FindAllCollegePlayers(clauses PlayerQuery) []structs.CollegePlayer {
 	}
 
 	if len(clauses.PlayerIDs) > 0 {
-		query = query.Where("player_id in (?)", clauses.PlayerIDs)
+		query = query.Where("id in (?)", clauses.PlayerIDs)
 	}
 
 	if err := query.Find(&CollegePlayers).Error; err != nil {
@@ -100,7 +100,7 @@ func FindAllProPlayers(clauses PlayerQuery) []structs.ProfessionalPlayer {
 	}
 
 	if len(clauses.PlayerIDs) > 0 {
-		query = query.Where("player_id in (?)", clauses.PlayerIDs)
+		query = query.Where("id in (?)", clauses.PlayerIDs)
 	}
 
 	if err := query.Order("overall desc").Find(&proPlayers).Error; err != nil {

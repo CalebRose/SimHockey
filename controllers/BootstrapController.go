@@ -15,7 +15,6 @@ func BootstrapHockeyData(w http.ResponseWriter, r *http.Request) {
 	proID := vars["proID"]
 	data := managers.GetBootstrapData(collegeID, proID)
 	w.Header().Set("Content-Type", "application/json")
-	log.Printf("Bootstrap Data: %+v", data)
 	err := json.NewEncoder(w).Encode(data)
 	if err != nil {
 		log.Printf("Failed to encode JSON response: %v", err)
