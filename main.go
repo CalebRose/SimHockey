@@ -108,8 +108,8 @@ func handleRequests() http.Handler {
 	apiRouter.HandleFunc("/phl/roster/extend/{playerID}", controllers.ExtendPHLPlayer).Methods("POST")
 
 	// Strategy
-	apiRouter.HandleFunc("/chl/strategy/update", controllers.PromiseCHLPlayer).Methods("POST")
-	apiRouter.HandleFunc("/phl/strategy/update", controllers.CutPHLPlayerFromRoster).Methods("POST")
+	apiRouter.HandleFunc("/chl/strategy/update", controllers.SaveCHLLineups).Methods("POST")
+	apiRouter.HandleFunc("/phl/strategy/update", controllers.SavePHLLineups).Methods("POST")
 
 	// Teams
 	apiRouter.HandleFunc("/chl/teams/remove/{teamID}", controllers.RemoveUserFromCollegeTeam).Methods("GET")
