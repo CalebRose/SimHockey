@@ -83,6 +83,16 @@ func MakeCollegeLineupMap(lineups []structs.CollegeLineup) map[uint][]structs.Co
 	return lineupMap
 }
 
+func MakeIndCollegeLineupMap(lineups []structs.CollegeLineup) map[uint]structs.CollegeLineup {
+	lineupMap := make(map[uint]structs.CollegeLineup)
+
+	for _, l := range lineups {
+		lineupMap[l.ID] = l
+	}
+
+	return lineupMap
+}
+
 func MakeCollegeShootoutLineupMap(lineups []structs.CollegeShootoutLineup) map[uint]structs.CollegeShootoutLineup {
 	lineupMap := make(map[uint]structs.CollegeShootoutLineup)
 
@@ -110,6 +120,16 @@ func MakeProfessionalLineupMap(lineups []structs.ProfessionalLineup) map[uint][]
 		} else {
 			lineupMap[uint(l.TeamID)] = []structs.ProfessionalLineup{l}
 		}
+	}
+
+	return lineupMap
+}
+
+func MakeIndProLineupMap(lineups []structs.ProfessionalLineup) map[uint]structs.ProfessionalLineup {
+	lineupMap := make(map[uint]structs.ProfessionalLineup)
+
+	for _, l := range lineups {
+		lineupMap[l.ID] = l
 	}
 
 	return lineupMap

@@ -551,6 +551,10 @@ func (cp *BasePlayer) AssignTeam(teamID uint, team string) {
 	cp.Team = team
 }
 
+func (cp *BasePlayer) AssignAllocations(updatedAllocations Allocations) {
+	cp.Allocations = updatedAllocations
+}
+
 type BasePotentials struct {
 	// Potential Attributes
 	// Each attribute has a chance to grow at a different rate. These are all small modifiers

@@ -86,7 +86,7 @@ func CreateRecruitingProfileForRecruit(dto structs.CreateRecruitProfileDto) stru
 
 	if !closeToHome {
 		// Check for pipeline
-		currentRoster := repository.FindAllCollegePlayers(teamID)
+		currentRoster := repository.FindAllCollegePlayers(repository.PlayerQuery{TeamID: teamID})
 		piplineMap := make(map[string]int)
 
 		for _, p := range currentRoster {
@@ -344,7 +344,8 @@ func GetRecruitingClassSizeForTeams() {
 	for _, team := range profiles {
 		count := 0
 
-		players := repository.FindAllCollegePlayers(strconv.Itoa(int(team.ID)))
+		players := repository.FindAllCollegePlayers(
+			repository.PlayerQuery{TeamID: strconv.Itoa(int(team.ID))})
 
 		rosterSize := len(players)
 

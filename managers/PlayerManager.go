@@ -7,7 +7,7 @@ import (
 
 // College Functions
 func GetAllCollegePlayers() []structs.CollegePlayer {
-	return repository.FindAllCollegePlayers("")
+	return repository.FindAllCollegePlayers(repository.PlayerQuery{})
 }
 
 func GetAllHistoricCollegePlayers() []structs.HistoricCollegePlayer {
@@ -19,7 +19,7 @@ func GetCollegePlayersByTeamID(TeamID string) []structs.CollegePlayer {
 }
 
 func GetCollegePlayersMap() map[uint]structs.CollegePlayer {
-	players := repository.FindAllCollegePlayers("")
+	players := repository.FindAllCollegePlayers(repository.PlayerQuery{})
 	return MakeCollegePlayerMap(players)
 }
 
@@ -33,13 +33,13 @@ func GetCollegePlayerByID(id string) structs.CollegePlayer {
 }
 
 func GetAllCollegePlayersMapByTeam() map[uint][]structs.CollegePlayer {
-	players := repository.FindAllCollegePlayers("")
+	players := repository.FindAllCollegePlayers(repository.PlayerQuery{})
 	return MakeCollegePlayerMapByTeamID(players)
 }
 
 // Professional Functions
 func GetAllProPlayers() []structs.ProfessionalPlayer {
-	return repository.FindAllProPlayers("")
+	return repository.FindAllProPlayers(repository.PlayerQuery{})
 }
 
 func GetAllRetiredPlayers() []structs.RetiredPlayer {
@@ -47,20 +47,20 @@ func GetAllRetiredPlayers() []structs.RetiredPlayer {
 }
 
 func GetProPlayersByTeamID(TeamID string) []structs.ProfessionalPlayer {
-	return repository.FindAllProPlayers(TeamID)
+	return repository.FindAllProPlayers(repository.PlayerQuery{TeamID: TeamID})
 }
 
 func GetProPlayersMap() map[uint]structs.ProfessionalPlayer {
-	players := repository.FindAllProPlayers("")
+	players := repository.FindAllProPlayers(repository.PlayerQuery{})
 	return MakeProfessionalPlayerMap(players)
 }
 
 func GetProPlayerMapByTeamID(TeamID string) map[uint]structs.ProfessionalPlayer {
-	players := repository.FindAllProPlayers(TeamID)
+	players := repository.FindAllProPlayers(repository.PlayerQuery{TeamID: TeamID})
 	return MakeProfessionalPlayerMap(players)
 }
 
 func GetAllProPlayersMapByTeam() map[uint][]structs.ProfessionalPlayer {
-	players := repository.FindAllProPlayers("")
+	players := repository.FindAllProPlayers(repository.PlayerQuery{})
 	return MakeProfessionalPlayerMapByTeamID(players)
 }

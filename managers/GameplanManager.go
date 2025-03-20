@@ -46,6 +46,117 @@ func GetProLineupsMap() map[uint][]structs.ProfessionalLineup {
 	return MakeProfessionalLineupMap(lineups)
 }
 
+func SaveCHLLineup(dto structs.UpdateLineupsDTO) structs.UpdateLineupsDTO {
+	db := dbprovider.GetInstance().GetDB()
+	chlLineups := dto.CHLLineups
+	chlSOLineup := dto.CHLShootoutLineup
+	chlPlayers := dto.CollegePlayers
+	teamID := strconv.Itoa(int(dto.CHLTeamID))
+	// Make map of each lineup?
+	chlLineupMap := MakeIndCollegeLineupMap(chlLineups)
+	// Make map of each updated CHL player
+	chlPlayerMap := MakeCollegePlayerMap(chlPlayers)
+	// Get CHL Lineup Records
+	playerIDs := []string{}
+	chlLineupRecords := repository.FindCollegeLineupsByTeamID(teamID)
+	for _, c := range chlLineupRecords {
+		updatedLineup := chlLineupMap[c.ID]
+		c.MapIDsAndAllocations(updatedLineup.LineupPlayerIDs, updatedLineup.Allocations)
+
+		// Iterate by player
+		if c.LineType == 1 {
+			cID := strconv.Itoa(int(c.CenterID))
+			f1ID := strconv.Itoa(int(c.Forward1ID))
+			f2ID := strconv.Itoa(int(c.Forward2ID))
+			playerIDs = append(playerIDs, cID, f1ID, f2ID)
+		} else if c.LineType == 2 {
+			d1ID := strconv.Itoa(int(c.Defender1ID))
+			d2ID := strconv.Itoa(int(c.Defender2ID))
+			playerIDs = append(playerIDs, d1ID, d2ID)
+		} else {
+			gID := strconv.Itoa(int(c.GoalieID))
+			playerIDs = append(playerIDs, gID)
+		}
+
+		repository.SaveCollegeLineupRecord(c, db)
+	}
+
+	chlSORecord := repository.FindCollegeShootoutLineupByTeamID(teamID)
+	chlSORecord.AssignIDs(chlSOLineup.Shooter1ID, chlSOLineup.Shooter2ID, chlSOLineup.Shooter3ID,
+		chlSOLineup.Shooter4ID, chlSOLineup.Shooter5ID, chlSOLineup.Shooter6ID)
+	chlSORecord.AssignShotTypes(chlSOLineup.Shooter1ShotType, chlSOLineup.Shooter2ShotType, chlSOLineup.Shooter3ShotType,
+		chlSOLineup.Shooter4ShotType, chlSOLineup.Shooter5ShotType, chlSOLineup.Shooter6ShotType)
+
+	repository.SaveCollegeShootoutLineupRecord(chlSORecord, db)
+
+	// Get CHL Players based on updated
+	collegePlayers := repository.FindAllCollegePlayers(repository.PlayerQuery{PlayerIDs: playerIDs})
+
+	for _, p := range collegePlayers {
+		updatedPlayer := chlPlayerMap[p.ID]
+		p.AssignAllocations(updatedPlayer.Allocations)
+		repository.SaveCollegeHockeyPlayerRecord(p, db)
+	}
+
+	return dto
+}
+
+func SavePHLLineup(dto structs.UpdateLineupsDTO) structs.UpdateLineupsDTO {
+	db := dbprovider.GetInstance().GetDB()
+
+	phlLineups := dto.PHLLineups
+	phlSOLineup := dto.PHLShootoutLineup
+	phlPlayers := dto.ProPlayers
+	teamID := strconv.Itoa(int(dto.CHLTeamID))
+	// Make map of each lineup?
+	phlLineupMap := MakeIndProLineupMap(phlLineups)
+	// Make map of each updated CHL player
+	phlPlayerMap := MakeProfessionalPlayerMap(phlPlayers)
+	// Get CHL Lineup Records
+	playerIDs := []string{}
+	phlLineupRecords := repository.FindProLineupsByTeamID(teamID)
+	for _, p := range phlLineupRecords {
+		updatedLineup := phlLineupMap[p.ID]
+		p.MapIDsAndAllocations(updatedLineup.LineupPlayerIDs, updatedLineup.Allocations)
+
+		// Iterate by player
+		if p.LineType == 1 {
+			cID := strconv.Itoa(int(p.CenterID))
+			f1ID := strconv.Itoa(int(p.Forward1ID))
+			f2ID := strconv.Itoa(int(p.Forward2ID))
+			playerIDs = append(playerIDs, cID, f1ID, f2ID)
+		} else if p.LineType == 2 {
+			d1ID := strconv.Itoa(int(p.Defender1ID))
+			d2ID := strconv.Itoa(int(p.Defender2ID))
+			playerIDs = append(playerIDs, d1ID, d2ID)
+		} else {
+			gID := strconv.Itoa(int(p.GoalieID))
+			playerIDs = append(playerIDs, gID)
+		}
+
+		repository.SaveProfessionalLineupRecord(p, db)
+	}
+
+	phlSORecord := repository.FindProShootoutLineupByTeamID(teamID)
+	phlSORecord.AssignIDs(phlSOLineup.Shooter1ID, phlSOLineup.Shooter2ID, phlSOLineup.Shooter3ID,
+		phlSOLineup.Shooter4ID, phlSOLineup.Shooter5ID, phlSOLineup.Shooter6ID)
+	phlSORecord.AssignShotTypes(phlSOLineup.Shooter1ShotType, phlSOLineup.Shooter2ShotType, phlSOLineup.Shooter3ShotType,
+		phlSOLineup.Shooter4ShotType, phlSOLineup.Shooter5ShotType, phlSOLineup.Shooter6ShotType)
+
+	repository.SaveProfessionalShootoutLineupRecord(phlSORecord, db)
+
+	// Get CHL Players based on updated
+	proPlayers := repository.FindAllProPlayers(repository.PlayerQuery{PlayerIDs: playerIDs})
+
+	for _, p := range proPlayers {
+		updatedPlayer := phlPlayerMap[p.ID]
+		p.AssignAllocations(updatedPlayer.Allocations)
+		repository.SaveProPlayerRecord(p, db)
+	}
+
+	return dto
+}
+
 func RunLineupsForAICollegeTeams() {
 	db := dbprovider.GetInstance().GetDB()
 	teams := GetAllCollegeTeams()

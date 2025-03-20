@@ -8,6 +8,11 @@ import (
 	"github.com/CalebRose/SimHockey/structs"
 )
 
+type PlayerQuery struct {
+	TeamID    string
+	PlayerIDs []string
+}
+
 func FindTimestamp() structs.Timestamp {
 	db := dbprovider.GetInstance().GetDB()
 
@@ -34,15 +39,19 @@ func FindLatestGlobalPlayerRecord() structs.GlobalPlayer {
 }
 
 // College Players
-func FindAllCollegePlayers(teamID string) []structs.CollegePlayer {
+func FindAllCollegePlayers(clauses PlayerQuery) []structs.CollegePlayer {
 	db := dbprovider.GetInstance().GetDB()
 
 	var CollegePlayers []structs.CollegePlayer
 
 	query := db.Model(&CollegePlayers)
 
-	if len(teamID) > 0 {
-		query = query.Where("team_id = ?", teamID)
+	if len(clauses.TeamID) > 0 {
+		query = query.Where("team_id = ?", clauses.TeamID)
+	}
+
+	if len(clauses.PlayerIDs) > 0 {
+		query = query.Where("player_id in (?)", clauses.PlayerIDs)
 	}
 
 	if err := query.Find(&CollegePlayers).Error; err != nil {
@@ -79,15 +88,19 @@ func FindAllHistoricCollegePlayers() []structs.HistoricCollegePlayer {
 }
 
 // Professional Players
-func FindAllProPlayers(teamID string) []structs.ProfessionalPlayer {
+func FindAllProPlayers(clauses PlayerQuery) []structs.ProfessionalPlayer {
 	db := dbprovider.GetInstance().GetDB()
 
 	var proPlayers []structs.ProfessionalPlayer
 
 	query := db.Model(&proPlayers)
 
-	if len(teamID) > 0 {
-		query = query.Where("team_id = ?", teamID)
+	if len(clauses.TeamID) > 0 {
+		query = query.Where("team_id = ?", clauses.TeamID)
+	}
+
+	if len(clauses.PlayerIDs) > 0 {
+		query = query.Where("player_id in (?)", clauses.PlayerIDs)
 	}
 
 	if err := query.Order("overall desc").Find(&proPlayers).Error; err != nil {

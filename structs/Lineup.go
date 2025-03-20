@@ -2,6 +2,17 @@ package structs
 
 import "gorm.io/gorm"
 
+type UpdateLineupsDTO struct {
+	CHLTeamID         uint
+	CHLLineups        []CollegeLineup
+	CHLShootoutLineup CollegeShootoutLineup
+	CollegePlayers    []CollegePlayer
+	PHLTeamID         uint
+	PHLLineups        []ProfessionalLineup
+	PHLShootoutLineup ProfessionalShootoutLineup
+	ProPlayers        []ProfessionalPlayer
+}
+
 // Lineup -- Database records for handling each line's strategy for a team. Four records for forwards, three for defenders, two for goalies. Total, nine per team.
 type BaseLineup struct {
 	TeamID   uint

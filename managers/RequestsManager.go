@@ -39,7 +39,7 @@ func GetProTeamForAvailableTeamsPage(teamID string) structs.TeamRecordResponse {
 	historicalDataResponse := GetHistoricalProRecordsByTeamID(teamID)
 
 	// Get top 3 players on roster
-	roster := repository.FindAllProPlayers(teamID)
+	roster := repository.FindAllProPlayers(repository.PlayerQuery{TeamID: teamID})
 	sort.Slice(roster, func(i, j int) bool {
 		return roster[i].Overall > roster[j].Overall
 	})
