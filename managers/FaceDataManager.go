@@ -28,7 +28,6 @@ func GetAllFaces() map[uint]structs.FaceDataResponse {
 	eyebrowBlob := faceBlob["eyebrow"]
 	facialHairBlob := faceBlob["facialHair"]
 	glassesBlob := faceBlob["glasses"]
-	hairBlob := faceBlob["hair"]
 	hairBgBlob := faceBlob["hairBg"]
 	headBlob := faceBlob["head"]
 	jerseyBlob := faceBlob["jersey"]
@@ -64,7 +63,8 @@ func GetAllFaces() map[uint]structs.FaceDataResponse {
 				// Precompute dynamic blob lookups.
 				// (Assuming face.SkinTone is a string field.)
 				skinBlob := faceBlob[face.SkinTone+"Skin"]
-				hairColorBlob := faceBlob[face.SkinTone+"Hair"]
+				hairColorBlob := faceBlob[face.SkinTone+"HairColor"]
+				hairBlob := faceBlob[face.SkinTone+"Hair"]
 
 				// Build facialHairShave string using no-allocation methods.
 				buf = buf[:0] // reset buffer
@@ -185,9 +185,9 @@ func MigrateFaceDataToProPlayers() {
 
 func getFace(id uint, ethnicity string, faceDataBlob map[string][]string) structs.FaceData {
 	hairColorIdx := uint8(0)
-	hairColorLen := len(faceDataBlob[ethnicity+"Hair"]) - 1
+	hairColorLen := len(faceDataBlob[ethnicity+"HairColor"]) - 1
 	if hairColorLen > 0 {
-		hairColorIdx = uint8(util.GenerateIntFromRange(0, len(faceDataBlob[ethnicity+"Hair"])-1))
+		hairColorIdx = uint8(util.GenerateIntFromRange(0, len(faceDataBlob[ethnicity+"HairColor"])-1))
 	}
 	skinColorIdx := uint8(0)
 	skinColorLen := len(faceDataBlob[ethnicity+"Skin"]) - 1
@@ -210,7 +210,7 @@ func getFace(id uint, ethnicity string, faceDataBlob map[string][]string) struct
 		FacialHair:      uint8(util.GenerateIntFromRange(0, len(faceDataBlob["facialHair"])-1)),
 		FacialHairShave: uint8(util.GenerateIntFromRange(1, 5)),
 		Glasses:         0,
-		Hair:            uint8(util.GenerateIntFromRange(0, len(faceDataBlob["hair"])-1)),
+		Hair:            uint8(util.GenerateIntFromRange(0, len(faceDataBlob[ethnicity+"Hair"])-1)),
 		HairBG:          getHairBackground(),
 		HairColor:       uint8(hairColorIdx),
 		HairFlip:        util.GenerateIntFromRange(1, 2) == 1,
@@ -255,9 +255,9 @@ func getSkinColor(country string) string {
 	}
 
 	if country == util.USA || country == util.Canada || country == "Australia" || country == "England" || country == "UK" {
-		return util.PickFromStringList([]string{"asian", "black", "brown", "white"})
+		return util.PickFromStringList([]string{"asian", "black", "brown", "white", "white", "white", "white", "white", "white", "white", "white"})
 	}
-	return util.PickFromStringList([]string{"asian", "black", "brown", "white"})
+	return util.PickFromStringList([]string{"asian", "black", "brown", "white", "white", "white", "white", "white", "white"})
 }
 
 func getFaceDataBlob() map[string][]string {

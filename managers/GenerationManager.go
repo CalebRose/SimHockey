@@ -25,11 +25,13 @@ type CrootGenerator struct {
 	positionList      []string
 	CrootList         []structs.Recruit
 	GlobalList        []structs.GlobalPlayer
+	FacesList         []structs.FaceData
 	attributeBlob     map[string]map[string]map[string]map[string]interface{}
 	usCrootLocations  map[string][]structs.CrootLocation
 	cnCrootLocations  map[string][]structs.CrootLocation
 	svCrootLocations  map[string][]structs.CrootLocation
 	ruCrootLocations  map[string][]structs.CrootLocation
+	faceDataBlob      map[string][]string
 	newID             uint
 	count             int
 	requiredPlayers   int
@@ -181,6 +183,11 @@ func (pg *CrootGenerator) generatePlayer() (structs.Recruit, structs.GlobalPlaye
 		ProfessionalPlayerID: pg.newID,
 	}
 
+	skinColor := getSkinColor(country)
+	face := getFace(pg.newID, skinColor, pg.faceDataBlob)
+
+	pg.FacesList = append(pg.FacesList, face)
+
 	globalPlayer.AssignID(pg.newID)
 	player.AssignID(pg.newID)
 	return player, globalPlayer
@@ -228,6 +235,11 @@ func (pg *CrootGenerator) generateTwin(player *structs.Recruit) (structs.Recruit
 		ProfessionalPlayerID: firstTwinRelativeID,
 	}
 	globalPlayer.AssignID(uint(firstTwinRelativeID))
+	skinColor := getSkinColor(player.Country)
+
+	face := getFace(secondTwinRelativeID, skinColor, pg.faceDataBlob)
+
+	pg.FacesList = append(pg.FacesList, face)
 	return twinPlayer, globalTwinPlayer
 }
 
@@ -302,6 +314,7 @@ func GenerateCroots() {
 		positionList:      util.GetPositionList(),
 		newID:             lastPlayerRecord.ID + 1,
 		requiredPlayers:   util.GenerateIntFromRange(462, 660),
+		faceDataBlob:      getFaceDataBlob(),
 		count:             0,
 		star5:             0,
 		star4:             0,
@@ -312,6 +325,7 @@ func GenerateCroots() {
 		lowestOvr:         200,
 		CrootList:         []structs.Recruit{},
 		GlobalList:        []structs.GlobalPlayer{},
+		FacesList:         []structs.FaceData{},
 		caser:             cases.Title(language.English),
 		pickedEthnicity:   "",
 	}
@@ -323,6 +337,7 @@ func GenerateCroots() {
 
 	repository.CreateHockeyRecruitRecordsBatch(db, generator.CrootList, 500)
 	repository.CreateGlobalPlayerRecordsBatch(db, generator.GlobalList, 500)
+	repository.CreateFaceRecordsBatch(db, generator.FacesList, 500)
 	ts.ToggleGeneratedCroots()
 	repository.SaveTimestamp(ts, db)
 	// AssignAllRecruitRanks()
