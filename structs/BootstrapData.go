@@ -28,4 +28,5 @@ type BootstrapData struct {
 	AllProGames           []ProfessionalGame
 	ProTeamLineups        []ProfessionalLineup
 	ProTeamShootoutLineup ProfessionalShootoutLineup
+	FaceData              map[uint]FaceDataResponse
 }

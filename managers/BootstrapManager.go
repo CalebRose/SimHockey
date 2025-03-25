@@ -26,6 +26,7 @@ func GetBootstrapData(collegeID, proID string) structs.BootstrapData {
 		recruits              []structs.Croot
 		collegeLineups        []structs.CollegeLineup
 		collegeShootoutLineup structs.CollegeShootoutLineup
+		faceDataMap           map[uint]structs.FaceDataResponse
 	)
 
 	// Professional Data
@@ -159,6 +160,15 @@ func GetBootstrapData(collegeID, proID string) structs.BootstrapData {
 		freeAgency = <-freeAgencyCh
 	}
 
+	wg.Add(1)
+
+	go func() {
+		defer wg.Done()
+		faceDataMap = GetAllFaces()
+	}()
+
+	wg.Wait()
+
 	return structs.BootstrapData{
 		AllCollegeTeams:           allCollegeTeams,
 		AllProTeams:               allProTeams,
@@ -185,5 +195,6 @@ func GetBootstrapData(collegeID, proID string) structs.BootstrapData {
 		AllProGames:               proGames,
 		ProTeamLineups:            proLineups,
 		ProTeamShootoutLineup:     proShootoutLineup,
+		FaceData:                  faceDataMap,
 	}
 }

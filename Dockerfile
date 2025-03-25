@@ -20,12 +20,8 @@ WORKDIR /app
 
 COPY --from=base-builder /app/SimHockey .
 
-COPY --from=base-builder /app/data/attributeBlob.json ./data/
-COPY --from=base-builder /app/data/CanadianHS.json ./data/
-COPY --from=base-builder /app/data/HS.json ./data/
-COPY --from=base-builder /app/data/RussianHS.json ./data/
-COPY --from=base-builder /app/data/SwedenHS.json ./data/
-COPY --from=base-builder /app/data/unique_male_names_by_country.json ./data/
+COPY --from=base-builder /app/data /app/data
+
 
 ENV PORT 8080
 ENV ROOT=/app

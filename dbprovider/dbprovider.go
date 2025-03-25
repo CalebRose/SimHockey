@@ -93,6 +93,7 @@ func (p *Provider) InitDatabase() bool {
 	// Administrative
 	// db.AutoMigrate(&structs.Arena{})
 	// db.AutoMigrate(&structs.GlobalPlayer{})
+	// db.AutoMigrate(&structs.FaceData{})
 	// db.AutoMigrate(&structs.NewsLog{})
 	// db.AutoMigrate(&structs.Notification{})
 	// db.AutoMigrate(&structs.Timestamp{})

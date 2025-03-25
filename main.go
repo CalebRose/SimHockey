@@ -86,6 +86,9 @@ func handleRequests() http.Handler {
 	apiRouter.HandleFunc("/export/pro/players/all", controllers.ExportAllProPlayers).Methods("GET")
 	apiRouter.HandleFunc("/export/college/players/all", controllers.ExportAllCollegePlayers).Methods("GET")
 
+	// Migrations
+	// apiRouter.HandleFunc("/migrate/faces", controllers.MigrateFaceData).Methods("GET")
+
 	// Requests
 	apiRouter.HandleFunc("/admin/import/pro/teams/", controllers.GenerateProTeams).Methods("GET")
 	apiRouter.HandleFunc("/admin/requests/hck/", controllers.GetAllHCKRequests).Methods("GET")
