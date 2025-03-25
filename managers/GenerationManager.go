@@ -462,7 +462,7 @@ func GenerateInitialProPool() {
 			team := collegeTeams[teamIdx]
 			cp.AssignTeam(team.ID, team.Abbreviation)
 
-			for j := 0; j < 4; j++ {
+			for range 4 {
 				cp = ProgressCollegePlayer(cp, "1", []structs.CollegePlayerGameStats{})
 			}
 			// Age of player is now 22
@@ -478,7 +478,7 @@ func GenerateInitialProPool() {
 
 			// pro.AssignTeam(proTeam.ID, proTeam.Abbreviation)
 
-			for j := 0; j < age; j++ {
+			for range age {
 				pro = ProgressProPlayer(pro, "1", []structs.ProfessionalPlayerGameStats{})
 			}
 

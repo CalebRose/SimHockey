@@ -76,7 +76,7 @@ func handleRequests() http.Handler {
 	// apiRouter.HandleFunc("/admin/test/engine/", controllers.TestEngine).Methods("GET")
 	// apiRouter.HandleFunc("/admin/generate/test/pro/teams/", controllers.GenerateProTeams).Methods("GET")
 	// apiRouter.HandleFunc("/admin/generate/init/college/rosters/", controllers.GenerateInitialRosters).Methods("GET")
-	apiRouter.HandleFunc("/admin/generate/college/recruits/", controllers.GenerateCroots).Methods("GET")
+	// apiRouter.HandleFunc("/admin/generate/college/recruits/", controllers.GenerateCroots).Methods("GET")
 	// apiRouter.HandleFunc("/admin/generate/test/pro/rosters/", controllers.GenerateProTestData).Methods("GET")
 
 	// Bootstrap
