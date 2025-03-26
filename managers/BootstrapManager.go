@@ -18,7 +18,7 @@ func GetBootstrapData(collegeID, proID string) structs.BootstrapData {
 		collegeTeam           structs.CollegeTeam
 		collegeStandings      []structs.CollegeStandings
 		collegePlayerMap      map[uint][]structs.CollegePlayer
-		teamProfileMap        map[uint]structs.RecruitingTeamProfile
+		teamProfileMap        map[uint]*structs.RecruitingTeamProfile
 		recruitProfiles       []structs.RecruitPlayerProfile
 		portalPlayers         []structs.CollegePlayer
 		injuredCollegePlayers []structs.CollegePlayer
@@ -64,10 +64,15 @@ func GetBootstrapData(collegeID, proID string) structs.BootstrapData {
 	}()
 
 	if len(collegeID) > 0 {
-		wg.Add(5)
+		wg.Add(6)
 		go func() {
 			defer wg.Done()
 			collegeTeam = GetCollegeTeamByTeamID(collegeID)
+		}()
+		go func() {
+			defer wg.Done()
+			teamProfiles := repository.FindTeamRecruitingProfiles(false)
+			teamProfileMap = MakeTeamProfileMap(teamProfiles)
 		}()
 		go func() {
 			defer wg.Done()
