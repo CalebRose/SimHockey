@@ -215,7 +215,7 @@ func RevokeScholarshipFromRecruit(dto structs.UpdateRecruitProfileDto) (structs.
 func GetRecruitFromRecruitsList(id uint, recruits []structs.RecruitPlayerProfile) structs.RecruitPlayerProfile {
 	var recruit structs.RecruitPlayerProfile
 
-	for i := 0; i < len(recruits); i++ {
+	for i := range recruits {
 		if recruits[i].RecruitID == id {
 			recruit = recruits[i]
 			break
@@ -257,7 +257,7 @@ func GetRecruitingClassByTeamID(teamID string) structs.SimTeamBoardResponse {
 	var teamProfileResponse structs.SimTeamBoardResponse
 	var crootProfiles []structs.CrootProfile
 
-	for i := 0; i < len(profile.Recruits); i++ {
+	for i := range profile.Recruits {
 		var crootProfile structs.CrootProfile
 		var croot structs.Croot
 
@@ -309,7 +309,7 @@ func UpdateRecruitingProfile(updateRecruitingBoardDto structs.UpdateRecruitingBo
 
 	var currentPoints float32 = 0
 
-	for i := 0; i < len(recruitProfiles); i++ {
+	for i := range recruitProfiles {
 		updatedRecruit := GetRecruitFromRecruitsList(recruitProfiles[i].RecruitID, updatedRecruits)
 
 		if recruitProfiles[i].CurrentWeeksPoints != updatedRecruit.CurrentWeeksPoints {

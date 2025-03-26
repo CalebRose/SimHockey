@@ -1,6 +1,7 @@
 package managers
 
 import (
+	"fmt"
 	"os"
 	"path/filepath"
 
@@ -379,4 +380,123 @@ func ImportProTeams() {
 	repository.CreateArenaRecordsBatch(db, arenas, 20)
 	repository.CreateProTeamRecordsBatch(db, teams, 24)
 	repository.CreateProfessionalLineupRecordsBatch(db, proLineups, 50)
+}
+
+func ImportProRosters() {
+	db := dbprovider.GetInstance().GetDB()
+	filePath := filepath.Join(os.Getenv("ROOT"), "data", "init_pro_rosters.csv")
+	rosterCSV := util.ReadCSV(filePath)
+	teams := repository.FindAllProTeams()
+	proPlayers := repository.FindAllProPlayers(repository.PlayerQuery{})
+	proPlayerMap := MakeProfessionalPlayerMap(proPlayers)
+	contracts := []structs.ProContract{}
+
+	teamMap := make(map[string]structs.ProfessionalTeam)
+
+	for _, team := range teams {
+		teamMap[team.Abbreviation] = team
+	}
+
+	for idx, row := range rosterCSV {
+		if idx < 1 {
+			continue
+		}
+		playerID := util.ConvertStringToInt(row[0])
+		player := proPlayerMap[uint(playerID)]
+		teamAbbr := row[1]
+		team := teamMap[teamAbbr]
+		salary := row[2]
+		salaryNum := util.ConvertStringToFloat(salary)
+		if team.ID == 0 {
+			fmt.Println("ERROR!")
+		}
+		player.AssignTeam(team.ID, team.Abbreviation)
+		contract := structs.ProContract{
+			PlayerID:       player.ID,
+			TeamID:         team.ID,
+			OriginalTeamID: team.ID,
+			ContractLength: 3,
+			Y1BaseSalary:   float32(salaryNum),
+			Y2BaseSalary:   float32(salaryNum),
+			Y3BaseSalary:   float32(salaryNum),
+			ContractType:   "Auction",
+			IsActive:       true,
+			ContractValue:  float32(salaryNum) * 3,
+		}
+		contracts = append(contracts, contract)
+		repository.SaveProPlayerRecord(player, db)
+	}
+
+	for _, c := range contracts {
+		repository.CreateProContractRecord(db, c)
+	}
+}
+
+func ImportStandingsForNewSeason() {
+	db := dbprovider.GetInstance().GetDB()
+	ts := GetTimestamp()
+
+	collegeTeams := repository.FindAllCollegeTeams()
+	proTeams := repository.FindAllProTeams()
+
+	for _, team := range collegeTeams {
+		standings := structs.CollegeStandings{
+			BaseStandings: structs.BaseStandings{
+				TeamID:       team.ID,
+				TeamName:     team.TeamName,
+				SeasonID:     ts.SeasonID,
+				Season:       ts.Season,
+				LeagueID:     1,
+				ConferenceID: uint(team.ConferenceID),
+			},
+		}
+
+		db.Create(&standings)
+	}
+
+	for _, team := range proTeams {
+		standings := structs.ProfessionalStandings{
+			BaseStandings: structs.BaseStandings{
+				TeamID:       team.ID,
+				TeamName:     team.TeamName,
+				SeasonID:     ts.SeasonID,
+				Season:       ts.Season,
+				LeagueID:     1,
+				ConferenceID: uint(team.ConferenceID),
+			},
+			DivisionID: uint(team.DivisionID),
+		}
+
+		db.Create(&standings)
+	}
+}
+
+func ImportTeamRecruitingProfiles() {
+	db := dbprovider.GetInstance().GetDB()
+
+	teams := repository.FindAllCollegeTeams()
+
+	for _, team := range teams {
+		teamProfile := structs.RecruitingTeamProfile{
+			TeamID:                team.ID,
+			Team:                  team.Abbreviation,
+			State:                 team.State,
+			Country:               team.Country,
+			ScholarshipsAvailable: 30,
+			WeeklyPoints:          50,
+			WeeklyScoutingPoints:  30,
+			SpentPoints:           0,
+			TotalCommitments:      0,
+			RecruitClassSize:      7,
+			PortalReputation:      100,
+			IsUserTeam:            team.IsUserCoached,
+			AIMinThreshold:        uint8(util.GenerateIntFromRange(4, 7)),
+			AIMaxThreshold:        uint8(util.GenerateIntFromRange(8, 14)),
+			AIStarMin:             uint8(util.GenerateIntFromRange(1, 2)),
+			AIStarMax:             uint8(util.GenerateIntFromRange(3, 5)),
+			Recruiter:             team.Coach,
+		}
+
+		db.Create(&teamProfile)
+	}
 }

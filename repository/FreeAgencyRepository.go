@@ -118,3 +118,11 @@ func FindAllFreeAgentOffers(teamID, playerID, offerID string, onlyActive bool) [
 
 	return offers
 }
+
+func CreateProContractRecord(db *gorm.DB, contract structs.ProContract) error {
+	if err := db.Create(&contract).Error; err != nil {
+		return err
+	}
+
+	return nil
+}

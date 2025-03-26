@@ -4,6 +4,7 @@ import (
 	"strconv"
 	"sync"
 
+	"github.com/CalebRose/SimHockey/repository"
 	"github.com/CalebRose/SimHockey/structs"
 )
 
@@ -18,6 +19,7 @@ func GetBootstrapData(collegeID, proID string) structs.BootstrapData {
 		collegeStandings      []structs.CollegeStandings
 		collegePlayerMap      map[uint][]structs.CollegePlayer
 		teamProfileMap        map[uint]structs.RecruitingTeamProfile
+		recruitProfiles       []structs.RecruitPlayerProfile
 		portalPlayers         []structs.CollegePlayer
 		injuredCollegePlayers []structs.CollegePlayer
 		collegeNews           []structs.NewsLog
@@ -62,7 +64,7 @@ func GetBootstrapData(collegeID, proID string) structs.BootstrapData {
 	}()
 
 	if len(collegeID) > 0 {
-		wg.Add(9)
+		wg.Add(5)
 		go func() {
 			defer wg.Done()
 			collegeTeam = GetCollegeTeamByTeamID(collegeID)
@@ -88,6 +90,8 @@ func GetBootstrapData(collegeID, proID string) structs.BootstrapData {
 			defer wg.Done()
 			collegeNews = GetAllCHLNewsLogs()
 		}()
+		wg.Wait()
+		wg.Add(5)
 		go func() {
 			defer wg.Done()
 			collegeNotifications = GetNotificationByTeamIDAndLeague("CHL", collegeID)
@@ -102,8 +106,13 @@ func GetBootstrapData(collegeID, proID string) structs.BootstrapData {
 		}()
 		go func() {
 			defer wg.Done()
+			recruitProfiles = repository.FindRecruitPlayerProfileRecords(collegeID, "", false, false)
+		}()
+		go func() {
+			defer wg.Done()
 			collegeShootoutLineup = GetCollegeShootoutLineupByTeamID(collegeID)
 		}()
+		wg.Wait()
 	}
 
 	// Pros
@@ -150,10 +159,10 @@ func GetBootstrapData(collegeID, proID string) structs.BootstrapData {
 			proShootoutLineup = GetProShootoutLineupByTeamID(proID)
 		}()
 		go GetAllAvailableProPlayers(proID, freeAgencyCh)
+		wg.Wait()
 	}
 
 	// Wait for all goroutines to finish
-	wg.Wait()
 
 	// Receive Free Agency data from channel
 	if len(proID) > 0 {
@@ -176,6 +185,7 @@ func GetBootstrapData(collegeID, proID string) structs.BootstrapData {
 		CollegeStandings:          collegeStandings,
 		CollegeRosterMap:          collegePlayerMap,
 		Recruits:                  recruits,
+		RecruitProfiles:           recruitProfiles,
 		TeamProfileMap:            teamProfileMap,
 		PortalPlayers:             portalPlayers,
 		CollegeInjuryReport:       injuredCollegePlayers,

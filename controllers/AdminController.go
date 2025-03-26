@@ -56,3 +56,15 @@ func GenerateCroots(w http.ResponseWriter, r *http.Request) {
 
 	json.NewEncoder(w).Encode("Data Generated ran!")
 }
+
+func ImportProRosters(w http.ResponseWriter, r *http.Request) {
+	managers.ImportProRosters()
+	managers.ImportStandingsForNewSeason()
+
+	json.NewEncoder(w).Encode("Data Generated ran!")
+}
+
+func ImportTeamProfileRecords(w http.ResponseWriter, r *http.Request) {
+	managers.ImportTeamRecruitingProfiles()
+	json.NewEncoder(w).Encode("Data Generated ran!")
+}

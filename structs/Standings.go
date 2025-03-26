@@ -15,15 +15,16 @@ func (cs *CollegeStandings) AssignRank(rank int) {
 type ProfessionalStandings struct {
 	gorm.Model
 	BaseStandings
+	DivisionID uint
 }
 
 type BaseStandings struct {
-	TeamID             int
+	TeamID             uint
 	TeamName           string
-	SeasonID           int
-	Season             int
+	SeasonID           uint
+	Season             uint
 	LeagueID           uint
-	ConferenceID       int
+	ConferenceID       uint
 	TotalWins          uint8
 	TotalLosses        uint8
 	TotalOTWins        uint8
@@ -48,7 +49,7 @@ type BaseStandings struct {
 
 // Will need to include logic for OT wins/losses
 func (cs *BaseStandings) UpdateStandings(game BaseGame) {
-	isAway := cs.TeamID == int(game.AwayTeamID)
+	isAway := cs.TeamID == game.AwayTeamID
 	winner := (!isAway && game.HomeTeamWin) || (isAway && game.AwayTeamWin)
 	if winner {
 		cs.TotalWins += 1
@@ -88,7 +89,7 @@ func (cs *BaseStandings) UpdateStandings(game BaseGame) {
 }
 
 func (cs *BaseStandings) SubtractStandings(game BaseGame) {
-	isAway := cs.TeamID == int(game.AwayTeamID)
+	isAway := cs.TeamID == game.AwayTeamID
 	winner := (!isAway && game.HomeTeamWin) || (isAway && game.AwayTeamWin)
 	if winner {
 		cs.TotalWins -= 1

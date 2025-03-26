@@ -90,29 +90,29 @@ func (nc *ProCapsheet) ProgressCapsheet() {
 
 type ProContract struct {
 	gorm.Model
-	PlayerID        int
-	TeamID          uint
-	Team            string
-	OriginalTeamID  uint
-	OriginalTeam    string
-	ContractLength  int
-	Y1BaseSalary    float32
-	Y2BaseSalary    float32
-	Y3BaseSalary    float32
-	Y4BaseSalary    float32
-	Y5BaseSalary    float32
-	BonusPercentage float32
-	ContractType    string // Pro Bowl, Starter, Veteran, New ?
-	ContractValue   float32
-	SigningValue    float32
-	IsActive        bool
-	IsComplete      bool
-	IsExtended      bool
-	HasProgressed   bool
-	PlayerRetired   bool
-	TagType         uint8
-	IsTagged        bool
-	IsCut           bool
+	PlayerID         uint
+	TeamID           uint
+	OriginalTeamID   uint
+	ContractLength   int
+	Y1BaseSalary     float32
+	Y2BaseSalary     float32
+	Y3BaseSalary     float32
+	Y4BaseSalary     float32
+	Y5BaseSalary     float32
+	BonusPercentage  float32
+	ContractType     string // Pro Bowl, Starter, Veteran, New ?
+	ContractValue    float32
+	SigningValue     float32
+	IsActive         bool
+	IsComplete       bool
+	IsExtended       bool
+	HasProgressed    bool
+	PlayerRetired    bool
+	TagType          uint8
+	IsTagged         bool
+	IsCut            bool
+	NoTradeClause    bool
+	NoMovementClause bool
 }
 
 func (c *ProContract) DeactivateContract() {
@@ -126,12 +126,10 @@ func (c *ProContract) CutContract() {
 
 func (c *ProContract) ReassignTeam(TeamID uint, Team string) {
 	c.TeamID = TeamID
-	c.Team = Team
 }
 
 func (c *ProContract) TradePlayer(TeamID uint, Team string, percentage float32) {
 	c.TeamID = TeamID
-	c.Team = Team
 	c.Y1BaseSalary = c.Y1BaseSalary * percentage
 }
 

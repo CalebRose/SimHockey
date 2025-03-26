@@ -6,6 +6,7 @@ type BootstrapData struct {
 	CollegeStandings          []CollegeStandings
 	CollegeRosterMap          map[uint][]CollegePlayer
 	Recruits                  []Croot
+	RecruitProfiles           []RecruitPlayerProfile
 	TeamProfileMap            map[uint]RecruitingTeamProfile
 	PortalPlayers             []CollegePlayer
 	CollegeInjuryReport       []CollegePlayer
