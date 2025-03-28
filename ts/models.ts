@@ -3336,6 +3336,15 @@ export class Croot {
     GoalkeepingGrade: string;
     GoalieVisionGrade: string;
     GoalieReboundGrade: string;
+    ProgramPref: number;
+    ProfDevPref: number;
+    TraditionsPref: number;
+    FacilitiesPref: number;
+    AtmospherePref: number;
+    AcademicsPref: number;
+    ConferencePref: number;
+    CoachPref: number;
+    SeasonMomentumPref: number;
     LeadingTeams: LeadingTeams[];
 
     constructor(source: any = {}) {
@@ -3382,6 +3391,15 @@ export class Croot {
         this.GoalkeepingGrade = source["GoalkeepingGrade"];
         this.GoalieVisionGrade = source["GoalieVisionGrade"];
         this.GoalieReboundGrade = source["GoalieReboundGrade"];
+        this.ProgramPref = source["ProgramPref"];
+        this.ProfDevPref = source["ProfDevPref"];
+        this.TraditionsPref = source["TraditionsPref"];
+        this.FacilitiesPref = source["FacilitiesPref"];
+        this.AtmospherePref = source["AtmospherePref"];
+        this.AcademicsPref = source["AcademicsPref"];
+        this.ConferencePref = source["ConferencePref"];
+        this.CoachPref = source["CoachPref"];
+        this.SeasonMomentumPref = source["SeasonMomentumPref"];
         this.LeadingTeams = this.convertValues(source["LeadingTeams"], LeadingTeams);
     }
 
@@ -3526,7 +3544,7 @@ export class BootstrapData {
         this.CollegeRosterMap = source["CollegeRosterMap"];
         this.Recruits = this.convertValues(source["Recruits"], Croot);
         this.RecruitProfiles = this.convertValues(source["RecruitProfiles"], RecruitPlayerProfile);
-        this.TeamProfileMap = this.convertValues(source["TeamProfileMap"], RecruitingTeamProfile, true);
+        this.TeamProfileMap = source["TeamProfileMap"];
         this.PortalPlayers = this.convertValues(source["PortalPlayers"], CollegePlayer);
         this.CollegeInjuryReport = this.convertValues(source["CollegeInjuryReport"], CollegePlayer);
         this.CollegeNews = this.convertValues(source["CollegeNews"], NewsLog);
