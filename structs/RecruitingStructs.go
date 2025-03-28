@@ -345,20 +345,20 @@ type BaseRecruitingGrades struct {
 }
 
 func (g *BaseRecruitingGrades) MapLetterGrades(p BasePotentials) {
-	g.AgilityGrade = util.GetLetterGrade(int(p.AgilityPotential), 1)
-	g.FaceoffsGrade = util.GetLetterGrade(int(p.FaceoffsPotential), 1)
-	g.CloseShotAccuracyGrade = util.GetLetterGrade(int(p.CloseShotAccuracyPotential), 1)
-	g.CloseShotPowerGrade = util.GetLetterGrade(int(p.CloseShotPowerPotential), 1)
-	g.LongShotAccuracyGrade = util.GetLetterGrade(int(p.LongShotAccuracyPotential), 1)
-	g.LongShotPowerGrade = util.GetLetterGrade(int(p.LongShotPowerPotential), 1)
-	g.PassingGrade = util.GetLetterGrade(int(p.PassingPotential), 1)
-	g.PuckHandlingGrade = util.GetLetterGrade(int(p.PuckHandlingPotential), 1)
-	g.StrengthGrade = util.GetLetterGrade(int(p.StrengthPotential), 1)
-	g.BodyCheckingGrade = util.GetLetterGrade(int(p.BodyCheckingPotential), 1)
-	g.StickCheckingGrade = util.GetLetterGrade(int(p.StickCheckingPotential), 1)
-	g.ShotBlockingGrade = util.GetLetterGrade(int(p.ShotBlockingPotential), 1)
-	g.GoalkeepingGrade = util.GetLetterGrade(int(p.GoalkeepingPotential), 1)
-	g.GoalieVisionGrade = util.GetLetterGrade(int(p.GoalieVisionPotential), 1)
+	g.AgilityGrade = util.GetPotentialGrade(int(p.AgilityPotential))
+	g.FaceoffsGrade = util.GetPotentialGrade(int(p.FaceoffsPotential))
+	g.CloseShotAccuracyGrade = util.GetPotentialGrade(int(p.CloseShotAccuracyPotential))
+	g.CloseShotPowerGrade = util.GetPotentialGrade(int(p.CloseShotPowerPotential))
+	g.LongShotAccuracyGrade = util.GetPotentialGrade(int(p.LongShotAccuracyPotential))
+	g.LongShotPowerGrade = util.GetPotentialGrade(int(p.LongShotPowerPotential))
+	g.PassingGrade = util.GetPotentialGrade(int(p.PassingPotential))
+	g.PuckHandlingGrade = util.GetPotentialGrade(int(p.PuckHandlingPotential))
+	g.StrengthGrade = util.GetPotentialGrade(int(p.StrengthPotential))
+	g.BodyCheckingGrade = util.GetPotentialGrade(int(p.BodyCheckingPotential))
+	g.StickCheckingGrade = util.GetPotentialGrade(int(p.StickCheckingPotential))
+	g.ShotBlockingGrade = util.GetPotentialGrade(int(p.ShotBlockingPotential))
+	g.GoalkeepingGrade = util.GetPotentialGrade(int(p.GoalkeepingPotential))
+	g.GoalieVisionGrade = util.GetPotentialGrade(int(p.GoalieVisionPotential))
 }
 
 type LeadingTeams struct {
