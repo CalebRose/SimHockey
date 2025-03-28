@@ -277,40 +277,54 @@ func (rp *RecruitPlayerProfile) ApplyModifier(mod float32) {
 }
 
 type Croot struct {
-	ID               uint
-	TeamID           uint
-	College          string
-	FirstName        string
-	LastName         string
-	Position         string
-	Archetype        string
-	Height           uint8
-	Weight           uint16
-	Stars            uint8
-	PotentialGrade   string
-	Personality      string
-	RecruitingBias   string
-	AcademicBias     string
-	WorkEthic        string
-	HighSchool       string
-	City             string
-	State            string
-	AffinityOne      string
-	AffinityTwo      string
-	RecruitingStatus string
-	RecruitModifier  float32
-	IsCustomCroot    bool
-	CustomCrootFor   string
-	IsSigned         bool
-	OverallGrade     string
-	TotalRank        float32
+	ID                uint
+	TeamID            uint
+	College           string
+	FirstName         string
+	LastName          string
+	Position          string
+	Archetype         string
+	Height            uint8
+	Weight            uint16
+	Stars             uint8
+	PotentialGrade    string
+	Personality       string
+	RecruitingBias    string
+	AcademicBias      string
+	WorkEthic         string
+	HighSchool        string
+	City              string
+	State             string
+	AffinityOne       string
+	AffinityTwo       string
+	RecruitingStatus  string
+	RecruitModifier   float32
+	IsCustomCroot     bool
+	CustomCrootFor    string
+	IsSigned          bool
+	OverallGrade      string
+	Agility           uint8 // How fast a player can go in a zone without a defense check
+	Faceoffs          uint8 // Ability to win faceoffs
+	LongShotAccuracy  uint8 // Accuracy on non-close shots
+	LongShotPower     uint8 // Power on non-close shots. High power means less shotblocking
+	CloseShotAccuracy uint8 // Accuracy on close shots. Great on pass plays
+	CloseShotPower    uint8 // Power on Close shots
+	OneTimer          uint8 // Shots bassed on passing. Essentially a modifier that gets greater with each pass in a zone
+	Passing           uint8 // Passing ability
+	PuckHandling      uint8 // Ability to handle the puck when going between zones.
+	Strength          uint8 // General modifier on all physical attributes. Also used in fights
+	BodyChecking      uint8 // Physical defense check.
+	StickChecking     uint8 // Non-phyisical defense check
+	ShotBlocking      uint8 // Ability for defensemen to block a shot being made
+	Goalkeeping       uint8 // Goalkeepers' ability to block a shot
+	GoalieVision      uint8 // Goalkeepers' vision
+	TotalRank         float32
 	BaseRecruitingGrades
 	PlayerPreferences
 	LeadingTeams []LeadingTeams
 }
 
 type BaseRecruitingGrades struct {
-	// Potential Attributes
 	// Each attribute has a chance to grow at a different rate. These are all small modifiers
 	AgilityGrade           string // Ability to switch between zones
 	FaceoffsGrade          string // Ability to win faceoffs
@@ -386,6 +400,20 @@ func (c *Croot) Map(r Recruit) {
 	c.CustomCrootFor = r.CustomCrootFor
 	c.BaseRecruitingGrades.MapLetterGrades(r.BasePotentials)
 	c.PlayerPreferences = r.PlayerPreferences
+	c.Agility = r.Agility
+	c.Faceoffs = r.Faceoffs
+	c.LongShotAccuracy = r.LongShotAccuracy
+	c.LongShotPower = r.LongShotPower
+	c.CloseShotAccuracy = r.CloseShotAccuracy
+	c.CloseShotPower = r.CloseShotPower
+	c.Passing = r.Passing
+	c.PuckHandling = r.PuckHandling
+	c.Strength = r.Strength
+	c.BodyChecking = r.BodyChecking
+	c.StickChecking = r.StickChecking
+	c.ShotBlocking = r.ShotBlocking
+	c.Goalkeeping = r.Goalkeeping
+	c.GoalieVision = r.GoalieVision
 
 	mod := r.TopRankModifier
 	if mod == 0 {
