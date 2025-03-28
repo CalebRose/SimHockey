@@ -295,6 +295,7 @@ type Croot struct {
 	HighSchool        string
 	City              string
 	State             string
+	Country           string
 	AffinityOne       string
 	AffinityTwo       string
 	RecruitingStatus  string
@@ -391,6 +392,7 @@ func (c *Croot) Map(r Recruit) {
 	c.HighSchool = r.HighSchool
 	c.City = r.City
 	c.State = r.State
+	c.Country = r.Country
 	c.College = r.College
 	c.OverallGrade = util.GetLetterGrade(int(r.Overall), 1)
 	c.IsSigned = r.IsSigned

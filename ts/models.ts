@@ -3312,6 +3312,7 @@ export class Croot {
     HighSchool: string;
     City: string;
     State: string;
+    Country: string;
     AffinityOne: string;
     AffinityTwo: string;
     RecruitingStatus: string;
@@ -3382,6 +3383,7 @@ export class Croot {
         this.HighSchool = source["HighSchool"];
         this.City = source["City"];
         this.State = source["State"];
+        this.Country = source["Country"];
         this.AffinityOne = source["AffinityOne"];
         this.AffinityTwo = source["AffinityTwo"];
         this.RecruitingStatus = source["RecruitingStatus"];
