@@ -105,6 +105,13 @@ func handleRequests() http.Handler {
 	apiRouter.HandleFunc("/chl/requests/reject", controllers.RejectCHLTeamRequest).Methods("POST")
 	apiRouter.HandleFunc("/phl/requests/reject", controllers.RejectPHLTeamRequest).Methods("POST")
 
+	// Recruiting
+	apiRouter.HandleFunc("/recruiting/add/recruit/", controllers.CreateRecruitPlayerProfile).Methods("POST")
+	apiRouter.HandleFunc("/recruiting/remove/recruit/", controllers.RemoveRecruitFromBoard).Methods("POST")
+	apiRouter.HandleFunc("/recruiting/toggle/scholarship/", controllers.CreateRecruitPlayerProfile).Methods("POST")
+	apiRouter.HandleFunc("/recruiting/save/board/", controllers.SaveRecruitingBoard).Methods("POST")
+	apiRouter.HandleFunc("/recruiting/save/ai/", controllers.ToggleAIBehavior).Methods("POST")
+
 	// Roster Page
 	apiRouter.HandleFunc("/chl/roster/cut/{playerID}", controllers.CutCHLPlayerFromRoster).Methods("GET")
 	apiRouter.HandleFunc("/chl/roster/redshirt/{playerID}", controllers.RedshirtCHLPlayer).Methods("GET")
