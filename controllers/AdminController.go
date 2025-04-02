@@ -68,3 +68,9 @@ func ImportTeamProfileRecords(w http.ResponseWriter, r *http.Request) {
 	managers.ImportTeamRecruitingProfiles()
 	json.NewEncoder(w).Encode("Data Generated ran!")
 }
+
+func GenerateCapsheets(w http.ResponseWriter, r *http.Request) {
+	managers.AllocateCapsheets()
+
+	json.NewEncoder(w).Encode("Data Generated ran!")
+}
