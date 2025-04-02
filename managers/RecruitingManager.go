@@ -147,17 +147,17 @@ func CalculateModifierTowardsRecruit(recruit structs.Recruit, team structs.Colle
 	return (programMod + professionalDevMod + traditionsMod + facilitiesMod + atmosphereMod + academicsMod + conferenceMod + coachMod + seasonMod) / 9
 }
 
-func calculateBaseModifier(attr uint) float32 {
-	return 1 + float32((attr)-5)/5
+func calculateBaseModifier(attr int) float32 {
+	return 1 + float32(attr-5)/5
 }
 
-func calculateAdjustmentFactor(teamAttr, playerPref uint) float32 {
+func calculateAdjustmentFactor(teamAttr, playerPref int) float32 {
 	return 1 + float32((teamAttr-playerPref)/10)
 }
 
 func calculateMultiplier(teamAttr uint, playerPref uint) float32 {
-	baseMod := calculateBaseModifier(teamAttr)
-	adjFactor := calculateAdjustmentFactor(teamAttr, playerPref)
+	baseMod := calculateBaseModifier(int(teamAttr))
+	adjFactor := calculateAdjustmentFactor(int(teamAttr), int(playerPref))
 	return baseMod * adjFactor
 }
 
