@@ -30,4 +30,6 @@ type BootstrapData struct {
 	ProTeamLineups        []ProfessionalLineup
 	ProTeamShootoutLineup ProfessionalShootoutLineup
 	FaceData              map[uint]FaceDataResponse
+	ContractMap           map[uint]ProContract
+	ExtensionMap          map[uint]ExtensionOffer
 }

@@ -45,6 +45,8 @@ func GetBootstrapData(collegeID, proID string) structs.BootstrapData {
 		proGames          []structs.ProfessionalGame
 		proLineups        []structs.ProfessionalLineup
 		proShootoutLineup structs.ProfessionalShootoutLineup
+		contractMap       map[uint]structs.ProContract
+		extensionMap      map[uint]structs.ExtensionOffer
 	)
 
 	freeAgencyCh := make(chan structs.FreeAgencyResponse, 1)
@@ -122,7 +124,7 @@ func GetBootstrapData(collegeID, proID string) structs.BootstrapData {
 
 	// Pros
 	if len(proID) > 0 {
-		wg.Add(9)
+		wg.Add(7)
 		go func() {
 			defer wg.Done()
 			proTeam = GetProTeamByTeamID(proID)
@@ -155,6 +157,10 @@ func GetBootstrapData(collegeID, proID string) structs.BootstrapData {
 			defer wg.Done()
 			proStandings = GetAllProfessionalStandingsBySeasonID("")
 		}()
+
+		wg.Wait()
+
+		wg.Add(4)
 		go func() {
 			defer wg.Done()
 			proLineups = GetProLineupsByTeamID(proID)
@@ -162,6 +168,15 @@ func GetBootstrapData(collegeID, proID string) structs.BootstrapData {
 		go func() {
 			defer wg.Done()
 			proShootoutLineup = GetProShootoutLineupByTeamID(proID)
+		}()
+		go func() {
+			defer wg.Done()
+			contractMap = GetContractMap()
+		}()
+
+		go func() {
+			defer wg.Done()
+			extensionMap = GetExtensionMap()
 		}()
 		go GetAllAvailableProPlayers(proID, freeAgencyCh)
 		wg.Wait()
@@ -211,5 +226,7 @@ func GetBootstrapData(collegeID, proID string) structs.BootstrapData {
 		ProTeamLineups:            proLineups,
 		ProTeamShootoutLineup:     proShootoutLineup,
 		FaceData:                  faceDataMap,
+		ContractMap:               contractMap,
+		ExtensionMap:              extensionMap,
 	}
 }

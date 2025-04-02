@@ -210,3 +210,23 @@ func MakeCapsheetMap(capsheets []structs.ProCapsheet) map[uint]structs.ProCapshe
 
 	return capsheetMap
 }
+
+func MakeContractMap(contracts []structs.ProContract) map[uint]structs.ProContract {
+	contractMap := make(map[uint]structs.ProContract)
+
+	for _, c := range contracts {
+		contractMap[uint(c.PlayerID)] = c
+	}
+
+	return contractMap
+}
+
+func MakeExtensionMap(extensions []structs.ExtensionOffer) map[uint]structs.ExtensionOffer {
+	contractMap := make(map[uint]structs.ExtensionOffer)
+
+	for _, c := range extensions {
+		contractMap[uint(c.PlayerID)] = c
+	}
+
+	return contractMap
+}

@@ -119,6 +119,42 @@ func FindAllFreeAgentOffers(teamID, playerID, offerID string, onlyActive bool) [
 	return offers
 }
 
+func FindAllProContracts(onlyActive bool) []structs.ProContract {
+	db := dbprovider.GetInstance().GetDB()
+
+	offers := []structs.ProContract{}
+
+	query := db.Model(&offers)
+
+	if onlyActive {
+		query = query.Where("is_active = ?", true)
+	}
+
+	if err := query.Find(&offers).Error; err != nil {
+		return []structs.ProContract{}
+	}
+
+	return offers
+}
+
+func FindAllProExtensions(onlyActive bool) []structs.ExtensionOffer {
+	db := dbprovider.GetInstance().GetDB()
+
+	offers := []structs.ExtensionOffer{}
+
+	query := db.Model(&offers)
+
+	if onlyActive {
+		query = query.Where("is_active = ?", true)
+	}
+
+	if err := query.Find(&offers).Error; err != nil {
+		return []structs.ExtensionOffer{}
+	}
+
+	return offers
+}
+
 func CreateProContractRecord(db *gorm.DB, contract structs.ProContract) error {
 	if err := db.Create(&contract).Error; err != nil {
 		return err

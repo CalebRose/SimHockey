@@ -16,6 +16,16 @@ func GetAllWaiverWirePlayers() []structs.ProfessionalPlayer {
 	return repository.FindAllFreeAgents(false, true, false, false)
 }
 
+func GetContractMap() map[uint]structs.ProContract {
+	contracts := repository.FindAllProContracts(true)
+	return MakeContractMap(contracts)
+}
+
+func GetExtensionMap() map[uint]structs.ExtensionOffer {
+	extensions := repository.FindAllProExtensions(true)
+	return MakeExtensionMap(extensions)
+}
+
 func GetAllAvailableProPlayers(TeamID string, ch chan<- structs.FreeAgencyResponse) {
 	var wg sync.WaitGroup
 	wg.Add(4)
