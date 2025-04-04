@@ -522,24 +522,40 @@ type UpdateRecruitProfileDto struct {
 }
 
 type CrootProfile struct {
-	ID                 uint
-	SeasonID           uint
-	RecruitID          uint
-	ProfileID          uint
-	TotalPoints        float32
-	CurrentWeeksPoints float32
-	Modifier           float32
-	SpendingCount      uint8
-	Scholarship        bool
-	ScholarshipRevoked bool
-	IsCloseToHome      bool
-	IsPipeline         bool
-	TeamAbbreviation   string
-	RemovedFromBoard   bool
-	IsSigned           bool
-	IsLocked           bool
-	CaughtCheating     bool
-	Recruit            Croot
+	ID                   uint
+	SeasonID             uint
+	RecruitID            uint
+	ProfileID            uint
+	TotalPoints          float32
+	CurrentWeeksPoints   float32
+	Modifier             float32
+	SpendingCount        uint8
+	Scholarship          bool
+	ScholarshipRevoked   bool
+	IsCloseToHome        bool
+	IsPipeline           bool
+	TeamAbbreviation     string
+	RemovedFromBoard     bool
+	IsSigned             bool
+	IsLocked             bool
+	CaughtCheating       bool
+	Agility              bool
+	Faceoffs             bool
+	LongShotAccuracy     bool
+	LongShotPower        bool
+	CloseShotAccuracy    bool
+	CloseShotPower       bool
+	OneTimer             bool
+	Passing              bool
+	PuckHandling         bool
+	Strength             bool
+	BodyChecking         bool
+	StickChecking        bool
+	ShotBlocking         bool
+	Goalkeeping          bool
+	GoalieVision         bool
+	GoalieReboundControl bool
+	Recruit              Croot
 }
 
 func (cp *CrootProfile) Map(rp RecruitPlayerProfile, c Croot) {
@@ -559,6 +575,22 @@ func (cp *CrootProfile) Map(rp RecruitPlayerProfile, c Croot) {
 	cp.IsSigned = rp.IsSigned
 	cp.IsLocked = rp.IsLocked
 	cp.CaughtCheating = rp.CaughtCheating
+	cp.Agility = rp.Agility
+	cp.Faceoffs = rp.Faceoffs
+	cp.LongShotAccuracy = rp.LongShotAccuracy
+	cp.LongShotPower = rp.LongShotPower
+	cp.CloseShotAccuracy = rp.CloseShotAccuracy
+	cp.CloseShotPower = rp.CloseShotPower
+	cp.OneTimer = rp.OneTimer
+	cp.Passing = rp.Passing
+	cp.PuckHandling = rp.PuckHandling
+	cp.Strength = rp.Strength
+	cp.BodyChecking = rp.BodyChecking
+	cp.StickChecking = rp.StickChecking
+	cp.ShotBlocking = rp.ShotBlocking
+	cp.Goalkeeping = rp.Goalkeeping
+	cp.GoalieVision = rp.GoalieVision
+	cp.GoalieReboundControl = rp.GoalieReboundControl
 	cp.Recruit = c
 }
 
