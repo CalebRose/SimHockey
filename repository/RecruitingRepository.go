@@ -66,7 +66,7 @@ func FindCollegeRecruitRecord(id string, includePlayerProfiles bool) structs.Rec
 	return recruits
 }
 
-func FindRecruitPlayerProfileRecords(profileID, recruitID string, includeRecruit, orderByOverall bool) []structs.RecruitPlayerProfile {
+func FindRecruitPlayerProfileRecords(profileID, recruitID string, includeRecruit, orderByOverall, removeFromBoard bool) []structs.RecruitPlayerProfile {
 	db := dbprovider.GetInstance().GetDB()
 
 	var croots []structs.RecruitPlayerProfile
@@ -83,6 +83,10 @@ func FindRecruitPlayerProfileRecords(profileID, recruitID string, includeRecruit
 
 	if len(recruitID) > 0 {
 		query = query.Where("recruit_id = ?", recruitID)
+	}
+
+	if removeFromBoard {
+		query = query.Where("removed_from_board = ?", false)
 	}
 
 	if orderByOverall {

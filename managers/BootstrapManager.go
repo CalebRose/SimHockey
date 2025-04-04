@@ -113,7 +113,7 @@ func GetBootstrapData(collegeID, proID string) structs.BootstrapData {
 		}()
 		go func() {
 			defer wg.Done()
-			recruitProfiles = repository.FindRecruitPlayerProfileRecords(collegeID, "", false, false)
+			recruitProfiles = repository.FindRecruitPlayerProfileRecords(collegeID, "", false, false, true)
 		}()
 		go func() {
 			defer wg.Done()

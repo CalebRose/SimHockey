@@ -33,7 +33,7 @@ func SyncCollegeRecruiting() {
 
 	// Load Data
 	teamProfiles := repository.FindTeamRecruitingProfiles(false)
-	allRecruitProfiles := repository.FindRecruitPlayerProfileRecords("", "", false, false)
+	allRecruitProfiles := repository.FindRecruitPlayerProfileRecords("", "", false, false, true)
 	recruits := repository.FindAllRecruits(false, false, false, false, "")
 	recruitProfileMap := MakeRecruitProfileMapByRecruitID(allRecruitProfiles)
 	teamProfileMap := MakeTeamProfileMap(teamProfiles)

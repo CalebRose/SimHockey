@@ -48,11 +48,11 @@ func GetCrootRecordByID(id string) structs.Croot {
 }
 
 func GetRecruitProfilesWithRecruitByProfileID(id string) []structs.RecruitPlayerProfile {
-	return repository.FindRecruitPlayerProfileRecords(id, "", true, false)
+	return repository.FindRecruitPlayerProfileRecords(id, "", true, false, false)
 }
 
 func GetOnlyRecruitProfilesByProfileID(id string) []structs.RecruitPlayerProfile {
-	return repository.FindRecruitPlayerProfileRecords(id, "", false, false)
+	return repository.FindRecruitPlayerProfileRecords(id, "", false, false, false)
 }
 
 func GetSignedRecruitsByTeamID(teamID string) []structs.Recruit {
@@ -60,7 +60,7 @@ func GetSignedRecruitsByTeamID(teamID string) []structs.Recruit {
 }
 
 func GetRecruitProfileMap() map[uint][]structs.RecruitPlayerProfile {
-	profiles := repository.FindRecruitPlayerProfileRecords("", "", false, true)
+	profiles := repository.FindRecruitPlayerProfileRecords("", "", false, true, false)
 	return MakeRecruitProfileMapByRecruitID(profiles)
 }
 
@@ -175,11 +175,12 @@ func SendScholarshipToRecruit(dto structs.UpdateRecruitProfileDto) (structs.Recr
 		strconv.Itoa(dto.ProfileID),
 	)
 
-	crootProfile.ToggleScholarship(dto.RewardScholarship, dto.RevokeScholarship)
-	if !crootProfile.ScholarshipRevoked {
+	if !crootProfile.Scholarship && !crootProfile.ScholarshipRevoked {
 		teamProfile.SubtractScholarshipsAvailable()
+		crootProfile.ToggleScholarship(true, false)
 	} else {
 		teamProfile.ReallocateScholarship()
+		crootProfile.ToggleScholarship(false, true)
 	}
 
 	repository.SaveRecruitProfileRecord(db, crootProfile)
@@ -303,7 +304,7 @@ func UpdateRecruitingProfile(updateRecruitingBoardDto structs.UpdateRecruitingBo
 
 	var teamProfile = repository.FindTeamRecruitingProfile(teamID, false, false)
 
-	var recruitProfiles = repository.FindRecruitPlayerProfileRecords(teamID, "", false, false)
+	var recruitProfiles = repository.FindRecruitPlayerProfileRecords(teamID, "", false, false, false)
 
 	var updatedRecruits = updateRecruitingBoardDto.Recruits
 

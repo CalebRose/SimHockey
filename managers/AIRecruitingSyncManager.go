@@ -21,7 +21,7 @@ func FillAIRecruitingBoards() {
 	fmt.Println("Loading recruits...")
 	UnsignedRecruits := GetAllUnsignedRecruits()
 	allCollegePlayersMap := GetAllCollegePlayersMapByTeam()
-	recruitProfiles := repository.FindRecruitPlayerProfileRecords("", "", true, true)
+	recruitProfiles := repository.FindRecruitPlayerProfileRecords("", "", true, true, false)
 	recruitProfileMap := MakeRecruitProfileMapByRecruitID(recruitProfiles)
 	existingBoardMap := MakeRecruitProfileMapByProfileID(recruitProfiles)
 	fmt.Println("Loaded all unsigned recruits.")
@@ -144,7 +144,7 @@ func AllocatePointsToAIBoards() {
 	AITeams := repository.FindTeamRecruitingProfiles(true)
 	fmt.Println("Loading recruits...")
 	allCollegePlayersMap := GetAllCollegePlayersMapByTeam()
-	recruitProfiles := repository.FindRecruitPlayerProfileRecords("", "", true, true)
+	recruitProfiles := repository.FindRecruitPlayerProfileRecords("", "", true, true, false)
 	existingBoardMap := MakeRecruitProfileMapByProfileID(recruitProfiles)
 	fmt.Println("Loaded all unsigned recruits.")
 	for _, team := range AITeams {
@@ -182,7 +182,7 @@ func AllocatePointsToAIBoards() {
 			}
 
 			if !removeCrootFromBoard {
-				profiles := repository.FindRecruitPlayerProfileRecords("", recruitID, false, false)
+				profiles := repository.FindRecruitPlayerProfileRecords("", recruitID, false, false, true)
 
 				if croot.PreviousWeekPoints > 0 {
 					leadingTeamVal := IsAITeamContendingForCroot(profiles)
@@ -269,7 +269,7 @@ func ResetAIBoardsForCompletedTeams() {
 		// This is so that these unsigned recruits can be recruited for and will allow the AI to put points onto those recruits.
 
 		if team.TotalCommitments >= team.RecruitClassSize {
-			teamProfiles := repository.FindRecruitPlayerProfileRecords(strconv.Itoa(int(team.ID)), "", false, false)
+			teamProfiles := repository.FindRecruitPlayerProfileRecords(strconv.Itoa(int(team.ID)), "", false, false, true)
 
 			for _, profile := range teamProfiles {
 				if profile.IsSigned || profile.IsLocked || profile.TotalPoints == 0 {
