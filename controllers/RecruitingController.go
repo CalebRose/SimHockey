@@ -90,3 +90,16 @@ func ToggleAIBehavior(w http.ResponseWriter, r *http.Request) {
 
 	json.NewEncoder(w).Encode("AI Behavior Switched For Team " + updateRecruitingBoardDto.Profile.Team)
 }
+
+func ScoutAttribute(w http.ResponseWriter, r *http.Request) {
+	var scoutAttributeDto structs.ScoutAttributeDTO
+	err := json.NewDecoder(r.Body).Decode(&scoutAttributeDto)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	profile := managers.ScoutAttribute(scoutAttributeDto)
+
+	json.NewEncoder(w).Encode(profile)
+}

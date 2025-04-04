@@ -110,6 +110,7 @@ func handleRequests() http.Handler {
 	apiRouter.HandleFunc("/recruiting/add/recruit/", controllers.CreateRecruitPlayerProfile).Methods("POST")
 	apiRouter.HandleFunc("/recruiting/remove/recruit/", controllers.RemoveRecruitFromBoard).Methods("POST")
 	apiRouter.HandleFunc("/recruiting/toggle/scholarship/", controllers.SendScholarshipToRecruit).Methods("POST")
+	apiRouter.HandleFunc("/recruiting/scout/attribute/", controllers.ScoutAttribute).Methods("POST")
 	apiRouter.HandleFunc("/recruiting/save/board/", controllers.SaveRecruitingBoard).Methods("POST")
 	apiRouter.HandleFunc("/recruiting/save/ai/", controllers.ToggleAIBehavior).Methods("POST")
 

@@ -58,6 +58,20 @@ func (r *RecruitingTeamProfile) ResetSpentPoints() {
 	r.SpentPoints = 0
 }
 
+func (r *RecruitingTeamProfile) ResetScoutingPoints(week int) {
+	if week == 0 {
+		r.WeeklyScoutingPoints = 30
+	} else {
+		r.WeeklyScoutingPoints = 10
+	}
+}
+
+func (r *RecruitingTeamProfile) SubtractScoutingPoints() {
+	if r.WeeklyScoutingPoints > 0 {
+		r.WeeklyScoutingPoints--
+	}
+}
+
 func (r *RecruitingTeamProfile) SubtractScholarshipsAvailable() {
 	if r.ScholarshipsAvailable > 0 {
 		r.ScholarshipsAvailable--
@@ -290,6 +304,51 @@ func (rp *RecruitPlayerProfile) ResetTotalPoints() {
 
 func (rp *RecruitPlayerProfile) ApplyModifier(mod float32) {
 	rp.Modifier = mod
+}
+
+func (rp *RecruitPlayerProfile) ApplyScoutingAttribute(attr string) {
+	if attr == util.Faceoffs {
+		rp.Faceoffs = true
+	}
+	if attr == util.Agility {
+		rp.Agility = true
+	}
+	if attr == util.LongShotAccuracy {
+		rp.LongShotAccuracy = true
+	}
+	if attr == util.LongShotPower {
+		rp.LongShotPower = true
+	}
+	if attr == util.CloseShotAccuracy {
+		rp.CloseShotAccuracy = true
+	}
+	if attr == util.CloseShotPower {
+		rp.CloseShotPower = true
+	}
+	if attr == util.Strength {
+		rp.Strength = true
+	}
+	if attr == util.Passing {
+		rp.Passing = true
+	}
+	if attr == util.PuckHandling {
+		rp.PuckHandling = true
+	}
+	if attr == util.BodyChecking {
+		rp.BodyChecking = true
+	}
+	if attr == util.StickChecking {
+		rp.StickChecking = true
+	}
+	if attr == util.Goalkeeping {
+		rp.Goalkeeping = true
+	}
+	if attr == util.GoalieVision {
+		rp.GoalieVision = true
+	}
+	if attr == util.ShotBlocking {
+		rp.ShotBlocking = true
+	}
 }
 
 type Croot struct {
@@ -690,4 +749,10 @@ type RecruitingOdds struct {
 	Odds          int
 	IsCloseToHome bool
 	IsPipeline    bool
+}
+
+type ScoutAttributeDTO struct {
+	ProfileID uint
+	RecruitID uint
+	Attribute string
 }

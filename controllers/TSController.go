@@ -32,6 +32,7 @@ func CreateTSModelsFile(w http.ResponseWriter, r *http.Request) {
 		Add(structs.LeadingTeams{}).
 		Add(structs.CreateRecruitProfileDto{}).
 		Add(structs.UpdateRecruitProfileDto{}).
+		Add(structs.ScoutAttributeDTO{}).
 		Add(structs.CrootProfile{}).
 		Add(structs.SimTeamBoardResponse{}).
 		Add(structs.UpdateRecruitingBoardDTO{}).

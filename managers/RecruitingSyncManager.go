@@ -165,7 +165,7 @@ func SyncCollegeRecruiting() {
 		}
 	}
 
-	updateTeamRankings(teamProfiles, teamProfileMap, teamPointsMap, db)
+	updateTeamRankings(teamProfiles, teamProfileMap, teamPointsMap, db, int(ts.Week))
 
 	if ts.IsRecruitingLocked {
 		ts.ToggleLockRecruiting()
@@ -261,7 +261,7 @@ func processRecruitProfile(i int, recruit structs.Recruit, recruitProfiles *[]st
 	return nil
 }
 
-func updateTeamRankings(teamRecruitingProfiles []structs.RecruitingTeamProfile, teamMap map[uint]*structs.RecruitingTeamProfile, recruitProfilePointsMap map[uint]float32, db *gorm.DB) {
+func updateTeamRankings(teamRecruitingProfiles []structs.RecruitingTeamProfile, teamMap map[uint]*structs.RecruitingTeamProfile, recruitProfilePointsMap map[uint]float32, db *gorm.DB, week int) {
 	// Update rank system for all teams
 	var maxESPNScore float32 = 0
 	var minESPNScore float32 = 10000
@@ -324,6 +324,7 @@ func updateTeamRankings(teamRecruitingProfiles []structs.RecruitingTeamProfile, 
 			tp.AssignCompositeRank(avg)
 		}
 		tp.ResetSpentPoints()
+		tp.ResetScoutingPoints(week)
 
 		// Save TEAM Recruiting Profile
 		repository.SaveTeamProfileRecord(db, *tp)

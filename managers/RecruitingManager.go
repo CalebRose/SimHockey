@@ -380,3 +380,31 @@ func SaveAIBehavior(profile structs.RecruitingTeamProfile) {
 	recruitingProfile.UpdateAIBehavior(profile.IsAI, profile.AIStarMax, profile.AIStarMin, profile.AIMinThreshold, profile.AIMaxThreshold)
 	repository.SaveTeamProfileRecord(db, recruitingProfile)
 }
+
+func ScoutAttribute(dto structs.ScoutAttributeDTO) structs.RecruitPlayerProfile {
+	db := dbprovider.GetInstance().GetDB()
+
+	recruitID := strconv.Itoa(int(dto.RecruitID))
+	profileID := strconv.Itoa(int(dto.ProfileID))
+
+	teamProfile := repository.FindTeamRecruitingProfile(profileID, false, false)
+
+	recruitProfile := repository.FindRecruitPlayerProfileRecord(recruitID, profileID)
+
+	if teamProfile.ID == 0 || recruitProfile.ID == 0 {
+		log.Panic("ERROR: IDs PROVIDED DON'T LINE UP")
+	}
+
+	if teamProfile.WeeklyScoutingPoints == 0 {
+		log.Panic("ERROR: User doesn't have enough scouting points")
+	}
+
+	recruitProfile.ApplyScoutingAttribute(dto.Attribute)
+
+	teamProfile.SubtractScoutingPoints()
+
+	repository.SaveTeamProfileRecord(db, teamProfile)
+	repository.SaveRecruitProfileRecord(db, recruitProfile)
+
+	return recruitProfile
+}
