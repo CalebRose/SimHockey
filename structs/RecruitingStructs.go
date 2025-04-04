@@ -198,24 +198,40 @@ func (r *RecruitingTeamProfile) AssignRecruiter(name string) {
 // RecruitPlayerProfile - Individual points profile for a Team's Recruiting Portfolio
 type RecruitPlayerProfile struct {
 	gorm.Model
-	SeasonID           uint
-	RecruitID          uint
-	ProfileID          uint
-	TotalPoints        float32
-	CurrentWeeksPoints float32
-	PreviousWeekPoints float32
-	Modifier           float32
-	IsHomeState        bool
-	IsPipelineState    bool
-	SpendingCount      uint8
-	Scholarship        bool
-	ScholarshipRevoked bool
-	RemovedFromBoard   bool
-	IsSigned           bool
-	IsLocked           bool
-	CaughtCheating     bool
-	TeamReachedMax     bool
-	Recruit            Recruit `gorm:"foreignKey:RecruitID"`
+	SeasonID             uint
+	RecruitID            uint
+	ProfileID            uint
+	TotalPoints          float32
+	CurrentWeeksPoints   float32
+	PreviousWeekPoints   float32
+	Modifier             float32
+	IsHomeState          bool
+	IsPipelineState      bool
+	SpendingCount        uint8
+	Scholarship          bool
+	ScholarshipRevoked   bool
+	RemovedFromBoard     bool
+	IsSigned             bool
+	IsLocked             bool
+	CaughtCheating       bool
+	TeamReachedMax       bool
+	Agility              bool
+	Faceoffs             bool
+	LongShotAccuracy     bool
+	LongShotPower        bool
+	CloseShotAccuracy    bool
+	CloseShotPower       bool
+	OneTimer             bool
+	Passing              bool
+	PuckHandling         bool
+	Strength             bool
+	BodyChecking         bool
+	StickChecking        bool
+	ShotBlocking         bool
+	Goalkeeping          bool
+	GoalieVision         bool
+	GoalieReboundControl bool
+	Recruit              Recruit `gorm:"foreignKey:RecruitID"`
 	// RecruitPoints             []RecruitPointAllocation `gorm:"foreignKey:RecruitProfileID"`
 }
 
