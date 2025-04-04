@@ -312,12 +312,9 @@ func UpdateRecruitingProfile(updateRecruitingBoardDto structs.UpdateRecruitingBo
 
 	for i := range recruitProfiles {
 		updatedRecruit := GetRecruitFromRecruitsList(recruitProfiles[i].RecruitID, updatedRecruits)
-
+		currentPoints += updatedRecruit.CurrentWeeksPoints
+		teamProfile.AllocateSpentPoints(currentPoints)
 		if recruitProfiles[i].CurrentWeeksPoints != updatedRecruit.CurrentWeeksPoints {
-			// Allocate Points to Profile
-			currentPoints += updatedRecruit.CurrentWeeksPoints
-			teamProfile.AllocateSpentPoints(currentPoints)
-			// If total not surpassed, allocate to the recruit and continue
 			if teamProfile.SpentPoints <= teamProfile.WeeklyPoints {
 				recruitProfiles[i].AllocateCurrentWeekPoints(updatedRecruit.CurrentWeeksPoints)
 				fmt.Println("Saving recruit " + strconv.Itoa(int(recruitProfiles[i].RecruitID)))
@@ -325,10 +322,7 @@ func UpdateRecruitingProfile(updateRecruitingBoardDto structs.UpdateRecruitingBo
 				panic("Error: Allocated more points for Profile " + strconv.Itoa(int(teamProfile.TeamID)) + " than what is allowed.")
 			}
 			// Save Recruit Profile
-			db.Save(&recruitProfiles[i])
-		} else {
-			currentPoints += recruitProfiles[i].CurrentWeeksPoints
-			teamProfile.AllocateSpentPoints(currentPoints)
+			repository.SaveRecruitProfileRecord(db, recruitProfiles[i])
 		}
 	}
 
