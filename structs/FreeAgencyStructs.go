@@ -174,6 +174,21 @@ func (c *ProContract) MapExtension(e ExtensionOffer) {
 	c.IsExtended = true
 }
 
+func (c *ProContract) MapAffiliateOffer(f FreeAgencyOffer) {
+	c.OriginalTeamID = c.TeamID
+	c.TeamID = f.TeamID
+	c.ContractLength = f.ContractLength
+	c.Y1BaseSalary = f.Y1BaseSalary
+	c.Y2BaseSalary = f.Y2BaseSalary
+	c.Y3BaseSalary = f.Y3BaseSalary
+	c.Y4BaseSalary = f.Y4BaseSalary
+	c.Y5BaseSalary = f.Y5BaseSalary
+	c.CalculateContract()
+	c.IsActive = true
+	c.IsComplete = false
+	c.IsExtended = false
+}
+
 func (c *ProContract) ToggleRetirement() {
 	c.PlayerRetired = true
 }
@@ -196,6 +211,7 @@ type FreeAgencyOfferDTO struct {
 	ID             uint
 	PlayerID       uint
 	TeamID         uint
+	Team           string
 	ContractLength int
 	Y1BaseSalary   float32
 	Y2BaseSalary   float32

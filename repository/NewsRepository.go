@@ -33,6 +33,13 @@ func FindNotificationRecords(id, league, teamID string) []structs.Notification {
 	return noti
 }
 
+func CreateNewsLog(news structs.NewsLog, db *gorm.DB) {
+	err := db.Create(&news).Error
+	if err != nil {
+		log.Panicln("Could not create notification record!")
+	}
+}
+
 func CreateNotification(noti structs.Notification, db *gorm.DB) {
 	err := db.Create(&noti).Error
 	if err != nil {

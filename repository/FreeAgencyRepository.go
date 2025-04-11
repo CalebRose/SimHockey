@@ -1,6 +1,8 @@
 package repository
 
 import (
+	"errors"
+	"log"
 	"strconv"
 
 	"github.com/CalebRose/SimHockey/dbprovider"
@@ -87,6 +89,66 @@ func FindAffiliatePlayers(teamID, affiliateTeamID string, includeOffers, include
 	}
 
 	return proPlayers
+}
+
+func FindFreeAgentOfferRecord(teamID, playerID, offerID string, onlyActive bool) structs.FreeAgencyOffer {
+	db := dbprovider.GetInstance().GetDB()
+
+	offers := structs.FreeAgencyOffer{}
+
+	query := db.Model(&offers)
+
+	if len(teamID) > 0 {
+		query = query.Where("team_id = ?", teamID)
+	}
+
+	if len(playerID) > 0 {
+		query = query.Where("player_id = ?", playerID)
+	}
+
+	if len(offerID) > 0 {
+		query = query.Where("id = ?", offerID)
+	}
+
+	if onlyActive {
+		query = query.Where("is_active = ?", true)
+	}
+
+	if err := query.Find(&offers).Error; err != nil {
+		return structs.FreeAgencyOffer{}
+	}
+
+	return offers
+}
+
+func FindWaiverWireOfferRecord(teamID, playerID, offerID string, onlyActive bool) structs.WaiverOffer {
+	db := dbprovider.GetInstance().GetDB()
+
+	offers := structs.WaiverOffer{}
+
+	query := db.Model(&offers)
+
+	if len(teamID) > 0 {
+		query = query.Where("team_id = ?", teamID)
+	}
+
+	if len(playerID) > 0 {
+		query = query.Where("player_id = ?", playerID)
+	}
+
+	if len(offerID) > 0 {
+		query = query.Where("id = ?", offerID)
+	}
+
+	if onlyActive {
+		query = query.Where("is_active = ?", true)
+	}
+
+	if err := query.Find(&offers).Error; err != nil {
+		return structs.WaiverOffer{}
+	}
+
+	return offers
 }
 
 func FindAllFreeAgentOffers(teamID, playerID, offerID string, onlyActive bool) []structs.FreeAgencyOffer {
@@ -191,4 +253,53 @@ func CreateProContractRecord(db *gorm.DB, contract structs.ProContract) error {
 	}
 
 	return nil
+}
+
+func FindLatestFreeAgentOfferID(db *gorm.DB) uint {
+	var latestOffer structs.FreeAgencyOffer
+
+	err := db.Last(&latestOffer).Error
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return 1
+		}
+		log.Fatalln("ERROR! Could not find latest record" + err.Error())
+	}
+
+	return latestOffer.ID + 1
+}
+
+func FindLatestWaiverOfferID(db *gorm.DB) uint {
+	var latestOffer structs.WaiverOffer
+
+	err := db.Last(&latestOffer).Error
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return 1
+		}
+		log.Fatalln("ERROR! Could not find latest record" + err.Error())
+	}
+
+	return latestOffer.ID + 1
+}
+
+func SaveFreeAgentOfferRecord(offerRecord structs.FreeAgencyOffer, db *gorm.DB) {
+	err := db.Save(&offerRecord).Error
+	if err != nil {
+		log.Panicln("Could not save waiver " + strconv.Itoa(int(offerRecord.ID)))
+	}
+}
+
+func SaveWaiverRecord(waiverRecord structs.WaiverOffer, db *gorm.DB) {
+	err := db.Save(&waiverRecord).Error
+	if err != nil {
+		log.Panicln("Could not save waiver " + strconv.Itoa(int(waiverRecord.ID)))
+	}
+}
+
+func DeleteWaiverRecord(waiverRecord structs.WaiverOffer, db *gorm.DB) {
+	err := db.Delete(&waiverRecord).Error
+	if err != nil {
+		log.Panicln("Could not delete waiver " + strconv.Itoa(int(waiverRecord.ID)))
+	}
 }

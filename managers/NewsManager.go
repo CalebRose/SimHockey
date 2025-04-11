@@ -51,9 +51,22 @@ func CreateNewsLog(league, message, messageType string, teamID int, ts structs.T
 		TeamID:      uint(teamID),
 	}
 
-	db.Create(&news)
+	repository.CreateNewsLog(news, db)
 }
 
 func GetNotificationByTeamIDAndLeague(league, teamID string) []structs.Notification {
 	return repository.FindNotificationRecords("", league, teamID)
+}
+
+func CreateNotification(league, message, messageType string, teamID uint) {
+	db := dbprovider.GetInstance().GetDB()
+
+	notification := structs.Notification{
+		League:           league,
+		Message:          message,
+		NotificationType: messageType,
+		TeamID:           teamID,
+	}
+
+	repository.CreateNotification(notification, db)
 }

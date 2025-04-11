@@ -1,9 +1,12 @@
 package managers
 
 import (
+	"fmt"
 	"sort"
+	"strconv"
 	"sync"
 
+	"github.com/CalebRose/SimHockey/dbprovider"
 	"github.com/CalebRose/SimHockey/repository"
 	"github.com/CalebRose/SimHockey/structs"
 )
@@ -89,4 +92,135 @@ func GetFreeAgentOffersByTeamID(TeamID string) []structs.FreeAgencyOffer {
 func GetAllAffiliatePlayers() []structs.ProfessionalPlayer {
 	players := repository.FindAffiliatePlayers("", "", true, true)
 	return players
+}
+
+func CreateFAOffer(offer structs.FreeAgencyOfferDTO) structs.FreeAgencyOffer {
+	db := dbprovider.GetInstance().GetDB()
+	ts := GetTimestamp()
+	freeAgentOffer := repository.FindFreeAgentOfferRecord("", "", strconv.Itoa(int(offer.ID)), true)
+	players := repository.FindAllProPlayers(repository.PlayerQuery{PlayerIDs: []string{strconv.Itoa(int(offer.PlayerID))}})
+
+	if len(players) == 0 || freeAgentOffer.ID == 0 {
+		return structs.FreeAgencyOffer{}
+	}
+	player := players[0]
+	if freeAgentOffer.ID == 0 {
+		id := repository.FindLatestFreeAgentOfferID(db)
+		freeAgentOffer.AssignID(id)
+	}
+	if ts.IsFreeAgencyLocked {
+		return freeAgentOffer
+	}
+
+	freeAgentOffer.CalculateOffer(offer)
+
+	// If the owning team is sending an offer to a player
+	if player.IsAffiliatePlayer && int(player.TeamID) == int(offer.TeamID) {
+		SignFreeAgent(freeAgentOffer, player, ts)
+	} else {
+		repository.SaveFreeAgentOfferRecord(freeAgentOffer, db)
+		fmt.Println("Creating offer!")
+	}
+
+	if player.IsAffiliatePlayer && int(player.TeamID) != int(offer.TeamID) {
+		// Notify team
+		notificationMessage := offer.Team + " have placed an offer on " + player.Position + " " + player.FirstName + " " + player.LastName + " to pick up from the practice squad."
+		CreateNotification("PHL", notificationMessage, "Affiliate Player Offer", uint(player.TeamID))
+		message := offer.Team + " have placed an offer on " + player.Team + " " + player.Position + " " + player.FirstName + " " + player.LastName + " to pick up from the practice squad."
+		CreateNewsLog("PHL", message, "Free Agency", int(player.TeamID), ts)
+	}
+
+	return freeAgentOffer
+}
+
+func CancelOffer(offer structs.FreeAgencyOfferDTO) {
+	db := dbprovider.GetInstance().GetDB()
+
+	ts := GetTimestamp()
+	if ts.IsFreeAgencyLocked {
+		return
+	}
+
+	OfferID := strconv.Itoa(int(offer.ID))
+
+	freeAgentOffer := repository.FindFreeAgentOfferRecord("", "", OfferID, true)
+	if freeAgentOffer.ID == 0 {
+		return
+	}
+	freeAgentOffer.CancelOffer()
+
+	db.Save(&freeAgentOffer)
+}
+
+func CreateWaiverOffer(offer structs.WaiverOfferDTO) structs.WaiverOffer {
+	db := dbprovider.GetInstance().GetDB()
+	ts := GetTimestamp()
+	waiverOffer := repository.FindWaiverWireOfferRecord("", "", strconv.Itoa(int(offer.ID)), true)
+
+	if waiverOffer.ID == 0 {
+		id := repository.FindLatestWaiverOfferID(db)
+		waiverOffer.AssignID(id)
+	}
+
+	if ts.IsFreeAgencyLocked {
+		return waiverOffer
+	}
+
+	waiverOffer.Map(offer)
+
+	repository.SaveWaiverRecord(waiverOffer, db)
+
+	fmt.Println("Creating offer!")
+
+	return waiverOffer
+}
+
+func CancelWaiverOffer(offer structs.WaiverOfferDTO) {
+	db := dbprovider.GetInstance().GetDB()
+
+	OfferID := strconv.Itoa(int(offer.ID))
+	waiverOffer := repository.FindWaiverWireOfferRecord("", "", OfferID, true)
+	if waiverOffer.ID == 0 {
+		return
+	}
+
+	repository.DeleteWaiverRecord(waiverOffer, db)
+}
+
+func SignFreeAgent(offer structs.FreeAgencyOffer, FreeAgent structs.ProfessionalPlayer, ts structs.Timestamp) {
+	db := dbprovider.GetInstance().GetDB()
+
+	proTeam := repository.FindProTeamRecord(strconv.Itoa(int(offer.TeamID)))
+	Contract := structs.ProContract{}
+	messageStart := "FA "
+	if !FreeAgent.IsAffiliatePlayer {
+		Contract = structs.ProContract{
+			PlayerID:       FreeAgent.ID,
+			TeamID:         proTeam.ID,
+			OriginalTeamID: proTeam.ID,
+			ContractLength: offer.ContractLength,
+			Y1BaseSalary:   offer.Y1BaseSalary,
+			Y2BaseSalary:   offer.Y2BaseSalary,
+			Y3BaseSalary:   offer.Y3BaseSalary,
+			Y4BaseSalary:   offer.Y4BaseSalary,
+			Y5BaseSalary:   offer.Y5BaseSalary,
+			ContractValue:  offer.ContractValue,
+			SigningValue:   offer.ContractValue,
+			IsActive:       true,
+			IsComplete:     false,
+			IsExtended:     false,
+		}
+		repository.CreateProContractRecord(db, Contract)
+	} else {
+		Contract = repository.FindProContract(strconv.Itoa(int(FreeAgent.ID)))
+		Contract.MapAffiliateOffer(offer)
+		repository.SaveProContractRecord(Contract, db)
+		messageStart = "PS "
+	}
+	FreeAgent.SignPlayer(uint(proTeam.ID), proTeam.Abbreviation)
+	repository.SaveProPlayerRecord(FreeAgent, db)
+
+	// News Log
+	message := messageStart + FreeAgent.Position + " " + FreeAgent.FirstName + " " + FreeAgent.LastName + " has signed with the " + proTeam.TeamName + " with a contract worth approximately $" + strconv.Itoa(int(Contract.ContractValue)) + " Million Dollars."
+	CreateNewsLog("PHL", message, "Free Agency", int(offer.TeamID), ts)
 }
