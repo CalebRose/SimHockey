@@ -21,8 +21,10 @@ type BootstrapData struct {
 	AllProTeams           []ProfessionalTeam
 	ProStandings          []ProfessionalStandings
 	ProRosterMap          map[uint][]ProfessionalPlayer
+	AffiliatePlayers      []ProfessionalPlayer
+	FreeAgentOffers       []FreeAgencyOffer
+	WaiverWireOffers      []WaiverOffer
 	CapsheetMap           map[uint]ProCapsheet
-	FreeAgency            FreeAgencyResponse
 	ProInjuryReport       []ProfessionalPlayer
 	ProNews               []NewsLog
 	ProNotifications      []Notification

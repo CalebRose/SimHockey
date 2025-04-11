@@ -38,8 +38,10 @@ func GetBootstrapData(collegeID, proID string) structs.BootstrapData {
 		proStandings      []structs.ProfessionalStandings
 		proRosterMap      map[uint][]structs.ProfessionalPlayer
 		capsheetMap       map[uint]structs.ProCapsheet
-		freeAgency        structs.FreeAgencyResponse
 		injuredProPlayers []structs.ProfessionalPlayer
+		affiliatePlayers  []structs.ProfessionalPlayer
+		freeAgentOffers   []structs.FreeAgencyOffer
+		waiverWireOffers  []structs.WaiverOffer
 		proNews           []structs.NewsLog
 		proNotifications  []structs.Notification
 		proGames          []structs.ProfessionalGame
@@ -48,9 +50,6 @@ func GetBootstrapData(collegeID, proID string) structs.BootstrapData {
 		contractMap       map[uint]structs.ProContract
 		extensionMap      map[uint]structs.ExtensionOffer
 	)
-
-	freeAgencyCh := make(chan structs.FreeAgencyResponse, 1)
-
 	ts := GetTimestamp()
 	seasonID := strconv.Itoa(int(ts.SeasonID))
 
@@ -134,6 +133,7 @@ func GetBootstrapData(collegeID, proID string) structs.BootstrapData {
 			proPlayers := GetAllProPlayers()
 			mu.Lock()
 			proRosterMap = MakeProfessionalPlayerMapByTeamID(proPlayers)
+			affiliatePlayers = MakeProAffiliateList(proPlayers)
 			injuredProPlayers = MakeProInjuryList(proPlayers)
 			mu.Unlock()
 		}()
@@ -160,7 +160,7 @@ func GetBootstrapData(collegeID, proID string) structs.BootstrapData {
 
 		wg.Wait()
 
-		wg.Add(4)
+		wg.Add(6)
 		go func() {
 			defer wg.Done()
 			proLineups = GetProLineupsByTeamID(proID)
@@ -178,15 +178,15 @@ func GetBootstrapData(collegeID, proID string) structs.BootstrapData {
 			defer wg.Done()
 			extensionMap = GetExtensionMap()
 		}()
-		go GetAllAvailableProPlayers(proID, freeAgencyCh)
+		go func() {
+			defer wg.Done()
+			freeAgentOffers = repository.FindAllFreeAgentOffers("", "", "", true)
+		}()
+		go func() {
+			defer wg.Done()
+			waiverWireOffers = repository.FindAllWaiverWireOffers("", "", "", true)
+		}()
 		wg.Wait()
-	}
-
-	// Wait for all goroutines to finish
-
-	// Receive Free Agency data from channel
-	if len(proID) > 0 {
-		freeAgency = <-freeAgencyCh
 	}
 
 	wg.Add(1)
@@ -218,7 +218,9 @@ func GetBootstrapData(collegeID, proID string) structs.BootstrapData {
 		ProStandings:              proStandings,
 		ProRosterMap:              proRosterMap,
 		CapsheetMap:               capsheetMap,
-		FreeAgency:                freeAgency,
+		WaiverWireOffers:          waiverWireOffers,
+		FreeAgentOffers:           freeAgentOffers,
+		AffiliatePlayers:          affiliatePlayers,
 		ProInjuryReport:           injuredProPlayers,
 		ProNews:                   proNews,
 		ProNotifications:          proNotifications,

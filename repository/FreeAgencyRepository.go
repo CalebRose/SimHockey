@@ -119,6 +119,36 @@ func FindAllFreeAgentOffers(teamID, playerID, offerID string, onlyActive bool) [
 	return offers
 }
 
+func FindAllWaiverWireOffers(teamID, playerID, offerID string, onlyActive bool) []structs.WaiverOffer {
+	db := dbprovider.GetInstance().GetDB()
+
+	offers := []structs.WaiverOffer{}
+
+	query := db.Model(&offers)
+
+	if len(teamID) > 0 {
+		query = query.Where("team_id = ?", teamID)
+	}
+
+	if len(playerID) > 0 {
+		query = query.Where("player_id = ?", playerID)
+	}
+
+	if len(offerID) > 0 {
+		query = query.Where("id = ?", offerID)
+	}
+
+	if onlyActive {
+		query = query.Where("is_active = ?", true)
+	}
+
+	if err := query.Find(&offers).Error; err != nil {
+		return []structs.WaiverOffer{}
+	}
+
+	return offers
+}
+
 func FindAllProContracts(onlyActive bool) []structs.ProContract {
 	db := dbprovider.GetInstance().GetDB()
 
