@@ -31,34 +31,34 @@ func (nc *ProCapsheet) ResetCapsheet() {
 }
 
 func (nc *ProCapsheet) AddContractToCapsheet(contract ProContract) {
-	nc.Y1Salary += contract.Y1BaseSalary
-	nc.Y2Salary += contract.Y2BaseSalary
-	nc.Y3Salary += contract.Y3BaseSalary
-	nc.Y4Salary += contract.Y4BaseSalary
-	nc.Y5Salary += contract.Y5BaseSalary
+	nc.Y1Salary += contract.ContractValue
+	nc.Y2Salary += contract.ContractValue
+	nc.Y3Salary += contract.ContractValue
+	nc.Y4Salary += contract.ContractValue
+	nc.Y5Salary += contract.ContractValue
 }
 
 func (nc *ProCapsheet) SubtractFromCapsheet(contract ProContract) {
-	nc.Y1Salary -= contract.Y1BaseSalary
-	nc.Y2Salary -= contract.Y2BaseSalary
-	nc.Y3Salary -= contract.Y3BaseSalary
-	nc.Y4Salary -= contract.Y4BaseSalary
-	nc.Y5Salary -= contract.Y5BaseSalary
+	nc.Y1Salary -= contract.ContractValue
+	nc.Y2Salary -= contract.ContractValue
+	nc.Y3Salary -= contract.ContractValue
+	nc.Y4Salary -= contract.ContractValue
+	nc.Y5Salary -= contract.ContractValue
 }
 
 func (nc *ProCapsheet) CutPlayerFromCapsheet(contract ProContract) {
-	nc.Y1Salary -= contract.Y1BaseSalary
-	nc.Y2Salary -= contract.Y2BaseSalary
-	nc.Y3Salary -= contract.Y3BaseSalary
-	nc.Y4Salary -= contract.Y4BaseSalary
-	nc.Y5Salary -= contract.Y5BaseSalary
+	nc.Y1Salary -= contract.ContractValue
+	nc.Y2Salary -= contract.ContractValue
+	nc.Y3Salary -= contract.ContractValue
+	nc.Y4Salary -= contract.ContractValue
+	nc.Y5Salary -= contract.ContractValue
 }
 
 func (nc *ProCapsheet) SubtractFromCapsheetViaTrade(contract ProContract) {
-	nc.Y2Salary -= contract.Y2BaseSalary
-	nc.Y3Salary -= contract.Y3BaseSalary
-	nc.Y4Salary -= contract.Y4BaseSalary
-	nc.Y5Salary -= contract.Y5BaseSalary
+	nc.Y2Salary -= contract.ContractValue
+	nc.Y3Salary -= contract.ContractValue
+	nc.Y4Salary -= contract.ContractValue
+	nc.Y5Salary -= contract.ContractValue
 }
 
 func (nc *ProCapsheet) NegotiateSalaryDifference(SalaryDifference float32, CapHit float32) {
@@ -69,10 +69,10 @@ func (nc *ProCapsheet) NegotiateSalaryDifference(SalaryDifference float32, CapHi
 func (nc *ProCapsheet) AddContractViaTrade(contract ProContract, differenceValue float32) {
 	// nc.Y1Bonus += contract.Y1Bonus
 	nc.Y1Salary += differenceValue
-	nc.Y2Salary += contract.Y2BaseSalary
-	nc.Y3Salary += contract.Y3BaseSalary
-	nc.Y4Salary += contract.Y4BaseSalary
-	nc.Y5Salary += contract.Y5BaseSalary
+	nc.Y2Salary += contract.ContractValue
+	nc.Y3Salary += contract.ContractValue
+	nc.Y4Salary += contract.ContractValue
+	nc.Y5Salary += contract.ContractValue
 }
 
 func (nc *ProCapsheet) ProgressCapsheet() {
@@ -151,12 +151,8 @@ func (c *ProContract) ProgressContract() {
 
 func (c *ProContract) CalculateContract() {
 	// Calculate Value
-	y1SalaryVal := c.Y1BaseSalary * 0.8
-	y2SalaryVal := c.Y2BaseSalary * 0.4
-	y3SalaryVal := c.Y3BaseSalary * 0.2
-	y4SalaryVal := c.Y4BaseSalary * 0.1
-	y5SalaryVal := c.Y5BaseSalary * 0.05
-	c.ContractValue = y1SalaryVal + y2SalaryVal + y3SalaryVal + y4SalaryVal + y5SalaryVal
+	total := c.Y1BaseSalary + c.Y2BaseSalary + c.Y3BaseSalary + c.Y4BaseSalary + c.Y5BaseSalary
+	c.ContractValue = total / float32(c.ContractLength)
 }
 
 func (c *ProContract) MapExtension(e ExtensionOffer) {
@@ -249,15 +245,8 @@ func (f *FreeAgencyOffer) CalculateOffer(offer FreeAgencyOfferDTO) {
 	f.IsActive = true
 
 	// Calculate Value
-	y1SalaryVal := f.Y1BaseSalary * 0.8
-	y2SalaryVal := f.Y2BaseSalary * 0.4
-	y3SalaryVal := f.Y3BaseSalary * 0.2
-	y4SalaryVal := f.Y4BaseSalary * 0.1
-	y5SalaryVal := f.Y5BaseSalary * 0.05
-	f.ContractValue = y1SalaryVal + y2SalaryVal + y3SalaryVal + y4SalaryVal + y5SalaryVal
 	f.TotalSalary = f.Y1BaseSalary + f.Y2BaseSalary + f.Y3BaseSalary + f.Y4BaseSalary + f.Y5BaseSalary
-	total := f.TotalBonus + f.TotalSalary
-	f.BonusPercentage = f.TotalBonus / (total)
+	f.ContractValue = f.TotalSalary / float32(f.ContractLength)
 }
 
 func (f *FreeAgencyOffer) CancelOffer() {
