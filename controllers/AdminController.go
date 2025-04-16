@@ -74,3 +74,9 @@ func GenerateCapsheets(w http.ResponseWriter, r *http.Request) {
 
 	json.NewEncoder(w).Encode("Data Generated ran!")
 }
+
+func AddFAPreferences(w http.ResponseWriter, r *http.Request) {
+	managers.AllocateCapsheets()
+
+	json.NewEncoder(w).Encode("Data Generated ran!")
+}

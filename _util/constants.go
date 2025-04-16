@@ -68,6 +68,25 @@ const (
 	ShotOnGoalID         uint8 = 29
 	GoalieHoldID         uint8 = 30
 
+	// Free Agency Preferences
+	Average                  uint8 = 1
+	MarketCTH                uint8 = 2
+	MarketCountryment        uint8 = 3
+	MarketLarge              uint8 = 4
+	MarketNotLarge           uint8 = 5
+	MarketSmall              uint8 = 6
+	MarketNotSmall           uint8 = 7
+	MarketLoyal              uint8 = 8
+	MarketAvoidPrevTeam      uint8 = 9
+	CompetitiveMentorship    uint8 = 2
+	CompetitiveVeteranMentor uint8 = 3
+	CompetitiveFirstLine     uint8 = 4
+	CompetitiveSecondLine    uint8 = 5
+	CompetitiveCompete       uint8 = 6
+	FinancialShort           uint8 = 2
+	FinancialLong            uint8 = 3
+	FinancialLargeAAV        uint8 = 4
+
 	// Recruiting
 	USA    string = "USA"
 	Canada string = "Canada"

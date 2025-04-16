@@ -500,3 +500,58 @@ func ImportTeamRecruitingProfiles() {
 		db.Create(&teamProfile)
 	}
 }
+
+func AddFAPreferences() {
+	db := dbprovider.GetInstance().GetDB()
+
+	players := repository.FindAllProPlayers(repository.PlayerQuery{})
+
+	for _, p := range players {
+		marketDR := util.GenerateIntFromRange(1, 100)
+		competeDR := util.GenerateIntFromRange(1, 100)
+		financeDR := util.GenerateIntFromRange(1, 100)
+		m := uint8(1)
+		c := uint8(1)
+		f := uint8(1)
+		if marketDR > 70 {
+			// Generate new market preference
+			marketList := []uint8{4, 5, 6, 7, 8}
+			if p.Country == util.USA || p.Country == util.Canada {
+				marketList = append(marketList, 2)
+			} else if p.Country != util.USA && p.Country != util.Canada {
+				marketList = append(marketList, 3)
+			}
+
+			maxNumber := len(marketList) - 1
+			index := util.GenerateIntFromRange(0, maxNumber)
+			m = marketList[index]
+		}
+
+		if competeDR > 70 {
+			// Generate new compete preference
+			competeList := []uint8{4, 5}
+			if p.Age <= 24 {
+				competeList = append(competeList, 2)
+			}
+			if p.Age >= 28 {
+				competeList = append(competeList, 3)
+			}
+
+			maxNumber := len(competeList) - 1
+			index := util.GenerateIntFromRange(0, maxNumber)
+			c = competeList[index]
+		}
+
+		if financeDR > 70 {
+			// Generate new finance preference
+			competeList := []uint8{2, 3, 4}
+
+			maxNumber := len(competeList) - 1
+			index := util.GenerateIntFromRange(0, maxNumber)
+			c = competeList[index]
+		}
+
+		p.AssignPreferences(m, c, f)
+		repository.SaveProPlayerRecord(p, db)
+	}
+}
