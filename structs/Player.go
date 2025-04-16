@@ -659,31 +659,35 @@ type ProfessionalPlayer struct {
 	BasePlayer
 	BasePotentials
 	BaseInjuryData
-	CollegeID         uint
-	Year              int
-	IsAffiliatePlayer bool
-	IsWaived          bool
-	IsFreeAgent       bool
-	IsOnTradeBlock    bool
-	IsAcceptingOffers bool
-	IsNegotiating     bool
-	DraftedTeamID     uint8
-	DraftedTeam       string
-	DraftedRound      uint8
-	DraftPickID       uint
-	DraftedPick       uint16
-	MinimumValue      float32
-	HasProgressed     bool
-	Rejections        int8
-	AffiliateTeamID   uint16
-	Marketability     uint8                           // How marketable / in demand a player's jersey will be
-	JerseyPrice       float32                         // Price of jersey, can be set by user
-	Stats             []ProfessionalPlayerGameStats   `gorm:"foreignKey:PlayerID"`
-	SeasonStats       []ProfessionalPlayerSeasonStats `gorm:"foreignKey:PlayerID"`
-	Contract          ProContract                     `gorm:"foreignKey:PlayerID"`
-	Offers            []FreeAgencyOffer               `gorm:"foreignKey:PlayerID"`
-	WaiverOffer       []WaiverOffer                   `gorm:"foreignKey:PlayerID"`
-	Extensions        []ExtensionOffer                `gorm:"foreignKey:PlayerID"`
+	CollegeID             uint
+	Year                  int
+	IsAffiliatePlayer     bool
+	IsWaived              bool
+	IsFreeAgent           bool
+	IsOnTradeBlock        bool
+	IsAcceptingOffers     bool
+	IsNegotiating         bool
+	DraftedTeamID         uint8
+	DraftedTeam           string
+	DraftedRound          uint8
+	DraftPickID           uint
+	DraftedPick           uint16
+	MinimumValue          float32
+	HasProgressed         bool
+	Rejections            int8
+	AffiliateTeamID       uint16
+	Marketability         uint8   // How marketable / in demand a player's jersey will be
+	JerseyPrice           float32 // Price of jersey, can be set by user
+	MarketPreference      uint8
+	CompetitivePreference uint8
+	FinancialPreference   uint8
+	IsEligibleForPlay     bool
+	Stats                 []ProfessionalPlayerGameStats   `gorm:"foreignKey:PlayerID"`
+	SeasonStats           []ProfessionalPlayerSeasonStats `gorm:"foreignKey:PlayerID"`
+	Contract              ProContract                     `gorm:"foreignKey:PlayerID"`
+	Offers                []FreeAgencyOffer               `gorm:"foreignKey:PlayerID"`
+	WaiverOffer           []WaiverOffer                   `gorm:"foreignKey:PlayerID"`
+	Extensions            []ExtensionOffer                `gorm:"foreignKey:PlayerID"`
 }
 
 func (cp *ProfessionalPlayer) ProgressPlayer(progressions BasePlayerProgressions) {
@@ -706,7 +710,7 @@ func (np *ProfessionalPlayer) ToggleIsFreeAgent() {
 	np.IsWaived = false
 }
 
-func (np *ProfessionalPlayer) SignPlayer(TeamID uint, Abbr string) {
+func (np *ProfessionalPlayer) SignPlayer(TeamID uint, Abbr string, isEligible bool) {
 	np.IsFreeAgent = false
 	np.IsWaived = false
 	np.TeamID = uint16(TeamID)
@@ -714,6 +718,7 @@ func (np *ProfessionalPlayer) SignPlayer(TeamID uint, Abbr string) {
 	np.IsAcceptingOffers = false
 	np.IsNegotiating = false
 	np.IsAffiliatePlayer = false
+	np.IsEligibleForPlay = isEligible
 }
 
 func (np *ProfessionalPlayer) ToggleAffiliation() {
@@ -755,6 +760,12 @@ func (np *ProfessionalPlayer) ToggleIsNegotiating() {
 func (np *ProfessionalPlayer) WaitUntilAfterDraft() {
 	np.IsNegotiating = false
 	np.IsAcceptingOffers = false
+}
+
+func (np *ProfessionalPlayer) AssignPreferences(m, c, f uint8) {
+	np.MarketPreference = m
+	np.CompetitivePreference = c
+	np.FinancialPreference = f
 }
 
 func (cp *ProfessionalPlayer) AssignID(id uint) {

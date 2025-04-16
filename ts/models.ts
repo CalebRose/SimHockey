@@ -1504,6 +1504,10 @@ export class ProfessionalPlayer {
     AffiliateTeamID: number;
     Marketability: number;
     JerseyPrice: number;
+    MarketPreference: number;
+    CompetitivePreference: number;
+    FinancialPreference: number;
+    IsEligibleForPlay: boolean;
     Stats: ProfessionalPlayerGameStats[];
     SeasonStats: ProfessionalPlayerSeasonStats[];
     Contract: ProContract;
@@ -1645,6 +1649,10 @@ export class ProfessionalPlayer {
         this.AffiliateTeamID = source["AffiliateTeamID"];
         this.Marketability = source["Marketability"];
         this.JerseyPrice = source["JerseyPrice"];
+        this.MarketPreference = source["MarketPreference"];
+        this.CompetitivePreference = source["CompetitivePreference"];
+        this.FinancialPreference = source["FinancialPreference"];
+        this.IsEligibleForPlay = source["IsEligibleForPlay"];
         this.Stats = this.convertValues(source["Stats"], ProfessionalPlayerGameStats);
         this.SeasonStats = this.convertValues(source["SeasonStats"], ProfessionalPlayerSeasonStats);
         this.Contract = this.convertValues(source["Contract"], ProContract);
@@ -4478,6 +4486,7 @@ export class FreeAgencyOfferDTO {
     ID: number;
     PlayerID: number;
     TeamID: number;
+    Team: string;
     ContractLength: number;
     Y1BaseSalary: number;
     Y2BaseSalary: number;
@@ -4490,6 +4499,7 @@ export class FreeAgencyOfferDTO {
         this.ID = source["ID"];
         this.PlayerID = source["PlayerID"];
         this.TeamID = source["TeamID"];
+        this.Team = source["Team"];
         this.ContractLength = source["ContractLength"];
         this.Y1BaseSalary = source["Y1BaseSalary"];
         this.Y2BaseSalary = source["Y2BaseSalary"];
