@@ -100,7 +100,7 @@ func CreateFAOffer(offer structs.FreeAgencyOfferDTO) structs.FreeAgencyOffer {
 	freeAgentOffer := repository.FindFreeAgentOfferRecord("", "", strconv.Itoa(int(offer.ID)), true)
 	players := repository.FindAllProPlayers(repository.PlayerQuery{PlayerIDs: []string{strconv.Itoa(int(offer.PlayerID))}})
 
-	if len(players) == 0 || freeAgentOffer.ID == 0 {
+	if len(players) == 0 {
 		return structs.FreeAgencyOffer{}
 	}
 	player := players[0]
