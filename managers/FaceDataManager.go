@@ -150,8 +150,13 @@ func MigrateFaceDataToCollegePlayers() {
 	// Get Full Name Lists
 	faceDataBlob := getFaceDataBlob()
 	faceDataList := []structs.FaceData{}
+	facesMap := GetAllFaces()
 	// Initialize List
 	for _, p := range players {
+		existingFace := facesMap[p.ID]
+		if existingFace.PlayerID > 0 {
+			continue
+		}
 		skinColor := getSkinColor(p.Country)
 		// Store data
 

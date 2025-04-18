@@ -71,7 +71,7 @@ const (
 	// Free Agency Preferences
 	Average                  uint8 = 1
 	MarketCTH                uint8 = 2
-	MarketCountryment        uint8 = 3
+	MarketCountrymen         uint8 = 3
 	MarketLarge              uint8 = 4
 	MarketNotLarge           uint8 = 5
 	MarketSmall              uint8 = 6

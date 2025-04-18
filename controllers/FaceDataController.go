@@ -8,9 +8,9 @@ import (
 )
 
 func MigrateFaceData(w http.ResponseWriter, r *http.Request) {
-	managers.MigrateFaceDataToRecruits()
+	// managers.MigrateFaceDataToRecruits()
 	managers.MigrateFaceDataToCollegePlayers()
-	managers.MigrateFaceDataToProPlayers()
+	// managers.MigrateFaceDataToProPlayers()
 
 	fmt.Println("All Faces have been generated")
 	w.WriteHeader(http.StatusOK)

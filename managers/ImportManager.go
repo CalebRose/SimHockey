@@ -515,11 +515,11 @@ func AddFAPreferences() {
 		f := uint8(1)
 		if marketDR > 70 {
 			// Generate new market preference
-			marketList := []uint8{4, 5, 6, 7, 8}
+			marketList := []uint8{util.MarketLarge, util.MarketNotLarge, util.MarketSmall, util.MarketNotSmall, util.MarketLoyal}
 			if p.Country == util.USA || p.Country == util.Canada {
-				marketList = append(marketList, 2)
+				marketList = append(marketList, util.MarketCTH)
 			} else if p.Country != util.USA && p.Country != util.Canada {
-				marketList = append(marketList, 3)
+				marketList = append(marketList, util.MarketCountrymen)
 			}
 
 			maxNumber := len(marketList) - 1
@@ -529,12 +529,12 @@ func AddFAPreferences() {
 
 		if competeDR > 70 {
 			// Generate new compete preference
-			competeList := []uint8{4, 5}
+			competeList := []uint8{util.CompetitiveFirstLine, util.CompetitiveSecondLine}
 			if p.Age <= 24 {
-				competeList = append(competeList, 2)
+				competeList = append(competeList, util.CompetitiveMentorship)
 			}
 			if p.Age >= 28 {
-				competeList = append(competeList, 3)
+				competeList = append(competeList, util.CompetitiveVeteranMentor)
 			}
 
 			maxNumber := len(competeList) - 1
@@ -544,7 +544,7 @@ func AddFAPreferences() {
 
 		if financeDR > 70 {
 			// Generate new finance preference
-			competeList := []uint8{2, 3, 4}
+			competeList := []uint8{util.FinancialShort, util.FinancialLong, util.FinancialLargeAAV}
 
 			maxNumber := len(competeList) - 1
 			index := util.GenerateIntFromRange(0, maxNumber)

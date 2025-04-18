@@ -21,6 +21,12 @@ func TestEngine(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode("Game ran!")
 }
 
+func GenerateCollegeTeams(w http.ResponseWriter, r *http.Request) {
+	managers.ImportCollegeTeams()
+
+	json.NewEncoder(w).Encode("Data Generated ran!")
+}
+
 func GenerateProTeams(w http.ResponseWriter, r *http.Request) {
 	managers.ImportProTeams()
 
