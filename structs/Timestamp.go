@@ -12,6 +12,8 @@ type Timestamp struct {
 	Season                        uint
 	GamesARan                     bool
 	GamesBRan                     bool
+	GamesCRan                     bool
+	GamesDRan                     bool
 	CollegePollRan                bool
 	RecruitingSynced              bool
 	GMActionsCompleted            bool
