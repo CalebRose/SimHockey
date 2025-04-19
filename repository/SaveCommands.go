@@ -43,20 +43,6 @@ func SaveProfessionalShootoutLineupRecord(lineupRecord structs.ProfessionalShoot
 	}
 }
 
-func SaveCollegeGameRecord(gameRecord structs.CollegeGame, db *gorm.DB) {
-	err := db.Save(&gameRecord).Error
-	if err != nil {
-		log.Panicln("Could not save college player " + strconv.Itoa(int(gameRecord.ID)))
-	}
-}
-
-func SaveProfessionalGameRecord(gameRecord structs.ProfessionalGame, db *gorm.DB) {
-	err := db.Save(&gameRecord).Error
-	if err != nil {
-		log.Panicln("Could not save college player " + strconv.Itoa(int(gameRecord.ID)))
-	}
-}
-
 func SaveCollegePollSubmissionRecord(pollRecord structs.CollegePollSubmission, db *gorm.DB) {
 	err := db.Save(&pollRecord).Error
 	if err != nil {

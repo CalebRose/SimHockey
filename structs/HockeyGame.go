@@ -94,6 +94,12 @@ func (m *BaseGame) AssignRank(id, rank uint) {
 	}
 }
 
+func (m *BaseGame) AddWeekData(id, week uint, timeslot string) {
+	m.WeekID = id
+	m.Week = int(week)
+	m.GameDay = timeslot
+}
+
 func (m *BaseGame) Reset() {
 	m.GameComplete = false
 	m.HomeTeamWin = false
