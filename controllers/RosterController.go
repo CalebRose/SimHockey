@@ -10,7 +10,7 @@ import (
 
 func CutCHLPlayerFromRoster(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
-	PlayerID := vars["PlayerID"]
+	PlayerID := vars["playerID"]
 
 	managers.CutCHLPlayer(PlayerID)
 
@@ -19,7 +19,7 @@ func CutCHLPlayerFromRoster(w http.ResponseWriter, r *http.Request) {
 
 func RedshirtCHLPlayer(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
-	PlayerID := vars["PlayerID"]
+	PlayerID := vars["playerID"]
 
 	managers.RedshirtCHLPlayer(PlayerID)
 
@@ -28,14 +28,14 @@ func RedshirtCHLPlayer(w http.ResponseWriter, r *http.Request) {
 
 func PromiseCHLPlayer(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
-	PlayerID := vars["PlayerID"]
+	PlayerID := vars["playerID"]
 
 	fmt.Println(w, "Implement promises for "+PlayerID+"!")
 }
 
 func CutPHLPlayerFromRoster(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
-	PlayerID := vars["PlayerID"]
+	PlayerID := vars["playerID"]
 
 	managers.CutProPlayer(PlayerID)
 
@@ -44,14 +44,14 @@ func CutPHLPlayerFromRoster(w http.ResponseWriter, r *http.Request) {
 
 func SendPHLPlayerToAffiliate(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
-	PlayerID := vars["PlayerID"]
+	PlayerID := vars["playerID"]
 
 	managers.SendPHLPlayerToAffiliate(PlayerID)
 }
 
 func SendPHLPlayerToTradeBlock(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
-	PlayerID := vars["PlayerID"]
+	PlayerID := vars["playerID"]
 
 	managers.SendPHLPlayerToTradeBlock(PlayerID)
 }

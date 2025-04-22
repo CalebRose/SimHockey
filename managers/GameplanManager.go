@@ -585,9 +585,18 @@ func RunLineupsForAIProTeams() {
 		s6ST := 1
 
 		for count < 6 {
-			f := fPlayers[fIdx]
-			d := dPlayers[dIdx]
-			c := cPlayers[cIdx]
+			f := structs.ProfessionalPlayer{}
+			if fIdx < len(fPlayers) {
+				f = fPlayers[fIdx]
+			}
+			d := structs.ProfessionalPlayer{}
+			if dIdx < len(dPlayers) {
+				d = dPlayers[dIdx]
+			}
+			c := structs.ProfessionalPlayer{}
+			if cIdx < len(cPlayers) {
+				c = cPlayers[cIdx]
+			}
 			chosenPlayer := structs.ProfessionalPlayer{}
 
 			if (cIdx < len(cPlayers)) && c.Overall >= f.Overall && c.Overall >= d.Overall {
