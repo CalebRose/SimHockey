@@ -5,6 +5,8 @@ import (
 )
 
 type GameState struct {
+	GameID                uint
+	WeekID                uint
 	HomeTeamID            uint
 	HomeTeam              string
 	HomeTeamCoach         string
@@ -55,7 +57,7 @@ type PowerPlayState struct {
 // If a score is made, check list for who the powerplay team is and if they scored. Then return penalized player
 // and remove powerplay item from list
 
-func (gs *GameState) RecordPlay(play structs.PlayByPlay) {
+func (gs *GameState) RecordPlay(play structs.PbP) {
 	gs.Collector.AppendPlay(play)
 }
 
@@ -210,6 +212,9 @@ func (gs *GameState) GetCenter(isHome bool) *GamePlayer {
 	player := GetGamePlayerByPosition(currentLineup, "C")
 	if player.ID == 0 || player.IsOut {
 		player = GetGamePlayerByPosition(currentLineup, "F")
+	}
+	if player.ID == 0 || player.IsOut {
+		player = GetGamePlayerByPosition(currentLineup, "D")
 	}
 	return player
 }
@@ -920,6 +925,8 @@ func (t *TeamStatDTO) AddShutout() {
 }
 
 type PlayerStatsDTO struct {
+	TeamID               uint
+	SeasonID             uint
 	PlayerID             uint
 	Goals                uint16
 	Assists              uint16

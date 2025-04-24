@@ -15,8 +15,10 @@ const (
 	ShotBlock               string  = "ShotBlock"
 	Faceoff                 string  = "Faceoff"
 	Pass                    string  = "Pass"
+	VeryEasyReq             float64 = 6
 	EasyReq                 float64 = 8
 	BaseReq                 float64 = 10
+	SlightlyDiffReq         float64 = 12
 	DiffReq                 float64 = 14
 	ToughReq                float64 = 17
 	CritSuccess             int     = 20
@@ -76,6 +78,9 @@ const (
 	GoalieReboundID      uint8 = 28
 	ShotOnGoalID         uint8 = 29
 	GoalieHoldID         uint8 = 30
+	NoOneOpenID          uint8 = 31
+	ReceivedLongPassID   uint8 = 32
+	ReceivedBackPassID   uint8 = 33
 )
 
 // PenaltyIDs

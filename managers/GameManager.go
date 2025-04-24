@@ -3,56 +3,170 @@ package managers
 import (
 	"fmt"
 	"math/rand"
+	"strconv"
 	"sync"
 
+	"github.com/CalebRose/SimHockey/dbprovider"
 	"github.com/CalebRose/SimHockey/engine"
 	"github.com/CalebRose/SimHockey/repository"
 	"github.com/CalebRose/SimHockey/structs"
+	"gorm.io/gorm"
 )
+
+type StatsUpload struct {
+	CollegeTeamStats   []structs.CollegeTeamGameStats
+	CollegePlayerStats []structs.CollegePlayerGameStats
+	ProTeamStats       []structs.ProfessionalTeamGameStats
+	ProPlayerStats     []structs.ProfessionalPlayerGameStats
+	CollegePlayByPlay  []structs.CollegePlayByPlay
+	ProPlayByPlay      []structs.ProPlayByPlay
+}
 
 func RunGames() {
 	// Get GameDTOs
-	gameDTOs := PrepareGames()
+	db := dbprovider.GetInstance().GetDB()
+	ts := GetTimestamp()
+	weekID := strconv.Itoa(int(ts.WeekID))
+	seasonID := strconv.Itoa(int(ts.SeasonID))
+	gameDay := ts.GetGameDay()
+	collegeGames := GetCollegeGamesForCurrentMatchup(weekID, seasonID, gameDay)
+	proGames := []structs.ProfessionalGame{}
+	collegeGameMap := MakeCollegeGameMap(collegeGames)
+	proGameMap := MakeProGameMap(proGames)
+	// proGames := GetProfessionalGamesForCurrentMatchup(weekID, seasonID, gameDay)
+	gameDTOs := PrepareGames(collegeGames, proGames)
 	// RUN THE GAMES!
 	results := engine.RunGames(gameDTOs)
-	collegeTeamMap := GetCollegeTeamMap()
-	proTeamMap := GetProTeamMap()
-	collegePlayerMap := GetCollegePlayersMap()
-	proPlayersMap := GetProPlayersMap()
+	// collegeTeamMap := GetCollegeTeamMap()
+	// proTeamMap := GetProTeamMap()
+	// collegePlayerMap := GetCollegePlayersMap()
+	// proPlayersMap := GetProPlayersMap()
+	upload := NewStatsUpload()
 	for _, r := range results {
 		// Iterate through all lines, players, accumulate stats to upload
-		WriteBoxScoreFile(r, "test_results/test_twelve/box_score/"+r.HomeTeam+"_vs_"+r.AwayTeam+".csv")
+		// WriteBoxScoreFile(r, "test_results/test_twelve/box_score/"+r.HomeTeam+"_vs_"+r.AwayTeam+".csv")
 
 		// Iterate through Play By Plays and record them to a CSV
-		pbps := r.Collector.PlayByPlays
+		// if r.IsCollegeGame {
+		// 	WritePlayByPlayCSVFile(pbps, "test_results/test_twelve/play_by_play/"+r.HomeTeam+"_vs_"+r.AwayTeam+".csv", collegePlayerMap, collegeTeamMap)
+		// } else {
+		// 	WriteProPlayByPlayCSVFile(pbps, "test_results/test_twelve/play_by_play/"+r.HomeTeam+"_vs_"+r.AwayTeam+".csv", proPlayersMap, proTeamMap)
+		// }
+		upload.Collect(r, ts.SeasonID)
+
 		if r.IsCollegeGame {
-			WritePlayByPlayCSVFile(pbps, "test_results/test_twelve/play_by_play/"+r.HomeTeam+"_vs_"+r.AwayTeam+".csv", collegePlayerMap, collegeTeamMap)
+			game := collegeGameMap[r.GameID]
+			game.UpdateScore(uint(r.HomeTeamScore), uint(r.AwayTeamScore), uint(r.HomeTeamShootoutScore), uint(r.AwayTeamShootoutScore), r.IsOvertime, r.IsOvertimeShootout)
+			repository.SaveCollegeGameRecord(game, db)
 		} else {
-			WriteProPlayByPlayCSVFile(pbps, "test_results/test_twelve/play_by_play/"+r.HomeTeam+"_vs_"+r.AwayTeam+".csv", proPlayersMap, proTeamMap)
+			game := proGameMap[r.GameID]
+			game.UpdateScore(uint(r.HomeTeamScore), uint(r.AwayTeamScore), uint(r.HomeTeamShootoutScore), uint(r.AwayTeamShootoutScore), r.IsOvertime, r.IsOvertimeShootout)
+			repository.SaveProfessionalGameRecord(game, db)
+		}
+	}
+	upload.Flush(db)
+}
+
+func NewStatsUpload() *StatsUpload {
+	return &StatsUpload{}
+}
+
+func (u *StatsUpload) Collect(state engine.GameState, seasonID uint) {
+	// Team stats
+	u.collectTeamStats(state, seasonID)
+
+	// Player stats for both teams
+	u.collectPlayerStats(state.HomeStrategy, state.WeekID, state.GameID, state.IsCollegeGame)
+	u.collectPlayerStats(state.AwayStrategy, state.WeekID, state.GameID, state.IsCollegeGame)
+
+	// Play-by-play
+	u.collectPbP(state.Collector.PlayByPlays, state.IsCollegeGame)
+}
+
+func (u *StatsUpload) collectTeamStats(state engine.GameState, seasonID uint) {
+	if state.IsCollegeGame {
+		u.CollegeTeamStats = append(u.CollegeTeamStats,
+			makeCollegeTeamStatsObject(state.WeekID, state.GameID, seasonID, state.HomeTeamStats),
+			makeCollegeTeamStatsObject(state.WeekID, state.GameID, seasonID, state.AwayTeamStats),
+		)
+	} else {
+		u.ProTeamStats = append(u.ProTeamStats,
+			makeProTeamStatsObject(state.WeekID, state.GameID, seasonID, state.HomeTeamStats),
+			makeProTeamStatsObject(state.WeekID, state.GameID, seasonID, state.AwayTeamStats),
+		)
+	}
+}
+
+func (u *StatsUpload) collectPlayerStats(pl engine.GamePlaybook, week, gameID uint, isCollege bool) {
+	types := [][]engine.LineStrategy{pl.Forwards, pl.Defenders, pl.Goalies}
+	for _, group := range types {
+		for _, line := range group {
+			for _, p := range line.Players {
+				if isCollege {
+					u.CollegePlayerStats = append(u.CollegePlayerStats,
+						makeCollegePlayerStatsObject(week, gameID, p.Stats),
+					)
+				} else {
+					u.ProPlayerStats = append(u.ProPlayerStats,
+						makeProPlayerStatsObject(week, gameID, p.Stats),
+					)
+				}
+			}
 		}
 	}
 }
 
-func PrepareGames() []structs.GameDTO {
+func (u *StatsUpload) collectPbP(pbps []structs.PbP, isCollege bool) {
+	if isCollege {
+		for _, pbp := range pbps {
+			u.CollegePlayByPlay = append(u.CollegePlayByPlay, structs.CollegePlayByPlay{PbP: pbp})
+		}
+	} else {
+		for _, pbp := range pbps {
+			u.ProPlayByPlay = append(u.ProPlayByPlay, structs.ProPlayByPlay{PbP: pbp})
+		}
+	}
+}
+
+func (u *StatsUpload) Flush(db *gorm.DB) error {
+	const batchSize = 200
+	const bigBatchSize = 500
+	if err := repository.CreateCHLPlayByPlayRecordBatch(db, u.CollegePlayByPlay, bigBatchSize); err != nil {
+		return err
+	}
+	if err := repository.CreatePHLPlayByPlayRecordBatch(db, u.ProPlayByPlay, bigBatchSize); err != nil {
+		return err
+	}
+	if err := repository.CreateCHLPlayerGameStatsRecordBatch(db, u.CollegePlayerStats, batchSize); err != nil {
+		return err
+	}
+	if err := repository.CreatePHLPlayerGameStatsRecordBatch(db, u.ProPlayerStats, batchSize); err != nil {
+		return err
+	}
+	if err := repository.CreateCHLTeamGameStatsRecordBatch(db, u.CollegeTeamStats, batchSize); err != nil {
+		return err
+	}
+	if err := repository.CreatePHLTeamGameStatsRecordBatch(db, u.ProTeamStats, batchSize); err != nil {
+		return err
+	}
+	return nil
+}
+
+func PrepareGames(collegeGames []structs.CollegeGame, proGames []structs.ProfessionalGame) []structs.GameDTO {
 	fmt.Println("Loading Games...")
 
-	// ts := GetTimestamp()
 	// Wait Groups
 	var collegeGamesWg sync.WaitGroup
 	// Mutex Lock
 	var mutex sync.Mutex
 
 	// College Only
-	collegeTeamMap := GetCollegeTeamMap()
+	// collegeTeamMap := GetCollegeTeamMap()
 	collegeTeamRosterMap := GetAllCollegePlayersMapByTeam()
 	collegeLineupMap := GetCollegeLineupsMap()
 	collegeShootoutLineupMap := GetCollegeShootoutLineups()
-	// weekID := strconv.Itoa(int(ts.WeekID))
-	// seasonID := strconv.Itoa(int(ts.SeasonID))
-	// gameDay := ts.GetGameDay()
 	arenaMap := GetArenaMap()
-	// collegeGames := GetCollegeGamesForCurrentMatchup(weekID, seasonID, gameDay)
-	collegeGames := GetCollegeGamesForTesting(collegeTeamMap)
+	// collegeGames := GetCollegeGamesForTesting(collegeTeamMap)
 	collegeGamesWg.Add(len(collegeGames))
 	gameDTOList := make([]structs.GameDTO, 0, len(collegeGames))
 	sem := make(chan struct{}, 20)
@@ -86,6 +200,7 @@ func PrepareGames() []structs.GameDTO {
 			mutex.Unlock()
 
 			match := structs.GameDTO{
+				GameID:        c.ID,
 				GameInfo:      c.BaseGame,
 				HomeStrategy:  hp,
 				AwayStrategy:  ap,
@@ -103,8 +218,9 @@ func PrepareGames() []structs.GameDTO {
 	}
 
 	var proGamesWg sync.WaitGroup
-	professionalTeamMap := GetProTeamMap()
-	proGames := GetProGamesForTesting(professionalTeamMap)
+	// professionalTeamMap := GetProTeamMap()
+	// proGames := GetProGamesForTesting(professionalTeamMap)
+	// proGames := GetProfessionalGamesForCurrentMatchup(weekID, seasonID, gameDay)
 	proTeamRosterMap := GetAllProPlayersMapByTeam()
 	proLineupMap := GetProLineupsMap()
 	proShootoutLineupMap := GetProShootoutLineups()
@@ -139,6 +255,7 @@ func PrepareGames() []structs.GameDTO {
 			mutex.Unlock()
 
 			match := structs.GameDTO{
+				GameID:        g.ID,
 				GameInfo:      g.BaseGame,
 				HomeStrategy:  hp,
 				AwayStrategy:  ap,
@@ -239,6 +356,14 @@ func GetProfessionalGamesBySeasonID(seasonID string) []structs.ProfessionalGame 
 	return repository.FindProfessionalGames(seasonID, "")
 }
 
+func GetCollegeGameByID(id string) structs.CollegeGame {
+	return repository.FindCollegeGameRecord(id)
+}
+
+func GetProfessionalGameByID(id string) structs.ProfessionalGame {
+	return repository.FindProfessionalGameRecord(id)
+}
+
 func GetArenaMap() map[uint]structs.Arena {
 	arenas := repository.FindAllArenas()
 	return MakeArenaMap(arenas)
@@ -337,4 +462,8 @@ func generateProfessionalGame(hid, aid uint, teamMap map[uint]structs.Profession
 			ArenaID:    uint(teamMap[hid].ArenaID),
 		},
 	}
+}
+
+func GetPlayoffSeriesBySeriesID(seriesID string) structs.PlayoffSeries {
+	return repository.FindPlayoffSeriesByID(seriesID)
 }

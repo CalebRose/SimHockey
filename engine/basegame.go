@@ -11,6 +11,7 @@ func RunGames(games []structs.GameDTO) []GameState {
 	results := []GameState{}
 	fmt.Println("Running Games...")
 	for _, g := range games {
+		fmt.Println("Starting Game... " + g.GameInfo.HomeTeam + " vs. " + g.GameInfo.AwayTeam)
 		res := RunTheGame(g)
 		results = append(results, res)
 	}
@@ -93,12 +94,22 @@ func logGameResults(gs GameState) {
 func generateGameState(game structs.GameDTO) GameState {
 	gameInfo := game.GameInfo
 	gs := GameState{
-		HomeTeamID:         gameInfo.HomeTeamID,
-		HomeTeam:           gameInfo.HomeTeam,
-		HomeStrategy:       loadGamePlaybook(game.IsCollegeGame, game.HomeStrategy),
-		AwayTeamID:         gameInfo.AwayTeamID,
-		AwayTeam:           gameInfo.AwayTeam,
-		AwayStrategy:       loadGamePlaybook(game.IsCollegeGame, game.AwayStrategy),
+		GameID:       game.GameID,
+		WeekID:       game.GameInfo.WeekID,
+		HomeTeamID:   gameInfo.HomeTeamID,
+		HomeTeam:     gameInfo.HomeTeam,
+		HomeStrategy: loadGamePlaybook(game.IsCollegeGame, game.HomeStrategy, game.GameInfo.SeasonID),
+		HomeTeamStats: TeamStatDTO{
+			TeamID: game.GameInfo.HomeTeamID,
+			Team:   game.GameInfo.HomeTeam,
+		},
+		AwayTeamID:   gameInfo.AwayTeamID,
+		AwayTeam:     gameInfo.AwayTeam,
+		AwayStrategy: loadGamePlaybook(game.IsCollegeGame, game.AwayStrategy, game.GameInfo.SeasonID),
+		AwayTeamStats: TeamStatDTO{
+			TeamID: game.GameInfo.AwayTeamID,
+			Team:   game.GameInfo.AwayTeam,
+		},
 		Period:             0,
 		Momentum:           0,
 		FaceoffOnCenterIce: true,
@@ -117,8 +128,8 @@ func generateGameState(game structs.GameDTO) GameState {
 	return gs
 }
 
-func loadGamePlaybook(isCollegeGame bool, pb structs.PlayBookDTO) GamePlaybook {
-	gameRoster := LoadGameRoster(isCollegeGame, pb.CollegeRoster, pb.ProfessionalRoster)
+func loadGamePlaybook(isCollegeGame bool, pb structs.PlayBookDTO, seasonID uint) GamePlaybook {
+	gameRoster := LoadGameRoster(isCollegeGame, pb.CollegeRoster, pb.ProfessionalRoster, seasonID)
 	rosterMap := getGameRosterMap(gameRoster)
 	forwardLines, defenderLines, goalieLines, activeIDs := LoadAllLineStrategies(pb, gameRoster)
 	benchPlayers := LoadBenchPlayers(activeIDs, gameRoster)

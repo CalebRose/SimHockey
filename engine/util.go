@@ -29,7 +29,7 @@ func CalculateShot(shotModifier, momentumModifier, goaltendingModifier, goalieMo
 func CalculateAccuracy(accuracyModifier float64, isCloseShot bool) bool {
 	max := 20.0
 	min := 1.0
-	req := DiffReq
+	req := SlightlyDiffReq
 	if isCloseShot {
 		req = BaseReq
 	}
@@ -41,7 +41,7 @@ func CalculateAccuracy(accuracyModifier float64, isCloseShot bool) bool {
 func CalculateShotBlock(shotblockModifier float64) bool {
 	adjShotBlock := calculateModifier(shotblockModifier, ScaleFactor)
 	dr := util.GenerateFloatFromRange(1, 20)
-	return dr+adjShotBlock >= DiffReq
+	return dr+adjShotBlock >= ToughReq
 }
 
 func CalculateFaceoff(homeFaceoffMod, awayFaceoffMod float64) bool {
@@ -54,10 +54,14 @@ func CalculateFaceoff(homeFaceoffMod, awayFaceoffMod float64) bool {
 	return faceoffCheck <= homeFaceoffVal
 }
 
-func CalculateSafePass(passModifier, stickCheckModifier float64) bool {
+func CalculateSafePass(passModifier, stickCheckModifier float64, longPass bool) bool {
 	adjustedPassMod := calculateModifier(passModifier, ScaleFactor)
 	adjustedStickCheckMod := calculateModifier(stickCheckModifier, ScaleFactor)
-	return util.DiceRoll(adjustedPassMod-adjustedStickCheckMod, 6) // EasyReq
+	req := VeryEasyReq
+	if longPass {
+		req = EasyReq
+	}
+	return util.DiceRoll(adjustedPassMod-adjustedStickCheckMod, req)
 }
 
 func GetPuckLocationAfterMiss(possessingTeam, homeTeam uint) string {
@@ -307,6 +311,31 @@ func getNextZone(gs *GameState) string {
 		nextZone = HomeGoal
 	}
 	return nextZone
+}
+
+func getPreviousZone(gs *GameState) string {
+	currentZone := gs.PuckLocation
+	prevZone := NeutralZone
+	pb := gs.PuckCarrier
+	isHT := isHomeTeam(uint(pb.TeamID), gs.HomeTeamID)
+	if isHT && currentZone == AwayGoal {
+		prevZone = AwayZone
+	} else if isHT && currentZone == AwayZone {
+		prevZone = NeutralZone
+	} else if isHT && currentZone == NeutralZone {
+		prevZone = HomeZone
+	} else if isHT && currentZone == HomeZone {
+		prevZone = HomeGoal
+	} else if !isHT && currentZone == HomeGoal {
+		prevZone = HomeZone
+	} else if !isHT && currentZone == HomeZone {
+		prevZone = NeutralZone
+	} else if !isHT && currentZone == NeutralZone {
+		prevZone = AwayZone
+	} else if !isHT && currentZone == AwayZone {
+		prevZone = AwayGoal
+	}
+	return prevZone
 }
 
 // Define the calculateModifier function with logarithmic scaling

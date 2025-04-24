@@ -96,3 +96,8 @@ func GenerateCHLSchedule(w http.ResponseWriter, r *http.Request) {
 	managers.ImportCHLSchedule()
 	json.NewEncoder(w).Encode("Data Generated ran!")
 }
+
+func ShowGameResults(w http.ResponseWriter, r *http.Request) {
+	managers.ShowGames()
+	json.NewEncoder(w).Encode("Game results revealed!")
+}

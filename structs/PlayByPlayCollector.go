@@ -1,14 +1,16 @@
 package structs
 
+import "gorm.io/gorm"
+
 type PbPCollector struct {
-	PlayByPlays []PlayByPlay
+	PlayByPlays []PbP
 }
 
-func (c *PbPCollector) AppendPlay(play PlayByPlay) {
+func (c *PbPCollector) AppendPlay(play PbP) {
 	c.PlayByPlays = append(c.PlayByPlays, play)
 }
 
-type PlayByPlay struct {
+type PbP struct {
 	GameID            uint
 	Period            uint8
 	TimeOnClock       uint16
@@ -32,4 +34,14 @@ type PlayByPlay struct {
 	Severity          uint8
 	IsFight           bool
 	IsBreakaway       bool
+}
+
+type CollegePlayByPlay struct {
+	gorm.Model
+	PbP
+}
+
+type ProPlayByPlay struct {
+	gorm.Model
+	PbP
 }

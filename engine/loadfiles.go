@@ -51,47 +51,57 @@ func LoadLineStrategies(lines []structs.BaseLineup, rosterMap map[uint]*GamePlay
 	return lineStrategies, activeIDs
 }
 
-func LoadGameRoster(isCollegeGame bool, collegePlayers []structs.CollegePlayer, professionalPlayers []structs.ProfessionalPlayer) []*GamePlayer {
+func LoadGameRoster(isCollegeGame bool, collegePlayers []structs.CollegePlayer, professionalPlayers []structs.ProfessionalPlayer, seasonID uint) []*GamePlayer {
 	if isCollegeGame {
-		return LoadCollegeRoster(collegePlayers)
+		return LoadCollegeRoster(collegePlayers, seasonID)
 	}
-	return LoadProfessionalRoster(professionalPlayers)
+	return LoadProfessionalRoster(professionalPlayers, seasonID)
 }
 
-func LoadCollegeRoster(roster []structs.CollegePlayer) []*GamePlayer {
+func LoadCollegeRoster(roster []structs.CollegePlayer, seasonID uint) []*GamePlayer {
 	players := []*GamePlayer{}
 	for _, p := range roster {
-		gp := LoadCollegePlayer(p)
+		gp := LoadCollegePlayer(p, seasonID)
 		players = append(players, &gp)
 	}
 	return players
 }
 
-func LoadCollegePlayer(p structs.CollegePlayer) GamePlayer {
+func LoadCollegePlayer(p structs.CollegePlayer, seasonID uint) GamePlayer {
 	gamePlayer := GamePlayer{
 		ID:             p.ID,
 		BasePlayer:     p.BasePlayer,
 		CurrentStamina: int(p.Stamina),
+		Stats: PlayerStatsDTO{
+			PlayerID: p.ID,
+			TeamID:   uint(p.TeamID),
+			SeasonID: seasonID,
+		},
 	}
 	gamePlayer.CalculateModifiers()
 
 	return gamePlayer
 }
 
-func LoadProfessionalRoster(roster []structs.ProfessionalPlayer) []*GamePlayer {
+func LoadProfessionalRoster(roster []structs.ProfessionalPlayer, seasonID uint) []*GamePlayer {
 	players := []*GamePlayer{}
 	for _, p := range roster {
-		gp := LoadProfessionalPlayer(p)
+		gp := LoadProfessionalPlayer(p, seasonID)
 		players = append(players, &gp)
 	}
 	return players
 }
 
-func LoadProfessionalPlayer(p structs.ProfessionalPlayer) GamePlayer {
+func LoadProfessionalPlayer(p structs.ProfessionalPlayer, seasonID uint) GamePlayer {
 	gamePlayer := GamePlayer{
 		ID:             p.ID,
 		BasePlayer:     p.BasePlayer,
 		CurrentStamina: int(p.Stamina),
+		Stats: PlayerStatsDTO{
+			PlayerID: p.ID,
+			TeamID:   uint(p.TeamID),
+			SeasonID: seasonID,
+		},
 	}
 	gamePlayer.CalculateModifiers()
 

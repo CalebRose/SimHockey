@@ -15,6 +15,9 @@ type BootstrapData struct {
 	AllCollegeGames           []CollegeGame
 	CollegeTeamLineups        []CollegeLineup
 	CollegeTeamShootoutLineup CollegeShootoutLineup
+	TopCHLGoals               []CollegePlayer
+	TopCHLAssists             []CollegePlayer
+	TopCHLSaves               []CollegePlayer
 	// Player Profiles by Team?
 	// Portal profiles?
 	ProTeam               ProfessionalTeam
@@ -22,6 +25,9 @@ type BootstrapData struct {
 	ProStandings          []ProfessionalStandings
 	ProRosterMap          map[uint][]ProfessionalPlayer
 	AffiliatePlayers      []ProfessionalPlayer
+	TopPHLGoals           []ProfessionalPlayer
+	TopPHLAssists         []ProfessionalPlayer
+	TopPHLSaves           []ProfessionalPlayer
 	FreeAgentOffers       []FreeAgencyOffer
 	WaiverWireOffers      []WaiverOffer
 	CapsheetMap           map[uint]ProCapsheet

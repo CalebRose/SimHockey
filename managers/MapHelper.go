@@ -230,3 +230,61 @@ func MakeExtensionMap(extensions []structs.ExtensionOffer) map[uint]structs.Exte
 
 	return contractMap
 }
+
+func MakeCollegeGameMap(players []structs.CollegeGame) map[uint]structs.CollegeGame {
+	gameMap := make(map[uint]structs.CollegeGame)
+
+	for _, p := range players {
+		gameMap[p.ID] = p
+	}
+
+	return gameMap
+}
+
+func MakeProGameMap(players []structs.ProfessionalGame) map[uint]structs.ProfessionalGame {
+	gameMap := make(map[uint]structs.ProfessionalGame)
+
+	for _, p := range players {
+		gameMap[p.ID] = p
+	}
+
+	return gameMap
+}
+
+func MakeCollegePlayerSeasonStatMap(stats []structs.CollegePlayerSeasonStats) map[uint]structs.CollegePlayerSeasonStats {
+	seasonStatMap := make(map[uint]structs.CollegePlayerSeasonStats)
+	for _, stat := range stats {
+		seasonStatMap[stat.PlayerID] = stat
+	}
+
+	return seasonStatMap
+}
+
+func MakeProPlayerSeasonStatMap(stats []structs.ProfessionalPlayerSeasonStats) map[uint]structs.ProfessionalPlayerSeasonStats {
+	seasonStatMap := make(map[uint]structs.ProfessionalPlayerSeasonStats)
+
+	for _, stat := range stats {
+		seasonStatMap[stat.PlayerID] = stat
+	}
+
+	return seasonStatMap
+}
+
+func MakeCollegeTeamSeasonStatMap(stats []structs.CollegeTeamSeasonStats) map[uint]structs.CollegeTeamSeasonStats {
+	seasonStatMap := make(map[uint]structs.CollegeTeamSeasonStats)
+	for _, stat := range stats {
+		seasonStatMap[stat.TeamID] = stat
+	}
+
+	return seasonStatMap
+}
+
+func MakeProTeamSeasonStatMap(stats []structs.ProfessionalTeamSeasonStats) map[uint]structs.ProfessionalTeamSeasonStats {
+	seasonStatMap := make(map[uint]structs.ProfessionalTeamSeasonStats)
+
+	for _, stat := range stats {
+		seasonStatMap[stat.TeamID] = stat
+	}
+
+	return seasonStatMap
+}

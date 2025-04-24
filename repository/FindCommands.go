@@ -221,68 +221,6 @@ func FindProShootoutLineupByTeamID(TeamID string) structs.ProfessionalShootoutLi
 	return lineups
 }
 
-func FindCollegeGamesByCurrentMatchup(weekID, seasonID, gameDay string) []structs.CollegeGame {
-	db := dbprovider.GetInstance().GetDB()
-
-	var games []structs.CollegeGame
-	err := db.Where("week_id = ? AND season_id = ? AND game_day = ?", weekID, seasonID, gameDay).Find(&games).Error
-	if err != nil {
-		log.Printf("Error querying for college games: %v", err)
-
-	}
-
-	return games
-}
-
-func FindProfessionalGamesByCurrentMatchup(weekID, seasonID, gameDay string) []structs.ProfessionalGame {
-	db := dbprovider.GetInstance().GetDB()
-
-	var games []structs.ProfessionalGame
-	err := db.Where("week_id = ? AND season_id = ? AND game_day = ?", weekID, seasonID, gameDay).Find(&games).Error
-	if err != nil {
-		log.Printf("Error querying for professional games: %v", err)
-
-	}
-
-	return games
-}
-
-func FindCollegeGames(seasonID, teamID string) []structs.CollegeGame {
-	db := dbprovider.GetInstance().GetDB()
-
-	var games []structs.CollegeGame
-
-	query := db.Model(&games)
-	if len(seasonID) > 0 {
-		query = query.Where("season_id = ?", seasonID)
-	}
-	if len(teamID) > 0 {
-		query = query.Where("home_team_id = ? OR away_team_id = ?", teamID, teamID)
-	}
-	if err := query.Order("week_id asc").Find(&games).Error; err != nil {
-		return []structs.CollegeGame{}
-	}
-
-	return games
-}
-
-func FindProfessionalGames(seasonID, teamID string) []structs.ProfessionalGame {
-	db := dbprovider.GetInstance().GetDB()
-
-	var games []structs.ProfessionalGame
-	query := db.Model(&games)
-	if len(seasonID) > 0 {
-		query = query.Where("season_id = ?", seasonID)
-	}
-	if len(teamID) > 0 {
-		query = query.Where("home_team_id = ? OR away_team_id = ?", teamID, teamID)
-	}
-	if err := query.Order("week_id asc").Find(&games).Error; err != nil {
-		return []structs.ProfessionalGame{}
-	}
-	return games
-}
-
 func FindAllArenas() []structs.Arena {
 	var arenas []structs.Arena
 	db := dbprovider.GetInstance().GetDB()

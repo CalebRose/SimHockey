@@ -46,7 +46,10 @@ func (t *Timestamp) GetGameDay() string {
 	if !t.GamesBRan {
 		return "B"
 	}
-	return "C"
+	if !t.GamesCRan {
+		return "C"
+	}
+	return "D"
 }
 
 func (t *Timestamp) MoveUpWeek() {
@@ -112,6 +115,18 @@ func (t *Timestamp) SyncToNextWeek() {
 
 func (t *Timestamp) ToggleTimeSlot(ts string) {
 
+}
+
+func (t *Timestamp) ToggleGames(matchType string) {
+	if matchType == "A" {
+		t.GamesARan = true
+	} else if matchType == "B" {
+		t.GamesBRan = true
+	} else if matchType == "C" {
+		t.GamesCRan = true
+	} else if matchType == "D" {
+		t.GamesDRan = true
+	}
 }
 
 func (t *Timestamp) ToggleRunGames() {

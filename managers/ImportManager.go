@@ -1,14 +1,11 @@
 package managers
 
 import (
-	"errors"
 	"fmt"
 	"log"
-	"math"
 	"math/rand"
 	"os"
 	"path/filepath"
-	"strconv"
 	"time"
 
 	util "github.com/CalebRose/SimHockey/_util"
@@ -633,6 +630,11 @@ type ScheduledGame struct {
 	Slot  string // "A", "B", or "C"
 }
 
+func (sg *ScheduledGame) ApplyRoundAndSlot(round int, slot string) {
+	sg.Round = round
+	sg.Slot = slot
+}
+
 func ImportPHLSeasonSchedule() {
 	db := dbprovider.GetInstance().GetDB()
 	ts := repository.FindTimestamp()
@@ -755,9 +757,7 @@ func GenerateSeasonSchedule(
 		}
 
 		for _, g := range roundGames {
-			g.Round = roundNum
-			g.Week = week
-			g.Slot = slot
+			g.ApplyRoundAndSlot(week, slot)
 			final = append(final, g)
 		}
 	}
@@ -833,166 +833,6 @@ func greedyPartition(
 		)
 	}
 	return rounds, nil
-}
-
-func partitionIntoRounds(
-	rng *rand.Rand,
-	games []ScheduledGame,
-	totalRounds int,
-	teamIDs []uint,
-	maxAttempts int,
-) ([][]ScheduledGame, error) {
-	count := 0
-	for attempt := 1; attempt <= maxAttempts; attempt++ {
-		// shuffle on each attempt
-
-		shuffled := append([]ScheduledGame(nil), games...)
-		rng.Shuffle(len(shuffled), func(i, j int) {
-			shuffled[i], shuffled[j] = shuffled[j], shuffled[i]
-		})
-
-		var rounds [][]ScheduledGame
-		if fillRounds(1, totalRounds, shuffled, &rounds, teamIDs) {
-			return rounds, nil
-		}
-		count = attempt
-	}
-	return nil, errors.New("failed to partition into rounds after " + strconv.Itoa(int(count)) + "  attempts")
-}
-
-func fillRounds(
-	current, total int,
-	remaining []ScheduledGame,
-	rounds *[][]ScheduledGame,
-	teamsLeft []uint,
-) bool {
-	if current > total {
-		return true
-	}
-	matching := findPerfectMatching(remaining, teamsLeft)
-	if matching == nil {
-		return false
-	}
-	// remove matching from remaining
-	rem := removeGames(remaining, matching)
-	*rounds = append(*rounds, matching)
-
-	if fillRounds(current+1, total, rem, rounds, teamsLeft) {
-		return true
-	}
-	// backtrack
-	*rounds = (*rounds)[:len(*rounds)-1]
-	return false
-}
-
-// Find a perfect matching (set of 12 non-conflicting games covering all teams).
-// teamsLeft is an array of team codes that still need a game in this round.
-func findPerfectMatching(
-	remaining []ScheduledGame,
-	teamsLeft []uint,
-) []ScheduledGame {
-	if len(teamsLeft) == 0 {
-		return []ScheduledGame{}
-	}
-	chosen := teamsLeft[0]
-	fewest := math.MaxInt
-	for _, team := range teamsLeft {
-		count := 0
-		for _, g := range remaining {
-			if g.HomeTeamID == team || g.AwayTeamID == team {
-				count++
-			}
-		}
-		if count < fewest {
-			fewest = count
-			chosen = team
-		}
-	}
-	// collect games involving `first`
-	var candidates []ScheduledGame
-	for _, g := range remaining {
-		if g.HomeTeamID == chosen || g.AwayTeamID == chosen {
-			candidates = append(candidates, g)
-		}
-	}
-
-	for _, g := range candidates {
-		var opp uint
-		if g.HomeTeamID == chosen {
-			opp = g.AwayTeamID
-		} else {
-			opp = g.HomeTeamID
-		}
-		if !containsID(teamsLeft, opp) {
-			continue
-		}
-		nextTeams := removeTwoIDs(teamsLeft, chosen, opp)
-		// remove g from remaining
-		idx := indexOfGame(remaining, g)
-		nextRem := make([]ScheduledGame, 0, len(remaining)-1)
-		for i, gg := range remaining {
-			if i != idx {
-				nextRem = append(nextRem, gg)
-			}
-		}
-
-		rest := findPerfectMatching(nextRem, nextTeams)
-		if rest != nil {
-			return append([]ScheduledGame{g}, rest...)
-		}
-	}
-	return nil
-}
-
-func removeGames(
-	games, toRemove []ScheduledGame,
-) []ScheduledGame {
-	out := make([]ScheduledGame, 0, len(games))
-	for _, g := range games {
-		if !gameInList(g, toRemove) {
-			out = append(out, g)
-		}
-	}
-	return out
-}
-
-// --- Helpers ---
-func containsID(arr []uint, id uint) bool {
-	for _, x := range arr {
-		if x == id {
-			return true
-		}
-	}
-	return false
-}
-
-func removeTwoIDs(arr []uint, a, b uint) []uint {
-	out := arr[:0]
-	for _, x := range arr {
-		if x == a || x == b {
-			continue
-		}
-		out = append(out, x)
-	}
-	return out
-}
-
-func indexOfGame(slice []ScheduledGame, g ScheduledGame) int {
-	for i, x := range slice {
-		if x == g { // shallow compare works since we only care pointers & IDs
-			return i
-		}
-	}
-	return -1
-}
-
-func gameInList(g ScheduledGame, list []ScheduledGame) bool {
-	for _, x := range list {
-		if x == g {
-			return true
-		}
-	}
-	return false
 }
 
 func generateProGameRecord(teamA structs.ProfessionalTeam, teamB structs.ProfessionalTeam, seasonID uint) structs.ProfessionalGame {

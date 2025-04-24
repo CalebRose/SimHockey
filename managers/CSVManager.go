@@ -13,7 +13,7 @@ import (
 	"github.com/CalebRose/SimHockey/structs"
 )
 
-func WritePlayByPlayCSVFile(playByPlays []structs.PlayByPlay, filename string, collegePlayerMap map[uint]structs.CollegePlayer, collegeTeamMap map[uint]structs.CollegeTeam) error {
+func WritePlayByPlayCSVFile(playByPlays []structs.PbP, filename string, collegePlayerMap map[uint]structs.CollegePlayer, collegeTeamMap map[uint]structs.CollegeTeam) error {
 	file, err := os.Create(filename)
 	if err != nil {
 		return fmt.Errorf("failed to create file %s: %v", filename, err)
@@ -64,7 +64,7 @@ func WritePlayByPlayCSVFile(playByPlays []structs.PlayByPlay, filename string, c
 	return err
 }
 
-func WriteProPlayByPlayCSVFile(playByPlays []structs.PlayByPlay, filename string, playerMap map[uint]structs.ProfessionalPlayer, collegeTeamMap map[uint]structs.ProfessionalTeam) error {
+func WriteProPlayByPlayCSVFile(playByPlays []structs.PbP, filename string, playerMap map[uint]structs.ProfessionalPlayer, collegeTeamMap map[uint]structs.ProfessionalTeam) error {
 	file, err := os.Create(filename)
 	if err != nil {
 		return fmt.Errorf("failed to create file %s: %v", filename, err)
@@ -193,7 +193,7 @@ func FormatTimeToClock(timeInSeconds uint16) string {
 	return formatted
 }
 
-func generateCollegeResultsString(play structs.PlayByPlay, event, outcome string, playerMap map[uint]structs.CollegePlayer, possessingTeam structs.CollegeTeam) string {
+func generateCollegeResultsString(play structs.PbP, event, outcome string, playerMap map[uint]structs.CollegePlayer, possessingTeam structs.CollegeTeam) string {
 	puckCarrier := playerMap[play.PuckCarrierID]
 	puckCarrierLabel := getPlayerLabel(puckCarrier.BasePlayer)
 	receivingPlayer := playerMap[play.PassedPlayerID]
@@ -289,7 +289,7 @@ func generateCollegeResultsString(play structs.PlayByPlay, event, outcome string
 	return statement
 }
 
-func generateProResultsString(play structs.PlayByPlay, event, outcome string, playerMap map[uint]structs.ProfessionalPlayer, possessingTeam structs.ProfessionalTeam) string {
+func generateProResultsString(play structs.PbP, event, outcome string, playerMap map[uint]structs.ProfessionalPlayer, possessingTeam structs.ProfessionalTeam) string {
 	puckCarrier := playerMap[play.PuckCarrierID]
 	puckCarrierLabel := getPlayerLabel(puckCarrier.BasePlayer)
 	receivingPlayer := playerMap[play.PassedPlayerID]

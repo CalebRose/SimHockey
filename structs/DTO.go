@@ -1,6 +1,7 @@
 package structs
 
 type GameDTO struct {
+	GameID        uint
 	GameInfo      BaseGame
 	HomeStrategy  PlayBookDTO
 	AwayStrategy  PlayBookDTO

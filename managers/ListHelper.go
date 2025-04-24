@@ -1,6 +1,10 @@
 package managers
 
-import "github.com/CalebRose/SimHockey/structs"
+import (
+	"sort"
+
+	"github.com/CalebRose/SimHockey/structs"
+)
 
 func MakeCollegeInjuryList(players []structs.CollegePlayer) []structs.CollegePlayer {
 	injuryList := []structs.CollegePlayer{}
@@ -44,4 +48,90 @@ func MakeProAffiliateList(players []structs.ProfessionalPlayer) []structs.Profes
 		}
 	}
 	return playerList
+}
+
+func GetCollegeOrderedListByStatType(statType string, teamID uint, CollegeStats []structs.CollegePlayerSeasonStats, collegePlayerMap map[uint]structs.CollegePlayer) []structs.CollegePlayer {
+	orderedStats := CollegeStats
+	resultList := []structs.CollegePlayer{}
+	if statType == "GOALS" {
+		sort.Slice(orderedStats[:], func(i, j int) bool {
+			return orderedStats[i].Goals > orderedStats[j].Goals
+		})
+	} else if statType == "ASSISTS" {
+		sort.Slice(orderedStats[:], func(i, j int) bool {
+			return orderedStats[i].Assists > orderedStats[j].Assists
+		})
+	} else if statType == "SAVES" {
+		sort.Slice(orderedStats[:], func(i, j int) bool {
+			return orderedStats[i].Saves > orderedStats[j].Saves
+		})
+	}
+
+	teamLeaderInTopStats := false
+	for idx, stat := range orderedStats {
+		if idx > 4 {
+			break
+		}
+		player := collegePlayerMap[stat.PlayerID]
+		if stat.TeamID == teamID {
+			teamLeaderInTopStats = true
+		}
+		player.AddSeasonStats(stat)
+		resultList = append(resultList, player)
+	}
+
+	if !teamLeaderInTopStats {
+		for _, stat := range orderedStats {
+			if stat.TeamID == teamID {
+				player := collegePlayerMap[stat.PlayerID]
+				player.AddSeasonStats(stat)
+				resultList = append(resultList, player)
+				break
+			}
+		}
+	}
+	return resultList
+}
+
+func GetProOrderedListByStatType(statType string, teamID uint, CollegeStats []structs.ProfessionalPlayerSeasonStats, proPlayerMap map[uint]structs.ProfessionalPlayer) []structs.ProfessionalPlayer {
+	orderedStats := CollegeStats
+	resultList := []structs.ProfessionalPlayer{}
+	if statType == "GOALS" {
+		sort.Slice(orderedStats[:], func(i, j int) bool {
+			return orderedStats[i].Goals > orderedStats[j].Goals
+		})
+	} else if statType == "ASSISTS" {
+		sort.Slice(orderedStats[:], func(i, j int) bool {
+			return orderedStats[i].Assists > orderedStats[j].Assists
+		})
+	} else if statType == "SAVES" {
+		sort.Slice(orderedStats[:], func(i, j int) bool {
+			return orderedStats[i].Saves > orderedStats[j].Saves
+		})
+	}
+
+	teamLeaderInTopStats := false
+	for idx, stat := range orderedStats {
+		if idx > 4 {
+			break
+		}
+		player := proPlayerMap[stat.PlayerID]
+		if stat.TeamID == teamID {
+			teamLeaderInTopStats = true
+		}
+		player.AddSeasonStats(stat)
+		resultList = append(resultList, player)
+	}
+
+	if !teamLeaderInTopStats {
+		for _, stat := range orderedStats {
+			if stat.TeamID == teamID {
+				player := proPlayerMap[stat.PlayerID]
+				player.AddSeasonStats(stat)
+				resultList = append(resultList, player)
+				break
+			}
+		}
+	}
+	return resultList
 }

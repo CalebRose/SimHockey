@@ -22,6 +22,9 @@ func GetBootstrapData(collegeID, proID string) structs.BootstrapData {
 		recruitProfiles       []structs.RecruitPlayerProfile
 		portalPlayers         []structs.CollegePlayer
 		injuredCollegePlayers []structs.CollegePlayer
+		chlGoals              []structs.CollegePlayer
+		chlAssists            []structs.CollegePlayer
+		chlSaves              []structs.CollegePlayer
 		collegeNews           []structs.NewsLog
 		collegeNotifications  []structs.Notification
 		collegeGames          []structs.CollegeGame
@@ -40,6 +43,9 @@ func GetBootstrapData(collegeID, proID string) structs.BootstrapData {
 		capsheetMap       map[uint]structs.ProCapsheet
 		injuredProPlayers []structs.ProfessionalPlayer
 		affiliatePlayers  []structs.ProfessionalPlayer
+		phlGoals          []structs.ProfessionalPlayer
+		phlAssists        []structs.ProfessionalPlayer
+		phlSaves          []structs.ProfessionalPlayer
 		freeAgentOffers   []structs.FreeAgencyOffer
 		waiverWireOffers  []structs.WaiverOffer
 		proNews           []structs.NewsLog
@@ -78,8 +84,13 @@ func GetBootstrapData(collegeID, proID string) structs.BootstrapData {
 		go func() {
 			defer wg.Done()
 			collegePlayers := GetAllCollegePlayers()
+			chlStats := GetCollegePlayerSeasonStatsBySeason(seasonID)
 			mu.Lock()
 			collegePlayerMap = MakeCollegePlayerMapByTeamID(collegePlayers)
+			collegePlayerIndvMap := MakeCollegePlayerMap(collegePlayers)
+			chlGoals = GetCollegeOrderedListByStatType("GOALS", collegeTeam.ID, chlStats, collegePlayerIndvMap)
+			chlAssists = GetCollegeOrderedListByStatType("ASSISTS", collegeTeam.ID, chlStats, collegePlayerIndvMap)
+			chlSaves = GetCollegeOrderedListByStatType("SAVES", collegeTeam.ID, chlStats, collegePlayerIndvMap)
 			injuredCollegePlayers = MakeCollegeInjuryList(collegePlayers)
 			portalPlayers = MakeCollegePortalList(collegePlayers)
 			mu.Unlock()
@@ -119,6 +130,7 @@ func GetBootstrapData(collegeID, proID string) structs.BootstrapData {
 			collegeShootoutLineup = GetCollegeShootoutLineupByTeamID(collegeID)
 		}()
 		wg.Wait()
+
 	}
 
 	// Pros
@@ -131,8 +143,13 @@ func GetBootstrapData(collegeID, proID string) structs.BootstrapData {
 		go func() {
 			defer wg.Done()
 			proPlayers := GetAllProPlayers()
+			phlStats := GetProPlayerSeasonStatsBySeason(seasonID)
 			mu.Lock()
 			proRosterMap = MakeProfessionalPlayerMapByTeamID(proPlayers)
+			proPlayerMap := MakeProfessionalPlayerMap(proPlayers)
+			phlGoals = GetProOrderedListByStatType("GOALS", proTeam.ID, phlStats, proPlayerMap)
+			phlAssists = GetProOrderedListByStatType("ASSISTS", proTeam.ID, phlStats, proPlayerMap)
+			phlSaves = GetProOrderedListByStatType("SAVES", proTeam.ID, phlStats, proPlayerMap)
 			affiliatePlayers = MakeProAffiliateList(proPlayers)
 			injuredProPlayers = MakeProInjuryList(proPlayers)
 			mu.Unlock()
@@ -230,5 +247,11 @@ func GetBootstrapData(collegeID, proID string) structs.BootstrapData {
 		FaceData:                  faceDataMap,
 		ContractMap:               contractMap,
 		ExtensionMap:              extensionMap,
+		TopCHLGoals:               chlGoals,
+		TopCHLAssists:             chlAssists,
+		TopCHLSaves:               chlSaves,
+		TopPHLGoals:               phlGoals,
+		TopPHLAssists:             phlAssists,
+		TopPHLSaves:               phlSaves,
 	}
 }

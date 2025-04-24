@@ -600,9 +600,13 @@ type CollegePlayer struct {
 	DraftedRound       uint
 	DraftPickID        uint
 	DraftedPick        uint
-	Stats              []CollegePlayerGameStats `gorm:"foreignKey:PlayerID"`
-	SeasonStats        CollegePlayerSeasonStats `gorm:"foreignKey:PlayerID"`
+	Stats              []CollegePlayerGameStats `gorm:"foreignKey:PlayerID;references:ID"`
+	SeasonStats        CollegePlayerSeasonStats `gorm:"foreignKey:PlayerID;references:ID"`
 	Profiles           []TransferPortalProfile  `gorm:"foreignKey:CollegePlayerID"`
+}
+
+func (cp *CollegePlayer) AddSeasonStats(seasonStats CollegePlayerSeasonStats) {
+	cp.SeasonStats = seasonStats
 }
 
 func (cp *CollegePlayer) ProgressPlayer(progressions BasePlayerProgressions) {
@@ -682,12 +686,16 @@ type ProfessionalPlayer struct {
 	CompetitivePreference uint8
 	FinancialPreference   uint8
 	IsEligibleForPlay     bool
-	Stats                 []ProfessionalPlayerGameStats   `gorm:"foreignKey:PlayerID"`
-	SeasonStats           []ProfessionalPlayerSeasonStats `gorm:"foreignKey:PlayerID"`
-	Contract              ProContract                     `gorm:"foreignKey:PlayerID"`
-	Offers                []FreeAgencyOffer               `gorm:"foreignKey:PlayerID"`
-	WaiverOffer           []WaiverOffer                   `gorm:"foreignKey:PlayerID"`
-	Extensions            []ExtensionOffer                `gorm:"foreignKey:PlayerID"`
+	Stats                 []ProfessionalPlayerGameStats `gorm:"foreignKey:PlayerID;references:ID"`
+	SeasonStats           ProfessionalPlayerSeasonStats `gorm:"foreignKey:PlayerID;references:ID"`
+	Contract              ProContract                   `gorm:"foreignKey:PlayerID"`
+	Offers                []FreeAgencyOffer             `gorm:"foreignKey:PlayerID"`
+	WaiverOffer           []WaiverOffer                 `gorm:"foreignKey:PlayerID"`
+	Extensions            []ExtensionOffer              `gorm:"foreignKey:PlayerID"`
+}
+
+func (cp *ProfessionalPlayer) AddSeasonStats(seasonStats ProfessionalPlayerSeasonStats) {
+	cp.SeasonStats = seasonStats
 }
 
 func (cp *ProfessionalPlayer) ProgressPlayer(progressions BasePlayerProgressions) {
