@@ -11,6 +11,7 @@ import (
 func CreateTSModelsFile(w http.ResponseWriter, r *http.Request) {
 	converter := typescriptify.New().
 		Add(structs.BasePlayer{}).
+		Add(structs.SearchStatsResponse{}).
 		Add(structs.PlayerPreferences{}).
 		Add(structs.BasePlayerProgressions{}).
 		Add(structs.BasePotentials{}).
