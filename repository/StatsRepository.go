@@ -117,6 +117,26 @@ func FindProPlayerSeasonStatsRecords(SeasonID string) []structs.ProfessionalPlay
 	return playerStats
 }
 
+func FindCollegePlayerGameStatsRecords(SeasonID string) []structs.CollegePlayerGameStats {
+	db := dbprovider.GetInstance().GetDB()
+
+	var playerStats []structs.CollegePlayerGameStats
+
+	db.Where("season_id = ?", SeasonID).Find(&playerStats)
+
+	return playerStats
+}
+
+func FindProPlayerGameStatsRecords(SeasonID string) []structs.ProfessionalPlayerGameStats {
+	db := dbprovider.GetInstance().GetDB()
+
+	var playerStats []structs.ProfessionalPlayerGameStats
+
+	db.Where("season_id = ?", SeasonID).Find(&playerStats)
+
+	return playerStats
+}
+
 func FindCollegeTeamSeasonStatsRecords(SeasonID string) []structs.CollegeTeamSeasonStats {
 	db := dbprovider.GetInstance().GetDB()
 
@@ -131,6 +151,26 @@ func FindProTeamSeasonStatsRecords(SeasonID string) []structs.ProfessionalTeamSe
 	db := dbprovider.GetInstance().GetDB()
 
 	var teamStats []structs.ProfessionalTeamSeasonStats
+
+	db.Where("season_id = ?", SeasonID).Find(&teamStats)
+
+	return teamStats
+}
+
+func FindCollegeTeamGameStatsRecords(SeasonID string) []structs.CollegeTeamGameStats {
+	db := dbprovider.GetInstance().GetDB()
+
+	var teamStats []structs.CollegeTeamGameStats
+
+	db.Where("season_id = ?", SeasonID).Find(&teamStats)
+
+	return teamStats
+}
+
+func FindProTeamGameStatsRecords(SeasonID string) []structs.ProfessionalTeamGameStats {
+	db := dbprovider.GetInstance().GetDB()
+
+	var teamStats []structs.ProfessionalTeamGameStats
 
 	db.Where("season_id = ?", SeasonID).Find(&teamStats)
 

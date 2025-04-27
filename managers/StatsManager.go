@@ -123,6 +123,114 @@ func UpdateSeasonStats(ts structs.Timestamp, gameDay string) {
 	}
 }
 
+func SearchCollegeStats(seasonID, weekID, viewType, gameType string) structs.SearchStatsResponse {
+	var (
+		playerGameStats   []structs.CollegePlayerGameStats
+		playerSeasonStats []structs.CollegePlayerSeasonStats
+		teamGameStats     []structs.CollegeTeamGameStats
+		teamSeasonStats   []structs.CollegeTeamSeasonStats
+	)
+
+	// Fetch week stats by season... will save time for the player
+	if viewType == "WEEK" {
+		playerGameStatsChan := make(chan []structs.CollegePlayerGameStats)
+		teamGameStatsChan := make(chan []structs.CollegeTeamGameStats)
+		go func() {
+			pGameStats := GetCollegePlayerGameStatsBySeason(seasonID)
+			playerGameStatsChan <- pGameStats
+		}()
+
+		playerGameStats = <-playerGameStatsChan
+		close(playerGameStatsChan)
+
+		go func() {
+			tGameStats := GetCollegeTeamGameStatsBySeason(seasonID)
+			teamGameStatsChan <- tGameStats
+		}()
+		teamGameStats = <-teamGameStatsChan
+		close(teamGameStatsChan)
+	} else {
+		playerSeasonStatsChan := make(chan []structs.CollegePlayerSeasonStats)
+		teamSeasonStatsChan := make(chan []structs.CollegeTeamSeasonStats)
+
+		go func() {
+			pSeasonStats := GetCollegePlayerSeasonStatsBySeason(seasonID)
+			playerSeasonStatsChan <- pSeasonStats
+		}()
+
+		playerSeasonStats = <-playerSeasonStatsChan
+		close(playerSeasonStatsChan)
+
+		go func() {
+			tSeasonStats := GetCollegeTeamSeasonStatsBySeason(seasonID)
+			teamSeasonStatsChan <- tSeasonStats
+		}()
+		teamSeasonStats = <-teamSeasonStatsChan
+		close(teamSeasonStatsChan)
+	}
+
+	return structs.SearchStatsResponse{
+		CHLPlayerGameStats:   playerGameStats,
+		CHLPlayerSeasonStats: playerSeasonStats,
+		CHLTeamGameStats:     teamGameStats,
+		CHLTeamSeasonStats:   teamSeasonStats,
+	}
+}
+
+func SearchProStats(seasonID, weekID, viewType, gameType string) structs.SearchStatsResponse {
+	var (
+		playerGameStats   []structs.ProfessionalPlayerGameStats
+		playerSeasonStats []structs.ProfessionalPlayerSeasonStats
+		teamGameStats     []structs.ProfessionalTeamGameStats
+		teamSeasonStats   []structs.ProfessionalTeamSeasonStats
+	)
+
+	// Fetch week stats by season... will save time for the player
+	if viewType == "WEEK" {
+		playerGameStatsChan := make(chan []structs.ProfessionalPlayerGameStats)
+		teamGameStatsChan := make(chan []structs.ProfessionalTeamGameStats)
+		go func() {
+			pGameStats := GetProPlayerGameStatsBySeason(seasonID)
+			playerGameStatsChan <- pGameStats
+		}()
+
+		playerGameStats = <-playerGameStatsChan
+		close(playerGameStatsChan)
+
+		go func() {
+			tGameStats := GetProTeamGameStatsBySeason(seasonID)
+			teamGameStatsChan <- tGameStats
+		}()
+		teamGameStats = <-teamGameStatsChan
+		close(teamGameStatsChan)
+	} else {
+		playerSeasonStatsChan := make(chan []structs.ProfessionalPlayerSeasonStats)
+		teamSeasonStatsChan := make(chan []structs.ProfessionalTeamSeasonStats)
+
+		go func() {
+			pSeasonStats := GetProPlayerSeasonStatsBySeason(seasonID)
+			playerSeasonStatsChan <- pSeasonStats
+		}()
+
+		playerSeasonStats = <-playerSeasonStatsChan
+		close(playerSeasonStatsChan)
+
+		go func() {
+			tSeasonStats := GetProTeamSeasonStatsBySeason(seasonID)
+			teamSeasonStatsChan <- tSeasonStats
+		}()
+		teamSeasonStats = <-teamSeasonStatsChan
+		close(teamSeasonStatsChan)
+	}
+
+	return structs.SearchStatsResponse{
+		PHLPlayerGameStats:   playerGameStats,
+		PHLPlayerSeasonStats: playerSeasonStats,
+		PHLTeamGameStats:     teamGameStats,
+		PHLTeamSeasonStats:   teamSeasonStats,
+	}
+}
+
 func GetCollegePlayerSeasonStatMap(seasonID string) map[uint]structs.CollegePlayerSeasonStats {
 	seasonStats := GetCollegePlayerSeasonStatsBySeason(seasonID)
 	return MakeCollegePlayerSeasonStatMap(seasonStats)
@@ -141,6 +249,14 @@ func GetProPlayerSeasonStatsBySeason(SeasonID string) []structs.ProfessionalPlay
 	return repository.FindProPlayerSeasonStatsRecords(SeasonID)
 }
 
+func GetCollegePlayerGameStatsBySeason(SeasonID string) []structs.CollegePlayerGameStats {
+	return repository.FindCollegePlayerGameStatsRecords(SeasonID)
+}
+
+func GetProPlayerGameStatsBySeason(SeasonID string) []structs.ProfessionalPlayerGameStats {
+	return repository.FindProPlayerGameStatsRecords(SeasonID)
+}
+
 func GetCollegeTeamSeasonStatMap(seasonID string) map[uint]structs.CollegeTeamSeasonStats {
 	seasonStats := GetCollegeTeamSeasonStatsBySeason(seasonID)
 	return MakeCollegeTeamSeasonStatMap(seasonStats)
@@ -157,6 +273,14 @@ func GetCollegeTeamSeasonStatsBySeason(SeasonID string) []structs.CollegeTeamSea
 
 func GetProTeamSeasonStatsBySeason(SeasonID string) []structs.ProfessionalTeamSeasonStats {
 	return repository.FindProTeamSeasonStatsRecords(SeasonID)
+}
+
+func GetCollegeTeamGameStatsBySeason(SeasonID string) []structs.CollegeTeamGameStats {
+	return repository.FindCollegeTeamGameStatsRecords(SeasonID)
+}
+
+func GetProTeamGameStatsBySeason(SeasonID string) []structs.ProfessionalTeamGameStats {
+	return repository.FindProTeamGameStatsRecords(SeasonID)
 }
 
 func makeCollegePlayerStatsObject(weekID, gameID uint, s engine.PlayerStatsDTO) structs.CollegePlayerGameStats {

@@ -90,6 +90,8 @@ func handleRequests() http.Handler {
 	// Exports
 	apiRouter.HandleFunc("/export/pro/players/all", controllers.ExportAllProPlayers).Methods("GET")
 	apiRouter.HandleFunc("/export/college/players/all", controllers.ExportAllCollegePlayers).Methods("GET")
+	apiRouter.HandleFunc("/export/stats/chl/{seasonID}/{weekID}/{viewType}/{gameType}", controllers.ExportCHLStatsPageContentForSeason).Methods("GET")
+	apiRouter.HandleFunc("/export/stats/phl/{seasonID}/{weekID}/{viewType}/{gameType}", controllers.ExportProStatsPageContent).Methods("GET")
 
 	// Free Agency
 	apiRouter.HandleFunc("/phl/freeagency/create/offer", controllers.CreateFreeAgencyOffer).Methods("POST")
@@ -136,6 +138,10 @@ func handleRequests() http.Handler {
 	// Strategy
 	apiRouter.HandleFunc("/chl/strategy/update", controllers.SaveCHLLineups).Methods("POST")
 	apiRouter.HandleFunc("/phl/strategy/update", controllers.SavePHLLineups).Methods("POST")
+
+	// Stats
+	apiRouter.HandleFunc("/statistics/interface/chl/{seasonID}/{weekID}/{viewType}/{gameType}", controllers.GetCHLStatsPageContentForSeason).Methods("GET")
+	apiRouter.HandleFunc("/statistics/interface/phl/{seasonID}/{weekID}/{viewType}/{gameType}", controllers.GetProStatsPageContent).Methods("GET")
 
 	// Teams
 	apiRouter.HandleFunc("/chl/teams/remove/{teamID}", controllers.RemoveUserFromCollegeTeam).Methods("GET")

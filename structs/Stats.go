@@ -1,6 +1,8 @@
 package structs
 
-import "gorm.io/gorm"
+import (
+	"gorm.io/gorm"
+)
 
 type BasePlayerStats struct {
 	gorm.Model
@@ -45,6 +47,7 @@ type BasePlayerStats struct {
 	DaysOfRecovery       int8
 	InjuryName           string
 	InjuryType           string
+	GameType             uint8
 }
 
 func (s *BasePlayerStats) AddStatsToSeasonRecord(stat BasePlayerStats) {
@@ -122,6 +125,7 @@ type BaseTeamStats struct {
 	Saves                uint16
 	SavePercentage       float32
 	Shutouts             uint16
+	GameType             uint8
 }
 
 type TeamSeasonStats struct {
@@ -313,4 +317,15 @@ type ProfessionalTeamGameStats struct {
 	GameID        uint
 	RevealResults bool
 	BaseTeamStats
+}
+
+type SearchStatsResponse struct {
+	CHLPlayerGameStats   []CollegePlayerGameStats
+	CHLPlayerSeasonStats []CollegePlayerSeasonStats
+	CHLTeamGameStats     []CollegeTeamGameStats
+	CHLTeamSeasonStats   []CollegeTeamSeasonStats
+	PHLPlayerGameStats   []ProfessionalPlayerGameStats
+	PHLPlayerSeasonStats []ProfessionalPlayerSeasonStats
+	PHLTeamGameStats     []ProfessionalTeamGameStats
+	PHLTeamSeasonStats   []ProfessionalTeamSeasonStats
 }

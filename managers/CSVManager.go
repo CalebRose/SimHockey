@@ -1,6 +1,7 @@
 package managers
 
 import (
+	"archive/zip"
 	"encoding/csv"
 	"fmt"
 	"log"
@@ -556,4 +557,418 @@ func getHeaderRow() []string {
 		util.ShotBlocking, util.Goalkeeping, util.GoalieVision, "Stamina", "Injury Rating", "Agility Pot.", "Faceoffs Pot.", "Long Shot Accuracy Pot.", "Long Shot Power Pot.",
 		"Close Shot Accuracy Pot.", "Close Shot Power Pot.", "Passing Pot.", "Puck Handling Pot.",
 		"Strength Pot.", "Body Checking Pot.", "Stick Checking Pot.", "Shot Blocking Pot.", "Goalkeeping Pot.", "Goalie Vision Pot."}
+}
+
+func ExportCollegeStats(seasonID, weekID, viewType, gameType string, w http.ResponseWriter) {
+	stats := SearchCollegeStats(seasonID, weekID, viewType, gameType)
+	seasonIDNum := util.ConvertStringToInt(seasonID)
+	seasonIDNum += 2024
+	seasonStr := strconv.Itoa(seasonIDNum)
+	weekStr := ""
+	if viewType != "SEASON" && (weekID != "" && weekID != "0") {
+		weekNum := util.ConvertStringToInt(weekID)
+		weekNum = weekNum - 2500
+		weekStr = "_WEEK_" + strconv.Itoa(weekNum) + "_"
+	}
+	baseName := fmt.Sprintf("chl_stats_%s_%s", seasonStr, viewType)
+	w.Header().Set("Content-Type", "application/zip")
+	w.Header().Set("Content-Disposition", fmt.Sprintf("attachment; filename=\"%s.zip\"", baseName))
+	w.Header().Set("Transfer-Encoding", "chunked")
+	zipWriter := zip.NewWriter(w)
+	defer zipWriter.Close()
+	// Initialize writer
+	fileName := "chl_player_stats_" + seasonStr + weekStr + ".csv"
+	teamFileName := "chl_team_stats_" + seasonStr + weekStr + ".csv"
+
+	collegePlayerMap := GetCollegePlayersMap()
+	chlTeamMap := GetCollegeTeamMap()
+
+	writeCSVIntoZip(zipWriter, fileName, func(csvW *csv.Writer) error {
+		header := util.GetCHLPlayerHeaderRows()
+		if err := csvW.Write(header); err != nil {
+			return err
+		}
+
+		if viewType == "WEEK" {
+			for _, stat := range stats.CHLPlayerGameStats {
+				p := collegePlayerMap[stat.PlayerID]
+				if p.ID == 0 {
+					continue
+				}
+				Year, RedshirtStatus := util.GetYearAndRedshirtStatus(p.Year, p.IsRedshirt)
+
+				team := chlTeamMap[stat.TeamID]
+
+				answer := "No."
+				diceRoll := util.GenerateIntFromRange(1, 1000)
+				if diceRoll == 1000 {
+					answer = "Yes."
+				}
+
+				injury := "No"
+				if stat.IsInjured {
+					injury = "Yes"
+				}
+
+				timeOnIce := FormatTimeToClock(uint16(stat.TimeOnIce))
+
+				pr := []string{strconv.Itoa(int(p.ID)), p.FirstName, p.LastName, p.Position,
+					p.Archetype, Year, RedshirtStatus, p.Team, team.Conference, strconv.Itoa(int(p.Age)), strconv.Itoa(int(p.Stars)),
+					strconv.Itoa(int(stat.Goals)), strconv.Itoa(int(stat.Assists)), strconv.Itoa(int(stat.Points)), strconv.Itoa(int(stat.PlusMinus)),
+					strconv.Itoa(int(stat.PenaltyMinutes)), strconv.Itoa(int(stat.EvenStrengthGoals)), strconv.Itoa(int(stat.EvenStrengthPoints)), strconv.Itoa(int(stat.PowerPlayGoals)),
+					strconv.Itoa(int(stat.PowerPlayPoints)), strconv.Itoa(int(stat.ShorthandedGoals)), strconv.Itoa(int(stat.ShorthandedPoints)), strconv.Itoa(int(stat.OvertimeGoals)),
+					strconv.Itoa(int(stat.GameWinningGoals)), strconv.Itoa(int(stat.Shots)), strconv.Itoa(int(stat.ShootingPercentage)), timeOnIce,
+					strconv.Itoa(int(stat.FaceOffWinPercentage)), strconv.Itoa(int(stat.FaceOffsWon)), strconv.Itoa(int(stat.FaceOffs)), strconv.Itoa(int(stat.GoalieWins)),
+					strconv.Itoa(int(stat.GoalieLosses)), strconv.Itoa(int(stat.GoalieTies)), strconv.Itoa(int(stat.OvertimeLosses)), strconv.Itoa(int(stat.ShotsAgainst)),
+					strconv.Itoa(int(stat.Saves)), strconv.Itoa(int(stat.GoalsAgainst)), strconv.Itoa(int(stat.SavePercentage)), strconv.Itoa(int(stat.Shutouts)),
+					strconv.Itoa(int(stat.ShotsBlocked)), strconv.Itoa(int(stat.BodyChecks)), strconv.Itoa(int(stat.StickChecks)), injury,
+					stat.InjuryName, stat.InjuryType, answer,
+				}
+				err := csvW.Write(pr)
+				if err != nil {
+					log.Fatal("Cannot write player row to CSV", err)
+				}
+
+				csvW.Flush()
+				err = csvW.Error()
+				if err != nil {
+					log.Fatal("Error while writing to file ::", err)
+				}
+			}
+		} else {
+			for _, stat := range stats.CHLPlayerSeasonStats {
+				p := collegePlayerMap[stat.PlayerID]
+				if p.ID == 0 {
+					continue
+				}
+				Year, RedshirtStatus := util.GetYearAndRedshirtStatus(p.Year, p.IsRedshirt)
+
+				team := chlTeamMap[stat.TeamID]
+
+				answer := "No."
+				diceRoll := util.GenerateIntFromRange(1, 1000)
+				if diceRoll == 1000 {
+					answer = "Yes."
+				}
+
+				injury := "No"
+				if stat.IsInjured {
+					injury = "Yes"
+				}
+
+				timeOnIce := FormatTimeToClock(uint16(stat.TimeOnIce))
+
+				pr := []string{strconv.Itoa(int(p.ID)), p.FirstName, p.LastName, p.Position,
+					p.Archetype, Year, RedshirtStatus, p.Team, team.Conference, strconv.Itoa(int(p.Age)), strconv.Itoa(int(p.Stars)),
+					strconv.Itoa(int(stat.Goals)), strconv.Itoa(int(stat.Assists)), strconv.Itoa(int(stat.Points)), strconv.Itoa(int(stat.PlusMinus)),
+					strconv.Itoa(int(stat.PenaltyMinutes)), strconv.Itoa(int(stat.EvenStrengthGoals)), strconv.Itoa(int(stat.EvenStrengthPoints)), strconv.Itoa(int(stat.PowerPlayGoals)),
+					strconv.Itoa(int(stat.PowerPlayPoints)), strconv.Itoa(int(stat.ShorthandedGoals)), strconv.Itoa(int(stat.ShorthandedPoints)), strconv.Itoa(int(stat.OvertimeGoals)),
+					strconv.Itoa(int(stat.GameWinningGoals)), strconv.Itoa(int(stat.Shots)), strconv.Itoa(int(stat.ShootingPercentage)), timeOnIce,
+					strconv.Itoa(int(stat.FaceOffWinPercentage)), strconv.Itoa(int(stat.FaceOffsWon)), strconv.Itoa(int(stat.FaceOffs)), strconv.Itoa(int(stat.GoalieWins)),
+					strconv.Itoa(int(stat.GoalieLosses)), strconv.Itoa(int(stat.GoalieTies)), strconv.Itoa(int(stat.OvertimeLosses)), strconv.Itoa(int(stat.ShotsAgainst)),
+					strconv.Itoa(int(stat.Saves)), strconv.Itoa(int(stat.GoalsAgainst)), strconv.Itoa(int(stat.SavePercentage)), strconv.Itoa(int(stat.Shutouts)),
+					strconv.Itoa(int(stat.ShotsBlocked)), strconv.Itoa(int(stat.BodyChecks)), strconv.Itoa(int(stat.StickChecks)), injury,
+					stat.InjuryName, stat.InjuryType, answer,
+				}
+				err := csvW.Write(pr)
+				if err != nil {
+					log.Fatal("Cannot write player row to CSV", err)
+				}
+
+				csvW.Flush()
+				err = csvW.Error()
+				if err != nil {
+					log.Fatal("Error while writing to file ::", err)
+				}
+			}
+		}
+
+		return csvW.Error()
+	})
+
+	writeCSVIntoZip(zipWriter, teamFileName, func(csvW *csv.Writer) error {
+		header := util.GetCHLTeamsHeaderRows()
+		if err := csvW.Write(header); err != nil {
+			return err
+		}
+
+		if viewType == "WEEK" {
+			for _, stat := range stats.CHLTeamGameStats {
+				team := chlTeamMap[stat.TeamID]
+
+				answer := "No."
+				diceRoll := util.GenerateIntFromRange(1, 1000)
+				if diceRoll == 1000 {
+					answer = "Yes."
+				}
+
+				pr := []string{strconv.Itoa(int(team.ID)), team.TeamName, team.Conference,
+					strconv.Itoa(int(stat.GoalsFor)), strconv.Itoa(int(stat.GoalsAgainst)), strconv.Itoa(int(stat.Assists)), strconv.Itoa(int(stat.Points)),
+					strconv.Itoa(int(stat.Period1Score)), strconv.Itoa(int(stat.Period2Score)), strconv.Itoa(int(stat.Period3Score)), strconv.Itoa(int(stat.OTScore)),
+					strconv.Itoa(int(stat.PlusMinus)),
+					strconv.Itoa(int(stat.PenaltyMinutes)), strconv.Itoa(int(stat.EvenStrengthGoals)), strconv.Itoa(int(stat.EvenStrengthPoints)), strconv.Itoa(int(stat.PowerPlayGoals)),
+					strconv.Itoa(int(stat.PowerPlayPoints)), strconv.Itoa(int(stat.ShorthandedGoals)), strconv.Itoa(int(stat.ShorthandedPoints)), strconv.Itoa(int(stat.OvertimeGoals)),
+					strconv.Itoa(int(stat.GameWinningGoals)), strconv.Itoa(int(stat.Shots)), strconv.Itoa(int(stat.ShootingPercentage)),
+					strconv.Itoa(int(stat.FaceOffWinPercentage)), strconv.Itoa(int(stat.FaceOffsWon)), strconv.Itoa(int(stat.FaceOffs)), strconv.Itoa(int(stat.ShotsAgainst)),
+					strconv.Itoa(int(stat.Saves)), strconv.Itoa(int(stat.GoalsAgainst)), strconv.Itoa(int(stat.SavePercentage)), strconv.Itoa(int(stat.Shutouts)),
+					answer,
+				}
+				err := csvW.Write(pr)
+				if err != nil {
+					log.Fatal("Cannot write player row to CSV", err)
+				}
+
+				csvW.Flush()
+				err = csvW.Error()
+				if err != nil {
+					log.Fatal("Error while writing to file ::", err)
+				}
+			}
+		} else {
+			for _, stat := range stats.CHLTeamSeasonStats {
+				team := chlTeamMap[stat.TeamID]
+
+				answer := "No."
+				diceRoll := util.GenerateIntFromRange(1, 1000)
+				if diceRoll == 1000 {
+					answer = "Yes."
+				}
+
+				pr := []string{strconv.Itoa(int(team.ID)), team.TeamName, team.Conference,
+					strconv.Itoa(int(stat.GoalsFor)), strconv.Itoa(int(stat.GoalsAgainst)), strconv.Itoa(int(stat.Assists)), strconv.Itoa(int(stat.Points)),
+					strconv.Itoa(int(stat.Period1Score)), strconv.Itoa(int(stat.Period2Score)), strconv.Itoa(int(stat.Period3Score)), strconv.Itoa(int(stat.OTScore)),
+					strconv.Itoa(int(stat.PlusMinus)),
+					strconv.Itoa(int(stat.PenaltyMinutes)), strconv.Itoa(int(stat.EvenStrengthGoals)), strconv.Itoa(int(stat.EvenStrengthPoints)), strconv.Itoa(int(stat.PowerPlayGoals)),
+					strconv.Itoa(int(stat.PowerPlayPoints)), strconv.Itoa(int(stat.ShorthandedGoals)), strconv.Itoa(int(stat.ShorthandedPoints)), strconv.Itoa(int(stat.OvertimeGoals)),
+					strconv.Itoa(int(stat.GameWinningGoals)), strconv.Itoa(int(stat.Shots)), strconv.Itoa(int(stat.ShootingPercentage)),
+					strconv.Itoa(int(stat.FaceOffWinPercentage)), strconv.Itoa(int(stat.FaceOffsWon)), strconv.Itoa(int(stat.FaceOffs)), strconv.Itoa(int(stat.ShotsAgainst)),
+					strconv.Itoa(int(stat.Saves)), strconv.Itoa(int(stat.GoalsAgainst)), strconv.Itoa(int(stat.SavePercentage)), strconv.Itoa(int(stat.Shutouts)),
+					answer,
+				}
+				err := csvW.Write(pr)
+				if err != nil {
+					log.Fatal("Cannot write player row to CSV", err)
+				}
+
+				csvW.Flush()
+				err = csvW.Error()
+				if err != nil {
+					log.Fatal("Error while writing to file ::", err)
+				}
+			}
+		}
+
+		return csvW.Error()
+	})
+}
+
+func ExportProStats(seasonID, weekID, viewType, gameType string, w http.ResponseWriter) {
+	stats := SearchProStats(seasonID, weekID, viewType, gameType)
+	seasonIDNum := util.ConvertStringToInt(seasonID)
+	seasonIDNum += 2024
+	seasonStr := strconv.Itoa(seasonIDNum)
+	weekStr := ""
+	if viewType != "SEASON" && (weekID != "" && weekID != "0") {
+		weekNum := util.ConvertStringToInt(weekID)
+		weekNum = weekNum - 2500
+		weekStr = "WEEK_" + strconv.Itoa(weekNum) + "_"
+	}
+	baseName := fmt.Sprintf("phl_stats_%s_%s", seasonStr, viewType)
+	w.Header().Set("Content-Type", "application/zip")
+	w.Header().Set("Content-Disposition", fmt.Sprintf("attachment; filename=\"%s.zip\"", baseName))
+	w.Header().Set("Transfer-Encoding", "chunked")
+	zipWriter := zip.NewWriter(w)
+	defer zipWriter.Close()
+	// Initialize writer
+	fileName := "phl_player_stats_" + seasonStr + "_" + weekStr
+	teamFileName := "phl_team_stats_" + seasonStr + "_" + weekStr
+
+	proPlayerMap := GetProPlayersMap()
+	phlTeamMap := GetProTeamMap()
+
+	writeCSVIntoZip(zipWriter, fileName, func(csvW *csv.Writer) error {
+		header := util.GetPHLPlayerHeaderRows()
+		if err := csvW.Write(header); err != nil {
+			return err
+		}
+
+		if viewType == "WEEK" {
+			for _, stat := range stats.PHLPlayerGameStats {
+				p := proPlayerMap[stat.PlayerID]
+				if p.ID == 0 {
+					continue
+				}
+				team := phlTeamMap[stat.TeamID]
+
+				answer := "No."
+				diceRoll := util.GenerateIntFromRange(1, 1000)
+				if diceRoll == 1000 {
+					answer = "Yes."
+				}
+
+				injury := "No"
+				if stat.IsInjured {
+					injury = "Yes"
+				}
+
+				timeOnIce := FormatTimeToClock(uint16(stat.TimeOnIce))
+
+				pr := []string{strconv.Itoa(int(p.ID)), p.FirstName, p.LastName, p.Position,
+					p.Archetype, strconv.Itoa(p.Year), p.Team, team.Division, strconv.Itoa(int(p.Age)), strconv.Itoa(int(p.Stars)),
+					strconv.Itoa(int(stat.Goals)), strconv.Itoa(int(stat.Assists)), strconv.Itoa(int(stat.Points)), strconv.Itoa(int(stat.PlusMinus)),
+					strconv.Itoa(int(stat.PenaltyMinutes)), strconv.Itoa(int(stat.EvenStrengthGoals)), strconv.Itoa(int(stat.EvenStrengthPoints)), strconv.Itoa(int(stat.PowerPlayGoals)),
+					strconv.Itoa(int(stat.PowerPlayPoints)), strconv.Itoa(int(stat.ShorthandedGoals)), strconv.Itoa(int(stat.ShorthandedPoints)), strconv.Itoa(int(stat.OvertimeGoals)),
+					strconv.Itoa(int(stat.GameWinningGoals)), strconv.Itoa(int(stat.Shots)), strconv.Itoa(int(stat.ShootingPercentage)), timeOnIce,
+					strconv.Itoa(int(stat.FaceOffWinPercentage)), strconv.Itoa(int(stat.FaceOffsWon)), strconv.Itoa(int(stat.FaceOffs)), strconv.Itoa(int(stat.GoalieWins)),
+					strconv.Itoa(int(stat.GoalieLosses)), strconv.Itoa(int(stat.GoalieTies)), strconv.Itoa(int(stat.OvertimeLosses)), strconv.Itoa(int(stat.ShotsAgainst)),
+					strconv.Itoa(int(stat.Saves)), strconv.Itoa(int(stat.GoalsAgainst)), strconv.Itoa(int(stat.SavePercentage)), strconv.Itoa(int(stat.Shutouts)),
+					strconv.Itoa(int(stat.ShotsBlocked)), strconv.Itoa(int(stat.BodyChecks)), strconv.Itoa(int(stat.StickChecks)), injury,
+					stat.InjuryName, stat.InjuryType, answer,
+				}
+				err := csvW.Write(pr)
+				if err != nil {
+					log.Fatal("Cannot write player row to CSV", err)
+				}
+
+				csvW.Flush()
+				err = csvW.Error()
+				if err != nil {
+					log.Fatal("Error while writing to file ::", err)
+				}
+			}
+		} else {
+			for _, stat := range stats.PHLPlayerSeasonStats {
+				p := proPlayerMap[stat.PlayerID]
+				if p.ID == 0 {
+					continue
+				}
+				team := phlTeamMap[stat.TeamID]
+
+				answer := "No."
+				diceRoll := util.GenerateIntFromRange(1, 1000)
+				if diceRoll == 1000 {
+					answer = "Yes."
+				}
+
+				injury := "No"
+				if stat.IsInjured {
+					injury = "Yes"
+				}
+
+				timeOnIce := FormatTimeToClock(uint16(stat.TimeOnIce))
+
+				pr := []string{strconv.Itoa(int(p.ID)), p.FirstName, p.LastName, p.Position,
+					p.Archetype, strconv.Itoa(p.Year), p.Team, team.Conference, strconv.Itoa(int(p.Age)), strconv.Itoa(int(p.Stars)),
+					strconv.Itoa(int(stat.Goals)), strconv.Itoa(int(stat.Assists)), strconv.Itoa(int(stat.Points)), strconv.Itoa(int(stat.PlusMinus)),
+					strconv.Itoa(int(stat.PenaltyMinutes)), strconv.Itoa(int(stat.EvenStrengthGoals)), strconv.Itoa(int(stat.EvenStrengthPoints)), strconv.Itoa(int(stat.PowerPlayGoals)),
+					strconv.Itoa(int(stat.PowerPlayPoints)), strconv.Itoa(int(stat.ShorthandedGoals)), strconv.Itoa(int(stat.ShorthandedPoints)), strconv.Itoa(int(stat.OvertimeGoals)),
+					strconv.Itoa(int(stat.GameWinningGoals)), strconv.Itoa(int(stat.Shots)), strconv.Itoa(int(stat.ShootingPercentage)), timeOnIce,
+					strconv.Itoa(int(stat.FaceOffWinPercentage)), strconv.Itoa(int(stat.FaceOffsWon)), strconv.Itoa(int(stat.FaceOffs)), strconv.Itoa(int(stat.GoalieWins)),
+					strconv.Itoa(int(stat.GoalieLosses)), strconv.Itoa(int(stat.GoalieTies)), strconv.Itoa(int(stat.OvertimeLosses)), strconv.Itoa(int(stat.ShotsAgainst)),
+					strconv.Itoa(int(stat.Saves)), strconv.Itoa(int(stat.GoalsAgainst)), strconv.Itoa(int(stat.SavePercentage)), strconv.Itoa(int(stat.Shutouts)),
+					strconv.Itoa(int(stat.ShotsBlocked)), strconv.Itoa(int(stat.BodyChecks)), strconv.Itoa(int(stat.StickChecks)), injury,
+					stat.InjuryName, stat.InjuryType, answer,
+				}
+				err := csvW.Write(pr)
+				if err != nil {
+					log.Fatal("Cannot write player row to CSV", err)
+				}
+
+				csvW.Flush()
+				err = csvW.Error()
+				if err != nil {
+					log.Fatal("Error while writing to file ::", err)
+				}
+			}
+		}
+
+		return csvW.Error()
+	})
+
+	writeCSVIntoZip(zipWriter, teamFileName, func(csvW *csv.Writer) error {
+		header := util.GetPHLTeamsHeaderRows()
+		if err := csvW.Write(header); err != nil {
+			return err
+		}
+
+		if viewType == "WEEK" {
+			for _, stat := range stats.PHLTeamGameStats {
+				team := phlTeamMap[stat.TeamID]
+
+				answer := "No."
+				diceRoll := util.GenerateIntFromRange(1, 1000)
+				if diceRoll == 1000 {
+					answer = "Yes."
+				}
+
+				pr := []string{strconv.Itoa(int(team.ID)), team.TeamName, team.Conference,
+					strconv.Itoa(int(stat.GoalsFor)), strconv.Itoa(int(stat.GoalsAgainst)), strconv.Itoa(int(stat.Assists)), strconv.Itoa(int(stat.Points)),
+					strconv.Itoa(int(stat.Period1Score)), strconv.Itoa(int(stat.Period2Score)), strconv.Itoa(int(stat.Period3Score)), strconv.Itoa(int(stat.OTScore)),
+					strconv.Itoa(int(stat.PlusMinus)),
+					strconv.Itoa(int(stat.PenaltyMinutes)), strconv.Itoa(int(stat.EvenStrengthGoals)), strconv.Itoa(int(stat.EvenStrengthPoints)), strconv.Itoa(int(stat.PowerPlayGoals)),
+					strconv.Itoa(int(stat.PowerPlayPoints)), strconv.Itoa(int(stat.ShorthandedGoals)), strconv.Itoa(int(stat.ShorthandedPoints)), strconv.Itoa(int(stat.OvertimeGoals)),
+					strconv.Itoa(int(stat.GameWinningGoals)), strconv.Itoa(int(stat.Shots)), strconv.Itoa(int(stat.ShootingPercentage)),
+					strconv.Itoa(int(stat.FaceOffWinPercentage)), strconv.Itoa(int(stat.FaceOffsWon)), strconv.Itoa(int(stat.FaceOffs)), strconv.Itoa(int(stat.ShotsAgainst)),
+					strconv.Itoa(int(stat.Saves)), strconv.Itoa(int(stat.GoalsAgainst)), strconv.Itoa(int(stat.SavePercentage)), strconv.Itoa(int(stat.Shutouts)),
+					answer,
+				}
+				err := csvW.Write(pr)
+				if err != nil {
+					log.Fatal("Cannot write player row to CSV", err)
+				}
+
+				csvW.Flush()
+				err = csvW.Error()
+				if err != nil {
+					log.Fatal("Error while writing to file ::", err)
+				}
+			}
+		} else {
+			for _, stat := range stats.PHLTeamSeasonStats {
+				team := phlTeamMap[stat.TeamID]
+
+				answer := "No."
+				diceRoll := util.GenerateIntFromRange(1, 1000)
+				if diceRoll == 1000 {
+					answer = "Yes."
+				}
+
+				pr := []string{strconv.Itoa(int(team.ID)), team.TeamName, team.Conference,
+					strconv.Itoa(int(stat.GoalsFor)), strconv.Itoa(int(stat.GoalsAgainst)), strconv.Itoa(int(stat.Assists)), strconv.Itoa(int(stat.Points)),
+					strconv.Itoa(int(stat.Period1Score)), strconv.Itoa(int(stat.Period2Score)), strconv.Itoa(int(stat.Period3Score)), strconv.Itoa(int(stat.OTScore)),
+					strconv.Itoa(int(stat.PlusMinus)),
+					strconv.Itoa(int(stat.PenaltyMinutes)), strconv.Itoa(int(stat.EvenStrengthGoals)), strconv.Itoa(int(stat.EvenStrengthPoints)), strconv.Itoa(int(stat.PowerPlayGoals)),
+					strconv.Itoa(int(stat.PowerPlayPoints)), strconv.Itoa(int(stat.ShorthandedGoals)), strconv.Itoa(int(stat.ShorthandedPoints)), strconv.Itoa(int(stat.OvertimeGoals)),
+					strconv.Itoa(int(stat.GameWinningGoals)), strconv.Itoa(int(stat.Shots)), strconv.Itoa(int(stat.ShootingPercentage)),
+					strconv.Itoa(int(stat.FaceOffWinPercentage)), strconv.Itoa(int(stat.FaceOffsWon)), strconv.Itoa(int(stat.FaceOffs)), strconv.Itoa(int(stat.ShotsAgainst)),
+					strconv.Itoa(int(stat.Saves)), strconv.Itoa(int(stat.GoalsAgainst)), strconv.Itoa(int(stat.SavePercentage)), strconv.Itoa(int(stat.Shutouts)),
+					answer,
+				}
+				err := csvW.Write(pr)
+				if err != nil {
+					log.Fatal("Cannot write player row to CSV", err)
+				}
+
+				csvW.Flush()
+				err = csvW.Error()
+				if err != nil {
+					log.Fatal("Error while writing to file ::", err)
+				}
+			}
+		}
+
+		return csvW.Error()
+	})
+}
+
+func writeCSVIntoZip(z *zip.Writer, filename string, writeRows func(*csv.Writer) error) {
+	f, err := z.Create(filename)
+	if err != nil {
+		// handle error (log, panic, or return to client)
+		panic("unable to create zip entry: " + err.Error())
+	}
+	csvW := csv.NewWriter(f)
+	if err := writeRows(csvW); err != nil {
+		panic("error writing CSV data: " + err.Error())
+	}
 }
