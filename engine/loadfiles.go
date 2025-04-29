@@ -51,23 +51,23 @@ func LoadLineStrategies(lines []structs.BaseLineup, rosterMap map[uint]*GamePlay
 	return lineStrategies, activeIDs
 }
 
-func LoadGameRoster(isCollegeGame bool, collegePlayers []structs.CollegePlayer, professionalPlayers []structs.ProfessionalPlayer, seasonID uint) []*GamePlayer {
+func LoadGameRoster(isCollegeGame bool, collegePlayers []structs.CollegePlayer, professionalPlayers []structs.ProfessionalPlayer, seasonID uint, gameDay string) []*GamePlayer {
 	if isCollegeGame {
-		return LoadCollegeRoster(collegePlayers, seasonID)
+		return LoadCollegeRoster(collegePlayers, seasonID, gameDay)
 	}
-	return LoadProfessionalRoster(professionalPlayers, seasonID)
+	return LoadProfessionalRoster(professionalPlayers, seasonID, gameDay)
 }
 
-func LoadCollegeRoster(roster []structs.CollegePlayer, seasonID uint) []*GamePlayer {
+func LoadCollegeRoster(roster []structs.CollegePlayer, seasonID uint, gameDay string) []*GamePlayer {
 	players := []*GamePlayer{}
 	for _, p := range roster {
-		gp := LoadCollegePlayer(p, seasonID)
+		gp := LoadCollegePlayer(p, seasonID, gameDay)
 		players = append(players, &gp)
 	}
 	return players
 }
 
-func LoadCollegePlayer(p structs.CollegePlayer, seasonID uint) GamePlayer {
+func LoadCollegePlayer(p structs.CollegePlayer, seasonID uint, gameDay string) GamePlayer {
 	gamePlayer := GamePlayer{
 		ID:             p.ID,
 		BasePlayer:     p.BasePlayer,
@@ -76,6 +76,7 @@ func LoadCollegePlayer(p structs.CollegePlayer, seasonID uint) GamePlayer {
 			PlayerID: p.ID,
 			TeamID:   uint(p.TeamID),
 			SeasonID: seasonID,
+			GameDay:  gameDay,
 		},
 	}
 	gamePlayer.CalculateModifiers()
@@ -83,16 +84,16 @@ func LoadCollegePlayer(p structs.CollegePlayer, seasonID uint) GamePlayer {
 	return gamePlayer
 }
 
-func LoadProfessionalRoster(roster []structs.ProfessionalPlayer, seasonID uint) []*GamePlayer {
+func LoadProfessionalRoster(roster []structs.ProfessionalPlayer, seasonID uint, gameDay string) []*GamePlayer {
 	players := []*GamePlayer{}
 	for _, p := range roster {
-		gp := LoadProfessionalPlayer(p, seasonID)
+		gp := LoadProfessionalPlayer(p, seasonID, gameDay)
 		players = append(players, &gp)
 	}
 	return players
 }
 
-func LoadProfessionalPlayer(p structs.ProfessionalPlayer, seasonID uint) GamePlayer {
+func LoadProfessionalPlayer(p structs.ProfessionalPlayer, seasonID uint, gameDay string) GamePlayer {
 	gamePlayer := GamePlayer{
 		ID:             p.ID,
 		BasePlayer:     p.BasePlayer,
@@ -101,6 +102,7 @@ func LoadProfessionalPlayer(p structs.ProfessionalPlayer, seasonID uint) GamePla
 			PlayerID: p.ID,
 			TeamID:   uint(p.TeamID),
 			SeasonID: seasonID,
+			GameDay:  gameDay,
 		},
 	}
 	gamePlayer.CalculateModifiers()

@@ -6,6 +6,7 @@ import (
 
 type BasePlayerStats struct {
 	gorm.Model
+	GameDay              string
 	PlayerID             uint
 	TeamID               uint
 	SeasonID             uint
@@ -98,6 +99,7 @@ type BaseTeamStats struct {
 	SeasonID             uint
 	TeamID               uint
 	Team                 string
+	GameDay              string
 	GoalsFor             uint16
 	GoalsAgainst         uint16
 	Assists              uint16

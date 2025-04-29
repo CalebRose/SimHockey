@@ -809,6 +809,7 @@ func playerIDInLineup(playerID uint, players []*GamePlayer) bool {
 }
 
 type TeamStatDTO struct {
+	GameDay              string
 	TeamID               uint
 	Team                 string
 	GoalsFor             uint16
@@ -925,6 +926,7 @@ func (t *TeamStatDTO) AddShutout() {
 }
 
 type PlayerStatsDTO struct {
+	GameDay              string
 	TeamID               uint
 	SeasonID             uint
 	PlayerID             uint

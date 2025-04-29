@@ -98,17 +98,19 @@ func generateGameState(game structs.GameDTO) GameState {
 		WeekID:       game.GameInfo.WeekID,
 		HomeTeamID:   gameInfo.HomeTeamID,
 		HomeTeam:     gameInfo.HomeTeam,
-		HomeStrategy: loadGamePlaybook(game.IsCollegeGame, game.HomeStrategy, game.GameInfo.SeasonID),
+		HomeStrategy: loadGamePlaybook(game.IsCollegeGame, game.HomeStrategy, game.GameInfo.SeasonID, game.GameInfo.GameDay),
 		HomeTeamStats: TeamStatDTO{
-			TeamID: game.GameInfo.HomeTeamID,
-			Team:   game.GameInfo.HomeTeam,
+			TeamID:  game.GameInfo.HomeTeamID,
+			Team:    game.GameInfo.HomeTeam,
+			GameDay: game.GameInfo.GameDay,
 		},
 		AwayTeamID:   gameInfo.AwayTeamID,
 		AwayTeam:     gameInfo.AwayTeam,
-		AwayStrategy: loadGamePlaybook(game.IsCollegeGame, game.AwayStrategy, game.GameInfo.SeasonID),
+		AwayStrategy: loadGamePlaybook(game.IsCollegeGame, game.AwayStrategy, game.GameInfo.SeasonID, game.GameInfo.GameDay),
 		AwayTeamStats: TeamStatDTO{
-			TeamID: game.GameInfo.AwayTeamID,
-			Team:   game.GameInfo.AwayTeam,
+			TeamID:  game.GameInfo.AwayTeamID,
+			Team:    game.GameInfo.AwayTeam,
+			GameDay: game.GameInfo.GameDay,
 		},
 		Period:             0,
 		Momentum:           0,
@@ -128,8 +130,8 @@ func generateGameState(game structs.GameDTO) GameState {
 	return gs
 }
 
-func loadGamePlaybook(isCollegeGame bool, pb structs.PlayBookDTO, seasonID uint) GamePlaybook {
-	gameRoster := LoadGameRoster(isCollegeGame, pb.CollegeRoster, pb.ProfessionalRoster, seasonID)
+func loadGamePlaybook(isCollegeGame bool, pb structs.PlayBookDTO, seasonID uint, gameDay string) GamePlaybook {
+	gameRoster := LoadGameRoster(isCollegeGame, pb.CollegeRoster, pb.ProfessionalRoster, seasonID, gameDay)
 	rosterMap := getGameRosterMap(gameRoster)
 	forwardLines, defenderLines, goalieLines, activeIDs := LoadAllLineStrategies(pb, gameRoster)
 	benchPlayers := LoadBenchPlayers(activeIDs, gameRoster)
