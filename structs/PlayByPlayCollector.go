@@ -45,3 +45,50 @@ type ProPlayByPlay struct {
 	gorm.Model
 	PbP
 }
+
+type PlayByPlayResponse struct {
+	GameID            uint
+	PlayNumber        uint
+	HomeTeamID        uint
+	HomeTeamScore     uint8
+	AwayTeamID        uint
+	AwayTeamScore     uint8
+	Period            uint8
+	TimeOnClock       string
+	SecondsConsumed   uint8
+	Event             string // Enum
+	Zone              string // Enum
+	NextZone          string // Enum
+	Outcome           string // Enum
+	TeamID            uint8
+	PuckCarrierID     uint
+	PassedPlayerID    uint
+	AssistingPlayerID uint
+	DefenderID        uint
+	GoalieID          uint
+	InjuryID          uint8
+	InjuryType        uint8
+	InjuryDuration    uint8
+	Penalty           string
+	Severity          string
+	IsFight           string
+	IsBreakaway       bool
+	Result            string
+	StreamResult      []string
+}
+
+func (p *PlayByPlayResponse) AddPlayInformation(toc, event, zone, nextZone, outcome string) {
+	p.TimeOnClock = toc
+	p.Event = event
+	p.Zone = zone
+	p.NextZone = nextZone
+	p.Outcome = outcome
+}
+
+func (p *PlayByPlayResponse) AddResult(result []string, isStream bool) {
+	if isStream {
+		p.StreamResult = result
+	} else {
+		p.Result = result[0]
+	}
+}

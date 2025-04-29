@@ -135,3 +135,25 @@ func GetProOrderedListByStatType(statType string, teamID uint, CollegeStats []st
 	}
 	return resultList
 }
+
+func MakeCollegePlayerGameStatsListByTeamID(list []structs.CollegePlayerGameStats, teamID uint) []structs.CollegePlayerGameStats {
+	stats := []structs.CollegePlayerGameStats{}
+	for _, stat := range list {
+		if stat.TeamID != teamID {
+			continue
+		}
+		stats = append(stats, stat)
+	}
+	return stats
+}
+
+func MakeProPlayerGameStatsListByTeamID(list []structs.ProfessionalPlayerGameStats, teamID uint) []structs.ProfessionalPlayerGameStats {
+	stats := []structs.ProfessionalPlayerGameStats{}
+	for _, stat := range list {
+		if stat.TeamID != teamID {
+			continue
+		}
+		stats = append(stats, stat)
+	}
+	return stats
+}

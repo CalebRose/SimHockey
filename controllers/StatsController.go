@@ -76,3 +76,27 @@ func ExportProStatsPageContent(w http.ResponseWriter, r *http.Request) {
 
 	managers.ExportProStats(seasonID, weekID, viewType, gameType, w)
 }
+
+func GetCollegeGameResultsByGameID(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	gameID := vars["gameID"]
+	if len(gameID) == 0 {
+		panic("User did not provide a first name")
+	}
+
+	player := managers.GetCHLGameResultsByGameID(gameID)
+
+	json.NewEncoder(w).Encode(player)
+}
+
+func GetProGameResultsByGameID(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	gameID := vars["gameID"]
+	if len(gameID) == 0 {
+		panic("User did not provide a first name")
+	}
+
+	player := managers.GetPHLGameResultsByGameID(gameID)
+
+	json.NewEncoder(w).Encode(player)
+}

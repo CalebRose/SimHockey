@@ -3,6 +3,7 @@ package managers
 import (
 	"strconv"
 
+	util "github.com/CalebRose/SimHockey/_util"
 	"github.com/CalebRose/SimHockey/dbprovider"
 	"github.com/CalebRose/SimHockey/engine"
 	"github.com/CalebRose/SimHockey/repository"
@@ -451,4 +452,187 @@ func makeProTeamStatsObject(weekID, gameID, seasonID uint, s engine.TeamStatDTO)
 		},
 		RevealResults: false,
 	}
+}
+
+func GetCHLGameResultsByGameID(gameID string) structs.GameResultsResponse {
+	game := repository.FindCollegeGameRecord(gameID)
+	htID := strconv.Itoa(int(game.HomeTeamID))
+	atID := strconv.Itoa(int(game.AwayTeamID))
+	allStats := repository.FindCollegePlayerStatsRecordByGame(gameID)
+	collegePlayerMap := GetCollegePlayersMap()
+	teamMap := GetCollegeTeamMap()
+	homeTeamStats := repository.FindCollegeTeamStatsRecordByGame(htID, gameID)
+	awayTeamStats := repository.FindCollegeTeamStatsRecordByGame(atID, gameID)
+	homePlayerStats := MakeCollegePlayerGameStatsListByTeamID(allStats, game.HomeTeamID)
+	awayPlayerStats := MakeCollegePlayerGameStatsListByTeamID(allStats, game.AwayTeamID)
+	score := structs.ScoreBoard{
+		P1Home:            int(homeTeamStats.Period1Score),
+		P2Home:            int(homeTeamStats.Period2Score),
+		P3Home:            int(homeTeamStats.Period3Score),
+		OTHome:            int(homeTeamStats.OTScore),
+		HomeShootoutScore: int(game.HomeTeamShootoutScore),
+		P1Away:            int(awayTeamStats.Period1Score),
+		P2Away:            int(awayTeamStats.Period2Score),
+		P3Away:            int(awayTeamStats.Period3Score),
+		OTAway:            int(awayTeamStats.OTScore),
+		AwayShootoutScore: int(game.AwayTeamShootoutScore),
+	}
+
+	playByPlays := GetCHLPlayByPlaysByGameID(gameID)
+	// Generate the Play By Play Response
+	playbyPlayResponseList := GenerateCHLPlayByPlayResponse(playByPlays, teamMap, collegePlayerMap, false, game.HomeTeamID, game.AwayTeamID)
+
+	return structs.GameResultsResponse{
+		CHLHomeStats:   homePlayerStats,
+		CHLAwayStats:   awayPlayerStats,
+		CHLPlayByPlays: playbyPlayResponseList,
+		Score:          score,
+	}
+}
+
+func GetPHLGameResultsByGameID(gameID string) structs.GameResultsResponse {
+	game := repository.FindProfessionalGameRecord(gameID)
+	htID := strconv.Itoa(int(game.HomeTeamID))
+	atID := strconv.Itoa(int(game.AwayTeamID))
+	allStats := repository.FindProPlayerStatsRecordByGame(gameID)
+	playerMap := GetProPlayersMap()
+	teamMap := GetProTeamMap()
+	homeTeamStats := repository.FindCollegeTeamStatsRecordByGame(htID, gameID)
+	awayTeamStats := repository.FindCollegeTeamStatsRecordByGame(atID, gameID)
+	homePlayerStats := MakeProPlayerGameStatsListByTeamID(allStats, game.HomeTeamID)
+	awayPlayerStats := MakeProPlayerGameStatsListByTeamID(allStats, game.AwayTeamID)
+	score := structs.ScoreBoard{
+		P1Home:            int(homeTeamStats.Period1Score),
+		P2Home:            int(homeTeamStats.Period2Score),
+		P3Home:            int(homeTeamStats.Period3Score),
+		OTHome:            int(homeTeamStats.OTScore),
+		HomeShootoutScore: int(game.HomeTeamShootoutScore),
+		P1Away:            int(awayTeamStats.Period1Score),
+		P2Away:            int(awayTeamStats.Period2Score),
+		P3Away:            int(awayTeamStats.Period3Score),
+		OTAway:            int(awayTeamStats.OTScore),
+		AwayShootoutScore: int(game.AwayTeamShootoutScore),
+	}
+
+	playByPlays := GetPHLPlayByPlaysByGameID(gameID)
+	// Generate the Play By Play Response
+	playbyPlayResponseList := GeneratePHLPlayByPlayResponse(playByPlays, teamMap, playerMap, false, game.HomeTeamID, game.AwayTeamID)
+	return structs.GameResultsResponse{
+		PHLHomeStats:   homePlayerStats,
+		PHLAwayStats:   awayPlayerStats,
+		PHLPlayByPlays: playbyPlayResponseList,
+		Score:          score,
+	}
+}
+
+func GenerateCHLPlayByPlayResponse(playByPlays []structs.CollegePlayByPlay, teamMap map[uint]structs.CollegeTeam, playerMap map[uint]structs.CollegePlayer, isStream bool, ht, at uint) []structs.PlayByPlayResponse {
+	results := []structs.PlayByPlayResponse{}
+	for idx, play := range playByPlays {
+		timeOnClock := FormatTimeToClock(play.TimeOnClock)
+		event := util.ReturnStringFromPBPID(play.EventID)
+		outcome := util.ReturnStringFromPBPID(play.Outcome)
+		possessingTeam := teamMap[uint(play.TeamID)]
+		zone := getZoneLabel(play.ZoneID)
+		nextZone := getZoneLabel(play.NextZoneID)
+		penalty := getPenaltyByID(uint(play.PenaltyID))
+		severity := getSeverityByID(play.Severity)
+		isFight := "No"
+		if play.IsFight {
+			isFight = "Yes"
+		}
+		result := generateCollegeResultsString(play.PbP, event, outcome, playerMap, possessingTeam)
+
+		res := structs.PlayByPlayResponse{
+			GameID:            play.GameID,
+			PlayNumber:        uint(idx) + 1,
+			HomeTeamID:        ht,
+			HomeTeamScore:     play.HomeTeamScore,
+			AwayTeamID:        at,
+			AwayTeamScore:     play.AwayTeamScore,
+			Period:            play.Period,
+			TimeOnClock:       timeOnClock,
+			SecondsConsumed:   play.SecondsConsumed,
+			Event:             event,
+			Outcome:           outcome,
+			Zone:              zone,
+			NextZone:          nextZone,
+			TeamID:            play.TeamID,
+			PuckCarrierID:     play.PuckCarrierID,
+			PassedPlayerID:    play.PassedPlayerID,
+			AssistingPlayerID: play.AssistingPlayerID,
+			DefenderID:        play.DefenderID,
+			GoalieID:          play.GoalieID,
+			InjuryID:          play.InjuryID,
+			InjuryType:        play.InjuryType,
+			InjuryDuration:    play.InjuryDuration,
+			Penalty:           penalty,
+			Severity:          severity,
+			IsFight:           isFight,
+			IsBreakaway:       play.IsBreakaway,
+			Result:            result,
+		}
+
+		results = append(results, res)
+	}
+	return results
+}
+
+func GeneratePHLPlayByPlayResponse(playByPlays []structs.ProPlayByPlay, teamMap map[uint]structs.ProfessionalTeam, playerMap map[uint]structs.ProfessionalPlayer, isStream bool, ht, at uint) []structs.PlayByPlayResponse {
+	results := []structs.PlayByPlayResponse{}
+	for idx, play := range playByPlays {
+		timeOnClock := FormatTimeToClock(play.TimeOnClock)
+		event := util.ReturnStringFromPBPID(play.EventID)
+		outcome := util.ReturnStringFromPBPID(play.Outcome)
+		possessingTeam := teamMap[uint(play.TeamID)]
+		zone := getZoneLabel(play.ZoneID)
+		nextZone := getZoneLabel(play.NextZoneID)
+		penalty := getPenaltyByID(uint(play.PenaltyID))
+		severity := getSeverityByID(play.Severity)
+		isFight := "No"
+		if play.IsFight {
+			isFight = "Yes"
+		}
+		result := generateProResultsString(play.PbP, event, outcome, playerMap, possessingTeam)
+
+		res := structs.PlayByPlayResponse{
+			GameID:            play.GameID,
+			PlayNumber:        uint(idx) + 1,
+			HomeTeamID:        ht,
+			HomeTeamScore:     play.HomeTeamScore,
+			AwayTeamID:        at,
+			AwayTeamScore:     play.AwayTeamScore,
+			Period:            play.Period,
+			TimeOnClock:       timeOnClock,
+			SecondsConsumed:   play.SecondsConsumed,
+			Event:             event,
+			Outcome:           outcome,
+			Zone:              zone,
+			NextZone:          nextZone,
+			TeamID:            play.TeamID,
+			PuckCarrierID:     play.PuckCarrierID,
+			PassedPlayerID:    play.PassedPlayerID,
+			AssistingPlayerID: play.AssistingPlayerID,
+			DefenderID:        play.DefenderID,
+			GoalieID:          play.GoalieID,
+			InjuryID:          play.InjuryID,
+			InjuryType:        play.InjuryType,
+			InjuryDuration:    play.InjuryDuration,
+			Penalty:           penalty,
+			Severity:          severity,
+			IsFight:           isFight,
+			IsBreakaway:       play.IsBreakaway,
+			Result:            result,
+		}
+
+		results = append(results, res)
+	}
+	return results
+}
+
+func GetCHLPlayByPlaysByGameID(id string) []structs.CollegePlayByPlay {
+	return repository.FindCHLPlayByPlaysRecordsByGameID(id)
+}
+
+func GetPHLPlayByPlaysByGameID(id string) []structs.ProPlayByPlay {
+	return repository.FindPHLPlayByPlaysRecordsByGameID(id)
 }

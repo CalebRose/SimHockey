@@ -331,3 +331,30 @@ type SearchStatsResponse struct {
 	PHLTeamGameStats     []ProfessionalTeamGameStats
 	PHLTeamSeasonStats   []ProfessionalTeamSeasonStats
 }
+
+type GameResultsResponse struct {
+	CHLHomeStats   []CollegePlayerGameStats
+	CHLAwayStats   []CollegePlayerGameStats
+	CHLPlayByPlays []PlayByPlayResponse
+	PHLHomeStats   []ProfessionalPlayerGameStats
+	PHLAwayStats   []ProfessionalPlayerGameStats
+	PHLPlayByPlays []PlayByPlayResponse
+	Score          ScoreBoard
+}
+
+type ScoreBoard struct {
+	P1Home              int
+	P2Home              int
+	P3Home              int
+	OTHome              int
+	P1Away              int
+	P2Away              int
+	P3Away              int
+	OTAway              int
+	HomeShootoutScore   int
+	AwayShootoutScore   int
+	HomeOffensiveScheme string
+	HomeDefensiveScheme string
+	AwayOffensiveScheme string
+	AwayDefensiveScheme string
+}

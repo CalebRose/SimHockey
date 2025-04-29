@@ -99,6 +99,10 @@ func handleRequests() http.Handler {
 	apiRouter.HandleFunc("/phl/waiverwire/create/offer", controllers.CreateWaiverWireOffer).Methods("POST")
 	apiRouter.HandleFunc("/phl/waiverwire/cancel/offer", controllers.CancelWaiverWireOffer).Methods("POST")
 
+	// Games
+	apiRouter.HandleFunc("/games/result/chl/{gameID}", controllers.GetCollegeGameResultsByGameID).Methods("GET")
+	apiRouter.HandleFunc("/games/result/phl/{gameID}", controllers.GetProGameResultsByGameID).Methods("GET")
+
 	// Imports
 	// apiRouter.HandleFunc("/admin/import/pro/rosters/", controllers.ImportProRosters).Methods("GET")
 	// apiRouter.HandleFunc("/admin/import/chl/team/profiles/", controllers.ImportTeamProfileRecords).Methods("GET")

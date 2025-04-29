@@ -244,3 +244,23 @@ func SaveProTeamSeasonStatsRecord(stats structs.ProfessionalTeamSeasonStats, db 
 		log.Fatalln("Could not save season stats for " + strconv.Itoa(int(stats.TeamID)))
 	}
 }
+
+func FindCHLPlayByPlaysRecordsByGameID(id string) []structs.CollegePlayByPlay {
+	db := dbprovider.GetInstance().GetDB()
+
+	plays := []structs.CollegePlayByPlay{}
+
+	db.Where("game_id = ?", id).Find(&plays)
+
+	return plays
+}
+
+func FindPHLPlayByPlaysRecordsByGameID(id string) []structs.ProPlayByPlay {
+	db := dbprovider.GetInstance().GetDB()
+
+	plays := []structs.ProPlayByPlay{}
+
+	db.Where("game_id = ?", id).Find(&plays)
+
+	return plays
+}
