@@ -290,6 +290,7 @@ func makeCollegePlayerStatsObject(weekID, gameID uint, s engine.PlayerStatsDTO) 
 		GameID:        gameID,
 		RevealResults: false,
 		BasePlayerStats: structs.BasePlayerStats{
+			StartedGame:          s.StartedGame,
 			GameDay:              s.GameDay,
 			PlayerID:             s.PlayerID,
 			TeamID:               s.TeamID,
@@ -335,6 +336,7 @@ func makeProPlayerStatsObject(weekID, gameID uint, s engine.PlayerStatsDTO) stru
 		GameID:        gameID,
 		RevealResults: false,
 		BasePlayerStats: structs.BasePlayerStats{
+			StartedGame:          s.StartedGame,
 			GameDay:              s.GameDay,
 			PlayerID:             s.PlayerID,
 			TeamID:               s.TeamID,

@@ -521,9 +521,6 @@ func GenerateInitialProPool() {
 func createRecruit(position, arch string, stars int, firstName, lastName string, blob map[string]map[string]map[string]map[string]interface{}, country, state, cit, hs string, hsBlob []structs.CrootLocation) structs.Recruit {
 	age := 18
 	city, highSchool := cit, hs
-	if country == util.Russia {
-		fmt.Println("PING!")
-	}
 	if state != "" && len(hsBlob) > 0 {
 		city, highSchool = getCityAndHighSchool(hsBlob)
 	}

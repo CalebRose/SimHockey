@@ -91,34 +91,34 @@ func (s *ShootoutPlayerIDs) AssignShotTypes(st1, st2, st3, st4, st5, st6 uint8) 
 
 type Allocations struct {
 	// AGZ == Attacking Goal Zone
-	AGZShot       uint8
-	AGZPass       uint8
-	AGZPassBack   uint8
-	AGZAgility    uint8
-	AGZStickCheck uint8
-	AGZBodyCheck  uint8
+	AGZShot       int8
+	AGZPass       int8
+	AGZPassBack   int8
+	AGZAgility    int8
+	AGZStickCheck int8
+	AGZBodyCheck  int8
 	// AZ == Attacking Zone
-	AZShot       uint8
-	AZPass       uint8
-	AZLongPass   uint8
-	AZAgility    uint8
-	AZStickCheck uint8
-	AZBodyCheck  uint8
+	AZShot       int8
+	AZPass       int8
+	AZLongPass   int8
+	AZAgility    int8
+	AZStickCheck int8
+	AZBodyCheck  int8
 	// N == Neutral
-	NPass       uint8
-	NAgility    uint8
-	NStickCheck uint8
-	NBodyCheck  uint8
+	NPass       int8
+	NAgility    int8
+	NStickCheck int8
+	NBodyCheck  int8
 	// DZ Defending Zone
-	DZPass       uint8
-	DZPassBack   uint8
-	DZAgility    uint8
-	DZStickCheck uint8
-	DZBodyCheck  uint8
+	DZPass       int8
+	DZPassBack   int8
+	DZAgility    int8
+	DZStickCheck int8
+	DZBodyCheck  int8
 	// DGZ == Defending Goal Zone
-	DGZPass       uint8
-	DGZLongPass   uint8
-	DGZAgility    uint8
-	DGZStickCheck uint8
-	DGZBodyCheck  uint8
+	DGZPass       int8
+	DGZLongPass   int8
+	DGZAgility    int8
+	DGZStickCheck int8
+	DGZBodyCheck  int8
 }

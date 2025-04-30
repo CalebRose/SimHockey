@@ -57,6 +57,11 @@ type PowerPlayState struct {
 // If a score is made, check list for who the powerplay team is and if they scored. Then return penalized player
 // and remove powerplay item from list
 
+func (gs *GameState) EnableStartedGameStat() {
+	gs.HomeStrategy.EnableStartedGameStat()
+	gs.AwayStrategy.EnableStartedGameStat()
+}
+
 func (gs *GameState) RecordPlay(play structs.PbP) {
 	gs.Collector.AppendPlay(play)
 }
@@ -545,6 +550,12 @@ func (gp *GamePlaybook) getNextLine(lineType uint) []*GamePlayer {
 	return []*GamePlayer{}
 }
 
+func (gp *GamePlaybook) EnableStartedGameStat() {
+	gp.Forwards[0].EnableStartedGameStat()
+	gp.Defenders[0].EnableStartedGameStat()
+	gp.Goalies[0].EnableStartedGameStat()
+}
+
 type LineStrategy struct {
 	structs.Allocations
 	Players        []*GamePlayer
@@ -604,6 +615,12 @@ func (ls *LineStrategy) DecrementStamina() {
 func (ls *LineStrategy) HandleTimeOnIce(secondsConsumed int) {
 	for _, p := range ls.Players {
 		p.Stats.AddTimeOnIce(secondsConsumed, p.IsOut)
+	}
+}
+
+func (ls *LineStrategy) EnableStartedGameStat() {
+	for _, p := range ls.Players {
+		p.Stats.EnableStartedGame()
 	}
 }
 
@@ -926,6 +943,7 @@ func (t *TeamStatDTO) AddShutout() {
 }
 
 type PlayerStatsDTO struct {
+	StartedGame          bool
 	GameDay              string
 	TeamID               uint
 	SeasonID             uint
@@ -961,6 +979,10 @@ type PlayerStatsDTO struct {
 	ShotsBlocked         uint16
 	BodyChecks           uint16
 	StickChecks          uint16
+}
+
+func (p *PlayerStatsDTO) EnableStartedGame() {
+	p.StartedGame = true
 }
 
 func (p *PlayerStatsDTO) AdjustPlusMinus(isScore bool) {

@@ -126,6 +126,7 @@ func generateGameState(game structs.GameDTO) GameState {
 		PuckCarrier:        &GamePlayer{},
 		AssistingPlayer:    &GamePlayer{},
 	}
+	gs.EnableStartedGameStat()
 
 	return gs
 }

@@ -6,6 +6,7 @@ import (
 
 type BasePlayerStats struct {
 	gorm.Model
+	StartedGame          bool
 	GameDay              string
 	PlayerID             uint
 	TeamID               uint
@@ -259,7 +260,9 @@ type CollegePlayerSeasonStats struct {
 func (s *CollegePlayerSeasonStats) AddStatsToSeasonRecord(stat BasePlayerStats) {
 	// accumulate raw counts & ids
 	s.BasePlayerStats.AddStatsToSeasonRecord(stat)
-
+	if stat.StartedGame {
+		s.GamesStarted++
+	}
 	s.StatType = 1
 	s.GamesPlayed++
 	// If `stat` had a `Started` flag, you could do:
@@ -298,6 +301,9 @@ type ProfessionalPlayerSeasonStats struct {
 
 func (s *ProfessionalPlayerSeasonStats) AddStatsToSeasonRecord(stat BasePlayerStats) {
 	s.StatType = 1
+	if stat.StartedGame {
+		s.GamesStarted++
+	}
 	// accumulate player counts
 	s.BasePlayerStats.AddStatsToSeasonRecord(stat)
 }
