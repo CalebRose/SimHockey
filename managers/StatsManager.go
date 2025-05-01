@@ -463,8 +463,8 @@ func GetCHLGameResultsByGameID(gameID string) structs.GameResultsResponse {
 	allStats := repository.FindCollegePlayerStatsRecordByGame(gameID)
 	collegePlayerMap := GetCollegePlayersMap()
 	teamMap := GetCollegeTeamMap()
-	homeTeamStats := repository.FindCollegeTeamStatsRecordByGame(htID, gameID)
-	awayTeamStats := repository.FindCollegeTeamStatsRecordByGame(atID, gameID)
+	homeTeamStats := repository.FindCollegeTeamStatsRecordByGame(gameID, htID)
+	awayTeamStats := repository.FindCollegeTeamStatsRecordByGame(gameID, atID)
 	homePlayerStats := MakeCollegePlayerGameStatsListByTeamID(allStats, game.HomeTeamID)
 	awayPlayerStats := MakeCollegePlayerGameStatsListByTeamID(allStats, game.AwayTeamID)
 	score := structs.ScoreBoard{
