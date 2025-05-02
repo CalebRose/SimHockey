@@ -857,3 +857,15 @@ func (r *Recruit) ApplySigningStatus(num, threshold float32, signing bool) {
 		r.RecruitingStatus = "Signed"
 	}
 }
+
+func (r *Recruit) AssignRankValues(rank247 float32, espnRank float32, rivalsRank float32, modifier float32) {
+	r.Rank247 = rank247
+	r.ESPNRank = espnRank
+	r.RivalsRank = rivalsRank
+	r.CompositeRank = (rank247 + espnRank + rivalsRank) / 3
+	r.TopRankModifier = modifier
+}
+
+func (r *Recruit) AssignRecruitingModifier(recruitingMod float32) {
+	r.RecruitingModifier = recruitingMod
+}

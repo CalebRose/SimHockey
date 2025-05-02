@@ -19,7 +19,7 @@ func ShowGames() {
 	// Update Season Stats
 	gameDay := ts.GetGameDay()
 	UpdateStandings(ts, gameDay)
-	// UpdateSeasonStats(ts, gameDay)
+	UpdateSeasonStats(ts, gameDay)
 	ts.ToggleGames(gameDay)
 	repository.SaveTimestamp(ts, db)
 }

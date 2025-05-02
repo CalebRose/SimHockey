@@ -10,7 +10,7 @@ import (
 	"gorm.io/gorm"
 )
 
-func FindAllRecruits(includeProfiles, includeIsSigned, isSigned, orderByOverall bool, teamID string) []structs.Recruit {
+func FindAllRecruits(includeProfiles, includeIsSigned, isSigned, orderByOverall, forRecruitingPage bool, teamID string) []structs.Recruit {
 	db := dbprovider.GetInstance().GetDB()
 
 	var recruits []structs.Recruit
@@ -18,7 +18,11 @@ func FindAllRecruits(includeProfiles, includeIsSigned, isSigned, orderByOverall 
 	query := db.Model(&recruits)
 
 	if orderByOverall {
-		query.Order("overall desc")
+		query = query.Order("overall desc")
+	}
+
+	if forRecruitingPage {
+		query = query.Order("stars desc").Order("composite_rank desc")
 	}
 
 	if includeProfiles {

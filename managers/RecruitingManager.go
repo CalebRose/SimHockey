@@ -13,11 +13,11 @@ import (
 )
 
 func GetAllRecruitRecords() []structs.Recruit {
-	return repository.FindAllRecruits(false, false, false, false, "")
+	return repository.FindAllRecruits(false, false, false, false, false, "")
 }
 
 func GetAllCrootRecords() []structs.Croot {
-	recruits := repository.FindAllRecruits(true, false, false, false, "")
+	recruits := repository.FindAllRecruits(true, false, false, false, true, "")
 
 	var croots []structs.Croot
 	for _, recruit := range recruits {
@@ -33,7 +33,7 @@ func GetAllCrootRecords() []structs.Croot {
 }
 
 func GetAllUnsignedRecruits() []structs.Recruit {
-	return repository.FindAllRecruits(false, true, false, false, "")
+	return repository.FindAllRecruits(false, true, false, false, true, "")
 }
 
 func GetCollegeRecruitByID(id string) structs.Recruit {
@@ -56,7 +56,7 @@ func GetOnlyRecruitProfilesByProfileID(id string) []structs.RecruitPlayerProfile
 }
 
 func GetSignedRecruitsByTeamID(teamID string) []structs.Recruit {
-	return repository.FindAllRecruits(false, true, true, true, teamID)
+	return repository.FindAllRecruits(false, true, true, true, false, teamID)
 }
 
 func GetRecruitProfileMap() map[uint][]structs.RecruitPlayerProfile {

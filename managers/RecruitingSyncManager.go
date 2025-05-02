@@ -34,7 +34,7 @@ func SyncCollegeRecruiting() {
 	// Load Data
 	teamProfiles := repository.FindTeamRecruitingProfiles(false)
 	allRecruitProfiles := repository.FindRecruitPlayerProfileRecords("", "", false, false, true)
-	recruits := repository.FindAllRecruits(false, false, false, false, "")
+	recruits := repository.FindAllRecruits(false, false, false, false, true, "")
 	recruitProfileMap := MakeRecruitProfileMapByRecruitID(allRecruitProfiles)
 	teamProfileMap := MakeTeamProfileMap(teamProfiles)
 	teamPointsMap := getTeamPointsMap()
@@ -273,7 +273,7 @@ func updateTeamRankings(teamRecruitingProfiles []structs.RecruitingTeamProfile, 
 	for i := 0; i < len(teamRecruitingProfiles); i++ {
 		tp := teamMap[teamRecruitingProfiles[i].ID]
 
-		signedRecruits := repository.FindAllRecruits(false, true, true, true, strconv.Itoa(int(teamRecruitingProfiles[i].TeamID)))
+		signedRecruits := repository.FindAllRecruits(false, true, true, true, true, strconv.Itoa(int(teamRecruitingProfiles[i].TeamID)))
 
 		teamRecruitingProfiles[i].UpdateTotalSignedRecruits(uint8(len(signedRecruits)))
 

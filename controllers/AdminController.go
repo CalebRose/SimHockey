@@ -101,3 +101,8 @@ func ShowGameResults(w http.ResponseWriter, r *http.Request) {
 	managers.ShowGames()
 	json.NewEncoder(w).Encode("Game results revealed!")
 }
+
+func AssignAllRecruitRanks(w http.ResponseWriter, r *http.Request) {
+	managers.AssignAllRecruitRanks()
+	json.NewEncoder(w).Encode("Game results revealed!")
+}
