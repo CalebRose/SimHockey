@@ -192,3 +192,115 @@ func GetPotentialGrade(potential int) string {
 		return "F"
 	}
 }
+
+func GetCompetitivenessLabel(value int) string {
+	switch value {
+	case 1:
+		return "Lazy"
+	case 2:
+		return "Slacker"
+	case 3:
+		return "Milquetoast"
+	case 4:
+		return "Needs Motivation"
+	case 5:
+		return "Average"
+	case 6:
+		return "Focused"
+	case 7:
+		return "Engrossed"
+	case 8:
+		return "Fierce"
+	case 9:
+		return "Cutthroat"
+	default:
+		return "Distracted"
+	}
+}
+
+func GetTeamLoyaltyLabel(value int) string {
+	switch value {
+	case 1:
+		return "Apathetic"
+	case 2:
+		return "Wavering"
+	case 3:
+		return "Fickle"
+	case 4:
+		return "Uninterested"
+	case 5:
+		return "Average"
+	case 6:
+		return "Dependable"
+	case 7:
+		return "Trusted"
+	case 8:
+		return "Devoted"
+	case 9:
+		return "Unwavering"
+	default:
+		return "Distracted"
+	}
+}
+
+func GetPlaytimePreferenceLabel(value int) string {
+	switch value {
+	case 1:
+		return "Complacent"
+	case 2:
+		return "Patient"
+	case 3:
+		return "Passive"
+	case 4:
+		return "Uninterested"
+	case 5:
+		return "Average"
+	case 6:
+		return "Avid"
+	case 7:
+		return "Driven"
+	case 8:
+		return "Ambitious"
+	case 9:
+		return "Zealous"
+	default:
+		return "Distracted"
+	}
+}
+
+func GetFAMarketPrefLabel(value int) string {
+	valueMap := map[int]string{
+		1: "Average",
+		2: "Close to Home",
+		3: "Countrymen",
+		4: "Large Market",
+		5: "No Large Market",
+		6: "Small Market",
+		7: "No Small Market",
+		8: "Loyal to Team",
+		9: "Avoiding Prev. Team",
+	}
+	return valueMap[value]
+}
+
+func GetFACompetitivePrefLabel(value int) string {
+	valueMap := map[int]string{
+		1: "Average",
+		2: "Seeking Mentorship",
+		3: "Veteran Mentor",
+		4: "First Line",
+		5: "Second Line",
+		6: "Competitive Team",
+	}
+	return valueMap[value]
+}
+
+func GetFAFinancialPrefLabel(value int) string {
+	valueMap := map[int]string{
+		1: "Average",
+		2: "Short Contract",
+		3: "Long Contract",
+		4: "Large AAV",
+	}
+	return valueMap[value]
+}

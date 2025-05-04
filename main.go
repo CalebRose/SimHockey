@@ -153,6 +153,20 @@ func handleRequests() http.Handler {
 	apiRouter.HandleFunc("/chl/teams/remove/{teamID}", controllers.RemoveUserFromCollegeTeam).Methods("GET")
 	apiRouter.HandleFunc("/phl/teams/remove/user", controllers.RemoveUserFromProTeam).Methods("POST")
 
+	// Discord
+	apiRouter.HandleFunc("/ds/chl/team/{teamID}/", controllers.GetCHLTeamByTeamIDForDiscord).Methods("GET")
+	apiRouter.HandleFunc("/ds/phl/team/{teamID}/", controllers.GetPHLTeamByTeamIDForDiscord).Methods("GET")
+	apiRouter.HandleFunc("/ds/chl/player/id/{id}", controllers.GetCHLPlayerForDiscord).Methods("GET")
+	apiRouter.HandleFunc("/ds/chl/player/name/{firstName}/{lastName}/{abbr}", controllers.GetCHLPlayerByName).Methods("GET")
+	apiRouter.HandleFunc("/ds/phl/player/id/{id}", controllers.GetPHLPlayerForDiscord).Methods("GET")
+	apiRouter.HandleFunc("/ds/phl/player/name/{firstName}/{lastName}/{abbr}", controllers.GetPHLPlayerByName).Methods("GET")
+	apiRouter.HandleFunc("/ds/chl/flex/{teamOneID}/{teamTwoID}/", controllers.CompareCHLTeams).Methods("GET")
+	apiRouter.HandleFunc("/ds/phl/flex/{teamOneID}/{teamTwoID}/", controllers.ComparePHLTeams).Methods("GET")
+	apiRouter.HandleFunc("/ds/chl/assign/discord/{teamID}/{discordID}", controllers.AssignDiscordIDToCHLTeam).Methods("GET")
+	apiRouter.HandleFunc("/ds/phl/assign/discord/{teamID}/{discordID}", controllers.AssignDiscordIDToPHLTeam).Methods("GET")
+	apiRouter.HandleFunc("/ds/chl/croots/class/{teamID}/", controllers.GetCHLRecruitingClassByTeamID).Methods("GET")
+	apiRouter.HandleFunc("/ds/chl/croot/{id}", controllers.GetCHLRecruitViaDiscord).Methods("GET")
+
 	// Websocket
 	myRouter.HandleFunc("/ws", ws.WebSocketHandler)
 
