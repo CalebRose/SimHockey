@@ -40,6 +40,7 @@ type BaseGame struct {
 	GameTitle             string // For rivalry match-ups, bowl games, championships, and more
 	NextGameID            uint
 	NextGameHOA           string
+	IsPreseason           bool
 }
 
 func (b *BaseGame) HideScore() {

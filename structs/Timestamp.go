@@ -37,6 +37,9 @@ type Timestamp struct {
 	Y4Capspace                    float64
 	Y5Capspace                    float64
 	DeadCapLimit                  float64
+	PreseasonPhase                uint
+	IsPreseason                   bool
+	SeasonPhase                   uint
 }
 
 func (t *Timestamp) GetGameDay() string {
@@ -53,8 +56,16 @@ func (t *Timestamp) GetGameDay() string {
 }
 
 func (t *Timestamp) MoveUpWeek() {
-	t.WeekID++
-	t.Week++
+	if t.IsPreseason {
+		t.PreseasonPhase++
+		if t.PreseasonPhase > 3 {
+			t.IsPreseason = !t.IsPreseason
+			t.PreseasonPhase = 0
+		}
+	} else {
+		t.WeekID++
+		t.Week++
+	}
 }
 
 func (t *Timestamp) MoveUpFreeAgencyRound() {
@@ -75,12 +86,17 @@ func (t *Timestamp) DraftIsOver() {
 func (t *Timestamp) MoveUpSeason() {
 	t.SeasonID++
 	t.Season++
-	t.Week = 0
+	t.Week = 1
+	baseSeason := t.Season - 2000
+	multSeason := baseSeason * 100
+	t.WeekID = multSeason + 1
 	t.Y1Capspace = t.Y2Capspace
 	t.Y2Capspace = t.Y3Capspace
 	t.Y3Capspace = t.Y4Capspace
 	t.Y4Capspace = t.Y5Capspace
 	t.Y5Capspace += 5
+	t.IsPreseason = true
+	t.PreseasonPhase = 1
 }
 
 func (t *Timestamp) ToggleRecruiting() {
@@ -126,6 +142,9 @@ func (t *Timestamp) ToggleGames(matchType string) {
 		t.GamesCRan = true
 	} else if matchType == "D" {
 		t.GamesDRan = true
+	}
+	if t.IsPreseason {
+		t.PreseasonPhase++
 	}
 }
 
@@ -197,22 +216,12 @@ func (t *Timestamp) ToggleProfessionalProgression() {
 	t.IsDraftTime = true
 }
 
-// func (t *Timestamp) GetNHLCurrentGameType() (int, string) {
-// 	if t.NHLPreseason {
-// 		return 1, "1"
-// 	}
-// 	if t.NHLWeek > 18 {
-// 		return 3, "3"
-// 	}
-// 	return 2, "2"
-// }
-
-// func (t *Timestamp) GetCollegeCurrentGameType() (int, string) {
-// 	if t.CFBSpringGames {
-// 		return 1, "1"
-// 	}
-// 	if t.CollegeWeek > 14 {
-// 		return 3, "3"
-// 	}
-// 	return 2, "2"
-// }
+func (t *Timestamp) GetCurrentGameType(isCollege bool) (int, string) {
+	if t.IsPreseason {
+		return 1, "1"
+	}
+	if (t.Week > 17 && isCollege) || (t.Week > 18 && !isCollege) {
+		return 3, "3"
+	}
+	return 2, "2"
+}

@@ -101,7 +101,7 @@ func GetBootstrapData(collegeID, proID string) structs.BootstrapData {
 		}()
 		go func() {
 			defer wg.Done()
-			collegeGames = GetCollegeGamesBySeasonID(seasonID)
+			collegeGames = GetCollegeGamesBySeasonID(seasonID, ts.IsPreseason)
 		}()
 		go func() {
 			defer wg.Done()
@@ -156,7 +156,7 @@ func GetBootstrapData(collegeID, proID string) structs.BootstrapData {
 		}()
 		go func() {
 			defer wg.Done()
-			proGames = GetProfessionalGamesBySeasonID("")
+			proGames = GetProfessionalGamesBySeasonID("", ts.IsPreseason)
 		}()
 		go func() {
 			defer wg.Done()

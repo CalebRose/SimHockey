@@ -143,7 +143,7 @@ func ApproveCHLTeamRequest(request structs.CollegeTeamRequest) structs.CollegeTe
 
 	repository.SaveCollegeTeamRecord(db, team)
 
-	games := repository.FindCollegeGames(strconv.Itoa(int(ts.SeasonID)), teamID)
+	games := repository.FindCollegeGames(strconv.Itoa(int(ts.SeasonID)), teamID, false)
 
 	for _, g := range games {
 		if g.Week >= int(ts.Week) {
@@ -224,7 +224,7 @@ func RemoveUserFromCollegeTeam(teamID string) {
 
 	ts := GetTimestamp()
 	seasonID := strconv.Itoa(int(ts.SeasonID))
-	seasonalGames := repository.FindCollegeGames(seasonID, teamID)
+	seasonalGames := repository.FindCollegeGames(seasonID, teamID, false)
 
 	for _, game := range seasonalGames {
 		if game.Week >= int(ts.Week) {

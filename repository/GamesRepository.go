@@ -73,7 +73,7 @@ func FindProfessionalGamesByCurrentMatchup(weekID, seasonID, gameDay string) []s
 	return games
 }
 
-func FindCollegeGames(seasonID, teamID string) []structs.CollegeGame {
+func FindCollegeGames(seasonID, teamID string, isPreseason bool) []structs.CollegeGame {
 	db := dbprovider.GetInstance().GetDB()
 
 	var games []structs.CollegeGame
@@ -85,6 +85,11 @@ func FindCollegeGames(seasonID, teamID string) []structs.CollegeGame {
 	if len(teamID) > 0 {
 		query = query.Where("home_team_id = ? OR away_team_id = ?", teamID, teamID)
 	}
+
+	if isPreseason {
+		query = query.Where("is_preseason = ?", isPreseason)
+	}
+
 	if err := query.Order("week_id asc").Find(&games).Error; err != nil {
 		return []structs.CollegeGame{}
 	}
@@ -92,7 +97,7 @@ func FindCollegeGames(seasonID, teamID string) []structs.CollegeGame {
 	return games
 }
 
-func FindProfessionalGames(seasonID, teamID string) []structs.ProfessionalGame {
+func FindProfessionalGames(seasonID, teamID string, isPreseason bool) []structs.ProfessionalGame {
 	db := dbprovider.GetInstance().GetDB()
 
 	var games []structs.ProfessionalGame
@@ -103,6 +108,11 @@ func FindProfessionalGames(seasonID, teamID string) []structs.ProfessionalGame {
 	if len(teamID) > 0 {
 		query = query.Where("home_team_id = ? OR away_team_id = ?", teamID, teamID)
 	}
+
+	if isPreseason {
+		query = query.Where("is_preseason = ?", isPreseason)
+	}
+
 	if err := query.Order("week_id asc").Find(&games).Error; err != nil {
 		return []structs.ProfessionalGame{}
 	}
