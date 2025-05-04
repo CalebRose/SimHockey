@@ -86,11 +86,7 @@ func FindCollegeGames(seasonID, teamID string, isPreseason bool) []structs.Colle
 		query = query.Where("home_team_id = ? OR away_team_id = ?", teamID, teamID)
 	}
 
-	if isPreseason {
-		query = query.Where("is_preseason = ?", isPreseason)
-	}
-
-	if err := query.Order("week_id asc").Find(&games).Error; err != nil {
+	if err := query.Order("week_id asc").Where("is_preseason = ?", isPreseason).Find(&games).Error; err != nil {
 		return []structs.CollegeGame{}
 	}
 
