@@ -36,25 +36,27 @@ func GetBootstrapData(collegeID, proID string) structs.BootstrapData {
 
 	// Professional Data
 	var (
-		proTeam           structs.ProfessionalTeam
-		allProTeams       []structs.ProfessionalTeam
-		proStandings      []structs.ProfessionalStandings
-		proRosterMap      map[uint][]structs.ProfessionalPlayer
-		capsheetMap       map[uint]structs.ProCapsheet
-		injuredProPlayers []structs.ProfessionalPlayer
-		affiliatePlayers  []structs.ProfessionalPlayer
-		phlGoals          []structs.ProfessionalPlayer
-		phlAssists        []structs.ProfessionalPlayer
-		phlSaves          []structs.ProfessionalPlayer
-		freeAgentOffers   []structs.FreeAgencyOffer
-		waiverWireOffers  []structs.WaiverOffer
-		proNews           []structs.NewsLog
-		proNotifications  []structs.Notification
-		proGames          []structs.ProfessionalGame
-		proLineups        []structs.ProfessionalLineup
-		proShootoutLineup structs.ProfessionalShootoutLineup
-		contractMap       map[uint]structs.ProContract
-		extensionMap      map[uint]structs.ExtensionOffer
+		proTeam             structs.ProfessionalTeam
+		allProTeams         []structs.ProfessionalTeam
+		proStandings        []structs.ProfessionalStandings
+		proRosterMap        map[uint][]structs.ProfessionalPlayer
+		capsheetMap         map[uint]structs.ProCapsheet
+		injuredProPlayers   []structs.ProfessionalPlayer
+		affiliatePlayers    []structs.ProfessionalPlayer
+		phlGoals            []structs.ProfessionalPlayer
+		phlAssists          []structs.ProfessionalPlayer
+		phlSaves            []structs.ProfessionalPlayer
+		freeAgentOffers     []structs.FreeAgencyOffer
+		waiverWireOffers    []structs.WaiverOffer
+		proNews             []structs.NewsLog
+		proNotifications    []structs.Notification
+		proGames            []structs.ProfessionalGame
+		proLineups          []structs.ProfessionalLineup
+		proShootoutLineup   structs.ProfessionalShootoutLineup
+		contractMap         map[uint]structs.ProContract
+		extensionMap        map[uint]structs.ExtensionOffer
+		tradeProposalMap    map[uint][]structs.TradeProposal
+		tradePreferencesMap map[uint]structs.TradePreferences
 	)
 	ts := GetTimestamp()
 	seasonID := strconv.Itoa(int(ts.SeasonID))
@@ -177,7 +179,7 @@ func GetBootstrapData(collegeID, proID string) structs.BootstrapData {
 
 		wg.Wait()
 
-		wg.Add(6)
+		wg.Add(8)
 		go func() {
 			defer wg.Done()
 			proLineups = GetProLineupsByTeamID(proID)
@@ -202,6 +204,14 @@ func GetBootstrapData(collegeID, proID string) structs.BootstrapData {
 		go func() {
 			defer wg.Done()
 			waiverWireOffers = repository.FindAllWaiverWireOffers("", "", "", true)
+		}()
+		go func() {
+			defer wg.Done()
+			tradeProposalMap = GetTradeProposalsMap()
+		}()
+		go func() {
+			defer wg.Done()
+			tradePreferencesMap = GetTradePreferencesMap()
 		}()
 		wg.Wait()
 	}
@@ -253,5 +263,7 @@ func GetBootstrapData(collegeID, proID string) structs.BootstrapData {
 		TopPHLGoals:               phlGoals,
 		TopPHLAssists:             phlAssists,
 		TopPHLSaves:               phlSaves,
+		ProTradeProposalMap:       tradeProposalMap,
+		ProTradePreferenceMap:     tradePreferencesMap,
 	}
 }

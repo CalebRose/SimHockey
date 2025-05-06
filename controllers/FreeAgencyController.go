@@ -60,3 +60,9 @@ func CancelWaiverWireOffer(w http.ResponseWriter, r *http.Request) {
 
 	json.NewEncoder(w).Encode(true)
 }
+
+func TestFASync(w http.ResponseWriter, r *http.Request) {
+	managers.SyncFreeAgencyOffers()
+
+	json.NewEncoder(w).Encode(true)
+}

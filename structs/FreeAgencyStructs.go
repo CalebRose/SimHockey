@@ -231,6 +231,11 @@ type FreeAgencyOffer struct {
 	ContractValue   float32
 	BonusPercentage float32
 	IsActive        bool
+	Syncs           uint
+}
+
+func (f *FreeAgencyOffer) IncrementSyncs() {
+	f.Syncs++
 }
 
 func (f *FreeAgencyOffer) CalculateOffer(offer FreeAgencyOfferDTO) {

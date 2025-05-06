@@ -765,26 +765,82 @@ func getShootoutLineup(gp GamePlaybook) []*GamePlayer {
 	s5 := &GamePlayer{}
 	s6 := &GamePlayer{}
 	for _, f := range forwards {
-		allPlayers = append(allPlayers, f.Players...)
+		for _, player := range f.Players {
+			if player.IsOut {
+				continue
+			}
+			allPlayers = append(allPlayers, player)
+		}
 	}
 	for _, d := range defenders {
-		allPlayers = append(allPlayers, d.Players...)
+		for _, player := range d.Players {
+			if player.IsOut {
+				continue
+			}
+			allPlayers = append(allPlayers, player)
+		}
 	}
+
+	selectedMap := make(map[uint]bool)
 
 	for _, p := range allPlayers {
 		if p.ID == lineupIDs.Shooter1ID {
 			s1 = p
+			selectedMap[p.ID] = true
 		} else if p.ID == lineupIDs.Shooter2ID {
 			s2 = p
+			selectedMap[p.ID] = true
 		} else if p.ID == lineupIDs.Shooter3ID {
 			s3 = p
+			selectedMap[p.ID] = true
 		} else if p.ID == lineupIDs.Shooter4ID {
 			s4 = p
+			selectedMap[p.ID] = true
 		} else if p.ID == lineupIDs.Shooter5ID {
 			s5 = p
+			selectedMap[p.ID] = true
 		} else if p.ID == lineupIDs.Shooter6ID {
 			s6 = p
+			selectedMap[p.ID] = true
 		}
+	}
+	// If any of the positions are STILL empty, go through the loop of all players and fix
+	missingPlayer := s1.ID == 0 || s2.ID == 0 || s3.ID == 0 || s4.ID == 0 || s5.ID == 0 || s6.ID == 0
+	if missingPlayer {
+		// Get Bench
+		for _, player := range gp.BenchPlayers {
+			if player.IsOut || player.Position == Goalie {
+				continue
+			}
+			allPlayers = append(allPlayers, player)
+		}
+	}
+	for missingPlayer {
+		for _, p := range allPlayers {
+			if selectedMap[p.ID] {
+				continue
+			}
+			if s1.ID == 0 {
+				selectedMap[p.ID] = true
+				s1 = p
+			} else if s2.ID == 0 {
+				selectedMap[p.ID] = true
+				s2 = p
+			} else if s3.ID == 0 {
+				selectedMap[p.ID] = true
+				s3 = p
+			} else if s4.ID == 0 {
+				selectedMap[p.ID] = true
+				s4 = p
+			} else if s5.ID == 0 {
+				selectedMap[p.ID] = true
+				s5 = p
+			} else if s6.ID == 0 {
+				selectedMap[p.ID] = true
+				s6 = p
+			}
+		}
+		missingPlayer = s1.ID == 0 || s2.ID == 0 || s3.ID == 0 || s4.ID == 0 || s5.ID == 0 || s6.ID == 0
 	}
 
 	queue = append(queue, s1, s2, s3, s4, s5, s6)

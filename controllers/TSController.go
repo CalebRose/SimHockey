@@ -11,6 +11,9 @@ import (
 func CreateTSModelsFile(w http.ResponseWriter, r *http.Request) {
 	converter := typescriptify.New().
 		Add(structs.BasePlayer{}).
+		Add(structs.TradePreferences{}).
+		Add(structs.TradeProposal{}).
+		Add(structs.TradeOption{}).
 		Add(structs.GameResultsResponse{}).
 		Add(structs.SearchStatsResponse{}).
 		Add(structs.PlayerPreferences{}).

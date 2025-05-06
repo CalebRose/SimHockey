@@ -288,3 +288,41 @@ func MakeProTeamSeasonStatMap(stats []structs.ProfessionalTeamSeasonStats) map[u
 
 	return seasonStatMap
 }
+
+func MakeFreeAgencyOfferMap(offers []structs.FreeAgencyOffer) map[uint][]structs.FreeAgencyOffer {
+	offerMap := make(map[uint][]structs.FreeAgencyOffer)
+
+	for _, offer := range offers {
+		if len(offerMap[offer.PlayerID]) > 0 {
+			offerMap[offer.PlayerID] = append(offerMap[uint(offer.PlayerID)], offer)
+		} else {
+			offerMap[offer.PlayerID] = []structs.FreeAgencyOffer{offer}
+		}
+	}
+
+	return offerMap
+}
+
+func MakeTradePreferencesMap(prefs []structs.TradePreferences) map[uint]structs.TradePreferences {
+	prefMap := make(map[uint]structs.TradePreferences)
+
+	for _, pref := range prefs {
+		prefMap[pref.TeamID] = pref
+	}
+
+	return prefMap
+}
+
+func MakeTradeProposalMap(proposals []structs.TradeProposal) map[uint][]structs.TradeProposal {
+	proposalMap := make(map[uint][]structs.TradeProposal)
+
+	for _, proposal := range proposals {
+		if len(proposalMap[proposal.TeamID]) > 0 {
+			proposalMap[proposal.TeamID] = append(proposalMap[uint(proposal.TeamID)], proposal)
+		} else {
+			proposalMap[proposal.TeamID] = []structs.TradeProposal{proposal}
+		}
+	}
+
+	return proposalMap
+}

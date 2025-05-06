@@ -11,6 +11,10 @@ import (
 	"github.com/CalebRose/SimHockey/structs"
 )
 
+func GetAllFreeAgencyOffers() []structs.FreeAgencyOffer {
+	return repository.FindAllFreeAgentOffers("", "", "", true)
+}
+
 func GetAllFreeAgents() []structs.ProfessionalPlayer {
 	return repository.FindAllFreeAgents(true, false, false, false)
 }
@@ -185,6 +189,83 @@ func CancelWaiverOffer(offer structs.WaiverOfferDTO) {
 	}
 
 	repository.DeleteWaiverRecord(waiverOffer, db)
+}
+
+func SyncFreeAgencyOffers() {
+	db := dbprovider.GetInstance().GetDB()
+
+	ts := GetTimestamp()
+	if !ts.IsFreeAgencyLocked {
+		ts.ToggleFALock()
+		repository.SaveTimestamp(ts, db)
+	}
+
+	freeAgents := GetAllFreeAgents()
+	capsheetMap := GetProCapsheetMap()
+	offers := GetAllFreeAgencyOffers()
+	offerMap := MakeFreeAgencyOfferMap(offers)
+
+	for _, FA := range freeAgents {
+		if ts.IsOffSeason && !FA.IsAcceptingOffers {
+			continue
+		}
+		offers := offerMap[FA.ID]
+
+		if len(offers) == 0 {
+			continue
+		}
+
+		maxDay := 1000
+		for _, offer := range offers {
+			if maxDay > int(offer.Syncs) {
+				maxDay = int(offer.Syncs)
+			}
+		}
+		if maxDay < 3 {
+			for _, offer := range offers {
+				offer.IncrementSyncs()
+				repository.SaveFreeAgentOfferRecord(offer, db)
+			}
+		} else {
+			// For Inaugural Season, don't worry about preference factors. These should be for next season.
+			// Just sort by contract value & take the highest
+			/*
+				For next season
+				Create new struct containing offer & them new modified AAV, based on the preferences & factors specified
+				Run through all offers again to calculate the new AAV, and then resort the list
+				Highest value should be the winning offer given the team isn't maxed out or anything
+			*/
+			sort.Slice(offers, func(i, j int) bool {
+				return offers[i].ContractValue > offers[j].ContractValue
+			})
+			WinningOffer := structs.FreeAgencyOffer{}
+			for _, offer := range offers {
+				capsheet := capsheetMap[offer.TeamID]
+				if capsheet.ID == 0 {
+					continue
+				}
+				if offer.IsActive && WinningOffer.ID == 0 {
+					WinningOffer = offer
+				}
+				if offer.IsActive {
+					offer.CancelOffer()
+				}
+
+				repository.SaveFreeAgentOfferRecord(offer, db)
+			}
+
+			if WinningOffer.ID > 0 {
+				SignFreeAgent(WinningOffer, FA, ts)
+			} else if ts.IsOffSeason {
+				FA.WaitUntilAfterDraft()
+				repository.SaveProPlayerRecord(FA, db)
+			}
+		}
+	}
+	if ts.IsFreeAgencyLocked {
+		ts.ToggleFALock()
+		repository.SaveTimestamp(ts, db)
+	}
 }
 
 func SignFreeAgent(offer structs.FreeAgencyOffer, FreeAgent structs.ProfessionalPlayer, ts structs.Timestamp) {

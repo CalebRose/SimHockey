@@ -40,4 +40,6 @@ type BootstrapData struct {
 	FaceData              map[uint]FaceDataResponse
 	ContractMap           map[uint]ProContract
 	ExtensionMap          map[uint]ExtensionOffer
+	ProTradeProposalMap   map[uint][]TradeProposal
+	ProTradePreferenceMap map[uint]TradePreferences
 }
