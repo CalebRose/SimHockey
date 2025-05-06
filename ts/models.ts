@@ -217,6 +217,74 @@ export class Time {
 
     }
 }
+export class DraftPick {
+    ID: number;
+    CreatedAt: Time;
+    UpdatedAt: Time;
+    DeletedAt: DeletedAt;
+    SeasonID: number;
+    Season: number;
+    DrafteeID: number;
+    DraftRound: number;
+    DraftNumber: number;
+    TeamID: number;
+    Team: string;
+    OriginalTeamID: number;
+    OriginalTeam: string;
+    PreviousTeamID: number;
+    PreviousTeam: string;
+    DraftValue: number;
+    Notes: string;
+    SelectedPlayerID: number;
+    SelectedPlayerName: string;
+    SelectedPlayerPosition: string;
+    IsCompensation: boolean;
+    IsVoid: boolean;
+
+    constructor(source: any = {}) {
+        if ('string' === typeof source) source = JSON.parse(source);
+        this.ID = source["ID"];
+        this.CreatedAt = this.convertValues(source["CreatedAt"], Time);
+        this.UpdatedAt = this.convertValues(source["UpdatedAt"], Time);
+        this.DeletedAt = this.convertValues(source["DeletedAt"], DeletedAt);
+        this.SeasonID = source["SeasonID"];
+        this.Season = source["Season"];
+        this.DrafteeID = source["DrafteeID"];
+        this.DraftRound = source["DraftRound"];
+        this.DraftNumber = source["DraftNumber"];
+        this.TeamID = source["TeamID"];
+        this.Team = source["Team"];
+        this.OriginalTeamID = source["OriginalTeamID"];
+        this.OriginalTeam = source["OriginalTeam"];
+        this.PreviousTeamID = source["PreviousTeamID"];
+        this.PreviousTeam = source["PreviousTeam"];
+        this.DraftValue = source["DraftValue"];
+        this.Notes = source["Notes"];
+        this.SelectedPlayerID = source["SelectedPlayerID"];
+        this.SelectedPlayerName = source["SelectedPlayerName"];
+        this.SelectedPlayerPosition = source["SelectedPlayerPosition"];
+        this.IsCompensation = source["IsCompensation"];
+        this.IsVoid = source["IsVoid"];
+    }
+
+	convertValues(a: any, classs: any, asMap: boolean = false): any {
+	    if (!a) {
+	        return a;
+	    }
+	    if (Array.isArray(a)) {
+	        return (a as any[]).map(elem => this.convertValues(elem, classs));
+	    } else if ("object" === typeof a) {
+	        if (asMap) {
+	            for (const key of Object.keys(a)) {
+	                a[key] = new classs(a[key]);
+	            }
+	            return a;
+	        }
+	        return new classs(a);
+	    }
+	    return a;
+	}
+}
 export class TradePreferences {
     ID: number;
     CreatedAt: Time;
@@ -2113,6 +2181,7 @@ export class FreeAgencyOffer {
     BonusPercentage: number;
     IsActive: boolean;
     Syncs: number;
+    ToAffiliate: boolean;
 
     constructor(source: any = {}) {
         if ('string' === typeof source) source = JSON.parse(source);
@@ -2134,6 +2203,7 @@ export class FreeAgencyOffer {
         this.BonusPercentage = source["BonusPercentage"];
         this.IsActive = source["IsActive"];
         this.Syncs = source["Syncs"];
+        this.ToAffiliate = source["ToAffiliate"];
     }
 
 	convertValues(a: any, classs: any, asMap: boolean = false): any {
@@ -4462,6 +4532,7 @@ export class BootstrapData {
     ExtensionMap: {[key: uint]: ExtensionOffer};
     ProTradeProposalMap: {[key: uint]: TradeProposal[]};
     ProTradePreferenceMap: {[key: uint]: TradePreferences};
+    DraftPicks: DraftPick[];
 
     constructor(source: any = {}) {
         if ('string' === typeof source) source = JSON.parse(source);
@@ -4504,6 +4575,7 @@ export class BootstrapData {
         this.ExtensionMap = this.convertValues(source["ExtensionMap"], ExtensionOffer, true);
         this.ProTradeProposalMap = source["ProTradeProposalMap"];
         this.ProTradePreferenceMap = this.convertValues(source["ProTradePreferenceMap"], TradePreferences, true);
+        this.DraftPicks = this.convertValues(source["DraftPicks"], DraftPick);
     }
 
 	convertValues(a: any, classs: any, asMap: boolean = false): any {
@@ -5386,6 +5458,7 @@ export class FreeAgencyOfferDTO {
     Y3BaseSalary: number;
     Y4BaseSalary: number;
     Y5BaseSalary: number;
+    ToAffiliate: boolean;
 
     constructor(source: any = {}) {
         if ('string' === typeof source) source = JSON.parse(source);
@@ -5399,6 +5472,7 @@ export class FreeAgencyOfferDTO {
         this.Y3BaseSalary = source["Y3BaseSalary"];
         this.Y4BaseSalary = source["Y4BaseSalary"];
         this.Y5BaseSalary = source["Y5BaseSalary"];
+        this.ToAffiliate = source["ToAffiliate"];
     }
 }
 

@@ -42,4 +42,5 @@ type BootstrapData struct {
 	ExtensionMap          map[uint]ExtensionOffer
 	ProTradeProposalMap   map[uint][]TradeProposal
 	ProTradePreferenceMap map[uint]TradePreferences
+	DraftPicks            []DraftPick
 }

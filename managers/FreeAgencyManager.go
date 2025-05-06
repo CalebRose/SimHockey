@@ -298,7 +298,7 @@ func SignFreeAgent(offer structs.FreeAgencyOffer, FreeAgent structs.Professional
 		repository.SaveProContractRecord(Contract, db)
 		messageStart = "PS "
 	}
-	FreeAgent.SignPlayer(uint(proTeam.ID), proTeam.Abbreviation, ts.Week > 18)
+	FreeAgent.SignPlayer(uint(proTeam.ID), proTeam.Abbreviation, ts.Week > 18, offer.ToAffiliate)
 	repository.SaveProPlayerRecord(FreeAgent, db)
 
 	// News Log

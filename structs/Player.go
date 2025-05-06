@@ -718,7 +718,7 @@ func (np *ProfessionalPlayer) ToggleIsFreeAgent() {
 	np.IsWaived = false
 }
 
-func (np *ProfessionalPlayer) SignPlayer(TeamID uint, Abbr string, isEligible bool) {
+func (np *ProfessionalPlayer) SignPlayer(TeamID uint, Abbr string, isEligible, ToAffiliate bool) {
 	np.IsFreeAgent = false
 	np.IsWaived = false
 	np.TeamID = uint16(TeamID)
@@ -727,6 +727,7 @@ func (np *ProfessionalPlayer) SignPlayer(TeamID uint, Abbr string, isEligible bo
 	np.IsNegotiating = false
 	np.IsAffiliatePlayer = false
 	np.IsEligibleForPlay = isEligible
+	np.IsAffiliatePlayer = ToAffiliate
 }
 
 func (np *ProfessionalPlayer) ToggleAffiliation() {

@@ -57,6 +57,7 @@ func GetBootstrapData(collegeID, proID string) structs.BootstrapData {
 		extensionMap        map[uint]structs.ExtensionOffer
 		tradeProposalMap    map[uint][]structs.TradeProposal
 		tradePreferencesMap map[uint]structs.TradePreferences
+		draftPicks          []structs.DraftPick
 	)
 	ts := GetTimestamp()
 	seasonID := strconv.Itoa(int(ts.SeasonID))
@@ -137,7 +138,7 @@ func GetBootstrapData(collegeID, proID string) structs.BootstrapData {
 
 	// Pros
 	if len(proID) > 0 {
-		wg.Add(7)
+		wg.Add(8)
 		go func() {
 			defer wg.Done()
 			proTeam = GetProTeamByTeamID(proID)
@@ -175,6 +176,10 @@ func GetBootstrapData(collegeID, proID string) structs.BootstrapData {
 		go func() {
 			defer wg.Done()
 			proStandings = GetAllProfessionalStandingsBySeasonID("")
+		}()
+		go func() {
+			defer wg.Done()
+			draftPicks = GetAllDraftPicksBySeasonID(seasonID)
 		}()
 
 		wg.Wait()
@@ -265,5 +270,6 @@ func GetBootstrapData(collegeID, proID string) structs.BootstrapData {
 		TopPHLSaves:               phlSaves,
 		ProTradeProposalMap:       tradeProposalMap,
 		ProTradePreferenceMap:     tradePreferencesMap,
+		DraftPicks:                draftPicks,
 	}
 }

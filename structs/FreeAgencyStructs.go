@@ -214,6 +214,7 @@ type FreeAgencyOfferDTO struct {
 	Y3BaseSalary   float32
 	Y4BaseSalary   float32
 	Y5BaseSalary   float32
+	ToAffiliate    bool
 }
 
 type FreeAgencyOffer struct {
@@ -232,6 +233,7 @@ type FreeAgencyOffer struct {
 	BonusPercentage float32
 	IsActive        bool
 	Syncs           uint
+	ToAffiliate     bool
 }
 
 func (f *FreeAgencyOffer) IncrementSyncs() {
@@ -252,6 +254,7 @@ func (f *FreeAgencyOffer) CalculateOffer(offer FreeAgencyOfferDTO) {
 	// Calculate Value
 	f.TotalSalary = f.Y1BaseSalary + f.Y2BaseSalary + f.Y3BaseSalary + f.Y4BaseSalary + f.Y5BaseSalary
 	f.ContractValue = f.TotalSalary / float32(f.ContractLength)
+	f.ToAffiliate = offer.ToAffiliate
 }
 
 func (f *FreeAgencyOffer) CancelOffer() {
