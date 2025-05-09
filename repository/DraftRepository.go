@@ -1,6 +1,9 @@
 package repository
 
 import (
+	"log"
+	"strconv"
+
 	"github.com/CalebRose/SimHockey/dbprovider"
 	"github.com/CalebRose/SimHockey/structs"
 	"gorm.io/gorm"
@@ -42,4 +45,11 @@ func CreateDraftPickRecordsBatch(db *gorm.DB, picks []structs.DraftPick, batchSi
 		}
 	}
 	return nil
+}
+
+func SaveDraftPickRecord(pickRecord structs.DraftPick, db *gorm.DB) {
+	err := db.Save(&pickRecord).Error
+	if err != nil {
+		log.Panicln("Could not save college player " + strconv.Itoa(int(pickRecord.ID)))
+	}
 }

@@ -24,13 +24,29 @@ func FindAllTradePreferenceRecords() []structs.TradePreferences {
 	return preferences
 }
 
-func FindAllTradeProposalsRecords() []structs.TradeProposal {
+func FindAllTradeProposalsRecords(clauses TradeClauses) []structs.TradeProposal {
 	db := dbprovider.GetInstance().GetDB()
-	preferences := []structs.TradeProposal{}
+	proposal := []structs.TradeProposal{}
 
-	db.Preload("TeamTradeOptions").Find(&preferences)
+	query := db.Model(&proposal)
 
-	return preferences
+	if clauses.PreloadTradeOptions {
+		query = query.Preload("TeamTradeOptions")
+	}
+
+	if clauses.IsAccepted {
+		query = query.Where("is_trade_accepted = ?", true)
+	}
+
+	if clauses.IsRejected {
+		query = query.Where("is_trade_rejected = ?", true)
+	}
+
+	if err := query.Find(&proposal).Error; err != nil {
+		return []structs.TradeProposal{}
+	}
+
+	return proposal
 }
 
 func FindTradePreferencesByTeamID(id string) structs.TradePreferences {
@@ -42,11 +58,27 @@ func FindTradePreferencesByTeamID(id string) structs.TradePreferences {
 	return preferences
 }
 
-func FindTradeProposalRecord(id string) structs.TradeProposal {
+func FindTradeProposalRecord(clauses TradeClauses, id string) structs.TradeProposal {
 	db := dbprovider.GetInstance().GetDB()
 	proposal := structs.TradeProposal{}
 
-	db.Where("id = ?", id).Find(&proposal)
+	query := db.Model(&proposal)
+
+	if clauses.PreloadTradeOptions {
+		query = query.Preload("TeamTradeOptions")
+	}
+
+	if clauses.IsAccepted {
+		query = query.Where("is_trade_accepted = ?", true)
+	}
+
+	if clauses.IsRejected {
+		query = query.Where("is_trade_rejected = ?", true)
+	}
+
+	if err := query.Where("id = ?", id).Find(&proposal).Error; err != nil {
+		return structs.TradeProposal{}
+	}
 
 	return proposal
 }

@@ -771,6 +771,14 @@ func (np *ProfessionalPlayer) WaitUntilAfterDraft() {
 	np.IsAcceptingOffers = false
 }
 
+func (np *ProfessionalPlayer) TradePlayer(id uint, team string) {
+	np.PreviousTeam = np.Team
+	np.PreviousTeamID = uint8(np.TeamID)
+	np.TeamID = uint16(id)
+	np.Team = team
+	np.IsOnTradeBlock = false
+}
+
 func (np *ProfessionalPlayer) AssignPreferences(m, c, f uint8) {
 	np.MarketPreference = m
 	np.CompetitivePreference = c

@@ -85,7 +85,7 @@ func handleRequests() http.Handler {
 	// apiRouter.HandleFunc("/admin/generate/test/pro/rosters/", controllers.GenerateProTestData).Methods("GET")
 	// apiRouter.HandleFunc("/admin/generate/capsheets/", controllers.GenerateCapsheets).Methods("GET")
 	// apiRouter.HandleFunc("/admin/generate/fa/preferences/", controllers.AddFAPreferences).Methods("GET")
-	// apiRouter.HandleFunc("/admin/run/fa/sync/", controllers.TestFASync).Methods("GET")
+	apiRouter.HandleFunc("/admin/run/fa/sync/", controllers.TestFASync).Methods("GET")
 
 	// Bootstrap
 	apiRouter.HandleFunc("/bootstrap/{collegeID}/{proID}", controllers.BootstrapHockeyData).Methods("GET")
@@ -153,6 +153,13 @@ func handleRequests() http.Handler {
 	// Teams
 	apiRouter.HandleFunc("/chl/teams/remove/{teamID}", controllers.RemoveUserFromCollegeTeam).Methods("GET")
 	apiRouter.HandleFunc("/phl/teams/remove/user", controllers.RemoveUserFromProTeam).Methods("POST")
+
+	// Trades
+	apiRouter.HandleFunc("/trades/phl/preferences/update", controllers.UpdateTradePreferences).Methods("POST")
+	apiRouter.HandleFunc("/trades/phl/create/proposal", controllers.CreateTradeProposal).Methods("POST")
+	apiRouter.HandleFunc("/trades/phl/proposal/accept/{proposalID}", controllers.AcceptTradeOffer).Methods("GET")
+	apiRouter.HandleFunc("/trades/phl/proposal/reject/{proposalID}", controllers.RejectTradeOffer).Methods("GET")
+	apiRouter.HandleFunc("/trades/phl/proposal/cancel/{proposalID}", controllers.CancelTradeOffer).Methods("GET")
 
 	// Discord
 	apiRouter.HandleFunc("/ds/chl/team/{teamID}/", controllers.GetCHLTeamByTeamIDForDiscord).Methods("GET")
