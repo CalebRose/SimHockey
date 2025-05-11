@@ -24,7 +24,7 @@ func GetPHLTeamByTeamIDForDiscord(w http.ResponseWriter, r *http.Request) {
 	if len(teamID) == 0 {
 		panic("User did not provide TeamID")
 	}
-	team := managers.GetCHLTeamDataForDiscord(teamID)
+	team := managers.GetPHLTeamDataForDiscord(teamID)
 	json.NewEncoder(w).Encode(team)
 }
 

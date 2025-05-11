@@ -31,7 +31,7 @@ func FindAllTradeProposalsRecords(clauses TradeClauses) []structs.TradeProposal 
 	query := db.Model(&proposal)
 
 	if clauses.PreloadTradeOptions {
-		query = query.Preload("TeamTradeOptions")
+		query = query.Preload("TeamTradeOptions").Preload("RecepientTeamTradeOptions")
 	}
 
 	if clauses.IsAccepted {
@@ -98,7 +98,7 @@ func SaveTradeProposalRecord(tp structs.TradeProposal, db *gorm.DB) {
 }
 
 func CreateTradeProposalRecord(db *gorm.DB, tp structs.TradeProposal) error {
-	if err := db.Create(tp).Error; err != nil {
+	if err := db.Create(&tp).Error; err != nil {
 		return err
 	}
 
@@ -106,7 +106,7 @@ func CreateTradeProposalRecord(db *gorm.DB, tp structs.TradeProposal) error {
 }
 
 func CreateTradeOptionRecord(db *gorm.DB, tp structs.TradeProposal) error {
-	if err := db.Create(tp).Error; err != nil {
+	if err := db.Create(&tp).Error; err != nil {
 		return err
 	}
 
