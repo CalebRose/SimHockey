@@ -182,11 +182,13 @@ func FindTeamRecruitingProfile(teamID string, includeRecruit, includeSignedRecru
 
 	if includeRecruit {
 		query = query.Preload("Recruits.Recruit.RecruitPlayerProfiles", func(db *gorm.DB) *gorm.DB {
-			return db.Order("total_points DESC").Where("total_points > 0")
+			return db.Order("recruit_player_profiles.total_points DESC").Where("total_points > 0")
 		})
 	} else if includeSignedRecruitsOnly {
-		query = query.Preload("Recruits.Recruit", func(db *gorm.DB) *gorm.DB {
-			return db.Order("total_points DESC").Where("team_id = ? AND is_signed = true", teamID)
+		query = query.Preload("Recruits", func(db *gorm.DB) *gorm.DB {
+			return db.Order("total_points DESC").Where("is_signed = true")
+		}).Preload("Recruits.Recruit", func(db *gorm.DB) *gorm.DB {
+			return db.Where("team_id = ?", teamID)
 		})
 	}
 
