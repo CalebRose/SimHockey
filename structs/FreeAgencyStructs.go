@@ -232,6 +232,7 @@ type FreeAgencyOffer struct {
 	ContractValue   float32
 	BonusPercentage float32
 	IsActive        bool
+	IsRejected      bool
 	Syncs           uint
 	ToAffiliate     bool
 }
@@ -257,8 +258,12 @@ func (f *FreeAgencyOffer) CalculateOffer(offer FreeAgencyOfferDTO) {
 	f.ToAffiliate = offer.ToAffiliate
 }
 
-func (f *FreeAgencyOffer) CancelOffer() {
+func (f *FreeAgencyOffer) DeactivateOffer() {
 	f.IsActive = false
+}
+
+func (f *FreeAgencyOffer) RejectOffer() {
+	f.IsRejected = true
 }
 
 func (f *FreeAgencyOffer) AssignID(id uint) {

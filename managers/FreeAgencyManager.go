@@ -6,6 +6,7 @@ import (
 	"strconv"
 	"sync"
 
+	util "github.com/CalebRose/SimHockey/_util"
 	"github.com/CalebRose/SimHockey/dbprovider"
 	"github.com/CalebRose/SimHockey/repository"
 	"github.com/CalebRose/SimHockey/structs"
@@ -151,7 +152,7 @@ func CancelOffer(offer structs.FreeAgencyOfferDTO) {
 	if freeAgentOffer.ID == 0 {
 		return
 	}
-	freeAgentOffer.CancelOffer()
+	freeAgentOffer.DeactivateOffer()
 
 	db.Save(&freeAgentOffer)
 }
@@ -239,16 +240,38 @@ func SyncFreeAgencyOffers() {
 				return offers[i].ContractValue > offers[j].ContractValue
 			})
 			WinningOffer := structs.FreeAgencyOffer{}
+			competingTeams := []structs.FreeAgencyOffer{}
+			highestAAV := 0.0
+			for _, offer := range offers {
+				capsheet := capsheetMap[offer.TeamID]
+				if capsheet.ID == 0 || !offer.IsActive {
+					continue
+				}
+				if offer.ContractValue > float32(highestAAV) {
+					highestAAV = float64(offer.ContractValue)
+					competingTeams = []structs.FreeAgencyOffer{offer}
+				} else if offer.ContractValue == float32(highestAAV) && highestAAV > 0 {
+					competingTeams = append(competingTeams, offer)
+				} else {
+					break
+				}
+			}
+			idx := 0
+			// If there is more than one competing team
+			if len(competingTeams) > 1 {
+				idx = util.GenerateIntFromRange(0, len(competingTeams)-1)
+			}
+			WinningOffer = competingTeams[idx]
+			// Cancel All Offers
 			for _, offer := range offers {
 				capsheet := capsheetMap[offer.TeamID]
 				if capsheet.ID == 0 {
 					continue
 				}
-				if offer.IsActive && WinningOffer.ID == 0 {
-					WinningOffer = offer
-				}
-				if offer.IsActive {
-					offer.CancelOffer()
+				if offer.IsActive && offer.ID != WinningOffer.ID {
+					offer.RejectOffer()
+				} else if offer.IsActive && offer.ID == WinningOffer.ID {
+					offer.DeactivateOffer()
 				}
 
 				repository.SaveFreeAgentOfferRecord(offer, db)
