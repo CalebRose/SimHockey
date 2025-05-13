@@ -179,7 +179,7 @@ func GetBootstrapData(collegeID, proID string) structs.BootstrapData {
 		}()
 		go func() {
 			defer wg.Done()
-			draftPicks = GetAllDraftPicksBySeasonID(seasonID)
+			draftPicks = GetAllDraftPicksBySeasonID("")
 		}()
 
 		wg.Wait()
