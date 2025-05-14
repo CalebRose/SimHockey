@@ -63,11 +63,12 @@ func GetProTeamForAvailableTeamsPage(teamID string) structs.TeamRecordResponse {
 func GetAllHCKRequests() structs.TeamRequestsResponse {
 
 	var wg sync.WaitGroup
-	wg.Add(2)
+	wg.Add(3)
 
 	var (
 		collegeRequests []structs.CollegeTeamRequest
 		proRequests     []structs.ProTeamRequest
+		acceptedTrades  []structs.TradeProposal
 	)
 
 	go func() {
@@ -80,11 +81,17 @@ func GetAllHCKRequests() structs.TeamRequestsResponse {
 		proRequests = repository.FindAllPHLTeamRequests(true)
 	}()
 
+	go func() {
+		defer wg.Done()
+		acceptedTrades = repository.FindAllTradeProposalsRecords(repository.TradeClauses{IsAccepted: true})
+	}()
+
 	wg.Wait()
 
 	return structs.TeamRequestsResponse{
 		CollegeRequests: collegeRequests,
 		ProRequest:      proRequests,
+		AcceptedTrades:  acceptedTrades,
 	}
 }
 

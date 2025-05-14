@@ -2180,6 +2180,7 @@ export class FreeAgencyOffer {
     ContractValue: number;
     BonusPercentage: number;
     IsActive: boolean;
+    IsRejected: boolean;
     Syncs: number;
     ToAffiliate: boolean;
 
@@ -2202,6 +2203,7 @@ export class FreeAgencyOffer {
         this.ContractValue = source["ContractValue"];
         this.BonusPercentage = source["BonusPercentage"];
         this.IsActive = source["IsActive"];
+        this.IsRejected = source["IsRejected"];
         this.Syncs = source["Syncs"];
         this.ToAffiliate = source["ToAffiliate"];
     }
@@ -6122,11 +6124,13 @@ export class Timestamp {
 export class TeamRequestsResponse {
     CollegeRequests: CollegeTeamRequest[];
     ProRequest: ProTeamRequest[];
+    AcceptedTrades: TradeProposal[];
 
     constructor(source: any = {}) {
         if ('string' === typeof source) source = JSON.parse(source);
         this.CollegeRequests = this.convertValues(source["CollegeRequests"], CollegeTeamRequest);
         this.ProRequest = this.convertValues(source["ProRequest"], ProTeamRequest);
+        this.AcceptedTrades = this.convertValues(source["AcceptedTrades"], TradeProposal);
     }
 
 	convertValues(a: any, classs: any, asMap: boolean = false): any {

@@ -39,4 +39,5 @@ func (r *TeamRequest) Reactivate() {
 type TeamRequestsResponse struct {
 	CollegeRequests []CollegeTeamRequest
 	ProRequest      []ProTeamRequest
+	AcceptedTrades  []TradeProposal
 }
