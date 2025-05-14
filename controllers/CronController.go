@@ -44,11 +44,7 @@ func SyncRecruitingViaCron() {
 func SyncFreeAgencyViaCron() {
 	ts := managers.GetTimestamp()
 	if ts.RunCron {
-
-		if ts.FreeAgencyRound >= 1 && ts.FreeAgencyRound < 11 {
-
-		}
-
+		managers.SyncFreeAgencyOffers()
 	}
 }
 

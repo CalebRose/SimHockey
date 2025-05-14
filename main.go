@@ -194,6 +194,7 @@ func loadEnvs() {
 
 func handleCron() *cron.Cron {
 	c := cron.New()
+	c.AddFunc("0 16 * * 1,3,5", controllers.SyncFreeAgencyViaCron)
 
 	c.Start()
 
