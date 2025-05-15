@@ -476,6 +476,7 @@ func getSeverityByID(sevId uint8) string {
 func WriteProPlayersExport(w http.ResponseWriter, players []structs.ProfessionalPlayer, filename string) {
 	ts := GetTimestamp()
 	w.Header().Set("Content-Disposition", "attachment;filename="+strconv.Itoa(int(ts.Season))+filename)
+	w.Header().Set("Access-Control-Expose-Headers", "Content-Disposition")
 	w.Header().Set("Transfer-Encoding", "chunked")
 	writer := csv.NewWriter(w)
 
@@ -517,6 +518,7 @@ func WriteProPlayersExport(w http.ResponseWriter, players []structs.Professional
 func WriteCollegePlayersExport(w http.ResponseWriter, players []structs.CollegePlayer, filename string) {
 	ts := GetTimestamp()
 	w.Header().Set("Content-Disposition", "attachment;filename="+strconv.Itoa(int(ts.Season))+filename)
+	w.Header().Set("Access-Control-Expose-Headers", "Content-Disposition")
 	w.Header().Set("Transfer-Encoding", "chunked")
 	writer := csv.NewWriter(w)
 
@@ -552,6 +554,7 @@ func WriteCollegePlayersExport(w http.ResponseWriter, players []structs.CollegeP
 func WriteCollegeRecruitsExport(w http.ResponseWriter, players []structs.Recruit, filename string) {
 	ts := GetTimestamp()
 	w.Header().Set("Content-Disposition", "attachment;filename="+strconv.Itoa(int(ts.Season))+filename)
+	w.Header().Set("Access-Control-Expose-Headers", "Content-Disposition")
 	w.Header().Set("Transfer-Encoding", "chunked")
 	writer := csv.NewWriter(w)
 
