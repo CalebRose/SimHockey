@@ -473,9 +473,9 @@ func getSeverityByID(sevId uint8) string {
 	return severityMap[sevId]
 }
 
-func WriteProPlayersExport(w http.ResponseWriter, players []structs.ProfessionalPlayer) {
+func WriteProPlayersExport(w http.ResponseWriter, players []structs.ProfessionalPlayer, filename string) {
 	ts := GetTimestamp()
-	w.Header().Set("Content-Disposition", "attachment;filename="+strconv.Itoa(int(ts.Season))+"_pro_players.csv")
+	w.Header().Set("Content-Disposition", "attachment;filename="+strconv.Itoa(int(ts.Season))+filename)
 	w.Header().Set("Transfer-Encoding", "chunked")
 	writer := csv.NewWriter(w)
 
@@ -495,10 +495,10 @@ func WriteProPlayersExport(w http.ResponseWriter, players []structs.Professional
 			strconv.Itoa(int(p.Stars)), strconv.Itoa(int(p.Age)), strconv.Itoa(int(p.Overall)), strconv.Itoa(int(p.Agility)), strconv.Itoa(int(p.Faceoffs)), strconv.Itoa(int(p.LongShotAccuracy)),
 			strconv.Itoa(int(p.LongShotPower)), strconv.Itoa(int(p.CloseShotAccuracy)), strconv.Itoa(int(p.CloseShotPower)), strconv.Itoa(int(p.Passing)), strconv.Itoa(int(p.PuckHandling)), strconv.Itoa(int(p.Strength)),
 			strconv.Itoa(int(p.BodyChecking)), strconv.Itoa(int(p.StickChecking)), strconv.Itoa(int(p.ShotBlocking)), strconv.Itoa(int(p.Goalkeeping)), strconv.Itoa(int(p.GoalieVision)), util.GetPotentialGrade(int(p.Stamina)),
-			util.GetPotentialGrade(int(p.InjuryRating)), util.GetPotentialGrade(int(p.AgilityPotential)), util.GetPotentialGrade(int(p.FaceoffsPotential)), util.GetPotentialGrade(int(p.LongShotAccuracyPotential)), util.GetPotentialGrade(int(p.LongShotPowerPotential)),
-			util.GetPotentialGrade(int(p.CloseShotAccuracyPotential)), util.GetPotentialGrade(int(p.CloseShotPowerPotential)), util.GetPotentialGrade(int(p.PassingPotential)), util.GetPotentialGrade(int(p.PuckHandlingPotential)),
-			util.GetPotentialGrade(int(p.StrengthPotential)), util.GetPotentialGrade(int(p.BodyCheckingPotential)), util.GetPotentialGrade(int(p.StickCheckingPotential)), util.GetPotentialGrade(int(p.ShotBlockingPotential)),
-			util.GetPotentialGrade(int(p.GoalkeepingPotential)), util.GetPotentialGrade(int(p.GoalieVisionPotential)),
+			util.GetPotentialGrade(int(p.InjuryRating)), "?", "?", "?", "?",
+			"?", "?", "?", "?",
+			"?", "?", "?", "?",
+			"?", "?",
 		}
 
 		err := writer.Write(playerRow)
@@ -514,9 +514,9 @@ func WriteProPlayersExport(w http.ResponseWriter, players []structs.Professional
 	}
 }
 
-func WriteCollegePlayersExport(w http.ResponseWriter, players []structs.CollegePlayer) {
+func WriteCollegePlayersExport(w http.ResponseWriter, players []structs.CollegePlayer, filename string) {
 	ts := GetTimestamp()
-	w.Header().Set("Content-Disposition", "attachment;filename="+strconv.Itoa(int(ts.Season))+"_chl_players.csv")
+	w.Header().Set("Content-Disposition", "attachment;filename="+strconv.Itoa(int(ts.Season))+filename)
 	w.Header().Set("Transfer-Encoding", "chunked")
 	writer := csv.NewWriter(w)
 
@@ -530,6 +530,42 @@ func WriteCollegePlayersExport(w http.ResponseWriter, players []structs.CollegeP
 			strconv.Itoa(int(p.Stars)), strconv.Itoa(int(p.Age)), util.GetLetterGrade(int(p.Overall), p.Year), util.GetLetterGrade(int(p.Agility), p.Year), util.GetLetterGrade(int(p.Faceoffs), p.Year), util.GetLetterGrade(int(p.LongShotAccuracy), p.Year),
 			util.GetLetterGrade(int(p.LongShotPower), p.Year), util.GetLetterGrade(int(p.CloseShotAccuracy), p.Year), util.GetLetterGrade(int(p.CloseShotPower), p.Year), util.GetLetterGrade(int(p.Passing), p.Year), util.GetLetterGrade(int(p.PuckHandling), p.Year), util.GetLetterGrade(int(p.Strength), p.Year),
 			util.GetLetterGrade(int(p.BodyChecking), p.Year), util.GetLetterGrade(int(p.StickChecking), p.Year), util.GetLetterGrade(int(p.ShotBlocking), p.Year), util.GetLetterGrade(int(p.Goalkeeping), p.Year), util.GetLetterGrade(int(p.GoalieVision), p.Year), util.GetPotentialGrade(int(p.Stamina)),
+			util.GetPotentialGrade(int(p.InjuryRating)), "?", "?", "?", "?",
+			"?", "?", "?", "?",
+			"?", "?", "?", "?",
+			"?", "?",
+		}
+
+		err := writer.Write(playerRow)
+		if err != nil {
+			log.Fatal("Cannot write player row to CSV", err)
+		}
+
+		writer.Flush()
+		err = writer.Error()
+		if err != nil {
+			log.Fatal("Error while writing to file ::", err)
+		}
+	}
+}
+
+func WriteCollegeRecruitsExport(w http.ResponseWriter, players []structs.Recruit, filename string) {
+	ts := GetTimestamp()
+	w.Header().Set("Content-Disposition", "attachment;filename="+strconv.Itoa(int(ts.Season))+filename)
+	w.Header().Set("Transfer-Encoding", "chunked")
+	writer := csv.NewWriter(w)
+
+	writer.Write(getHeaderRow())
+
+	for _, p := range players {
+		idStr := strconv.Itoa(int(p.ID))
+
+		year := 1
+		playerRow := []string{
+			idStr, p.Team, p.FirstName, p.LastName, p.Position, p.Archetype, strconv.Itoa(int(p.Height)), strconv.Itoa(int(p.Weight)), p.City, p.State, p.Country,
+			strconv.Itoa(int(p.Stars)), strconv.Itoa(int(p.Age)), util.GetLetterGrade(int(p.Overall), year), util.GetLetterGrade(int(p.Agility), year), util.GetLetterGrade(int(p.Faceoffs), year), util.GetLetterGrade(int(p.LongShotAccuracy), year),
+			util.GetLetterGrade(int(p.LongShotPower), year), util.GetLetterGrade(int(p.CloseShotAccuracy), year), util.GetLetterGrade(int(p.CloseShotPower), year), util.GetLetterGrade(int(p.Passing), year), util.GetLetterGrade(int(p.PuckHandling), year), util.GetLetterGrade(int(p.Strength), year),
+			util.GetLetterGrade(int(p.BodyChecking), year), util.GetLetterGrade(int(p.StickChecking), year), util.GetLetterGrade(int(p.ShotBlocking), year), util.GetLetterGrade(int(p.Goalkeeping), year), util.GetLetterGrade(int(p.GoalieVision), year), util.GetPotentialGrade(int(p.Stamina)),
 			util.GetPotentialGrade(int(p.InjuryRating)), "?", "?", "?", "?",
 			"?", "?", "?", "?",
 			"?", "?", "?", "?",
