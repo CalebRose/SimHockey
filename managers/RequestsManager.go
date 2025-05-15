@@ -83,7 +83,7 @@ func GetAllHCKRequests() structs.TeamRequestsResponse {
 
 	go func() {
 		defer wg.Done()
-		acceptedTrades = repository.FindAllTradeProposalsRecords(repository.TradeClauses{IsAccepted: true})
+		acceptedTrades = repository.FindAllTradeProposalsRecords(repository.TradeClauses{IsAccepted: true, PreloadTradeOptions: true})
 	}()
 
 	wg.Wait()
