@@ -104,36 +104,6 @@ func CreateArenaRecordsBatch(db *gorm.DB, teams []structs.Arena, batchSize int) 
 	return nil
 }
 
-func CreateCollegeLineupRecordsBatch(db *gorm.DB, lineups []structs.CollegeLineup, batchSize int) error {
-	total := len(lineups)
-	for i := 0; i < total; i += batchSize {
-		end := i + batchSize
-		if end > total {
-			end = total
-		}
-
-		if err := db.CreateInBatches(lineups[i:end], batchSize).Error; err != nil {
-			return err
-		}
-	}
-	return nil
-}
-
-func CreateProfessionalLineupRecordsBatch(db *gorm.DB, lineups []structs.ProfessionalLineup, batchSize int) error {
-	total := len(lineups)
-	for i := 0; i < total; i += batchSize {
-		end := i + batchSize
-		if end > total {
-			end = total
-		}
-
-		if err := db.CreateInBatches(lineups[i:end], batchSize).Error; err != nil {
-			return err
-		}
-	}
-	return nil
-}
-
 func CreateCollegePollRecord(db *gorm.DB, poll structs.CollegePollOfficial) error {
 	if err := db.Create(poll).Error; err != nil {
 		return err

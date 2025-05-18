@@ -13,6 +13,7 @@ type ProTeamResponseData struct {
 }
 
 type DiscordPlayer struct {
+	PlayerID           uint
 	FirstName          string
 	LastName           string
 	Position           string
@@ -23,6 +24,9 @@ type DiscordPlayer struct {
 	Weight             uint16
 	Stars              uint8
 	Age                uint8
+	Year               uint8
+	IsRedshirt         bool
+	IsRedshirting      bool
 	Overall            string
 	Agility            string // How fast a player can go in a zone without a defense check
 	Faceoffs           string // Ability to win faceoffs
@@ -38,6 +42,8 @@ type DiscordPlayer struct {
 	ShotBlocking       string // Ability for defensemen to block a shot being made
 	Goalkeeping        string // Goalkeepers' ability to block a shot
 	GoalieVision       string // Goalkeepers' vision
+	Stamina            string
+	InjuryRating       string
 	HighSchool         string
 	City               string
 	State              string
@@ -61,6 +67,7 @@ type DiscordPlayer struct {
 }
 
 type ProDiscordPlayer struct {
+	PlayerID              uint
 	FirstName             string
 	LastName              string
 	Position              string
@@ -72,6 +79,7 @@ type ProDiscordPlayer struct {
 	Stars                 uint8
 	Age                   uint8
 	Overall               uint8
+	Year                  uint8
 	Agility               uint8 // How fast a player can go in a zone without a defense check
 	Faceoffs              uint8 // Ability to win faceoffs
 	LongShotAccuracy      uint8 // Accuracy on non-close shots
@@ -86,6 +94,8 @@ type ProDiscordPlayer struct {
 	ShotBlocking          uint8 // Ability for defensemen to block a shot being made
 	Goalkeeping           uint8 // Goalkeepers' ability to block a shot
 	GoalieVision          uint8 // Goalkeepers' vision
+	Stamina               string
+	InjuryRating          string
 	HighSchool            string
 	City                  string
 	State                 string

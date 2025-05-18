@@ -202,6 +202,12 @@ func GetCollegePlayerViaDiscord(id string) structs.DiscordPlayer {
 		RelativeType:       player.RelativeType,
 		Notes:              player.Notes,
 		CollegeStats:       player.SeasonStats,
+		Stamina:            util.GetPotentialGrade(int(player.Stamina)),
+		InjuryRating:       util.GetPotentialGrade(int(player.InjuryRating)),
+		IsRedshirt:         player.IsRedshirt,
+		IsRedshirting:      player.IsRedshirting,
+		Year:               uint8(player.Year),
+		PlayerID:           player.ID,
 	}
 }
 
@@ -244,6 +250,12 @@ func GetCollegePlayerByNameViaDiscord(firstName, lastName, teamID string) struct
 		ShotBlocking:       util.GetLetterGrade(int(player.ShotBlocking), player.Year),
 		Goalkeeping:        util.GetLetterGrade(int(player.Goalkeeping), player.Year),
 		GoalieVision:       util.GetLetterGrade(int(player.GoalieVision), player.Year),
+		Stamina:            util.GetPotentialGrade(int(player.Stamina)),
+		InjuryRating:       util.GetPotentialGrade(int(player.InjuryRating)),
+		IsRedshirt:         player.IsRedshirt,
+		IsRedshirting:      player.IsRedshirting,
+		Year:               uint8(player.Year),
+		PlayerID:           player.ID,
 		HighSchool:         player.HighSchool,
 		City:               player.City,
 		State:              player.State,
@@ -317,6 +329,10 @@ func GetProPlayerViaDiscord(id string) structs.ProDiscordPlayer {
 		MarketPreference:      util.GetFAMarketPrefLabel(int(player.MarketPreference)),
 		CompetitivePreference: util.GetFACompetitivePrefLabel(int(player.CompetitivePreference)),
 		FinancialPreference:   util.GetFAFinancialPrefLabel(int(player.FinancialPreference)),
+		Stamina:               util.GetPotentialGrade(int(player.Stamina)),
+		InjuryRating:          util.GetPotentialGrade(int(player.InjuryRating)),
+		Year:                  uint8(player.Year),
+		PlayerID:              player.ID,
 	}
 }
 
@@ -377,6 +393,10 @@ func GetProPlayerByNameViaDiscord(firstName, lastName, teamID string) structs.Pr
 		MarketPreference:      util.GetFAMarketPrefLabel(int(player.MarketPreference)),
 		CompetitivePreference: util.GetFACompetitivePrefLabel(int(player.CompetitivePreference)),
 		FinancialPreference:   util.GetFAFinancialPrefLabel(int(player.FinancialPreference)),
+		Stamina:               util.GetPotentialGrade(int(player.Stamina)),
+		InjuryRating:          util.GetPotentialGrade(int(player.InjuryRating)),
+		Year:                  uint8(player.Year),
+		PlayerID:              player.ID,
 	}
 }
 

@@ -326,3 +326,23 @@ func MakeTradeProposalMap(proposals []structs.TradeProposal) map[uint][]structs.
 
 	return proposalMap
 }
+
+func MakeCollegeGameplanMap(gameplans []structs.CollegeGameplan) map[uint]structs.CollegeGameplan {
+	gameplanMap := make(map[uint]structs.CollegeGameplan)
+
+	for _, gameplan := range gameplans {
+		gameplanMap[gameplan.TeamID] = gameplan
+	}
+
+	return gameplanMap
+}
+
+func MakeProGameplanMap(gameplans []structs.ProGameplan) map[uint]structs.ProGameplan {
+	gameplanMap := make(map[uint]structs.ProGameplan)
+
+	for _, gameplan := range gameplans {
+		gameplanMap[gameplan.TeamID] = gameplan
+	}
+
+	return gameplanMap
+}

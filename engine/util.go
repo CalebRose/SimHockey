@@ -340,7 +340,7 @@ func getPreviousZone(gs *GameState) string {
 
 // Define the calculateModifier function with logarithmic scaling
 func calculateModifier(attribute float64, scaleFactor float64) float64 {
-	return scaleFactor * math.Log(float64(attribute)+1)
+	return scaleFactor * math.Log(attribute+1)
 }
 
 func calculateAttributeModifier(attribute float64, scaleFactor float64) float64 {

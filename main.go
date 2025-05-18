@@ -72,6 +72,7 @@ func handleRequests() http.Handler {
 	// Admin
 	apiRouter.HandleFunc("/admin/generate/ts/models/", controllers.CreateTSModelsFile).Methods("GET")
 	// apiRouter.HandleFunc("/admin/ai/generate/college/lineups/", controllers.RunAICollegeLineups).Methods("GET")
+	// apiRouter.HandleFunc("/admin/ai/generate/gameplans/", controllers.CreateGameplans).Methods("GET")
 	// apiRouter.HandleFunc("/admin/ai/generate/pro/lineups/", controllers.RunAIProLineups).Methods("GET")
 	// apiRouter.HandleFunc("/admin/test/engine/", controllers.TestEngine).Methods("GET")
 	// apiRouter.HandleFunc("/admin/show/results/", controllers.ShowGameResults).Methods("GET")
@@ -147,7 +148,9 @@ func handleRequests() http.Handler {
 
 	// Strategy
 	apiRouter.HandleFunc("/chl/strategy/update", controllers.SaveCHLLineups).Methods("POST")
+	apiRouter.HandleFunc("/chl/gameplan/update", controllers.SaveCHLGameplan).Methods("POST")
 	apiRouter.HandleFunc("/phl/strategy/update", controllers.SavePHLLineups).Methods("POST")
+	apiRouter.HandleFunc("/phl/gameplan/update", controllers.SavePHLGameplan).Methods("POST")
 
 	// Stats
 	apiRouter.HandleFunc("/statistics/interface/chl/{seasonID}/{weekID}/{viewType}/{gameType}", controllers.GetCHLStatsPageContentForSeason).Methods("GET")
@@ -198,6 +201,7 @@ func loadEnvs() {
 func handleCron() *cron.Cron {
 	c := cron.New()
 	c.AddFunc("0 16 * * 1,3,5", controllers.SyncFreeAgencyViaCron)
+	c.AddFunc("0 12 * * 2,4,6,7", controllers.RunAIGameplanViaCron)
 
 	c.Start()
 

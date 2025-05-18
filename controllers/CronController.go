@@ -45,6 +45,7 @@ func SyncFreeAgencyViaCron() {
 	ts := managers.GetTimestamp()
 	if ts.RunCron {
 		managers.SyncFreeAgencyOffers()
+		managers.AllocateCapsheets()
 	}
 }
 
@@ -58,7 +59,8 @@ func SyncToNextWeekViaCron() {
 func RunAIGameplanViaCron() {
 	ts := managers.GetTimestamp()
 	if ts.RunCron && !ts.IsOffSeason && !ts.CollegeSeasonOver {
-
+		managers.RunLineupsForAICollegeTeams()
+		managers.RunLineupsForAIProTeams()
 	}
 }
 

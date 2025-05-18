@@ -27,7 +27,7 @@ func AllocateCapsheets() {
 	for _, team := range teams {
 		TeamID := strconv.Itoa(int(team.ID))
 		players := repository.FindAllProPlayers(repository.PlayerQuery{TeamID: TeamID})
-
+		playerMap := MakeProfessionalPlayerMap(players)
 		contracts := []structs.ProContract{}
 
 		for _, p := range players {
@@ -46,13 +46,13 @@ func AllocateCapsheets() {
 		sort.Slice(contracts, func(i, j int) bool {
 			return contracts[i].Y1BaseSalary > contracts[j].Y1BaseSalary
 		})
-		window := 20
+		window := 22
 		for idx, contract := range contracts {
 			if idx > window {
 				break
 			}
-			contract := contract
-			if contract.IsCut {
+			player := playerMap[contract.PlayerID]
+			if contract.IsCut || player.IsAffiliatePlayer {
 				window += 1
 				continue
 			}

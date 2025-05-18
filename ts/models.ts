@@ -217,6 +217,138 @@ export class Time {
 
     }
 }
+export class CollegeGameplan {
+    ID: number;
+    CreatedAt: Time;
+    UpdatedAt: Time;
+    DeletedAt: DeletedAt;
+    TeamID: number;
+    IsAI: boolean;
+    ForwardShotPreference: number;
+    DefenderShotPreference: number;
+    ForwardCheckPreference: number;
+    DefenderCheckPreference: number;
+    CenterSortPreference1: number;
+    CenterSortPreference2: number;
+    CenterSortPreference3: number;
+    ForwardSortPreference1: number;
+    ForwardSortPreference2: number;
+    ForwardSortPreference3: number;
+    DefenderSortPreference1: number;
+    DefenderSortPreference2: number;
+    DefenderSortPreference3: number;
+    GoalieSortPreference: number;
+    LongerPassesEnabled: boolean;
+
+    constructor(source: any = {}) {
+        if ('string' === typeof source) source = JSON.parse(source);
+        this.ID = source["ID"];
+        this.CreatedAt = this.convertValues(source["CreatedAt"], Time);
+        this.UpdatedAt = this.convertValues(source["UpdatedAt"], Time);
+        this.DeletedAt = this.convertValues(source["DeletedAt"], DeletedAt);
+        this.TeamID = source["TeamID"];
+        this.IsAI = source["IsAI"];
+        this.ForwardShotPreference = source["ForwardShotPreference"];
+        this.DefenderShotPreference = source["DefenderShotPreference"];
+        this.ForwardCheckPreference = source["ForwardCheckPreference"];
+        this.DefenderCheckPreference = source["DefenderCheckPreference"];
+        this.CenterSortPreference1 = source["CenterSortPreference1"];
+        this.CenterSortPreference2 = source["CenterSortPreference2"];
+        this.CenterSortPreference3 = source["CenterSortPreference3"];
+        this.ForwardSortPreference1 = source["ForwardSortPreference1"];
+        this.ForwardSortPreference2 = source["ForwardSortPreference2"];
+        this.ForwardSortPreference3 = source["ForwardSortPreference3"];
+        this.DefenderSortPreference1 = source["DefenderSortPreference1"];
+        this.DefenderSortPreference2 = source["DefenderSortPreference2"];
+        this.DefenderSortPreference3 = source["DefenderSortPreference3"];
+        this.GoalieSortPreference = source["GoalieSortPreference"];
+        this.LongerPassesEnabled = source["LongerPassesEnabled"];
+    }
+
+	convertValues(a: any, classs: any, asMap: boolean = false): any {
+	    if (!a) {
+	        return a;
+	    }
+	    if (Array.isArray(a)) {
+	        return (a as any[]).map(elem => this.convertValues(elem, classs));
+	    } else if ("object" === typeof a) {
+	        if (asMap) {
+	            for (const key of Object.keys(a)) {
+	                a[key] = new classs(a[key]);
+	            }
+	            return a;
+	        }
+	        return new classs(a);
+	    }
+	    return a;
+	}
+}
+export class ProGameplan {
+    ID: number;
+    CreatedAt: Time;
+    UpdatedAt: Time;
+    DeletedAt: DeletedAt;
+    TeamID: number;
+    IsAI: boolean;
+    ForwardShotPreference: number;
+    DefenderShotPreference: number;
+    ForwardCheckPreference: number;
+    DefenderCheckPreference: number;
+    CenterSortPreference1: number;
+    CenterSortPreference2: number;
+    CenterSortPreference3: number;
+    ForwardSortPreference1: number;
+    ForwardSortPreference2: number;
+    ForwardSortPreference3: number;
+    DefenderSortPreference1: number;
+    DefenderSortPreference2: number;
+    DefenderSortPreference3: number;
+    GoalieSortPreference: number;
+    LongerPassesEnabled: boolean;
+
+    constructor(source: any = {}) {
+        if ('string' === typeof source) source = JSON.parse(source);
+        this.ID = source["ID"];
+        this.CreatedAt = this.convertValues(source["CreatedAt"], Time);
+        this.UpdatedAt = this.convertValues(source["UpdatedAt"], Time);
+        this.DeletedAt = this.convertValues(source["DeletedAt"], DeletedAt);
+        this.TeamID = source["TeamID"];
+        this.IsAI = source["IsAI"];
+        this.ForwardShotPreference = source["ForwardShotPreference"];
+        this.DefenderShotPreference = source["DefenderShotPreference"];
+        this.ForwardCheckPreference = source["ForwardCheckPreference"];
+        this.DefenderCheckPreference = source["DefenderCheckPreference"];
+        this.CenterSortPreference1 = source["CenterSortPreference1"];
+        this.CenterSortPreference2 = source["CenterSortPreference2"];
+        this.CenterSortPreference3 = source["CenterSortPreference3"];
+        this.ForwardSortPreference1 = source["ForwardSortPreference1"];
+        this.ForwardSortPreference2 = source["ForwardSortPreference2"];
+        this.ForwardSortPreference3 = source["ForwardSortPreference3"];
+        this.DefenderSortPreference1 = source["DefenderSortPreference1"];
+        this.DefenderSortPreference2 = source["DefenderSortPreference2"];
+        this.DefenderSortPreference3 = source["DefenderSortPreference3"];
+        this.GoalieSortPreference = source["GoalieSortPreference"];
+        this.LongerPassesEnabled = source["LongerPassesEnabled"];
+    }
+
+	convertValues(a: any, classs: any, asMap: boolean = false): any {
+	    if (!a) {
+	        return a;
+	    }
+	    if (Array.isArray(a)) {
+	        return (a as any[]).map(elem => this.convertValues(elem, classs));
+	    } else if ("object" === typeof a) {
+	        if (asMap) {
+	            for (const key of Object.keys(a)) {
+	                a[key] = new classs(a[key]);
+	            }
+	            return a;
+	        }
+	        return new classs(a);
+	    }
+	    return a;
+	}
+}
 export class DraftPick {
     ID: number;
     CreatedAt: Time;

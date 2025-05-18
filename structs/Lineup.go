@@ -2,6 +2,40 @@ package structs
 
 import "gorm.io/gorm"
 
+type BaseGameplan struct {
+	TeamID                  uint
+	IsAI                    bool  // True == AI active gameplan, False == Not active
+	ForwardShotPreference   uint8 // 1 == Close, 2 == Balanced, 3 == Long Shot
+	DefenderShotPreference  uint8 // 1 == Close, 2 == Balanced, 3 == Long Shot
+	ForwardCheckPreference  uint8 // 1 == Body, 2 == Balanced, 3 == Stick
+	DefenderCheckPreference uint8 // 1 == Body, 2 == Balanced, 3 == Stick
+	CenterSortPreference1   uint8 // 1 == Overall, 2 == Close Shot Accuracy, 3 == Long Shot Accuracy, 4 == Agility, 5 == Puck Handling, 6 == Strength, 7 == BodyCheck, 8 == StickCheck, 9 == Faceoff
+	CenterSortPreference2   uint8 // 1 == Overall, 2 == Close Shot Accuracy, 3 == Long Shot Accuracy, 4 == Agility, 5 == Puck Handling, 6 == Strength, 7 == BodyCheck, 8 == StickCheck, 9 == Faceoff
+	CenterSortPreference3   uint8 // 1 == Overall, 2 == Close Shot Accuracy, 3 == Long Shot Accuracy, 4 == Agility, 5 == Puck Handling, 6 == Strength, 7 == BodyCheck, 8 == StickCheck, 9 == Faceoff
+	ForwardSortPreference1  uint8 // 1 == Overall, 2 == Close Shot Accuracy, 3 == Long Shot Accuracy, 4 == Agility, 5 == Puck Handling, 6 == Strength, 7 == BodyCheck, 8 == StickCheck, 9 == Faceoff
+	ForwardSortPreference2  uint8 // 1 == Overall, 2 == Close Shot Accuracy, 3 == Long Shot Accuracy, 4 == Agility, 5 == Puck Handling, 6 == Strength, 7 == BodyCheck, 8 == StickCheck, 9 == Faceoff
+	ForwardSortPreference3  uint8 // 1 == Overall, 2 == Close Shot Accuracy, 3 == Long Shot Accuracy, 4 == Agility, 5 == Puck Handling, 6 == Strength, 7 == BodyCheck, 8 == StickCheck, 9 == Faceoff
+	DefenderSortPreference1 uint8 // 1 == Overall, 2 == Close Shot Accuracy, 3 == Long Shot Accuracy, 4 == Agility, 5 == Puck Handling, 6 == Strength, 7 == BodyCheck, 8 == StickCheck, 9 == Faceoff
+	DefenderSortPreference2 uint8 // 1 == Overall, 2 == Close Shot Accuracy, 3 == Long Shot Accuracy, 4 == Agility, 5 == Puck Handling, 6 == Strength, 7 == BodyCheck, 8 == StickCheck, 9 == Faceoff
+	DefenderSortPreference3 uint8 // 1 == Overall, 2 == Close Shot Accuracy, 3 == Long Shot Accuracy, 4 == Agility, 5 == Puck Handling, 6 == Strength, 7 == BodyCheck, 8 == StickCheck, 9 == Faceoff
+	GoalieSortPreference    uint8 // 1 == Overall, 2 == Goalkeeping, 3 == Goalievision
+	LongerPassesEnabled     bool
+}
+
+type CollegeGameplan struct {
+	gorm.Model
+	BaseGameplan
+}
+
+type ProGameplan struct {
+	gorm.Model
+	BaseGameplan
+}
+
+func (bg *BaseGameplan) UpdateGameplan(updatedGameplan BaseGameplan) {
+	bg = &updatedGameplan
+}
+
 type UpdateLineupsDTO struct {
 	CHLTeamID         uint
 	CHLLineups        []CollegeLineup

@@ -161,9 +161,12 @@ func RunLineupsForAICollegeTeams() {
 	db := dbprovider.GetInstance().GetDB()
 	teams := GetAllCollegeTeams()
 	shootoutMap := GetCollegeShootoutLineups()
+	collegeGameplans := repository.FindCollegeGameplanRecords()
+	collegeGameplanMap := MakeCollegeGameplanMap(collegeGameplans)
 
 	for _, t := range teams {
-		if t.IsUserCoached {
+		gameplan := collegeGameplanMap[t.ID]
+		if gameplan.ID == 0 || !gameplan.IsAI {
 			continue
 		}
 		fmt.Println("Iterating over Team: " + t.Abbreviation)
@@ -201,19 +204,19 @@ func RunLineupsForAICollegeTeams() {
 
 		// Sort
 		sort.Slice(cPlayers, func(i, j int) bool {
-			return cPlayers[i].Overall > cPlayers[j].Overall
+			return GetNonGoalieSortExpression(gameplan.CenterSortPreference1, gameplan.CenterSortPreference2, gameplan.CenterSortPreference3, cPlayers[i].BasePlayer, cPlayers[j].BasePlayer)
 		})
 
 		sort.Slice(fPlayers, func(i, j int) bool {
-			return fPlayers[i].Overall > fPlayers[j].Overall
+			return GetNonGoalieSortExpression(gameplan.ForwardSortPreference1, gameplan.ForwardSortPreference2, gameplan.ForwardSortPreference3, cPlayers[i].BasePlayer, cPlayers[j].BasePlayer)
 		})
 
 		sort.Slice(dPlayers, func(i, j int) bool {
-			return dPlayers[i].Overall > dPlayers[j].Overall
+			return GetNonGoalieSortExpression(gameplan.DefenderSortPreference1, gameplan.DefenderSortPreference2, gameplan.DefenderSortPreference3, cPlayers[i].BasePlayer, cPlayers[j].BasePlayer)
 		})
 
 		sort.Slice(gPlayers, func(i, j int) bool {
-			return gPlayers[i].Overall > gPlayers[j].Overall
+			return GetGoalieSortExpression(gameplan.GoalieSortPreference, cPlayers[i].BasePlayer, cPlayers[j].BasePlayer)
 		})
 
 		for _, lineup := range lineups {
@@ -282,32 +285,76 @@ func RunLineupsForAICollegeTeams() {
 				Defender2ID: uint(defender2ID),
 				GoalieID:    uint(goalieID),
 			}
+			pass := 20
+			longPass := 0
+			backPass := 0
+			closeShot := 20
+			longShot := 20
+			bodyCheck := 15
+			stickCheck := 15
+			if gameplan.LongerPassesEnabled {
+				pass = 10
+				longPass = 10
+				backPass = 10
+			}
+			if isForwardLine {
+				if gameplan.ForwardShotPreference == 1 {
+					closeShot = 25
+					longShot = 15
+				} else if gameplan.ForwardShotPreference == 3 {
+					closeShot = 15
+					longShot = 25
+				}
+				if gameplan.ForwardCheckPreference == 1 {
+					bodyCheck = 20
+					stickCheck = 10
+				} else if gameplan.ForwardCheckPreference == 3 {
+					bodyCheck = 10
+					stickCheck = 20
+				}
+			}
+			if isDefenderLine {
+				if gameplan.DefenderShotPreference == 1 {
+					closeShot = 25
+					longShot = 15
+				} else if gameplan.DefenderShotPreference == 3 {
+					closeShot = 15
+					longShot = 25
+				}
+				if gameplan.DefenderCheckPreference == 1 {
+					bodyCheck = 20
+					stickCheck = 10
+				} else if gameplan.DefenderCheckPreference == 3 {
+					bodyCheck = 10
+					stickCheck = 20
+				}
+			}
 			allocations := structs.Allocations{
-				AGZShot:       20,
-				AGZPass:       10,
-				AGZPassBack:   10,
-				AGZStickCheck: 15,
-				AGZBodyCheck:  15,
-				AZShot:        20,
-				AZPass:        10,
-				AZLongPass:    10,
+				AGZShot:       int8(closeShot),
+				AGZPass:       int8(pass),
+				AGZPassBack:   int8(backPass),
+				AGZStickCheck: int8(stickCheck),
+				AGZBodyCheck:  int8(bodyCheck),
+				AZShot:        int8(longShot),
+				AZPass:        int8(pass),
+				AZLongPass:    int8(longPass),
 				AZAgility:     15,
-				AZStickCheck:  15,
-				AZBodyCheck:   15,
+				AZStickCheck:  int8(stickCheck),
+				AZBodyCheck:   int8(bodyCheck),
 				NPass:         10,
 				NAgility:      15,
-				NStickCheck:   15,
-				NBodyCheck:    15,
+				NStickCheck:   int8(stickCheck),
+				NBodyCheck:    int8(bodyCheck),
 				DZPass:        15,
 				DZPassBack:    0,
 				DZAgility:     15,
-				DZStickCheck:  15,
-				DZBodyCheck:   15,
-				DGZLongPass:   15,
-				DGZPass:       15,
+				DZStickCheck:  int8(stickCheck),
+				DZBodyCheck:   int8(bodyCheck),
+				DGZLongPass:   int8(longPass),
+				DGZPass:       int8(pass),
 				DGZAgility:    15,
-				DGZStickCheck: 15,
-				DGZBodyCheck:  15,
+				DGZStickCheck: int8(stickCheck),
+				DGZBodyCheck:  int8(bodyCheck),
 			}
 
 			lineup.MapIDsAndAllocations(lineUpIDs, allocations)
@@ -405,9 +452,12 @@ func RunLineupsForAIProTeams() {
 	db := dbprovider.GetInstance().GetDB()
 	teams := repository.FindAllProTeams()
 	shootoutMap := GetProShootoutLineups()
+	gameplans := repository.FindProfessionalGameplanRecords()
+	proGameplanMap := MakeProGameplanMap(gameplans)
 
 	for _, t := range teams {
-		if len(t.Owner) > 0 {
+		gameplan := proGameplanMap[t.ID]
+		if gameplan.ID == 0 || !gameplan.IsAI {
 			continue
 		}
 		fmt.Println("Iterating over Team: " + t.Abbreviation)
@@ -445,19 +495,19 @@ func RunLineupsForAIProTeams() {
 
 		// Sort
 		sort.Slice(cPlayers, func(i, j int) bool {
-			return cPlayers[i].Overall > cPlayers[j].Overall
+			return GetNonGoalieSortExpression(gameplan.CenterSortPreference1, gameplan.CenterSortPreference2, gameplan.CenterSortPreference3, cPlayers[i].BasePlayer, cPlayers[j].BasePlayer)
 		})
 
 		sort.Slice(fPlayers, func(i, j int) bool {
-			return fPlayers[i].Overall > fPlayers[j].Overall
+			return GetNonGoalieSortExpression(gameplan.ForwardSortPreference1, gameplan.ForwardSortPreference2, gameplan.ForwardSortPreference3, cPlayers[i].BasePlayer, cPlayers[j].BasePlayer)
 		})
 
 		sort.Slice(dPlayers, func(i, j int) bool {
-			return dPlayers[i].Overall > dPlayers[j].Overall
+			return GetNonGoalieSortExpression(gameplan.DefenderSortPreference1, gameplan.DefenderSortPreference2, gameplan.DefenderSortPreference3, cPlayers[i].BasePlayer, cPlayers[j].BasePlayer)
 		})
 
 		sort.Slice(gPlayers, func(i, j int) bool {
-			return gPlayers[i].Overall > gPlayers[j].Overall
+			return GetGoalieSortExpression(gameplan.GoalieSortPreference, cPlayers[i].BasePlayer, cPlayers[j].BasePlayer)
 		})
 
 		for _, lineup := range lineups {
@@ -526,32 +576,76 @@ func RunLineupsForAIProTeams() {
 				Defender2ID: uint(defender2ID),
 				GoalieID:    uint(goalieID),
 			}
+			pass := 20
+			longPass := 0
+			backPass := 0
+			closeShot := 20
+			longShot := 20
+			bodyCheck := 15
+			stickCheck := 15
+			if gameplan.LongerPassesEnabled {
+				pass = 10
+				longPass = 10
+				backPass = 10
+			}
+			if isForwardLine {
+				if gameplan.ForwardShotPreference == 1 {
+					closeShot = 25
+					longShot = 15
+				} else if gameplan.ForwardShotPreference == 3 {
+					closeShot = 15
+					longShot = 25
+				}
+				if gameplan.ForwardCheckPreference == 1 {
+					bodyCheck = 20
+					stickCheck = 10
+				} else if gameplan.ForwardCheckPreference == 3 {
+					bodyCheck = 10
+					stickCheck = 20
+				}
+			}
+			if isDefenderLine {
+				if gameplan.DefenderShotPreference == 1 {
+					closeShot = 25
+					longShot = 15
+				} else if gameplan.DefenderShotPreference == 3 {
+					closeShot = 15
+					longShot = 25
+				}
+				if gameplan.DefenderCheckPreference == 1 {
+					bodyCheck = 20
+					stickCheck = 10
+				} else if gameplan.DefenderCheckPreference == 3 {
+					bodyCheck = 10
+					stickCheck = 20
+				}
+			}
 			allocations := structs.Allocations{
-				AGZShot:       15,
-				AGZPass:       15,
-				AGZPassBack:   15,
-				AGZStickCheck: 15,
-				AGZBodyCheck:  15,
-				AZShot:        15,
-				AZPass:        15,
-				AZLongPass:    15,
+				AGZShot:       int8(closeShot),
+				AGZPass:       int8(pass),
+				AGZPassBack:   int8(backPass),
+				AGZStickCheck: int8(stickCheck),
+				AGZBodyCheck:  int8(bodyCheck),
+				AZShot:        int8(longShot),
+				AZPass:        int8(pass),
+				AZLongPass:    int8(longPass),
 				AZAgility:     15,
-				AZStickCheck:  15,
-				AZBodyCheck:   15,
-				NPass:         15,
+				AZStickCheck:  int8(stickCheck),
+				AZBodyCheck:   int8(bodyCheck),
+				NPass:         10,
 				NAgility:      15,
-				NStickCheck:   15,
-				NBodyCheck:    15,
+				NStickCheck:   int8(stickCheck),
+				NBodyCheck:    int8(bodyCheck),
 				DZPass:        15,
 				DZPassBack:    0,
 				DZAgility:     15,
-				DZStickCheck:  15,
-				DZBodyCheck:   15,
-				DGZLongPass:   15,
-				DGZPass:       15,
+				DZStickCheck:  int8(stickCheck),
+				DZBodyCheck:   int8(bodyCheck),
+				DGZLongPass:   int8(longPass),
+				DGZPass:       int8(pass),
 				DGZAgility:    15,
-				DGZStickCheck: 15,
-				DGZBodyCheck:  15,
+				DGZStickCheck: int8(stickCheck),
+				DGZBodyCheck:  int8(bodyCheck),
 			}
 
 			lineup.MapIDsAndAllocations(lineUpIDs, allocations)
@@ -652,4 +746,186 @@ func RunLineupsForAIProTeams() {
 		shootOutLineup.AssignShotTypes(uint8(s1ST), uint8(s2ST), uint8(s3ST), uint8(s4ST), uint8(s5ST), uint8(s6ST))
 		repository.SaveProfessionalShootoutLineupRecord(shootOutLineup, db)
 	}
+}
+
+func CreateGameplans() {
+	db := dbprovider.GetInstance().GetDB()
+
+	proGamePlans := []structs.ProGameplan{}
+	collegeGameplans := []structs.CollegeGameplan{}
+
+	chlTeams := repository.FindAllCollegeTeams()
+	proTeams := repository.FindAllProTeams()
+
+	for _, team := range chlTeams {
+		gameplan := structs.CollegeGameplan{
+			BaseGameplan: structs.BaseGameplan{
+				TeamID:                  team.ID,
+				IsAI:                    !team.IsUserCoached,
+				ForwardShotPreference:   2,
+				DefenderShotPreference:  2,
+				ForwardCheckPreference:  2,
+				DefenderCheckPreference: 2,
+				LongerPassesEnabled:     false,
+				CenterSortPreference1:   1,
+				ForwardSortPreference1:  1,
+				DefenderSortPreference1: 1,
+				GoalieSortPreference:    1,
+			},
+		}
+
+		collegeGameplans = append(collegeGameplans, gameplan)
+	}
+
+	for _, team := range proTeams {
+		gameplan := structs.ProGameplan{
+			BaseGameplan: structs.BaseGameplan{
+				TeamID:                  team.ID,
+				IsAI:                    len(team.Owner) == 0,
+				ForwardShotPreference:   2,
+				DefenderShotPreference:  2,
+				ForwardCheckPreference:  2,
+				DefenderCheckPreference: 2,
+				CenterSortPreference1:   1,
+				ForwardSortPreference1:  1,
+				DefenderSortPreference1: 1,
+				LongerPassesEnabled:     false,
+			},
+		}
+
+		proGamePlans = append(proGamePlans, gameplan)
+	}
+
+	repository.CreateCollegeGameplanRecordsBatch(db, collegeGameplans, 50)
+	repository.CreateProfessionalGameplanRecordsBatch(db, proGamePlans, 20)
+}
+
+func SaveCollegeGameplanSettings(updatedGameplan structs.CollegeGameplan) structs.CollegeGameplan {
+	db := dbprovider.GetInstance().GetDB()
+	gameplanRecords := repository.FindCollegeGameplanRecords()
+	gameplanMap := MakeCollegeGameplanMap(gameplanRecords)
+
+	gameplan := gameplanMap[updatedGameplan.TeamID]
+	gameplan.UpdateGameplan(updatedGameplan.BaseGameplan)
+
+	repository.SaveCollegeGameplanRecord(gameplan, db)
+	return gameplan
+}
+
+func SaveProGameplanSettings(updatedGameplan structs.ProGameplan) structs.ProGameplan {
+	db := dbprovider.GetInstance().GetDB()
+	gameplanRecords := repository.FindProfessionalGameplanRecords()
+	gameplanMap := MakeProGameplanMap(gameplanRecords)
+
+	gameplan := gameplanMap[updatedGameplan.TeamID]
+	gameplan.UpdateGameplan(updatedGameplan.BaseGameplan)
+
+	repository.SaveProfessionalGameplanRecord(gameplan, db)
+	return gameplan
+}
+
+func GetNonGoalieSortExpression(pref1, pref2, pref3 uint8, i structs.BasePlayer, j structs.BasePlayer) bool {
+	iVal := i.Overall
+	jVal := j.Overall
+	// Skip over checks if the preference is only overall
+	if pref1 == 1 {
+		return iVal > jVal
+	}
+	iVal1 := uint8(0)
+	iVal2 := uint8(0)
+	iVal3 := uint8(0)
+	jVal1 := uint8(0)
+	jVal2 := uint8(0)
+	jVal3 := uint8(0)
+	if pref1 == 2 {
+		iVal1 = i.CloseShotAccuracy
+		jVal1 = j.CloseShotAccuracy
+	} else if pref1 == 3 {
+		iVal1 = i.LongShotAccuracy
+		jVal1 = j.LongShotAccuracy
+	} else if pref1 == 4 {
+		iVal1 = i.Agility
+		jVal1 = j.Agility
+	} else if pref1 == 5 {
+		iVal1 = i.PuckHandling
+		jVal1 = j.PuckHandling
+	} else if pref1 == 6 {
+		iVal1 = i.Strength
+		jVal1 = j.Strength
+	} else if pref1 == 7 {
+		iVal1 = i.BodyChecking
+		jVal1 = j.BodyChecking
+	} else if pref1 == 8 {
+		iVal1 = i.StickChecking
+		jVal1 = j.StickChecking
+	} else if pref1 == 9 {
+		iVal1 = i.Faceoffs
+		jVal1 = j.Faceoffs
+	}
+	if pref2 == 2 {
+		iVal2 = i.CloseShotAccuracy
+		jVal2 = j.CloseShotAccuracy
+	} else if pref2 == 3 {
+		iVal2 = i.LongShotAccuracy
+		jVal2 = j.LongShotAccuracy
+	} else if pref2 == 4 {
+		iVal2 = i.Agility
+		jVal2 = j.Agility
+	} else if pref2 == 5 {
+		iVal2 = i.PuckHandling
+		jVal2 = j.PuckHandling
+	} else if pref2 == 6 {
+		iVal2 = i.Strength
+		jVal2 = j.Strength
+	} else if pref2 == 7 {
+		iVal2 = i.BodyChecking
+		jVal2 = j.BodyChecking
+	} else if pref2 == 8 {
+		iVal2 = i.StickChecking
+		jVal2 = j.StickChecking
+	} else if pref2 == 9 {
+		iVal2 = i.Faceoffs
+		jVal2 = j.Faceoffs
+	}
+	if pref3 == 2 {
+		iVal3 = i.CloseShotAccuracy
+		jVal3 = j.CloseShotAccuracy
+	} else if pref3 == 3 {
+		iVal3 = i.LongShotAccuracy
+		jVal3 = j.LongShotAccuracy
+	} else if pref3 == 4 {
+		iVal3 = i.Agility
+		jVal3 = j.Agility
+	} else if pref3 == 5 {
+		iVal3 = i.PuckHandling
+		jVal3 = j.PuckHandling
+	} else if pref3 == 6 {
+		iVal3 = i.Strength
+		jVal3 = j.Strength
+	} else if pref3 == 7 {
+		iVal3 = i.BodyChecking
+		jVal3 = j.BodyChecking
+	} else if pref3 == 8 {
+		iVal3 = i.StickChecking
+		jVal3 = j.StickChecking
+	} else if pref3 == 9 {
+		iVal3 = i.Faceoffs
+		jVal3 = j.Faceoffs
+	}
+	finalIVal := iVal1 + iVal2 + iVal3
+	finalJVal := jVal1 + jVal2 + jVal3
+	return finalIVal > finalJVal
+}
+
+func GetGoalieSortExpression(preference uint8, i structs.BasePlayer, j structs.BasePlayer) bool {
+	iVal := i.Overall
+	jVal := j.Overall
+	if preference == 2 {
+		iVal = i.Goalkeeping
+		jVal = j.Goalkeeping
+	} else if preference == 3 {
+		iVal = i.GoalieVision
+		jVal = j.GoalieVision
+	}
+	return iVal > jVal
 }
