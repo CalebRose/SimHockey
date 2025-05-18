@@ -395,6 +395,8 @@ type Croot struct {
 	Goalkeeping       uint8 // Goalkeepers' ability to block a shot
 	GoalieVision      uint8 // Goalkeepers' vision
 	TotalRank         float32
+	InjuryRating      string
+	Stamina           string
 	BaseRecruitingGrades
 	PlayerPreferences
 	LeadingTeams []LeadingTeams
@@ -491,6 +493,8 @@ func (c *Croot) Map(r Recruit) {
 	c.ShotBlocking = r.ShotBlocking
 	c.Goalkeeping = r.Goalkeeping
 	c.GoalieVision = r.GoalieVision
+	c.Stamina = util.GetPotentialGrade(int(r.Stamina))
+	c.InjuryRating = util.GetPotentialGrade(int(r.InjuryRating))
 
 	mod := r.TopRankModifier
 	if mod == 0 {
