@@ -4424,6 +4424,8 @@ export class Croot {
     Goalkeeping: number;
     GoalieVision: number;
     TotalRank: number;
+    InjuryRating: string;
+    Stamina: string;
     AgilityGrade: string;
     FaceoffsGrade: string;
     CloseShotAccuracyGrade: string;
@@ -4495,6 +4497,8 @@ export class Croot {
         this.Goalkeeping = source["Goalkeeping"];
         this.GoalieVision = source["GoalieVision"];
         this.TotalRank = source["TotalRank"];
+        this.InjuryRating = source["InjuryRating"];
+        this.Stamina = source["Stamina"];
         this.AgilityGrade = source["AgilityGrade"];
         this.FaceoffsGrade = source["FaceoffsGrade"];
         this.CloseShotAccuracyGrade = source["CloseShotAccuracyGrade"];
@@ -4639,6 +4643,7 @@ export class BootstrapData {
     CollegeNews: NewsLog[];
     CollegeNotifications: Notification[];
     AllCollegeGames: CollegeGame[];
+    CHLGameplan: CollegeGameplan;
     CollegeTeamLineups: CollegeLineup[];
     CollegeTeamShootoutLineup: CollegeShootoutLineup;
     TopCHLGoals: CollegePlayer[];
@@ -4659,6 +4664,7 @@ export class BootstrapData {
     ProNews: NewsLog[];
     ProNotifications: Notification[];
     AllProGames: ProfessionalGame[];
+    PHLGameplan: ProGameplan;
     ProTeamLineups: ProfessionalLineup[];
     ProTeamShootoutLineup: ProfessionalShootoutLineup;
     FaceData: {[key: uint]: FaceDataResponse};
@@ -4682,6 +4688,7 @@ export class BootstrapData {
         this.CollegeNews = this.convertValues(source["CollegeNews"], NewsLog);
         this.CollegeNotifications = this.convertValues(source["CollegeNotifications"], Notification);
         this.AllCollegeGames = this.convertValues(source["AllCollegeGames"], CollegeGame);
+        this.CHLGameplan = this.convertValues(source["CHLGameplan"], CollegeGameplan);
         this.CollegeTeamLineups = this.convertValues(source["CollegeTeamLineups"], CollegeLineup);
         this.CollegeTeamShootoutLineup = this.convertValues(source["CollegeTeamShootoutLineup"], CollegeShootoutLineup);
         this.TopCHLGoals = this.convertValues(source["TopCHLGoals"], CollegePlayer);
@@ -4702,6 +4709,7 @@ export class BootstrapData {
         this.ProNews = this.convertValues(source["ProNews"], NewsLog);
         this.ProNotifications = this.convertValues(source["ProNotifications"], Notification);
         this.AllProGames = this.convertValues(source["AllProGames"], ProfessionalGame);
+        this.PHLGameplan = this.convertValues(source["PHLGameplan"], ProGameplan);
         this.ProTeamLineups = this.convertValues(source["ProTeamLineups"], ProfessionalLineup);
         this.ProTeamShootoutLineup = this.convertValues(source["ProTeamShootoutLineup"], ProfessionalShootoutLineup);
         this.FaceData = this.convertValues(source["FaceData"], FaceDataResponse, true);
