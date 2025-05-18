@@ -105,6 +105,34 @@ func SaveProfessionalGameplanRecord(lineupRecord structs.ProGameplan, db *gorm.D
 	}
 }
 
+func FindCollegeGameplanRecord(id string) structs.CollegeGameplan {
+	db := dbprovider.GetInstance().GetDB()
+
+	var gameplans structs.CollegeGameplan
+
+	query := db.Model(&gameplans)
+
+	if err := query.Where("team_id = ?", id).Find(&gameplans).Error; err != nil {
+		return structs.CollegeGameplan{}
+	}
+
+	return gameplans
+}
+
+func FindProGameplanRecord(id string) structs.ProGameplan {
+	db := dbprovider.GetInstance().GetDB()
+
+	var gameplans structs.ProGameplan
+
+	query := db.Model(&gameplans)
+
+	if err := query.Where("team_id = ?", id).Find(&gameplans).Error; err != nil {
+		return structs.ProGameplan{}
+	}
+
+	return gameplans
+}
+
 func FindCollegeGameplanRecords() []structs.CollegeGameplan {
 	db := dbprovider.GetInstance().GetDB()
 

@@ -29,6 +29,7 @@ func GetBootstrapData(collegeID, proID string) structs.BootstrapData {
 		collegeNotifications  []structs.Notification
 		collegeGames          []structs.CollegeGame
 		recruits              []structs.Croot
+		collegeGameplan       structs.CollegeGameplan
 		collegeLineups        []structs.CollegeLineup
 		collegeShootoutLineup structs.CollegeShootoutLineup
 		faceDataMap           map[uint]structs.FaceDataResponse
@@ -51,6 +52,7 @@ func GetBootstrapData(collegeID, proID string) structs.BootstrapData {
 		proNews             []structs.NewsLog
 		proNotifications    []structs.Notification
 		proGames            []structs.ProfessionalGame
+		proGameplan         structs.ProGameplan
 		proLineups          []structs.ProfessionalLineup
 		proShootoutLineup   structs.ProfessionalShootoutLineup
 		contractMap         map[uint]structs.ProContract
@@ -111,7 +113,7 @@ func GetBootstrapData(collegeID, proID string) structs.BootstrapData {
 			collegeNews = GetAllCHLNewsLogs()
 		}()
 		wg.Wait()
-		wg.Add(5)
+		wg.Add(6)
 		go func() {
 			defer wg.Done()
 			collegeNotifications = GetNotificationByTeamIDAndLeague("CHL", collegeID)
@@ -132,13 +134,17 @@ func GetBootstrapData(collegeID, proID string) structs.BootstrapData {
 			defer wg.Done()
 			collegeShootoutLineup = GetCollegeShootoutLineupByTeamID(collegeID)
 		}()
+		go func() {
+			defer wg.Done()
+			collegeGameplan = repository.FindCollegeGameplanRecord(collegeID)
+		}()
 		wg.Wait()
 
 	}
 
 	// Pros
 	if len(proID) > 0 {
-		wg.Add(8)
+		wg.Add(5)
 		go func() {
 			defer wg.Done()
 			proTeam = GetProTeamByTeamID(proID)
@@ -169,6 +175,8 @@ func GetBootstrapData(collegeID, proID string) structs.BootstrapData {
 			defer wg.Done()
 			proNotifications = GetNotificationByTeamIDAndLeague("PHL", proID)
 		}()
+		wg.Wait()
+		wg.Add(4)
 		go func() {
 			defer wg.Done()
 			capsheetMap = GetProCapsheetMap()
@@ -181,8 +189,10 @@ func GetBootstrapData(collegeID, proID string) structs.BootstrapData {
 			defer wg.Done()
 			draftPicks = GetAllDraftPicksBySeasonID("")
 		}()
-
-		wg.Wait()
+		go func() {
+			defer wg.Done()
+			proGameplan = repository.FindProGameplanRecord(proID)
+		}()
 
 		wg.Add(8)
 		go func() {
@@ -243,6 +253,7 @@ func GetBootstrapData(collegeID, proID string) structs.BootstrapData {
 		CollegeInjuryReport:       injuredCollegePlayers,
 		CollegeNews:               collegeNews,
 		CollegeNotifications:      collegeNotifications,
+		CHLGameplan:               collegeGameplan,
 		CollegeTeamLineups:        collegeLineups,
 		CollegeTeamShootoutLineup: collegeShootoutLineup,
 		AllCollegeGames:           collegeGames,
@@ -257,6 +268,7 @@ func GetBootstrapData(collegeID, proID string) structs.BootstrapData {
 		ProNews:                   proNews,
 		ProNotifications:          proNotifications,
 		AllProGames:               proGames,
+		PHLGameplan:               proGameplan,
 		ProTeamLineups:            proLineups,
 		ProTeamShootoutLineup:     proShootoutLineup,
 		FaceData:                  faceDataMap,

@@ -13,6 +13,7 @@ type BootstrapData struct {
 	CollegeNews               []NewsLog
 	CollegeNotifications      []Notification
 	AllCollegeGames           []CollegeGame
+	CHLGameplan               CollegeGameplan
 	CollegeTeamLineups        []CollegeLineup
 	CollegeTeamShootoutLineup CollegeShootoutLineup
 	TopCHLGoals               []CollegePlayer
@@ -35,6 +36,7 @@ type BootstrapData struct {
 	ProNews               []NewsLog
 	ProNotifications      []Notification
 	AllProGames           []ProfessionalGame
+	PHLGameplan           ProGameplan
 	ProTeamLineups        []ProfessionalLineup
 	ProTeamShootoutLineup ProfessionalShootoutLineup
 	FaceData              map[uint]FaceDataResponse
