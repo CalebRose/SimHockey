@@ -207,7 +207,7 @@ func SyncAIOffers() {
 		if len(team.Owner) > 0 && team.Owner != "AI" {
 			continue
 		}
-		if len(team.GM) > 0 && team.GM != "AI" {
+		if team.Owner == "" && len(team.GM) > 0 && team.GM != "AI" {
 			continue
 		}
 
