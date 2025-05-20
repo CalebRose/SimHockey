@@ -32,8 +32,12 @@ type ProGameplan struct {
 	BaseGameplan
 }
 
-func (bg *BaseGameplan) UpdateGameplan(updatedGameplan BaseGameplan) {
-	bg = &updatedGameplan
+func (bg *CollegeGameplan) UpdateGameplan(updatedGameplan BaseGameplan) {
+	bg.BaseGameplan = updatedGameplan
+}
+
+func (bg *ProGameplan) UpdateGameplan(updatedGameplan BaseGameplan) {
+	bg.BaseGameplan = updatedGameplan
 }
 
 type UpdateLineupsDTO struct {
