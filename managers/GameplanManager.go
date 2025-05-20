@@ -861,6 +861,9 @@ func GetNonGoalieSortExpression(pref1, pref2, pref3 uint8, i structs.BasePlayer,
 	} else if pref1 == 9 {
 		iVal1 = i.Faceoffs
 		jVal1 = j.Faceoffs
+	} else if pref1 == 10 {
+		iVal1 = i.Passing
+		jVal1 = j.Passing
 	}
 	if pref2 == 2 {
 		iVal2 = i.CloseShotAccuracy
@@ -886,6 +889,9 @@ func GetNonGoalieSortExpression(pref1, pref2, pref3 uint8, i structs.BasePlayer,
 	} else if pref2 == 9 {
 		iVal2 = i.Faceoffs
 		jVal2 = j.Faceoffs
+	} else if pref2 == 10 {
+		iVal2 = i.Passing
+		jVal2 = j.Passing
 	}
 	if pref3 == 2 {
 		iVal3 = i.CloseShotAccuracy
@@ -911,6 +917,9 @@ func GetNonGoalieSortExpression(pref1, pref2, pref3 uint8, i structs.BasePlayer,
 	} else if pref3 == 9 {
 		iVal3 = i.Faceoffs
 		jVal3 = j.Faceoffs
+	} else if pref3 == 10 {
+		iVal3 = i.Passing
+		jVal3 = j.Passing
 	}
 	finalIVal := iVal1 + iVal2 + iVal3
 	finalJVal := jVal1 + jVal2 + jVal3
