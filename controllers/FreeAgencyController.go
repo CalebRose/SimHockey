@@ -66,3 +66,9 @@ func TestFASync(w http.ResponseWriter, r *http.Request) {
 
 	json.NewEncoder(w).Encode(true)
 }
+
+func TestFAOffers(w http.ResponseWriter, r *http.Request) {
+	managers.SyncAIOffers()
+
+	json.NewEncoder(w).Encode(true)
+}

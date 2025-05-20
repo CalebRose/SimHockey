@@ -303,6 +303,20 @@ func MakeFreeAgencyOfferMap(offers []structs.FreeAgencyOffer) map[uint][]structs
 	return offerMap
 }
 
+func MakeFreeAgencyOfferMapByTeamID(offers []structs.FreeAgencyOffer) map[uint][]structs.FreeAgencyOffer {
+	offerMap := make(map[uint][]structs.FreeAgencyOffer)
+
+	for _, offer := range offers {
+		if len(offerMap[offer.TeamID]) > 0 {
+			offerMap[offer.TeamID] = append(offerMap[uint(offer.TeamID)], offer)
+		} else {
+			offerMap[offer.TeamID] = []structs.FreeAgencyOffer{offer}
+		}
+	}
+
+	return offerMap
+}
+
 func MakeTradePreferencesMap(prefs []structs.TradePreferences) map[uint]structs.TradePreferences {
 	prefMap := make(map[uint]structs.TradePreferences)
 

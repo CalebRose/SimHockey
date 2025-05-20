@@ -44,6 +44,7 @@ func SyncRecruitingViaCron() {
 func SyncFreeAgencyViaCron() {
 	ts := managers.GetTimestamp()
 	if ts.RunCron {
+		managers.SyncAIOffers()
 		managers.SyncFreeAgencyOffers()
 		managers.AllocateCapsheets()
 	}

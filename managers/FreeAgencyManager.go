@@ -192,6 +192,136 @@ func CancelWaiverOffer(offer structs.WaiverOfferDTO) {
 	repository.DeleteWaiverRecord(waiverOffer, db)
 }
 
+func SyncAIOffers() {
+	db := dbprovider.GetInstance().GetDB()
+
+	teams := repository.FindAllProTeams()
+
+	offers := GetAllFreeAgencyOffers()
+	offerMapByTeamID := MakeFreeAgencyOfferMapByTeamID(offers)
+	freeAgents := GetAllFreeAgents()
+	players := repository.FindAllProPlayers(repository.PlayerQuery{})
+	playerMap := MakeProfessionalPlayerMapByTeamID(players)
+
+	for _, team := range teams {
+		if len(team.Owner) > 0 && team.Owner != "AI" {
+			continue
+		}
+
+		offersByTeam := offerMapByTeamID[team.ID]
+		if len(offersByTeam) > 7 {
+			continue
+		}
+		freeAgentOfferMap := MakeFreeAgencyOfferMap(offersByTeam)
+		roster := playerMap[team.ID]
+		cCount := 0
+		fCount := 0
+		dCount := 0
+		gCount := 0
+		cBids := 0
+		fBids := 0
+		dBids := 0
+		gBids := 0
+		for _, p := range roster {
+			if p.Position == Center {
+				cCount++
+			} else if p.Position == Forward {
+				fCount++
+			} else if p.Position == Defender {
+				dCount++
+			} else {
+				gCount++
+			}
+		}
+
+		// Iterate through FA list to get bids
+		for _, fa := range freeAgents {
+			existingOffers := freeAgentOfferMap[fa.ID]
+			if len(existingOffers) > 0 {
+				if fa.Position == Center {
+					cBids++
+				} else if fa.Position == Forward {
+					fBids++
+				} else if fa.Position == Defender {
+					dBids++
+				} else {
+					gBids++
+				}
+			}
+		}
+
+		for _, fa := range freeAgents {
+			existingOffers := freeAgentOfferMap[fa.ID]
+			if len(existingOffers) > 0 {
+				continue
+			}
+			if fa.Position == Center && (cCount > 4 || cBids > 1) {
+				continue
+			}
+			if fa.Position == Forward && (fCount > 8 || fBids > 3) {
+				continue
+			}
+			if fa.Position == Defender && (dCount > 6 || dBids > 2) {
+				continue
+			}
+			if fa.Position == Goalie && (gCount > 2 || gBids > 0) {
+				continue
+			}
+			coinFlip := util.GenerateIntFromRange(1, 2)
+			if coinFlip == 2 {
+				continue
+			}
+
+			// Okay, now we found an open player. Send a bid.
+			basePay := float32(1.0)
+			if fa.Age < 25 || fa.Overall < 19 {
+				basePay = 0.7
+			} else if fa.Overall > 24 {
+				rangedPay := util.GenerateFloatFromRange(1, 3.5)
+				basePay = RoundToFixedDecimalPlace(rangedPay, 2)
+			}
+
+			yearsOnContract := 2
+			if fa.Overall > 24 {
+				yearsOnContract = 3
+			} else if fa.Overall < 19 {
+				yearsOnContract = 1
+			}
+			y1 := basePay
+			y2 := float32(0.0)
+			y3 := float32(0.0)
+			if yearsOnContract > 2 {
+				y3 = basePay
+			}
+			if yearsOnContract > 1 {
+				y2 = basePay
+			}
+			if fa.Position == Center {
+				cBids++
+			} else if fa.Position == Forward {
+				fBids++
+			} else if fa.Position == Defender {
+				dBids++
+			} else {
+				gBids++
+			}
+			offer := structs.FreeAgencyOffer{
+				Y1BaseSalary:   y1,
+				Y2BaseSalary:   y2,
+				Y3BaseSalary:   y3,
+				TotalSalary:    basePay * float32(yearsOnContract),
+				ContractValue:  basePay,
+				IsActive:       true,
+				PlayerID:       fa.ID,
+				TeamID:         team.ID,
+				ContractLength: yearsOnContract,
+			}
+
+			repository.SaveFreeAgentOfferRecord(offer, db)
+		}
+	}
+}
+
 func SyncFreeAgencyOffers() {
 	db := dbprovider.GetInstance().GetDB()
 
