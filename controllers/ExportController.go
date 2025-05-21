@@ -55,3 +55,11 @@ func ExportCHLRecruits(w http.ResponseWriter, r *http.Request) {
 
 	json.NewEncoder(w).Encode("Players Exported")
 }
+
+func ExportHCKGameResults(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	seasonID := vars["seasonID"]
+	weekID := vars["weekID"]
+	timeslot := vars["timeslot"]
+	managers.ExportHCKGameResults(w, seasonID, weekID, timeslot)
+}

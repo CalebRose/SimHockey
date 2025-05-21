@@ -11,6 +11,7 @@ import (
 
 	util "github.com/CalebRose/SimHockey/_util"
 	"github.com/CalebRose/SimHockey/engine"
+	"github.com/CalebRose/SimHockey/repository"
 	"github.com/CalebRose/SimHockey/structs"
 )
 
@@ -1010,4 +1011,197 @@ func writeCSVIntoZip(z *zip.Writer, filename string, writeRows func(*csv.Writer)
 	if err := writeRows(csvW); err != nil {
 		panic("error writing CSV data: " + err.Error())
 	}
+}
+
+func ExportHCKGameResults(w http.ResponseWriter, seasonID, weekID, timeslot string) {
+	ts := GetTimestamp()
+	baseName := fmt.Sprintf("hck_game_results_%s_%s_%s", seasonID, weekID, timeslot)
+	chlFilename := fmt.Sprintf("chl_game_results_%s_%s_%s.csv", seasonID, weekID, timeslot)
+	phlFilename := fmt.Sprintf("phl_game_results_%s_%s_%s.csv", seasonID, weekID, timeslot)
+
+	w.Header().Set("Content-Type", "application/zip")
+	w.Header().Set("Content-Disposition", fmt.Sprintf("attachment; filename=\"%s.zip\"", baseName))
+	w.Header().Set("Transfer-Encoding", "chunked")
+	zipWriter := zip.NewWriter(w)
+	defer zipWriter.Close()
+	isExactWeek := weekID == strconv.Itoa(int(ts.WeekID)) && seasonID == strconv.Itoa(int(ts.SeasonID))
+	gameNotRan := (timeslot == "A" && !ts.GamesARan) ||
+		(timeslot == "B" && !ts.GamesBRan) ||
+		(timeslot == "C" && !ts.GamesCRan) ||
+		(timeslot == "D" && !ts.GamesDRan)
+	// Get All needed data
+	matchChn := make(chan []structs.CollegeGame)
+	phlMatchChn := make(chan []structs.ProfessionalGame)
+
+	go func() {
+		matches := repository.FindCollegeGames(repository.GamesClauses{WeekID: weekID, Timeslot: timeslot, IsPreseason: ts.IsPreseason})
+		matchChn <- matches
+	}()
+
+	go func() {
+		proGames := repository.FindProfessionalGames(repository.GamesClauses{WeekID: weekID, Timeslot: timeslot, IsPreseason: ts.IsPreseason})
+		phlMatchChn <- proGames
+	}()
+
+	collegePlayers := GetAllCollegePlayers()
+	historicPlayers := GetAllHistoricCollegePlayers()
+	chlTeamMap := GetCollegeTeamMap()
+	proTeamMap := GetProTeamMap()
+
+	for _, hp := range historicPlayers {
+		player := structs.CollegePlayer{Model: hp.Model, BasePlayer: hp.BasePlayer}
+		collegePlayers = append(collegePlayers, player)
+	}
+
+	collegePlayerMap := MakeCollegePlayerMap(collegePlayers)
+
+	proPlayers := GetAllProPlayers()
+	retiredPlayers := GetAllRetiredPlayers()
+	for _, r := range retiredPlayers {
+		player := structs.ProfessionalPlayer{Model: r.Model, BasePlayer: r.BasePlayer}
+		proPlayers = append(proPlayers, player)
+	}
+
+	proPlayerMap := MakeProfessionalPlayerMap(proPlayers)
+
+	collegeGames := <-matchChn
+	close(matchChn)
+	proGames := <-phlMatchChn
+	close(phlMatchChn)
+
+	HeaderRow := []string{
+		"League", "Week", "Home Team", "Home Score",
+		"Away Team", "Away Score", "Is Overtime", "IsShootout", "HT Shootout Score", "AT Shootout Score", "Home Coach", "Home Rank", "Away Coach", "Away Rank", "Game Title",
+		"Neutral Site", "Conference", "Game Day", "Arena", "Attendance", "City", "State", "Country", "Third Star", "Second Star", "First Star",
+	}
+
+	writeCSVIntoZip(zipWriter, chlFilename, func(csvW *csv.Writer) error {
+		err := csvW.Write(HeaderRow)
+		if err != nil {
+			log.Fatal("Cannot write header row", err)
+		}
+		for _, m := range collegeGames {
+			if isExactWeek && gameNotRan {
+				m.HideScore()
+			}
+			neutralStr := "N"
+			if m.IsNeutralSite {
+				neutralStr = "Y"
+			}
+			confStr := "N"
+			if m.IsConference {
+				confStr = "Y"
+			}
+			otStr := "N"
+			if m.IsOvertime {
+				otStr = "Y"
+			}
+			soStr := "N"
+			if m.IsShootout {
+				soStr = "Y"
+			}
+
+			thirdStarStr := ""
+			if m.StarThree > 0 {
+				player := collegePlayerMap[m.StarThree]
+				thirdStarStr = strconv.Itoa(int(player.ID)) + " " + player.Position + " " + player.FirstName + " " + player.LastName
+			}
+
+			secondStarStr := ""
+			if m.StarTwo > 0 {
+				player := collegePlayerMap[m.StarTwo]
+				secondStarStr = strconv.Itoa(int(player.ID)) + " " + player.Position + " " + player.FirstName + " " + player.LastName
+			}
+
+			firstStarStr := ""
+			if m.StarOne > 0 {
+				player := collegePlayerMap[m.StarOne]
+				firstStarStr = strconv.Itoa(int(player.ID)) + " " + player.Position + " " + player.FirstName + " " + player.LastName
+			}
+
+			homeTeam := chlTeamMap[m.HomeTeamID]
+			awayTeam := chlTeamMap[m.AwayTeamID]
+
+			row := []string{
+				"CHL", strconv.Itoa(int(m.Week)), homeTeam.Abbreviation, strconv.Itoa(int(m.HomeTeamScore)),
+				awayTeam.Abbreviation, strconv.Itoa(int(m.AwayTeamScore)), otStr, soStr, strconv.Itoa(int(m.HomeTeamShootoutScore)), strconv.Itoa(int(m.AwayTeamShootoutScore)), m.HomeTeamCoach,
+				strconv.Itoa(int(m.HomeTeamRank)), m.AwayTeamCoach, strconv.Itoa(int(m.AwayTeamRank)), m.GameTitle,
+				neutralStr, confStr, m.GameDay, m.Arena, strconv.Itoa(int(m.AttendanceCount)), m.City, m.State, m.Country, thirdStarStr, secondStarStr, firstStarStr,
+			}
+			err = csvW.Write(row)
+			if err != nil {
+				log.Fatal("Cannot write row to CSV", err)
+			}
+
+			csvW.Flush()
+			err = csvW.Error()
+			if err != nil {
+				log.Fatal("Error while writing to file ::", err)
+			}
+		}
+		return csvW.Error()
+	})
+	writeCSVIntoZip(zipWriter, phlFilename, func(csvW *csv.Writer) error {
+		err := csvW.Write(HeaderRow)
+		if err != nil {
+			log.Fatal("Cannot write header row", err)
+		}
+		for _, m := range proGames {
+			neutralStr := "N"
+			if m.IsNeutralSite {
+				neutralStr = "Y"
+			}
+			confStr := "N"
+			if m.IsConference {
+				confStr = "Y"
+			}
+			otStr := "N"
+			if m.IsOvertime {
+				otStr = "Y"
+			}
+			soStr := "N"
+			if m.IsShootout {
+				soStr = "Y"
+			}
+
+			thirdStarStr := ""
+			if m.StarThree > 0 {
+				player := proPlayerMap[m.StarThree]
+				thirdStarStr = strconv.Itoa(int(player.ID)) + " " + player.Position + " " + player.FirstName + " " + player.LastName
+			}
+
+			secondStarStr := ""
+			if m.StarTwo > 0 {
+				player := proPlayerMap[m.StarTwo]
+				secondStarStr = strconv.Itoa(int(player.ID)) + " " + player.Position + " " + player.FirstName + " " + player.LastName
+			}
+
+			firstStarStr := ""
+			if m.StarOne > 0 {
+				player := proPlayerMap[m.StarOne]
+				firstStarStr = strconv.Itoa(int(player.ID)) + " " + player.Position + " " + player.FirstName + " " + player.LastName
+			}
+			homeTeam := proTeamMap[m.HomeTeamID]
+			awayTeam := proTeamMap[m.AwayTeamID]
+
+			row := []string{
+				"PHL", strconv.Itoa(int(m.Week)), homeTeam.Abbreviation, strconv.Itoa(int(m.HomeTeamScore)),
+				awayTeam.Abbreviation, strconv.Itoa(int(m.AwayTeamScore)), otStr, soStr, strconv.Itoa(int(m.HomeTeamShootoutScore)), strconv.Itoa(int(m.AwayTeamShootoutScore)), m.HomeTeamCoach,
+				strconv.Itoa(int(m.HomeTeamRank)), m.AwayTeamCoach, strconv.Itoa(int(m.AwayTeamRank)), m.GameTitle,
+				neutralStr, confStr, m.GameDay, m.Arena, strconv.Itoa(int(m.AttendanceCount)), m.City, m.State, m.Country, thirdStarStr, secondStarStr, firstStarStr,
+			}
+			err = csvW.Write(row)
+			if err != nil {
+				log.Fatal("Cannot write row to CSV", err)
+			}
+
+			csvW.Flush()
+			err = csvW.Error()
+			if err != nil {
+				log.Fatal("Error while writing to file ::", err)
+			}
+		}
+		return csvW.Error()
+	})
+
 }

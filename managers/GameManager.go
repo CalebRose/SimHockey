@@ -530,19 +530,19 @@ func GetProfessionalGamesForCurrentMatchup(weekID, seasonID, gameDay string) []s
 }
 
 func GetCollegeGamesByTeamIDAndSeasonID(teamID, seasonID string, isPreseason bool) []structs.CollegeGame {
-	return repository.FindCollegeGames(seasonID, teamID, isPreseason)
+	return repository.FindCollegeGames(repository.GamesClauses{SeasonID: seasonID, TeamID: teamID, IsPreseason: isPreseason})
 }
 
 func GetProfessionalGamesByTeamIDAndSeasonID(teamID, seasonID string, isPreseason bool) []structs.ProfessionalGame {
-	return repository.FindProfessionalGames(seasonID, teamID, isPreseason)
+	return repository.FindProfessionalGames(repository.GamesClauses{SeasonID: seasonID, TeamID: teamID, IsPreseason: isPreseason})
 }
 
 func GetCollegeGamesBySeasonID(seasonID string, isPreseason bool) []structs.CollegeGame {
-	return repository.FindCollegeGames(seasonID, "", isPreseason)
+	return repository.FindCollegeGames(repository.GamesClauses{SeasonID: seasonID, IsPreseason: isPreseason})
 }
 
 func GetProfessionalGamesBySeasonID(seasonID string, isPreseason bool) []structs.ProfessionalGame {
-	return repository.FindProfessionalGames(seasonID, "", isPreseason)
+	return repository.FindProfessionalGames(repository.GamesClauses{SeasonID: seasonID, IsPreseason: isPreseason})
 }
 
 func GetCollegeGameByID(id string) structs.CollegeGame {

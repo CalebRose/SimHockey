@@ -73,43 +73,61 @@ func FindProfessionalGamesByCurrentMatchup(weekID, seasonID, gameDay string) []s
 	return games
 }
 
-func FindCollegeGames(seasonID, teamID string, isPreseason bool) []structs.CollegeGame {
+type GamesClauses struct {
+	SeasonID    string
+	WeekID      string
+	TeamID      string
+	IsPreseason bool
+	Timeslot    string
+}
+
+func FindCollegeGames(clauses GamesClauses) []structs.CollegeGame {
 	db := dbprovider.GetInstance().GetDB()
 
 	var games []structs.CollegeGame
 
 	query := db.Model(&games)
-	if len(seasonID) > 0 {
-		query = query.Where("season_id = ?", seasonID)
+	if len(clauses.SeasonID) > 0 {
+		query = query.Where("season_id = ?", clauses.SeasonID)
 	}
-	if len(teamID) > 0 {
-		query = query.Where("home_team_id = ? OR away_team_id = ?", teamID, teamID)
+	if len(clauses.TeamID) > 0 {
+		query = query.Where("home_team_id = ? OR away_team_id = ?", clauses.TeamID, clauses.TeamID)
+	}
+	if len(clauses.WeekID) > 0 {
+		query = query.Where("week_id = ?", clauses.WeekID)
 	}
 
-	if err := query.Order("week_id asc").Where("is_preseason = ?", isPreseason).Find(&games).Error; err != nil {
+	if len(clauses.Timeslot) > 0 {
+		query = query.Where("game_day = ?", clauses.Timeslot)
+	}
+
+	if err := query.Order("week_id asc").Where("is_preseason = ?", clauses.IsPreseason).Find(&games).Error; err != nil {
 		return []structs.CollegeGame{}
 	}
 
 	return games
 }
 
-func FindProfessionalGames(seasonID, teamID string, isPreseason bool) []structs.ProfessionalGame {
+func FindProfessionalGames(clauses GamesClauses) []structs.ProfessionalGame {
 	db := dbprovider.GetInstance().GetDB()
 
 	var games []structs.ProfessionalGame
 	query := db.Model(&games)
-	if len(seasonID) > 0 {
-		query = query.Where("season_id = ?", seasonID)
+	if len(clauses.SeasonID) > 0 {
+		query = query.Where("season_id = ?", clauses.SeasonID)
 	}
-	if len(teamID) > 0 {
-		query = query.Where("home_team_id = ? OR away_team_id = ?", teamID, teamID)
+	if len(clauses.TeamID) > 0 {
+		query = query.Where("home_team_id = ? OR away_team_id = ?", clauses.TeamID, clauses.TeamID)
+	}
+	if len(clauses.WeekID) > 0 {
+		query = query.Where("week_id = ?", clauses.WeekID)
 	}
 
-	if isPreseason {
-		query = query.Where("is_preseason = ?", isPreseason)
+	if len(clauses.Timeslot) > 0 {
+		query = query.Where("game_day = ?", clauses.Timeslot)
 	}
 
-	if err := query.Order("week_id asc").Find(&games).Error; err != nil {
+	if err := query.Order("week_id asc").Where("is_preseason = ?", clauses.IsPreseason).Find(&games).Error; err != nil {
 		return []structs.ProfessionalGame{}
 	}
 	return games

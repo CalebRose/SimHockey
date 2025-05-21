@@ -44,7 +44,7 @@ func GetHistoricalRecordsByTeamID(TeamID string) structs.TeamRecordResponse {
 
 	seasonID := strconv.Itoa(int(timestamp.SeasonID))
 
-	historicGames := repository.FindCollegeGames(seasonID, TeamID, false)
+	historicGames := repository.FindCollegeGames(repository.GamesClauses{SeasonID: seasonID, TeamID: TeamID, IsPreseason: false})
 	var conferenceChampionships []string
 	var divisionTitles []string
 	var nationalChampionships []string
@@ -116,7 +116,7 @@ func GetHistoricalProRecordsByTeamID(TeamID string) structs.TeamRecordResponse {
 	timestamp := <-tsChn
 	close(tsChn)
 	seasonID := strconv.Itoa(int(timestamp.SeasonID))
-	historicGames := repository.FindProfessionalGames(seasonID, TeamID, false)
+	historicGames := repository.FindProfessionalGames(repository.GamesClauses{SeasonID: seasonID, TeamID: TeamID, IsPreseason: false})
 	var conferenceChampionships []string
 	var divisionTitles []string
 	var nationalChampionships []string

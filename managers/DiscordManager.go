@@ -16,7 +16,7 @@ func GetCHLTeamDataForDiscord(id string) structs.CollegeTeamResponseData {
 
 	team := repository.FindCollegeTeamRecord(id)
 	standings := repository.FindAllCollegeStandings(seasonId, "", id)
-	matches := repository.FindCollegeGames(seasonId, id, ts.IsPreseason)
+	matches := repository.FindCollegeGames(repository.GamesClauses{SeasonID: seasonId, TeamID: id, IsPreseason: ts.IsPreseason})
 	wins := 0
 	losses := 0
 	confWins := 0
@@ -86,7 +86,7 @@ func GetPHLTeamDataForDiscord(id string) structs.ProTeamResponseData {
 
 	team := repository.FindProTeamRecord(id)
 	standings := repository.FindAllProfessionalStandings(seasonId, "", id)
-	matches := repository.FindProfessionalGames(seasonId, id, ts.IsPreseason)
+	matches := repository.FindProfessionalGames(repository.GamesClauses{SeasonID: seasonId, TeamID: id, IsPreseason: ts.IsPreseason})
 	wins := 0
 	losses := 0
 	confWins := 0
@@ -422,7 +422,7 @@ func CompareCHLTeams(t1ID, t2ID string) structs.TeamComparisonModel {
 	teamTwo := <-teamTwoChan
 	close(teamTwoChan)
 
-	allTeamOneGames := repository.FindCollegeGames(seasonID, t1ID, false)
+	allTeamOneGames := repository.FindCollegeGames(repository.GamesClauses{SeasonID: seasonID, TeamID: t1ID, IsPreseason: false})
 
 	t1Wins := 0
 	t1Losses := 0
@@ -642,7 +642,7 @@ func ComparePHLTeams(t1ID, t2ID string) structs.TeamComparisonModel {
 	teamTwo := <-teamTwoChan
 	close(teamTwoChan)
 
-	allTeamOneGames := repository.FindProfessionalGames(seasonID, t1ID, false)
+	allTeamOneGames := repository.FindProfessionalGames(repository.GamesClauses{SeasonID: seasonID, TeamID: t1ID, IsPreseason: false})
 
 	t1Wins := 0
 	t1Losses := 0
