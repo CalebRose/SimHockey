@@ -13,7 +13,7 @@ func GetAllCHLNewsLogs() []structs.NewsLog {
 
 	var logs []structs.NewsLog
 
-	err := db.Where("league = ?", "CHL").Find(&logs).Error
+	err := db.Where("league = ? AND show_log = ?", "CHL", true).Find(&logs).Error
 	if err != nil {
 		fmt.Println(err)
 	}
@@ -26,7 +26,7 @@ func GetAllPHLNewsLogs() []structs.NewsLog {
 
 	var logs []structs.NewsLog
 
-	err := db.Where("league = ?", "PHL").Find(&logs).Error
+	err := db.Where("league = ? AND show_log = ?", "PHL", true).Find(&logs).Error
 	if err != nil {
 		fmt.Println(err)
 	}
@@ -34,14 +34,19 @@ func GetAllPHLNewsLogs() []structs.NewsLog {
 	return logs
 }
 
-func CreateNewsLog(league, message, messageType string, teamID int, ts structs.Timestamp) {
+func CreateNewsLog(league, message, messageType string, teamID int, ts structs.Timestamp, showLog bool) {
 	db := dbprovider.GetInstance().GetDB()
 
+	news := CreateNewsLogObject(league, message, messageType, teamID, ts, showLog)
+
+	repository.CreateNewsLog(news, db)
+}
+
+func CreateNewsLogObject(league, message, messageType string, teamID int, ts structs.Timestamp, showLog bool) structs.NewsLog {
 	seasonID := ts.SeasonID
 	weekID := ts.WeekID
 	week := ts.Week
-
-	news := structs.NewsLog{
+	return structs.NewsLog{
 		League:      league,
 		Message:     message,
 		MessageType: messageType,
@@ -49,9 +54,8 @@ func CreateNewsLog(league, message, messageType string, teamID int, ts structs.T
 		WeekID:      uint(weekID),
 		Week:        uint(week),
 		TeamID:      uint(teamID),
+		ShowLog:     showLog,
 	}
-
-	repository.CreateNewsLog(news, db)
 }
 
 func GetNotificationByTeamIDAndLeague(league, teamID string) []structs.Notification {

@@ -224,6 +224,18 @@ func CreatePointAllocationRecord(db *gorm.DB, record structs.RecruitPointAllocat
 	return nil
 }
 
+func CreatePointAllocationsRecordsBatch(db *gorm.DB, records []structs.RecruitPointAllocation, batchSize int) error {
+	total := len(records)
+	for i := 0; i < total; i += batchSize {
+		end := min(i+batchSize, total)
+
+		if err := db.CreateInBatches(records[i:end], batchSize).Error; err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
 func SaveCollegeHockeyRecruitRecord(recruitRecord structs.Recruit, db *gorm.DB) {
 	err := db.Save(&recruitRecord).Error
 	if err != nil {

@@ -40,6 +40,18 @@ func CreateNewsLog(news structs.NewsLog, db *gorm.DB) {
 	}
 }
 
+func CreateNewsLogRecordsBatch(db *gorm.DB, newsLogs []structs.NewsLog, batchSize int) error {
+	total := len(newsLogs)
+	for i := 0; i < total; i += batchSize {
+		end := min(i+batchSize, total)
+
+		if err := db.CreateInBatches(newsLogs[i:end], batchSize).Error; err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
 func CreateNotification(noti structs.Notification, db *gorm.DB) {
 	err := db.Create(&noti).Error
 	if err != nil {

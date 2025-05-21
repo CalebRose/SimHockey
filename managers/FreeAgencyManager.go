@@ -132,7 +132,7 @@ func CreateFAOffer(offer structs.FreeAgencyOfferDTO) structs.FreeAgencyOffer {
 		notificationMessage := offer.Team + " have placed an offer on " + player.Position + " " + player.FirstName + " " + player.LastName + " to pick up from the practice squad."
 		CreateNotification("PHL", notificationMessage, "Affiliate Player Offer", uint(player.TeamID))
 		message := offer.Team + " have placed an offer on " + player.Team + " " + player.Position + " " + player.FirstName + " " + player.LastName + " to pick up from the practice squad."
-		CreateNewsLog("PHL", message, "Free Agency", int(player.TeamID), ts)
+		CreateNewsLog("PHL", message, "Free Agency", int(player.TeamID), ts, true)
 	}
 
 	return freeAgentOffer
@@ -459,5 +459,5 @@ func SignFreeAgent(offer structs.FreeAgencyOffer, FreeAgent structs.Professional
 
 	// News Log
 	message := messageStart + FreeAgent.Position + " " + FreeAgent.FirstName + " " + FreeAgent.LastName + " has signed with the " + proTeam.TeamName + " with a contract worth approximately $" + strconv.Itoa(int(Contract.ContractValue)) + " Million Dollars."
-	CreateNewsLog("PHL", message, "Free Agency", int(offer.TeamID), ts)
+	CreateNewsLog("PHL", message, "Free Agency", int(offer.TeamID), ts, true)
 }

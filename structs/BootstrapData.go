@@ -19,6 +19,8 @@ type BootstrapData struct {
 	TopCHLGoals               []CollegePlayer
 	TopCHLAssists             []CollegePlayer
 	TopCHLSaves               []CollegePlayer
+	CollegePoll               CollegePollSubmission
+	OfficialPolls             []CollegePollOfficial
 	// Player Profiles by Team?
 	// Portal profiles?
 	ProTeam               ProfessionalTeam

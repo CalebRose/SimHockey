@@ -2,10 +2,8 @@ package managers
 
 import (
 	"fmt"
-	"log"
 	"math"
 	"math/rand"
-	"runtime"
 	"sort"
 	"strconv"
 	"sync"
@@ -40,6 +38,9 @@ func SyncCollegeRecruiting() {
 	teamPointsMap := getTeamPointsMap()
 	teamMap := GetCollegeTeamMap()
 
+	logs := []structs.NewsLog{}
+	pointAllocations := []structs.RecruitPointAllocation{}
+
 	for _, r := range recruits {
 		previousRecruitStatus := r.RecruitingStatus
 		recruitProfiles := recruitProfileMap[r.ID]
@@ -60,7 +61,9 @@ func SyncCollegeRecruiting() {
 		pointsPlaced := false
 		spendingCountAdjusted := false
 
-		allocatePointsToRecruit(r, &recruitProfiles, float32(pointLimit), &spendingCountAdjusted, &pointsPlaced, ts, &teamPointsMap, db)
+		allocations := allocatePointsToRecruit(r, &recruitProfiles, float32(pointLimit), &spendingCountAdjusted, &pointsPlaced, ts, &teamPointsMap)
+
+		pointAllocations = append(pointAllocations, allocations...)
 
 		if !pointsPlaced && !spendingCountAdjusted {
 			fmt.Println("Skipping over " + r.FirstName + " " + r.LastName)
@@ -119,8 +122,8 @@ func SyncCollegeRecruiting() {
 						teamAbbreviation := team.Abbreviation
 						r.AssignCollege(teamAbbreviation)
 						message := r.FirstName + " " + r.LastName + ", " + strconv.Itoa(int(r.Stars)) + " star " + r.Position + " from " + r.State + ", " + r.Country + " has signed with " + team.TeamName + " with " + strconv.Itoa(int(odds)) + " percent odds."
-						CreateNewsLog("CHL", message, "Commitment", int(winningTeamID), ts)
-						fmt.Println("Created new log!")
+						news := CreateNewsLogObject("CHL", message, "Commitment", int(winningTeamID), ts, false)
+						logs = append(logs, news)
 
 						for i := 0; i < len(recruitProfiles); i++ {
 							if recruitProfiles[i].ProfileID == winningTeamID {
@@ -165,6 +168,9 @@ func SyncCollegeRecruiting() {
 		}
 	}
 
+	repository.CreatePointAllocationsRecordsBatch(db, pointAllocations, 100)
+	repository.CreateNewsLogRecordsBatch(db, logs, 50)
+
 	updateTeamRankings(teamProfiles, teamProfileMap, teamPointsMap, db, int(ts.Week))
 
 	if ts.IsRecruitingLocked {
@@ -174,41 +180,54 @@ func SyncCollegeRecruiting() {
 	repository.SaveTimestamp(ts, db)
 }
 
-func allocatePointsToRecruit(recruit structs.Recruit, recruitProfiles *[]structs.RecruitPlayerProfile, pointLimit float32, spendingCountAdjusted *bool, pointsPlaced *bool, timestamp structs.Timestamp, recruitProfilePointsMap *map[uint]float32, db *gorm.DB) {
-	// numWorkers := 3
-	numWorkers := runtime.NumCPU()
-	if numWorkers > 3 {
-		numWorkers = 3
-	}
-	jobs := make(chan int, len(*recruitProfiles))
-	results := make(chan error, len(*recruitProfiles))
-	var m sync.Mutex
-
-	// This starts up numWorkers number of workers, initially blocked because there are no jobs yet.
-	for w := 1; w <= numWorkers; w++ {
-		go func(jobs <-chan int, results chan<- error, w int) {
-			for i := range jobs {
-				err := processRecruitProfile(i, recruit, recruitProfiles, pointLimit, spendingCountAdjusted, pointsPlaced, timestamp, recruitProfilePointsMap, db, &m)
-				results <- err
+func allocatePointsToRecruit(recruit structs.Recruit, recruitProfiles *[]structs.RecruitPlayerProfile, pointLimit float32, spendingCountAdjusted *bool, pointsPlaced *bool, timestamp structs.Timestamp, recruitProfilePointsMap *map[uint]float32) []structs.RecruitPointAllocation {
+	allocations := []structs.RecruitPointAllocation{}
+	for i := range *recruitProfiles {
+		if (*recruitProfiles)[i].CurrentWeeksPoints == 0 {
+			if (*recruitProfiles)[i].SpendingCount > 0 {
+				(*recruitProfiles)[i].ResetSpendingCount()
+				*spendingCountAdjusted = true
+				fmt.Println("Resetting spending count for " + recruit.FirstName + " " + recruit.LastName + " for Team " + strconv.Itoa(int((*recruitProfiles)[i].ProfileID)))
 			}
-		}(jobs, results, w)
-	}
-
-	// Here we send len(*recruitProfiles) jobs and then close the channel.
-	for i := 0; i < len(*recruitProfiles); i++ {
-		jobs <- i
-	}
-	close(jobs)
-
-	// Finally, we collect all the results.
-	// This ensures the function doesn't return until we've processed all recruit profiles.
-	for i := 0; i < len(*recruitProfiles); i++ {
-		err := <-results
-		if err != nil {
-			fmt.Println(err)
-			log.Fatalf("Could not process recruit profile: %v", err)
+		} else {
+			*pointsPlaced = true
 		}
+
+		var curr float32 = 0
+
+		var modifier float32 = 1
+
+		if (*recruitProfiles)[i].IsHomeState {
+			modifier += 0.25
+		}
+		if (*recruitProfiles)[i].IsPipelineState {
+			modifier += 0.15
+		}
+
+		curr = float32((*recruitProfiles)[i].CurrentWeeksPoints) * modifier
+
+		if (*recruitProfiles)[i].CurrentWeeksPoints < 0 || (*recruitProfiles)[i].CurrentWeeksPoints > pointLimit {
+			curr = 0
+		}
+
+		rpa := structs.RecruitPointAllocation{
+			RecruitID:          (*recruitProfiles)[i].RecruitID,
+			TeamProfileID:      (*recruitProfiles)[i].ProfileID,
+			RecruitProfileID:   (*recruitProfiles)[i].ID,
+			WeekID:             timestamp.WeekID,
+			IsHomeStateApplied: (*recruitProfiles)[i].IsHomeState,
+			IsPipelineApplied:  (*recruitProfiles)[i].IsPipelineState,
+			Points:             (*recruitProfiles)[i].CurrentWeeksPoints,
+			ModAffectedPoints:  curr,
+		}
+
+		(*recruitProfiles)[i].AddCurrentWeekPointsToTotal(curr)
+		(*recruitProfilePointsMap)[(*recruitProfiles)[i].ProfileID] += float32((*recruitProfiles)[i].CurrentWeeksPoints)
+
+		allocations = append(allocations, rpa)
 	}
+
+	return allocations
 }
 
 func processRecruitProfile(i int, recruit structs.Recruit, recruitProfiles *[]structs.RecruitPlayerProfile, pointLimit float32, spendingCountAdjusted *bool, pointsPlaced *bool, timestamp structs.Timestamp, recruitProfilePointsMap *map[uint]float32, db *gorm.DB, m *sync.Mutex) error {

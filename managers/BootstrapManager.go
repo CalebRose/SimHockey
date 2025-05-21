@@ -33,6 +33,8 @@ func GetBootstrapData(collegeID, proID string) structs.BootstrapData {
 		collegeLineups        []structs.CollegeLineup
 		collegeShootoutLineup structs.CollegeShootoutLineup
 		faceDataMap           map[uint]structs.FaceDataResponse
+		poll                  structs.CollegePollSubmission
+		officialPolls         []structs.CollegePollOfficial
 	)
 
 	// Professional Data
@@ -76,7 +78,7 @@ func GetBootstrapData(collegeID, proID string) structs.BootstrapData {
 	}()
 
 	if len(collegeID) > 0 {
-		wg.Add(6)
+		wg.Add(4)
 		go func() {
 			defer wg.Done()
 			collegeTeam = GetCollegeTeamByTeamID(collegeID)
@@ -104,6 +106,8 @@ func GetBootstrapData(collegeID, proID string) structs.BootstrapData {
 			defer wg.Done()
 			recruits = GetAllCrootRecords()
 		}()
+		wg.Wait()
+		wg.Add(5)
 		go func() {
 			defer wg.Done()
 			collegeGames = GetCollegeGamesBySeasonID(seasonID, ts.IsPreseason)
@@ -112,8 +116,7 @@ func GetBootstrapData(collegeID, proID string) structs.BootstrapData {
 			defer wg.Done()
 			collegeNews = GetAllCHLNewsLogs()
 		}()
-		wg.Wait()
-		wg.Add(6)
+
 		go func() {
 			defer wg.Done()
 			collegeNotifications = GetNotificationByTeamIDAndLeague("CHL", collegeID)
@@ -122,6 +125,12 @@ func GetBootstrapData(collegeID, proID string) structs.BootstrapData {
 			defer wg.Done()
 			collegeStandings = GetAllCollegeStandingsBySeasonID(seasonID)
 		}()
+		go func() {
+			defer wg.Done()
+			officialPolls = GetOfficialPollBySeasonID(seasonID)
+		}()
+		wg.Wait()
+		wg.Add(5)
 		go func() {
 			defer wg.Done()
 			collegeLineups = GetCollegeLineupsByTeamID(collegeID)
@@ -137,6 +146,10 @@ func GetBootstrapData(collegeID, proID string) structs.BootstrapData {
 		go func() {
 			defer wg.Done()
 			collegeGameplan = repository.FindCollegeGameplanRecord(collegeID)
+		}()
+		go func() {
+			defer wg.Done()
+			poll = GetPollSubmissionByUsernameWeekAndSeason(collegeTeam.Coach)
 		}()
 		wg.Wait()
 
@@ -283,5 +296,7 @@ func GetBootstrapData(collegeID, proID string) structs.BootstrapData {
 		ProTradeProposalMap:       tradeProposalMap,
 		ProTradePreferenceMap:     tradePreferencesMap,
 		DraftPicks:                draftPicks,
+		CollegePoll:               poll,
+		OfficialPolls:             officialPolls,
 	}
 }

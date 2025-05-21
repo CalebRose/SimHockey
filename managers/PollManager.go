@@ -173,7 +173,7 @@ func SyncCollegePollSubmissionForCurrentWeek(week, weekID, seasonID uint) {
 	}
 	count := 0
 	for idx, v := range allVotes {
-		if count > 24 {
+		if count > 19 {
 			break
 		}
 

@@ -166,7 +166,7 @@ func ApproveCHLTeamRequest(request structs.CollegeTeamRequest) structs.CollegeTe
 
 	repository.SaveTeamProfileRecord(db, recruitingProfile)
 
-	CreateNewsLog("CHL", "Breaking News! The "+team.TeamName+" "+team.Mascot+" have hired "+req.Username+" as their new coach for the "+strconv.Itoa(int(ts.Season))+" season!", "CoachJob", 0, ts)
+	CreateNewsLog("CHL", "Breaking News! The "+team.TeamName+" "+team.Mascot+" have hired "+req.Username+" as their new coach for the "+strconv.Itoa(int(ts.Season))+" season!", "CoachJob", 0, ts, true)
 
 	return request
 }
@@ -202,7 +202,7 @@ func ApprovePHLTeamRequest(request structs.ProTeamRequest) structs.ProTeamReques
 	team.AssignUser(request.Username, request.Role)
 	repository.SaveProTeamRecord(db, team)
 
-	CreateNewsLog("CHL", "Breaking News! The "+team.TeamName+" "+team.Mascot+" have hired "+req.Username+" as their new "+request.Role+" for the "+strconv.Itoa(int(ts.Season))+" season!", "CoachJob", 0, ts)
+	CreateNewsLog("CHL", "Breaking News! The "+team.TeamName+" "+team.Mascot+" have hired "+req.Username+" as their new "+request.Role+" for the "+strconv.Itoa(int(ts.Season))+" season!", "CoachJob", 0, ts, true)
 
 	return request
 }
@@ -247,7 +247,7 @@ func RemoveUserFromCollegeTeam(teamID string) {
 
 	repository.SaveTeamProfileRecord(db, recruitingProfile)
 
-	CreateNewsLog("CHL", username+" has decided to step down as the head coach of the "+team.TeamName+" "+team.Mascot+"!", "CoachJob", 0, ts)
+	CreateNewsLog("CHL", username+" has decided to step down as the head coach of the "+team.TeamName+" "+team.Mascot+"!", "CoachJob", 0, ts, true)
 }
 
 func RemoveUserFromProTeam(request structs.ProTeamRequest) {
@@ -281,5 +281,5 @@ func RemoveUserFromProTeam(request structs.ProTeamRequest) {
 
 	ts := GetTimestamp()
 
-	CreateNewsLog("PHL", message, "CoachJob", 0, ts)
+	CreateNewsLog("PHL", message, "CoachJob", 0, ts, true)
 }

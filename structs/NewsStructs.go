@@ -12,6 +12,7 @@ type NewsLog struct {
 	Message     string
 	League      string
 	TeamID      uint
+	ShowLog     bool
 }
 
 type InboxResponse struct {
