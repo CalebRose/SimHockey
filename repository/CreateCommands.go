@@ -105,7 +105,7 @@ func CreateArenaRecordsBatch(db *gorm.DB, teams []structs.Arena, batchSize int) 
 }
 
 func CreateCollegePollRecord(db *gorm.DB, poll structs.CollegePollOfficial) error {
-	if err := db.Create(poll).Error; err != nil {
+	if err := db.Create(&poll).Error; err != nil {
 		return err
 	}
 
@@ -113,7 +113,7 @@ func CreateCollegePollRecord(db *gorm.DB, poll structs.CollegePollOfficial) erro
 }
 
 func CreateCollegePollSubmissionRecord(db *gorm.DB, poll structs.CollegePollSubmission) error {
-	if err := db.Create(poll).Error; err != nil {
+	if err := db.Create(&poll).Error; err != nil {
 		return err
 	}
 
