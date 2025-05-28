@@ -93,6 +93,9 @@ func SaveCHLLineup(dto structs.UpdateLineupsDTO) structs.UpdateLineupsDTO {
 	collegePlayers := repository.FindAllCollegePlayers(repository.PlayerQuery{PlayerIDs: playerIDs})
 
 	for _, p := range collegePlayers {
+		if p.ID == 0 {
+			continue
+		}
 		updatedPlayer := chlPlayerMap[p.ID]
 		p.AssignAllocations(updatedPlayer.Allocations)
 		repository.SaveCollegeHockeyPlayerRecord(p, db)
@@ -107,7 +110,7 @@ func SavePHLLineup(dto structs.UpdateLineupsDTO) structs.UpdateLineupsDTO {
 	phlLineups := dto.PHLLineups
 	phlSOLineup := dto.PHLShootoutLineup
 	phlPlayers := dto.ProPlayers
-	teamID := strconv.Itoa(int(dto.CHLTeamID))
+	teamID := strconv.Itoa(int(dto.PHLTeamID))
 	// Make map of each lineup?
 	phlLineupMap := MakeIndProLineupMap(phlLineups)
 	// Make map of each updated CHL player
@@ -149,6 +152,9 @@ func SavePHLLineup(dto structs.UpdateLineupsDTO) structs.UpdateLineupsDTO {
 	proPlayers := repository.FindAllProPlayers(repository.PlayerQuery{PlayerIDs: playerIDs})
 
 	for _, p := range proPlayers {
+		if p.ID == 0 {
+			continue
+		}
 		updatedPlayer := phlPlayerMap[p.ID]
 		p.AssignAllocations(updatedPlayer.Allocations)
 		repository.SaveProPlayerRecord(p, db)
