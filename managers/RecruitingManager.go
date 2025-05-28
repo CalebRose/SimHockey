@@ -133,7 +133,7 @@ func CreateRecruitingProfileForRecruit(dto structs.CreateRecruitProfileDto) stru
 	return createRecruitEntry
 }
 
-func CalculateModifierTowardsRecruit(recruit structs.Recruit, team structs.CollegeTeam) float32 {
+func CalculateModifierTowardsRecruit(recruit structs.Croot, team structs.CollegeTeam) float32 {
 	programMod := calculateMultiplier(uint(team.ProgramPrestige), uint(recruit.ProgramPref))
 	professionalDevMod := calculateMultiplier(uint(team.ProfessionalPrestige), uint(recruit.ProfDevPref))
 	traditionsMod := calculateMultiplier(uint(team.Traditions), uint(recruit.TraditionsPref))

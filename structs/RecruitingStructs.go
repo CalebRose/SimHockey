@@ -568,7 +568,7 @@ type CreateRecruitProfileDto struct {
 	RecruitID     int
 	ProfileID     int
 	Team          CollegeTeam
-	PlayerRecruit Recruit
+	PlayerRecruit Croot
 	Recruiter     string
 }
 
