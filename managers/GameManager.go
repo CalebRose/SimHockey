@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"math/rand"
+	"sort"
 	"strconv"
 	"sync"
 
@@ -54,14 +55,16 @@ func RunGames() {
 		// 	WriteProPlayByPlayCSVFile(pbps, "test_results/test_twelve/play_by_play/"+r.HomeTeam+"_vs_"+r.AwayTeam+".csv", proPlayersMap, proTeamMap)
 		// }
 		upload.Collect(r, ts.SeasonID)
-
+		stars := GenerateThreeStars(r, ts.SeasonID)
 		if r.IsCollegeGame {
 			game := collegeGameMap[r.GameID]
 			game.UpdateScore(uint(r.HomeTeamScore), uint(r.AwayTeamScore), uint(r.HomeTeamShootoutScore), uint(r.AwayTeamShootoutScore), r.IsOvertime, r.IsOvertimeShootout)
+			game.UpdateThreeStars(stars)
 			repository.SaveCollegeGameRecord(game, db)
 		} else {
 			game := proGameMap[r.GameID]
 			game.UpdateScore(uint(r.HomeTeamScore), uint(r.AwayTeamScore), uint(r.HomeTeamShootoutScore), uint(r.AwayTeamShootoutScore), r.IsOvertime, r.IsOvertimeShootout)
+			game.UpdateThreeStars(stars)
 			repository.SaveProfessionalGameRecord(game, db)
 		}
 	}
@@ -657,4 +660,64 @@ func generateProfessionalGame(seasonID, weekID, week, hid, aid uint, gameDay str
 
 func GetPlayoffSeriesBySeriesID(seriesID string) structs.PlayoffSeries {
 	return repository.FindPlayoffSeriesByID(seriesID)
+}
+
+func GenerateThreeStars(state engine.GameState, seasonID uint) structs.ThreeStars {
+	types := [][]engine.LineStrategy{state.HomeStrategy.Forwards, state.HomeStrategy.Defenders, state.HomeStrategy.Goalies}
+	threeStars := []structs.ThreeStarsObj{}
+	winningTeamID := state.HomeTeamID
+	if state.AwayTeamWin {
+		winningTeamID = state.AwayTeamID
+	}
+	winningTeamCount := 0
+	totalCount := 0
+	for _, group := range types {
+		for _, line := range group {
+			for _, p := range line.Players {
+				wonGame := (p.TeamID == uint16(state.HomeTeamID) && state.HomeTeamWin) || (p.TeamID == uint16(state.AwayTeamID) && state.AwayTeamWin)
+				if state.IsCollegeGame {
+					statsObj := makeCollegePlayerStatsObject(state.WeekID, state.GameID, p.Stats)
+					star := structs.ThreeStarsObj{GameID: state.GameID, PlayerID: p.ID, TeamID: uint(p.TeamID)}
+					star.MapPoints(statsObj.BasePlayerStats, wonGame)
+					threeStars = append(threeStars, star)
+				} else {
+					statsObj := makeProPlayerStatsObject(state.WeekID, state.GameID, p.Stats)
+					star := structs.ThreeStarsObj{GameID: state.GameID, PlayerID: p.ID, TeamID: uint(p.TeamID)}
+					star.MapPoints(statsObj.BasePlayerStats, wonGame)
+					threeStars = append(threeStars, star)
+				}
+			}
+		}
+	}
+
+	sort.Slice(threeStars, func(i, j int) bool {
+		return threeStars[i].Points > threeStars[j].Points
+	})
+	starOne := 0
+	starTwo := 0
+	starThree := 0
+	for _, star := range threeStars {
+		if totalCount > 2 {
+			break
+		}
+		if winningTeamCount > 1 && star.TeamID == winningTeamID {
+			continue
+		}
+		if starOne == 0 {
+			starOne = int(star.PlayerID)
+		} else if starTwo == 0 {
+			starTwo = int(star.PlayerID)
+		} else if starThree == 0 {
+			starThree = int(star.PlayerID)
+		}
+		if star.TeamID == winningTeamID {
+			winningTeamCount++
+		}
+		totalCount++
+	}
+	return structs.ThreeStars{
+		StarOne:   uint(starOne),
+		StarTwo:   uint(starTwo),
+		StarThree: uint(starThree),
+	}
 }

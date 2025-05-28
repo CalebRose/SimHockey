@@ -364,3 +364,47 @@ type ScoreBoard struct {
 	AwayOffensiveScheme string
 	AwayDefensiveScheme string
 }
+
+type ThreeStars struct {
+	StarOne   uint
+	StarTwo   uint
+	StarThree uint
+}
+
+type ThreeStarsObj struct {
+	GameID   uint
+	PlayerID uint
+	TeamID   uint
+	Points   float32
+}
+
+func (t *ThreeStarsObj) MapPoints(stats BasePlayerStats, wonGame bool) {
+	if stats.Goals > 0 {
+		t.Points += float32(stats.Goals) * 1.15
+	}
+	if stats.GameWinningGoals > 0 {
+		t.Points += float32(stats.GameWinningGoals) * 1.25
+	}
+	if stats.ShorthandedGoals > 0 {
+		t.Points += float32(stats.ShorthandedGoals) * 0.75
+	}
+	if stats.OvertimeGoals > 0 {
+		t.Points += float32(stats.OvertimeGoals) * 0.8
+	}
+	if stats.Assists > 0 {
+		t.Points += float32(stats.Assists)
+	}
+	if stats.BodyChecks > 0 {
+		t.Points += float32(stats.BodyChecks) * 0.1
+	}
+	if stats.StickChecks > 0 {
+		t.Points += float32(stats.StickChecks) * 0.1
+	}
+	if stats.Saves > 0 {
+		t.Points += float32(stats.Saves) * stats.SavePercentage
+	}
+
+	if !wonGame {
+		t.Points = t.Points * 0.9
+	}
+}
