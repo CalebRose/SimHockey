@@ -206,7 +206,7 @@ func loadEnvs() {
 
 func handleCron() *cron.Cron {
 	c := cron.New()
-	c.AddFunc("0 14 * * 1,3,5", controllers.SyncFreeAgencyViaCron)
+	c.AddFunc("0 14 * * *", controllers.SyncFreeAgencyViaCron)
 	c.AddFunc("0 12 * * 2,4,6,7", controllers.RunAIGameplanViaCron)
 
 	c.Start()
