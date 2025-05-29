@@ -1295,6 +1295,10 @@
       "HighSchool": "Millennium"
     },
     {
+      "City": "Holbrook",
+      "HighSchool": "Holbrook"
+    },
+    {
       "City": "Laveen",
       "HighSchool": "Cesar Chavez"
     },
@@ -1321,6 +1325,10 @@
     {
       "City": "Mesa",
       "HighSchool": "Skyline"
+    },
+    {
+      "City": "Payson",
+      "HighSchool": "Payson"
     },
     {
       "City": "Peoria",
@@ -1413,6 +1421,10 @@
     {
       "City": "Scottsdale",
       "HighSchool": "Saguaro"
+    },
+    {
+      "City": "Show Low",
+      "HighSchool": "Show Low"
     },
     {
       "City": "Surprise",
@@ -2375,6 +2387,14 @@
     {
       "City": "Valley Center",
       "HighSchool": "Valley Center"
+    },
+    {
+      "City": "Vallejo",
+      "HighSchool": "Vallejo"
+    },
+    {
+      "City": "Vallejo",
+      "HighSchool": "Jesse Bethel"
     },
     {
       "City": "Ventura",
@@ -3955,6 +3975,10 @@
     {
       "City": "Augusta",
       "HighSchool": "Aquinas"
+    },
+    {
+      "City": "Augusta",
+      "HighSchool": "Augusta Christian"
     },
     {
       "City": "Augusta",
@@ -6332,7 +6356,19 @@
     },
     {
       "City": "South Bend",
+      "HighSchool": "South Bend Adams"
+    },
+    {
+      "City": "South Bend",
       "HighSchool": "South Bend St. Joseph"
+    },
+    {
+      "City": "South Bend",
+      "HighSchool": "South Bend Riley"
+    },
+    {
+      "City": "South Bend",
+      "HighSchool": "South Bend Washington"
     },
     {
       "City": "St. Leon",
@@ -9503,20 +9539,52 @@
   ],
   "MN": [
     {
+      "City": "Albany",
+      "HighSchool": "Albany"
+    },
+    {
       "City": "Albertville",
       "HighSchool": "St. Michael-Albertville"
+    },
+    {
+      "City": "Alexandria",
+      "HighSchool": "Alexandria"
+    },
+    {
+      "City": "Annandale",
+      "HighSchool": "Annandale"
+    },
+    {
+      "City": "Anoka",
+      "HighSchool": "Anoka"
+    },
+    {
+      "City": "Andover",
+      "HighSchool": "Andover"
     },
     {
       "City": "Apple Valley",
       "HighSchool": "Eastview"
     },
     {
+      "City": "Apple Valley",
+      "HighSchool": "Apple Valley"
+    },
+    {
       "City": "Arden Hills",
       "HighSchool": "Mounds View"
     },
     {
+      "City": "Austin",
+      "HighSchool": "Austin"
+    },
+    {
       "City": "Bemidji",
       "HighSchool": "Bemidji"
+    },
+    {
+      "City": "Becker",
+      "HighSchool": "Becker"
     },
     {
       "City": "Blaine",
@@ -9547,6 +9615,10 @@
       "HighSchool": "Burnsville"
     },
     {
+      "City": "Byron",
+      "HighSchool": "Byron"
+    },
+    {
       "City": "Caledonia",
       "HighSchool": "Caledonia"
     },
@@ -9559,6 +9631,10 @@
       "HighSchool": "Chanhassen"
     },
     {
+      "City": "Chanhassen",
+      "HighSchool": "Minnetonka"
+    },
+    {
       "City": "Chaska",
       "HighSchool": "Chaska"
     },
@@ -9569,6 +9645,10 @@
     {
       "City": "Cokato",
       "HighSchool": "Dassel-Cokato"
+    },
+    {
+      "City": "Cottage Grove",
+      "HighSchool": "Park of Cottage Grove"
     },
     {
       "City": "Deephaven",
@@ -9599,10 +9679,13 @@
       "HighSchool": "Elk River"
     },
     {
+      "City": "Esko",
+      "HighSchool": "Esko"
+    },
+    {
       "City": "Excelsior",
       "HighSchool": "Minnetonka"
     },
-
     {
       "City": "Excelsior",
       "HighSchool": "Benilde-St. Margaret's"
@@ -9616,8 +9699,28 @@
       "HighSchool": "Fairmont"
     },
     {
+      "City": "Forest Lake",
+      "HighSchool": "Forest Lake"
+    },
+    {
+      "City": "Fridley",
+      "HighSchool": "Totino-Grace"
+    },
+    {
+      "City": "Fridley",
+      "HighSchool": "Fridley"
+    },
+    {
+      "City": "Grand Rapids",
+      "HighSchool": "Grand Rapids"
+    },
+    {
       "City": "Hastings",
       "HighSchool": "Hastings"
+    },
+    {
+      "City": "Hermantown",
+      "HighSchool": "Hermantown"
     },
     {
       "City": "Hopkins",
@@ -9644,16 +9747,40 @@
       "HighSchool": "Lakeville South"
     },
     {
+      "City": "Little Falls",
+      "HighSchool": "Little Falls"
+    },
+    {
       "City": "Mahnomen",
       "HighSchool": "Mahnomen"
+    },
+    {
+      "City": "Mahtomedi",
+      "HighSchool": "Mahtomedi"
     },
     {
       "City": "Mankato",
       "HighSchool": "Mankato West"
     },
     {
+      "City": "Mankato",
+      "HighSchool": "Mankato East"
+    },
+    {
       "City": "Maple Grove",
       "HighSchool": "Maple Grove"
+    },
+    {
+      "City": "Maplewood",
+      "HighSchool": "Hill-Murray"
+    },
+    {
+      "City": "St. Paul",
+      "HighSchool": "Hill-Murray"
+    },
+    {
+      "City": "Marshall",
+      "HighSchool": "Marshall"
     },
     {
       "City": "Mendota Heights",
@@ -9676,8 +9803,16 @@
       "HighSchool": "Minnetonka"
     },
     {
+      "City": "Minnetonka",
+      "HighSchool": "Chanhassen"
+    },
+    {
       "City": "Monticello",
       "HighSchool": "Monticello"
+    },
+    {
+      "City": "Moorhead",
+      "HighSchool": "Moorhead"
     },
     {
       "City": "Mound",
@@ -9686,6 +9821,10 @@
     {
       "City": "New Hope",
       "HighSchool": "Robbinsdale Cooper"
+    },
+    {
+      "City": "New Prague",
+      "HighSchool": "New Prague"
     },
     {
       "City": "Northfield",
@@ -9704,6 +9843,10 @@
       "HighSchool": "Paynesville"
     },
     {
+      "City": "Pequot Lakes",
+      "HighSchool": "Pequot Lakes"
+    },
+    {
       "City": "Pierz",
       "HighSchool": "Pierz"
     },
@@ -9720,6 +9863,18 @@
       "HighSchool": "Prior Lake"
     },
     {
+      "City": "Richfield",
+      "HighSchool": "Academy of Holy Angels"
+    },
+    {
+      "City": "Rochester",
+      "HighSchool": "Century"
+    },
+    {
+      "City": "Rochester",
+      "HighSchool": "John Marshall"
+    },
+    {
       "City": "Rochester",
       "HighSchool": "Lourdes"
     },
@@ -9728,12 +9883,28 @@
       "HighSchool": "Mayo"
     },
     {
+      "City": "Rocori",
+      "HighSchool": "Rocori"
+    },
+    {
+      "City": "Rogers",
+      "HighSchool": "Rogers"
+    },
+    {
       "City": "Rosemount",
       "HighSchool": "Rosemount"
     },
     {
+      "City": "Roseville",
+      "HighSchool": "Roseville"
+    },
+    {
       "City": "Sauk Rapids",
       "HighSchool": "Sauk Rapids-Rice"
+    },
+    {
+      "City": "Shakopee",
+      "HighSchool": "Shakopee"
     },
     {
       "City": "Shorewood",
@@ -9742,6 +9913,10 @@
     {
       "City": "Spring Park",
       "HighSchool": "Mound-Westonka"
+    },
+    {
+      "City": "St. Cloud",
+      "HighSchool": "St. Cloud Tech"
     },
     {
       "City": "St. Louis Park",
@@ -9754,6 +9929,14 @@
     {
       "City": "St. Louis Park",
       "HighSchool": "Edina"
+    },
+    {
+      "City": "St. Paul",
+      "HighSchool": "Cretin-Derham Hall"
+    },
+    {
+      "City": "Stewartville",
+      "HighSchool": "Stewartville"
     },
     {
       "City": "Stillwater",
@@ -9782,6 +9965,10 @@
     {
       "City": "Winona",
       "HighSchool": "Winona"
+    },
+    {
+      "City": "Woodbury",
+      "HighSchool": "East Ridge"
     },
     {
       "City": "Woodbury",
@@ -11664,12 +11851,44 @@
       "HighSchool": "Grand Island"
     },
     {
+      "City": "Kearney",
+      "HighSchool": "Kearney"
+    },
+    {
+      "City": "Lincoln",
+      "HighSchool": "Lincoln"
+    },
+    {
+      "City": "Lincoln",
+      "HighSchool": "Lincoln East"
+    },
+    {
+      "City": "Lincoln",
+      "HighSchool": "Lincoln North"
+    },
+    {
+      "City": "Lincoln",
+      "HighSchool": "Lincoln North Star"
+    },
+    {
+      "City": "Lincoln",
+      "HighSchool": "Lincoln Southeast"
+    },
+    {
+      "City": "Lincoln",
+      "HighSchool": "Lincoln Southwest"
+    },
+    {
       "City": "McCook",
       "HighSchool": "McCook"
     },
     {
       "City": "Norfolk",
       "HighSchool": "Norfolk Catholic"
+    },
+    {
+      "City": "Norfolk",
+      "HighSchool": "North Platte"
     },
     {
       "City": "Omaha",
@@ -11686,6 +11905,14 @@
     {
       "City": "Omaha",
       "HighSchool": "Omaha North"
+    },
+    {
+      "City": "Omaha",
+      "HighSchool": "Omaha Central"
+    },
+    {
+      "City": "Omaha",
+      "HighSchool": "Omaha Creighton Prep"
     },
     {
       "City": "Omaha",
@@ -14136,6 +14363,10 @@
       "HighSchool": "Sheldon"
     },
     {
+      "City": "Florence",
+      "HighSchool": "Siuslaw"
+    },
+    {
       "City": "Gladstone",
       "HighSchool": "Gladstone"
     },
@@ -14268,6 +14499,10 @@
     {
       "City": "Aliquippa",
       "HighSchool": "Aliquippa"
+    },
+    {
+      "City": "Aliquippa",
+      "HighSchool": "Hopewell"
     },
     {
       "City": "Allentown",
@@ -14780,6 +15015,10 @@
     {
       "City": "Reading",
       "HighSchool": "Berks Catholic"
+    },
+    {
+      "City": "Reading",
+      "HighSchool": "Exeter Township"
     },
     {
       "City": "Reading",
@@ -15906,6 +16145,10 @@
     {
       "City": "Boerne",
       "HighSchool": "Boerne"
+    },
+    {
+      "City": "Boerne",
+      "HighSchool": "Geneva"
     },
     {
       "City": "Brock",
@@ -17753,7 +17996,19 @@
     },
     {
       "City": "Virginia Beach",
+      "HighSchool": "First Colonial"
+    },
+    {
+      "City": "Virginia Beach",
+      "HighSchool": "Green Run"
+    },
+    {
+      "City": "Virginia Beach",
       "HighSchool": "Kellam"
+    },
+    {
+      "City": "Virginia Beach",
+      "HighSchool": "Kempsville"
     },
     {
       "City": "Virginia Beach",
@@ -17762,6 +18017,10 @@
     {
       "City": "Virginia Beach",
       "HighSchool": "Ocean Lakes"
+    },
+    {
+      "City": "Virginia Beach",
+      "HighSchool": "Princess Anne"
     },
     {
       "City": "Virginia Beach",
@@ -17864,8 +18123,16 @@
       "HighSchool": "Adna"
     },
     {
+      "City": "Anacortes",
+      "HighSchool": "Anacortes"
+    },
+    {
       "City": "Arlington",
       "HighSchool": "Arlington"
+    },
+    {
+      "City": "Seattle",
+      "HighSchool": "Ballard"
     },
     {
       "City": "Bellevue",
@@ -18278,6 +18545,10 @@
       "HighSchool": "St. Mary's Springs"
     },
     {
+      "City": "Fond du Lac",
+      "HighSchool": "Winnebago Lutheran"
+    },
+    {
       "City": "Franklin",
       "HighSchool": "Franklin"
     },
@@ -18318,6 +18589,10 @@
       "HighSchool": "Lakeside Lutheran"
     },
     {
+      "City": "Lomira",
+      "HighSchool": "Lomira"
+    },
+    {
       "City": "Maple",
       "HighSchool": "Northwestern"
     },
@@ -18328,6 +18603,10 @@
     {
       "City": "Mequon",
       "HighSchool": "Homestead"
+    },
+    {
+      "City": "Milwaukee",
+      "HighSchool": "Milwaukee Academy of Science"
     },
     {
       "City": "Milwaukee",
@@ -18352,6 +18631,14 @@
     {
       "City": "New Berlin",
       "HighSchool": "New Berlin Eisenhower"
+    },
+    {
+      "City": "Oakfield",
+      "HighSchool": "Oakfield"
+    },
+    {
+      "City": "Pewaukee",
+      "HighSchool": "Pewaukee"
     },
     {
       "City": "Pulaski",
