@@ -91,6 +91,7 @@ func handleRequests() http.Handler {
 
 	// Bootstrap
 	apiRouter.HandleFunc("/bootstrap/{collegeID}/{proID}", controllers.BootstrapHockeyData).Methods("GET")
+	apiRouter.HandleFunc("/bootstrap/teams/", controllers.BootstrapTeamData).Methods("GET")
 
 	// Exports
 	apiRouter.HandleFunc("/export/pro/players/all", controllers.ExportAllProPlayers).Methods("GET")

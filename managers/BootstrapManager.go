@@ -8,13 +8,38 @@ import (
 	"github.com/CalebRose/SimHockey/structs"
 )
 
+func GetAllTeamsData() structs.BootstrapData {
+	var wg sync.WaitGroup
+
+	var (
+		allCollegeTeams []structs.CollegeTeam
+		allProTeams     []structs.ProfessionalTeam
+	)
+
+	wg.Add(2)
+	go func() {
+		defer wg.Done()
+		allCollegeTeams = GetAllCollegeTeams()
+	}()
+	go func() {
+		defer wg.Done()
+		allProTeams = GetAllProfessionalTeams()
+	}()
+
+	wg.Wait()
+
+	return structs.BootstrapData{
+		AllCollegeTeams: allCollegeTeams,
+		AllProTeams:     allProTeams,
+	}
+}
+
 func GetBootstrapData(collegeID, proID string) structs.BootstrapData {
 	var wg sync.WaitGroup
 	var mu sync.Mutex
 
 	// College Data
 	var (
-		allCollegeTeams       []structs.CollegeTeam
 		collegeTeam           structs.CollegeTeam
 		collegeStandings      []structs.CollegeStandings
 		collegePlayerMap      map[uint][]structs.CollegePlayer
@@ -40,7 +65,6 @@ func GetBootstrapData(collegeID, proID string) structs.BootstrapData {
 	// Professional Data
 	var (
 		proTeam             structs.ProfessionalTeam
-		allProTeams         []structs.ProfessionalTeam
 		proStandings        []structs.ProfessionalStandings
 		proRosterMap        map[uint][]structs.ProfessionalPlayer
 		capsheetMap         map[uint]structs.ProCapsheet
@@ -67,17 +91,8 @@ func GetBootstrapData(collegeID, proID string) structs.BootstrapData {
 	seasonID := strconv.Itoa(int(ts.SeasonID))
 
 	// Start concurrent queries
-	wg.Add(2)
-	go func() {
-		defer wg.Done()
-		allCollegeTeams = GetAllCollegeTeams()
-	}()
-	go func() {
-		defer wg.Done()
-		allProTeams = GetAllProfessionalTeams()
-	}()
 
-	if len(collegeID) > 0 {
+	if len(collegeID) > 0 && collegeID != "0" {
 		wg.Add(4)
 		go func() {
 			defer wg.Done()
@@ -156,7 +171,7 @@ func GetBootstrapData(collegeID, proID string) structs.BootstrapData {
 	}
 
 	// Pros
-	if len(proID) > 0 {
+	if len(proID) > 0 && proID != "0" {
 		wg.Add(5)
 		go func() {
 			defer wg.Done()
@@ -254,8 +269,6 @@ func GetBootstrapData(collegeID, proID string) structs.BootstrapData {
 	wg.Wait()
 
 	return structs.BootstrapData{
-		AllCollegeTeams:           allCollegeTeams,
-		AllProTeams:               allProTeams,
 		CollegeTeam:               collegeTeam,
 		CollegeStandings:          collegeStandings,
 		CollegeRosterMap:          collegePlayerMap,
