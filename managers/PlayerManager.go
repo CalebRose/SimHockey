@@ -1,6 +1,7 @@
 package managers
 
 import (
+	"github.com/CalebRose/SimHockey/dbprovider"
 	"github.com/CalebRose/SimHockey/repository"
 	"github.com/CalebRose/SimHockey/structs"
 )
@@ -63,4 +64,29 @@ func GetProPlayerMapByTeamID(TeamID string) map[uint]structs.ProfessionalPlayer 
 func GetAllProPlayersMapByTeam() map[uint][]structs.ProfessionalPlayer {
 	players := repository.FindAllProPlayers(repository.PlayerQuery{})
 	return MakeProfessionalPlayerMapByTeamID(players)
+}
+
+func RecoverPlayers() {
+	db := dbprovider.GetInstance().GetDB()
+
+	collegePlayers := GetAllCollegePlayers()
+
+	for _, p := range collegePlayers {
+		if !p.IsInjured {
+			continue
+		}
+		p.RecoveryCheck()
+		repository.SaveCollegeHockeyPlayerRecord(p, db)
+	}
+
+	proPlayers := GetAllProPlayers()
+
+	for _, p := range proPlayers {
+		if !p.IsInjured {
+			continue
+		}
+
+		p.RecoveryCheck()
+		repository.SaveProPlayerRecord(p, db)
+	}
 }

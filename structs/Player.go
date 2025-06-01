@@ -585,6 +585,22 @@ type BaseInjuryData struct {
 	DecayRate      float32
 }
 
+func (cp *BaseInjuryData) RecoveryCheck() {
+	// Resolves Data Type issues
+	var roof uint = 100000000
+	cp.DaysOfRecovery--
+	if cp.DaysOfRecovery == 0 || uint(cp.DaysOfRecovery) > roof {
+		cp.ResetInjuryStatus()
+	}
+
+}
+
+func (cp *BaseInjuryData) ResetInjuryStatus() {
+	cp.InjuryName = ""
+	cp.InjuryType = ""
+	cp.IsInjured = false
+}
+
 type CollegePlayer struct {
 	gorm.Model
 	BasePlayer
