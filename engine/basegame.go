@@ -93,12 +93,15 @@ func logGameResults(gs GameState) {
 
 func generateGameState(game structs.GameDTO) GameState {
 	gameInfo := game.GameInfo
+	hra := float64(game.Attendance) / float64(game.Capacity)
 	gs := GameState{
-		GameID:       game.GameID,
-		WeekID:       game.GameInfo.WeekID,
-		HomeTeamID:   gameInfo.HomeTeamID,
-		HomeTeam:     gameInfo.HomeTeam,
-		HomeStrategy: loadGamePlaybook(game.IsCollegeGame, game.HomeStrategy, game.GameInfo.SeasonID, game.GameInfo.GameDay),
+		GameID:            game.GameID,
+		WeekID:            game.GameInfo.WeekID,
+		Attendance:        game.Attendance,
+		HomeRinkAdvantage: hra,
+		HomeTeamID:        gameInfo.HomeTeamID,
+		HomeTeam:          gameInfo.HomeTeam,
+		HomeStrategy:      loadGamePlaybook(game.IsCollegeGame, true, game.HomeStrategy, game.GameInfo.SeasonID, game.GameInfo.GameDay, hra),
 		HomeTeamStats: TeamStatDTO{
 			TeamID:  game.GameInfo.HomeTeamID,
 			Team:    game.GameInfo.HomeTeam,
@@ -106,7 +109,7 @@ func generateGameState(game structs.GameDTO) GameState {
 		},
 		AwayTeamID:   gameInfo.AwayTeamID,
 		AwayTeam:     gameInfo.AwayTeam,
-		AwayStrategy: loadGamePlaybook(game.IsCollegeGame, game.AwayStrategy, game.GameInfo.SeasonID, game.GameInfo.GameDay),
+		AwayStrategy: loadGamePlaybook(game.IsCollegeGame, false, game.AwayStrategy, game.GameInfo.SeasonID, game.GameInfo.GameDay, hra),
 		AwayTeamStats: TeamStatDTO{
 			TeamID:  game.GameInfo.AwayTeamID,
 			Team:    game.GameInfo.AwayTeam,
@@ -131,8 +134,8 @@ func generateGameState(game structs.GameDTO) GameState {
 	return gs
 }
 
-func loadGamePlaybook(isCollegeGame bool, pb structs.PlayBookDTO, seasonID uint, gameDay string) GamePlaybook {
-	gameRoster := LoadGameRoster(isCollegeGame, pb.CollegeRoster, pb.ProfessionalRoster, seasonID, gameDay)
+func loadGamePlaybook(isCollegeGame, isHome bool, pb structs.PlayBookDTO, seasonID uint, gameDay string, hra float64) GamePlaybook {
+	gameRoster := LoadGameRoster(isCollegeGame, pb.CollegeRoster, pb.ProfessionalRoster, seasonID, gameDay, isHome, hra)
 	rosterMap := getGameRosterMap(gameRoster)
 	forwardLines, defenderLines, goalieLines, activeIDs := LoadAllLineStrategies(pb, gameRoster)
 	benchPlayers := LoadBenchPlayers(activeIDs, gameRoster)

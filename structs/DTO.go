@@ -7,6 +7,7 @@ type GameDTO struct {
 	AwayStrategy  PlayBookDTO
 	IsCollegeGame bool
 	Attendance    uint32
+	Capacity      uint32
 }
 
 type PlayBookDTO struct {

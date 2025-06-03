@@ -63,6 +63,8 @@ func RunAIGameplanViaCron() {
 	ts := managers.GetTimestamp()
 	if ts.RunCron && !ts.IsOffSeason && !ts.CollegeSeasonOver {
 		managers.RunLineupsForAICollegeTeams()
+	}
+	if ts.RunCron && !ts.IsOffSeason && !ts.NHLSeasonOver {
 		managers.RunLineupsForAIProTeams()
 	}
 }

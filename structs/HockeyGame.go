@@ -50,13 +50,14 @@ func (b *BaseGame) HideScore() {
 	b.AwayTeamWin = false
 }
 
-func (b *BaseGame) UpdateScore(homeTeamScore, awayTeamScore, hometeamShootoutScore, awayTeamShootoutScore uint, isOvertime, isShootout bool) {
+func (b *BaseGame) UpdateScore(homeTeamScore, awayTeamScore, hometeamShootoutScore, awayTeamShootoutScore, attendance uint, isOvertime, isShootout bool) {
 	b.HomeTeamScore = homeTeamScore
 	b.AwayTeamScore = awayTeamScore
 	b.HomeTeamShootoutScore = uint8(hometeamShootoutScore)
 	b.AwayTeamShootoutScore = uint8(awayTeamShootoutScore)
 	b.IsOvertime = isOvertime
 	b.IsShootout = isShootout
+	b.AttendanceCount = uint32(attendance)
 	if !isShootout {
 		if b.HomeTeamScore > b.AwayTeamScore {
 			b.HomeTeamWin = true

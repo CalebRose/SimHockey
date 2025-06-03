@@ -190,6 +190,8 @@ func handleRequests() http.Handler {
 	apiRouter.HandleFunc("/ds/phl/assign/discord/{teamID}/{discordID}", controllers.AssignDiscordIDToPHLTeam).Methods("GET")
 	apiRouter.HandleFunc("/ds/chl/croots/class/{teamID}/", controllers.GetCHLRecruitingClassByTeamID).Methods("GET")
 	apiRouter.HandleFunc("/ds/chl/croot/{id}", controllers.GetCHLRecruitViaDiscord).Methods("GET")
+	apiRouter.HandleFunc("/ds/chl/stream/{streamType}/", controllers.GetCHLGameStreams).Methods("GET")
+	apiRouter.HandleFunc("/ds/phl/stream/{streamType}/", controllers.GetPHLGameStreams).Methods("GET")
 
 	// Websocket
 	myRouter.HandleFunc("/ws", ws.WebSocketHandler)

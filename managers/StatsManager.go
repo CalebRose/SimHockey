@@ -17,7 +17,7 @@ func UpdateSeasonStats(ts structs.Timestamp, gameDay string) {
 	seasonId := strconv.Itoa(int(ts.SeasonID))
 	collegeGameIDs := []string{}
 	proGameIDs := []string{}
-	games := GetCollegeGamesForCurrentMatchup(weekId, seasonId, gameDay)
+	games := GetCollegeGamesForCurrentMatchup(weekId, seasonId, gameDay, ts.IsPreseason)
 	collegePlayerSeasonStatMap := GetCollegePlayerSeasonStatMap(seasonId)
 	proPlayerSeasonStatMap := GetProPlayerSeasonStatMap(seasonId)
 	collegeTeamSeasonStatMap := GetCollegeTeamSeasonStatMap(seasonId)
@@ -72,7 +72,7 @@ func UpdateSeasonStats(ts structs.Timestamp, gameDay string) {
 	db.Model(&structs.CollegePlayerGameStats{}).Where("game_id in (?)", collegeGameIDs).Update("reveal_results", true)
 	db.Model(&structs.CollegeTeamGameStats{}).Where("game_id in (?)", collegeGameIDs).Update("reveal_results", true)
 
-	proGames := GetProfessionalGamesForCurrentMatchup(weekId, seasonId, gameDay)
+	proGames := GetProfessionalGamesForCurrentMatchup(weekId, seasonId, gameDay, ts.IsPreseason)
 
 	for _, game := range proGames {
 		if !game.GameComplete {
@@ -251,7 +251,11 @@ func GetProPlayerSeasonStatsBySeason(SeasonID string) []structs.ProfessionalPlay
 }
 
 func GetCollegePlayerGameStatsBySeason(SeasonID string) []structs.CollegePlayerGameStats {
-	return repository.FindCollegePlayerGameStatsRecords(SeasonID)
+	return repository.FindCollegePlayerGameStatsRecords(SeasonID, "")
+}
+
+func GetCollegePlayerGameStatsByGame(GameID string) []structs.CollegePlayerGameStats {
+	return repository.FindCollegePlayerGameStatsRecords("", GameID)
 }
 
 func GetProPlayerGameStatsBySeason(SeasonID string) []structs.ProfessionalPlayerGameStats {

@@ -117,7 +117,7 @@ func FindProPlayerSeasonStatsRecords(SeasonID string) []structs.ProfessionalPlay
 	return playerStats
 }
 
-func FindCollegePlayerGameStatsRecords(SeasonID string) []structs.CollegePlayerGameStats {
+func FindCollegePlayerGameStatsRecords(SeasonID, GameID string) []structs.CollegePlayerGameStats {
 	db := dbprovider.GetInstance().GetDB()
 
 	var playerStats []structs.CollegePlayerGameStats

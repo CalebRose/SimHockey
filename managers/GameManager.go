@@ -8,6 +8,7 @@ import (
 	"strconv"
 	"sync"
 
+	util "github.com/CalebRose/SimHockey/_util"
 	"github.com/CalebRose/SimHockey/dbprovider"
 	"github.com/CalebRose/SimHockey/engine"
 	"github.com/CalebRose/SimHockey/repository"
@@ -31,18 +32,20 @@ func RunGames() {
 	weekID := strconv.Itoa(int(ts.WeekID))
 	seasonID := strconv.Itoa(int(ts.SeasonID))
 	gameDay := ts.GetGameDay()
-	collegeGames := GetCollegeGamesForCurrentMatchup(weekID, seasonID, gameDay)
+	collegeGames := GetCollegeGamesForCurrentMatchup(weekID, seasonID, gameDay, ts.IsPreseason)
 	proGames := []structs.ProfessionalGame{}
-	collegeGameMap := MakeCollegeGameMap(collegeGames)
-	proGameMap := MakeProGameMap(proGames)
 	// proGames := GetProfessionalGamesForCurrentMatchup(weekID, seasonID, gameDay)
-	gameDTOs := PrepareGames(collegeGames, proGames)
+	collegeGameMap := MakeCollegeGameMap(collegeGames)
+	collegeStandingsMap := GetCollegeStandingsMap(seasonID)
+	proStandingsMap := GetProStandingsMap(seasonID)
+	proGameMap := MakeProGameMap(proGames)
+	gameDTOs := PrepareGames(collegeGames, proGames, collegeStandingsMap, proStandingsMap)
 	// RUN THE GAMES!
 	results := engine.RunGames(gameDTOs)
 	// collegeTeamMap := GetCollegeTeamMap()
 	// proTeamMap := GetProTeamMap()
-	// collegePlayerMap := GetCollegePlayersMap()
-	// proPlayersMap := GetProPlayersMap()
+	collegePlayerMap := GetCollegePlayersMap()
+	proPlayersMap := GetProPlayersMap()
 	upload := NewStatsUpload()
 	for _, r := range results {
 		// Iterate through all lines, players, accumulate stats to upload
@@ -57,13 +60,15 @@ func RunGames() {
 		upload.Collect(r, ts.SeasonID)
 		stars := GenerateThreeStars(r, ts.SeasonID)
 		if r.IsCollegeGame {
+			upload.ApplyGoalieStaminaChangesCollege(db, r, collegePlayerMap)
 			game := collegeGameMap[r.GameID]
-			game.UpdateScore(uint(r.HomeTeamScore), uint(r.AwayTeamScore), uint(r.HomeTeamShootoutScore), uint(r.AwayTeamShootoutScore), r.IsOvertime, r.IsOvertimeShootout)
+			game.UpdateScore(uint(r.HomeTeamScore), uint(r.AwayTeamScore), uint(r.HomeTeamShootoutScore), uint(r.AwayTeamShootoutScore), uint(r.Attendance), r.IsOvertime, r.IsOvertimeShootout)
 			game.UpdateThreeStars(stars)
 			repository.SaveCollegeGameRecord(game, db)
 		} else {
+			upload.ApplyGoalieStaminaChangesPro(db, r, proPlayersMap)
 			game := proGameMap[r.GameID]
-			game.UpdateScore(uint(r.HomeTeamScore), uint(r.AwayTeamScore), uint(r.HomeTeamShootoutScore), uint(r.AwayTeamShootoutScore), r.IsOvertime, r.IsOvertimeShootout)
+			game.UpdateScore(uint(r.HomeTeamScore), uint(r.AwayTeamScore), uint(r.HomeTeamShootoutScore), uint(r.AwayTeamShootoutScore), uint(r.Attendance), r.IsOvertime, r.IsOvertimeShootout)
 			game.UpdateThreeStars(stars)
 			repository.SaveProfessionalGameRecord(game, db)
 		}
@@ -156,7 +161,200 @@ func (u *StatsUpload) Flush(db *gorm.DB) error {
 	return nil
 }
 
-func PrepareGames(collegeGames []structs.CollegeGame, proGames []structs.ProfessionalGame) []structs.GameDTO {
+func (u *StatsUpload) ApplyGoalieStaminaChangesCollege(db *gorm.DB, state engine.GameState, playerMap map[uint]structs.CollegePlayer) {
+	homeStrategy := state.HomeStrategy
+	awayStrategy := state.AwayStrategy
+
+	homeGoalies := homeStrategy.Goalies
+	awayGoalies := awayStrategy.Goalies
+	homeBench := homeStrategy.BenchPlayers
+	awayBench := awayStrategy.BenchPlayers
+
+	for _, g := range homeGoalies {
+		for _, p := range g.Players {
+			triggerSave := false
+			player := playerMap[p.ID]
+			if player.ID <= 0 {
+				continue
+			}
+			if p.Stats.TimeOnIce > 0 {
+				triggerSave = true
+				player.ApplyGoalieStaminaDrain()
+			} else {
+				if player.GoalieStamina < 100 {
+					triggerSave = true
+					player.RecoverGoalieStamina()
+				}
+			}
+			if triggerSave {
+				repository.SaveCollegeHockeyPlayerRecord(player, db)
+			}
+		}
+	}
+
+	for _, g := range awayGoalies {
+		for _, p := range g.Players {
+			triggerSave := false
+			player := playerMap[p.ID]
+			if player.ID <= 0 {
+				continue
+			}
+			if p.Stats.TimeOnIce > 0 {
+				triggerSave = true
+				player.ApplyGoalieStaminaDrain()
+			} else {
+				if player.GoalieStamina < 100 {
+					triggerSave = true
+					player.RecoverGoalieStamina()
+				}
+			}
+			if triggerSave {
+				repository.SaveCollegeHockeyPlayerRecord(player, db)
+			}
+		}
+	}
+
+	for _, p := range homeBench {
+		player := playerMap[p.ID]
+		if player.ID <= 0 || player.Position != Goalie {
+			continue
+		}
+		triggerSave := false
+		if p.Stats.TimeOnIce > 0 {
+			triggerSave = true
+			player.ApplyGoalieStaminaDrain()
+		} else {
+			if player.GoalieStamina < util.MaxGoalieStamina {
+				triggerSave = true
+			}
+			player.RecoverGoalieStamina()
+		}
+
+		if triggerSave {
+			repository.SaveCollegeHockeyPlayerRecord(player, db)
+		}
+	}
+	for _, p := range awayBench {
+		player := playerMap[p.ID]
+		if player.ID <= 0 || player.Position != Goalie {
+			continue
+		}
+		triggerSave := false
+		if p.Stats.TimeOnIce > 0 {
+			triggerSave = true
+			player.ApplyGoalieStaminaDrain()
+		} else {
+			if player.GoalieStamina < util.MaxGoalieStamina {
+				triggerSave = true
+			}
+			player.RecoverGoalieStamina()
+		}
+
+		if triggerSave {
+			repository.SaveCollegeHockeyPlayerRecord(player, db)
+		}
+	}
+
+}
+func (u *StatsUpload) ApplyGoalieStaminaChangesPro(db *gorm.DB, state engine.GameState, playerMap map[uint]structs.ProfessionalPlayer) {
+	homeStrategy := state.HomeStrategy
+	awayStrategy := state.AwayStrategy
+
+	homeGoalies := homeStrategy.Goalies
+	awayGoalies := awayStrategy.Goalies
+	homeBench := homeStrategy.BenchPlayers
+	awayBench := awayStrategy.BenchPlayers
+
+	for _, g := range homeGoalies {
+		for _, p := range g.Players {
+			player := playerMap[p.ID]
+			if player.ID <= 0 {
+				continue
+			}
+			triggerSave := false
+			if p.Stats.TimeOnIce > 0 {
+				triggerSave = true
+				player.ApplyGoalieStaminaDrain()
+			} else {
+				if player.GoalieStamina < util.MaxGoalieStamina {
+					triggerSave = true
+				}
+				player.RecoverGoalieStamina()
+			}
+
+			if triggerSave {
+				repository.SaveProPlayerRecord(player, db)
+			}
+		}
+	}
+
+	for _, g := range awayGoalies {
+		for _, p := range g.Players {
+			player := playerMap[p.ID]
+			if player.ID <= 0 {
+				continue
+			}
+			triggerSave := false
+			if p.Stats.TimeOnIce > 0 {
+				triggerSave = true
+				player.ApplyGoalieStaminaDrain()
+			} else {
+				if player.GoalieStamina < util.MaxGoalieStamina {
+					triggerSave = true
+				}
+				player.RecoverGoalieStamina()
+			}
+
+			if triggerSave {
+				repository.SaveProPlayerRecord(player, db)
+			}
+		}
+	}
+
+	for _, p := range homeBench {
+		player := playerMap[p.ID]
+		if player.ID <= 0 || player.Position != Goalie {
+			continue
+		}
+		triggerSave := false
+		if p.Stats.TimeOnIce > 0 {
+			triggerSave = true
+			player.ApplyGoalieStaminaDrain()
+		} else {
+			if player.GoalieStamina < util.MaxGoalieStamina {
+				triggerSave = true
+			}
+			player.RecoverGoalieStamina()
+		}
+
+		if triggerSave {
+			repository.SaveProPlayerRecord(player, db)
+		}
+	}
+	for _, p := range awayBench {
+		player := playerMap[p.ID]
+		if player.ID <= 0 || player.Position != Goalie {
+			continue
+		}
+		triggerSave := false
+		if p.Stats.TimeOnIce > 0 {
+			triggerSave = true
+			player.ApplyGoalieStaminaDrain()
+		} else {
+			if player.GoalieStamina < util.MaxGoalieStamina {
+				triggerSave = true
+			}
+			player.RecoverGoalieStamina()
+		}
+
+		if triggerSave {
+			repository.SaveProPlayerRecord(player, db)
+		}
+	}
+
+}
+
+func PrepareGames(collegeGames []structs.CollegeGame, proGames []structs.ProfessionalGame, collegeStandingsMap map[uint]structs.CollegeStandings, proStandingsMap map[uint]structs.ProfessionalStandings) []structs.GameDTO {
 	fmt.Println("Loading Games...")
 
 	// Wait Groups
@@ -193,14 +391,14 @@ func PrepareGames(collegeGames []structs.CollegeGame, proGames []structs.Profess
 			atsl := collegeShootoutLineupMap[c.AwayTeamID]
 			hp := getCollegePlaybookDTO(htl, htr, htsl)
 			ap := getCollegePlaybookDTO(atl, atr, atsl)
-			capacity := 0
-
 			arena := arenaMap[c.ArenaID]
-			if arena.ID == 0 {
-				capacity = 6000
-			} else {
-				capacity = int(arena.Capacity)
+			capacity := arena.Capacity
+			currentStandings := collegeStandingsMap[c.HomeTeamID]
+			attendancePercent := getAttendancePercent(int(currentStandings.TotalWins)+int(currentStandings.TotalOTWins), int(currentStandings.TotalLosses))
+			if c.IsPreseason {
+				attendancePercent = 1.0
 			}
+			fanCount := uint32(float64(capacity) * attendancePercent)
 			mutex.Unlock()
 
 			match := structs.GameDTO{
@@ -209,7 +407,8 @@ func PrepareGames(collegeGames []structs.CollegeGame, proGames []structs.Profess
 				HomeStrategy:  hp,
 				AwayStrategy:  ap,
 				IsCollegeGame: true,
-				Attendance:    uint32(capacity),
+				Attendance:    fanCount,
+				Capacity:      uint32(arena.Capacity),
 			}
 
 			mutex.Lock()
@@ -248,14 +447,14 @@ func PrepareGames(collegeGames []structs.CollegeGame, proGames []structs.Profess
 			atsl := proShootoutLineupMap[g.AwayTeamID]
 			hp := getProfessionalPlaybookDTO(htl, htr, htsl)
 			ap := getProfessionalPlaybookDTO(atl, atr, atsl)
-			capacity := 0
-
 			arena := arenaMap[g.ArenaID]
-			if arena.ID == 0 {
-				capacity = 6000
-			} else {
-				capacity = int(arena.Capacity)
+			capacity := arena.Capacity
+			currentStandings := proStandingsMap[g.HomeTeamID]
+			attendancePercent := getAttendancePercent(int(currentStandings.TotalWins)+int(currentStandings.TotalOTWins), int(currentStandings.TotalLosses))
+			if g.IsPreseason {
+				attendancePercent = 1.0
 			}
+			fanCount := uint32(float64(capacity) * attendancePercent)
 			mutex.Unlock()
 
 			match := structs.GameDTO{
@@ -264,7 +463,8 @@ func PrepareGames(collegeGames []structs.CollegeGame, proGames []structs.Profess
 				HomeStrategy:  hp,
 				AwayStrategy:  ap,
 				IsCollegeGame: false,
-				Attendance:    uint32(capacity),
+				Attendance:    fanCount,
+				Capacity:      uint32(arena.Capacity),
 			}
 
 			mutex.Lock()
@@ -277,6 +477,10 @@ func PrepareGames(collegeGames []structs.CollegeGame, proGames []structs.Profess
 	for i := 0; i < cap(proSem); i++ {
 		proSem <- struct{}{}
 	}
+
+	sort.Slice(gameDTOList, func(i, j int) bool {
+		return gameDTOList[i].IsCollegeGame
+	})
 	return gameDTOList
 }
 
@@ -524,12 +728,12 @@ func createProGamePairings(teamIDs []uint, teamMap map[uint]structs.Professional
 	return pairings, nil
 }
 
-func GetCollegeGamesForCurrentMatchup(weekID, seasonID, gameDay string) []structs.CollegeGame {
-	return repository.FindCollegeGamesByCurrentMatchup(weekID, seasonID, gameDay)
+func GetCollegeGamesForCurrentMatchup(weekID, seasonID, gameDay string, isPreseason bool) []structs.CollegeGame {
+	return repository.FindCollegeGamesByCurrentMatchup(weekID, seasonID, gameDay, isPreseason)
 }
 
-func GetProfessionalGamesForCurrentMatchup(weekID, seasonID, gameDay string) []structs.ProfessionalGame {
-	return repository.FindProfessionalGamesByCurrentMatchup(weekID, seasonID, gameDay)
+func GetProfessionalGamesForCurrentMatchup(weekID, seasonID, gameDay string, isPreseason bool) []structs.ProfessionalGame {
+	return repository.FindProfessionalGamesByCurrentMatchup(weekID, seasonID, gameDay, isPreseason)
 }
 
 func GetCollegeGamesByTeamIDAndSeasonID(teamID, seasonID string, isPreseason bool) []structs.CollegeGame {
@@ -719,5 +923,25 @@ func GenerateThreeStars(state engine.GameState, seasonID uint) structs.ThreeStar
 		StarOne:   uint(starOne),
 		StarTwo:   uint(starTwo),
 		StarThree: uint(starThree),
+	}
+}
+
+func getAttendancePercent(wins, losses int) float64 {
+	totalGames := wins + losses
+	if totalGames < 4 {
+		return 1.0 // 100% for early season
+	}
+
+	winRate := float64(wins) / float64(totalGames)
+
+	switch {
+	case winRate >= 0.75:
+		return 1.0
+	case winRate >= 0.5:
+		return 0.85
+	case winRate >= 0.35:
+		return 0.65
+	default:
+		return 0.4 // minimum attendance
 	}
 }

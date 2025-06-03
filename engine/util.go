@@ -339,11 +339,17 @@ func getPreviousZone(gs *GameState) string {
 }
 
 // Define the calculateModifier function with logarithmic scaling
-func calculateModifier(attribute float64, scaleFactor float64) float64 {
+func calculateModifier(attribute, scaleFactor float64) float64 {
 	return scaleFactor * math.Log(attribute+1)
 }
 
-func calculateAttributeModifier(attribute float64, scaleFactor float64) float64 {
+func calculateAttributeModifier(attribute, scaleFactor float64, isHome bool, hra float64) float64 {
+	hraMod := 1.0
+	penalty := 0.0
+	if !isHome {
+		penalty = 0.05 + (0.15 * hra)
+		hraMod = hraMod - penalty
+	}
 	// return scaleFactor * math.Log(float64(attribute)+1)
-	return attribute / 10
+	return (attribute / 10) * hraMod
 }

@@ -214,15 +214,15 @@ func RunLineupsForAICollegeTeams() {
 		})
 
 		sort.Slice(fPlayers, func(i, j int) bool {
-			return GetNonGoalieSortExpression(gameplan.ForwardSortPreference1, gameplan.ForwardSortPreference2, gameplan.ForwardSortPreference3, cPlayers[i].BasePlayer, cPlayers[j].BasePlayer)
+			return GetNonGoalieSortExpression(gameplan.ForwardSortPreference1, gameplan.ForwardSortPreference2, gameplan.ForwardSortPreference3, fPlayers[i].BasePlayer, fPlayers[j].BasePlayer)
 		})
 
 		sort.Slice(dPlayers, func(i, j int) bool {
-			return GetNonGoalieSortExpression(gameplan.DefenderSortPreference1, gameplan.DefenderSortPreference2, gameplan.DefenderSortPreference3, cPlayers[i].BasePlayer, cPlayers[j].BasePlayer)
+			return GetNonGoalieSortExpression(gameplan.DefenderSortPreference1, gameplan.DefenderSortPreference2, gameplan.DefenderSortPreference3, dPlayers[i].BasePlayer, dPlayers[j].BasePlayer)
 		})
 
 		sort.Slice(gPlayers, func(i, j int) bool {
-			return GetGoalieSortExpression(gameplan.GoalieSortPreference, cPlayers[i].BasePlayer, cPlayers[j].BasePlayer)
+			return GetGoalieSortExpression(gameplan.GoalieSortPreference, gPlayers[i].BasePlayer, gPlayers[j].BasePlayer)
 		})
 
 		for _, lineup := range lineups {
@@ -484,7 +484,7 @@ func RunLineupsForAIProTeams() {
 
 		// Allocate players to proper list
 		for _, p := range roster {
-			if p.IsInjured {
+			if p.IsInjured || p.IsAffiliatePlayer {
 				continue
 			}
 
@@ -505,15 +505,15 @@ func RunLineupsForAIProTeams() {
 		})
 
 		sort.Slice(fPlayers, func(i, j int) bool {
-			return GetNonGoalieSortExpression(gameplan.ForwardSortPreference1, gameplan.ForwardSortPreference2, gameplan.ForwardSortPreference3, cPlayers[i].BasePlayer, cPlayers[j].BasePlayer)
+			return GetNonGoalieSortExpression(gameplan.ForwardSortPreference1, gameplan.ForwardSortPreference2, gameplan.ForwardSortPreference3, fPlayers[i].BasePlayer, fPlayers[j].BasePlayer)
 		})
 
 		sort.Slice(dPlayers, func(i, j int) bool {
-			return GetNonGoalieSortExpression(gameplan.DefenderSortPreference1, gameplan.DefenderSortPreference2, gameplan.DefenderSortPreference3, cPlayers[i].BasePlayer, cPlayers[j].BasePlayer)
+			return GetNonGoalieSortExpression(gameplan.DefenderSortPreference1, gameplan.DefenderSortPreference2, gameplan.DefenderSortPreference3, dPlayers[i].BasePlayer, dPlayers[j].BasePlayer)
 		})
 
 		sort.Slice(gPlayers, func(i, j int) bool {
-			return GetGoalieSortExpression(gameplan.GoalieSortPreference, cPlayers[i].BasePlayer, cPlayers[j].BasePlayer)
+			return GetGoalieSortExpression(gameplan.GoalieSortPreference, gPlayers[i].BasePlayer, gPlayers[j].BasePlayer)
 		})
 
 		for _, lineup := range lineups {

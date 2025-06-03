@@ -7,6 +7,8 @@ import (
 type GameState struct {
 	GameID                uint
 	WeekID                uint
+	Attendance            uint32
+	HomeRinkAdvantage     float64
 	HomeTeamID            uint
 	HomeTeam              string
 	HomeTeamCoach         string
@@ -481,6 +483,9 @@ func (gp *GamePlaybook) handleLineReplacement(players []*GamePlayer, playerID ui
 
 func (gp *GamePlaybook) InitializeStamina() {
 	for idx := range gp.Forwards {
+		if idx == 3 {
+			continue
+		}
 		gp.Forwards[idx].InitializeBoostedStamina(false)
 	}
 
@@ -651,29 +656,22 @@ type GamePlayer struct {
 	Stats             PlayerStatsDTO
 }
 
-func (g *GamePlayer) MapFromCollegePlayer(c structs.CollegePlayer) {
-	g.BasePlayer = c.BasePlayer
-	g.ID = c.ID
-	g.IsOut = c.IsInjured || c.IsRedshirting
-	g.CalculateModifiers()
-}
-
-func (g *GamePlayer) CalculateModifiers() {
-	g.OneTimerMod = calculateAttributeModifier(float64(g.OneTimer), ModifierFactor)
-	g.AgilityMod = calculateAttributeModifier(float64(g.Agility), ModifierFactor)
-	g.StrengthMod = calculateAttributeModifier(float64(g.Strength), ModifierFactor)
-	g.LongShotAccMod = calculateAttributeModifier(float64(g.LongShotAccuracy), ModifierFactor)
-	g.LongShotPowerMod = calculateAttributeModifier(float64(g.LongShotPower), ModifierFactor)
-	g.CloseShotPowerMod = calculateAttributeModifier(float64(g.CloseShotPower), ModifierFactor)
-	g.CloseShotAccMod = calculateAttributeModifier(float64(g.CloseShotAccuracy), ModifierFactor)
-	g.FaceoffMod = calculateAttributeModifier(float64(g.Faceoffs), ModifierFactor)
-	g.HandlingMod = calculateAttributeModifier(float64(g.PuckHandling), ModifierFactor)
-	g.PassMod = calculateAttributeModifier(float64(g.Passing), ModifierFactor)
-	g.StickCheckMod = calculateAttributeModifier(float64(g.StickChecking), ModifierFactor)
-	g.BodyCheckMod = calculateAttributeModifier(float64(g.BodyChecking), ModifierFactor)
-	g.GoalkeepingMod = calculateAttributeModifier(float64(g.Goalkeeping), ModifierFactor)
-	g.GoalieVisionMod = calculateAttributeModifier(float64(g.GoalieVision), ModifierFactor)
-	g.ShotblockingMod = calculateAttributeModifier(float64(g.ShotBlocking), ModifierFactor)
+func (g *GamePlayer) CalculateModifiers(isHome bool, hra float64) {
+	g.OneTimerMod = calculateAttributeModifier(float64(g.OneTimer), ModifierFactor, isHome, hra)
+	g.AgilityMod = calculateAttributeModifier(float64(g.Agility), ModifierFactor, isHome, hra)
+	g.StrengthMod = calculateAttributeModifier(float64(g.Strength), ModifierFactor, isHome, hra)
+	g.LongShotAccMod = calculateAttributeModifier(float64(g.LongShotAccuracy), ModifierFactor, isHome, hra)
+	g.LongShotPowerMod = calculateAttributeModifier(float64(g.LongShotPower), ModifierFactor, isHome, hra)
+	g.CloseShotPowerMod = calculateAttributeModifier(float64(g.CloseShotPower), ModifierFactor, isHome, hra)
+	g.CloseShotAccMod = calculateAttributeModifier(float64(g.CloseShotAccuracy), ModifierFactor, isHome, hra)
+	g.FaceoffMod = calculateAttributeModifier(float64(g.Faceoffs), ModifierFactor, isHome, hra)
+	g.HandlingMod = calculateAttributeModifier(float64(g.PuckHandling), ModifierFactor, isHome, hra)
+	g.PassMod = calculateAttributeModifier(float64(g.Passing), ModifierFactor, isHome, hra)
+	g.StickCheckMod = calculateAttributeModifier(float64(g.StickChecking), ModifierFactor, isHome, hra)
+	g.BodyCheckMod = calculateAttributeModifier(float64(g.BodyChecking), ModifierFactor, isHome, hra)
+	g.GoalkeepingMod = calculateAttributeModifier(float64(g.Goalkeeping), ModifierFactor, isHome, hra)
+	g.GoalieVisionMod = calculateAttributeModifier(float64(g.GoalieVision), ModifierFactor, isHome, hra)
+	g.ShotblockingMod = calculateAttributeModifier(float64(g.ShotBlocking), ModifierFactor, isHome, hra)
 }
 
 func (g *GamePlayer) GoToPenaltyBox(outOfGame bool) {

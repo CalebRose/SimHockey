@@ -384,6 +384,7 @@ type BasePlayer struct {
 	Discipline           uint8 // Ability to not foul out
 	Aggression           uint8 // Ability to avoid fights. Lower the number == more likely to cause fights
 	Stamina              uint8 // Endurance in a game
+	GoalieStamina        uint8 // The Current stamina for a goalie
 	InjuryRating         uint8 // How likely the player doesn't get injured in a game
 	DisciplineDeviation  uint8 // Modifier that adjusts the player's behavior in games
 	InjuryDeviation      uint8 // Modifier that adjusts the player's injury rating in games
@@ -440,6 +441,36 @@ type BasePlayerProgressions struct {
 	Goalkeeping          int // Goalkeepers' ability to block a shot
 	GoalieVision         int // Goalkeepers' vision
 	GoalieReboundControl int // Ability to control a rebound
+}
+
+func (b *BasePlayer) ApplyGoalieStaminaDrain() {
+	drain := 40 // default drain
+	switch {
+	case b.Stamina >= 90:
+		drain = 20
+	case b.Stamina >= 75:
+		drain = 25
+	case b.Stamina >= 60:
+		drain = 30
+	case b.Stamina >= 45:
+		drain = 35
+		// else, use default drain of 30
+	}
+
+	if drain >= int(b.GoalieStamina) {
+		b.GoalieStamina = util.MinGoalieStamina
+	} else {
+		b.GoalieStamina -= uint8(drain)
+	}
+}
+
+func (b *BasePlayer) RecoverGoalieStamina() {
+	recovery := uint8(20) // Amount recovered between games/days
+	if b.GoalieStamina+recovery > util.MaxGoalieStamina {
+		b.GoalieStamina = util.MaxGoalieStamina
+	} else {
+		b.GoalieStamina += recovery
+	}
 }
 
 func (b *BasePlayer) Progress(progressions BasePlayerProgressions) {

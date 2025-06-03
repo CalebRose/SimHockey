@@ -47,11 +47,11 @@ func SaveProfessionalGameRecord(gameRecord structs.ProfessionalGame, db *gorm.DB
 	}
 }
 
-func FindCollegeGamesByCurrentMatchup(weekID, seasonID, gameDay string) []structs.CollegeGame {
+func FindCollegeGamesByCurrentMatchup(weekID, seasonID, gameDay string, isPreseason bool) []structs.CollegeGame {
 	db := dbprovider.GetInstance().GetDB()
 
 	var games []structs.CollegeGame
-	err := db.Where("week_id = ? AND season_id = ? AND game_day = ?", weekID, seasonID, gameDay).Find(&games).Error
+	err := db.Where("week_id = ? AND season_id = ? AND game_day = ? AND is_preseason = ?", weekID, seasonID, gameDay, isPreseason).Find(&games).Error
 	if err != nil {
 		log.Printf("Error querying for college games: %v", err)
 
@@ -60,11 +60,11 @@ func FindCollegeGamesByCurrentMatchup(weekID, seasonID, gameDay string) []struct
 	return games
 }
 
-func FindProfessionalGamesByCurrentMatchup(weekID, seasonID, gameDay string) []structs.ProfessionalGame {
+func FindProfessionalGamesByCurrentMatchup(weekID, seasonID, gameDay string, isPreseason bool) []structs.ProfessionalGame {
 	db := dbprovider.GetInstance().GetDB()
 
 	var games []structs.ProfessionalGame
-	err := db.Where("week_id = ? AND season_id = ? AND game_day = ?", weekID, seasonID, gameDay).Find(&games).Error
+	err := db.Where("week_id = ? AND season_id = ? AND game_day = ? AND is_preseason = ?", weekID, seasonID, gameDay, isPreseason).Find(&games).Error
 	if err != nil {
 		log.Printf("Error querying for professional games: %v", err)
 

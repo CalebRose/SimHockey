@@ -92,3 +92,41 @@ func (p *PlayByPlayResponse) AddResult(result []string, isStream bool) {
 		p.Result = result[0]
 	}
 }
+
+type GameResultsPlayer struct {
+	ID uint
+	BasePlayer
+	BaseInjuryData
+	BasePlayerStats
+}
+
+type StreamResponse struct {
+	GameID            uint
+	HomeTeamID        uint
+	GameLabel         string
+	HomeLabel         string
+	HomeTeam          string
+	HomeTeamCoach     string
+	HomeTeamDiscordID string
+	HomeTeamRank      uint
+	AwayTeamID        uint
+	AwayLabel         string
+	AwayTeam          string
+	AwayTeamCoach     string
+	AwayTeamDiscordID string
+	AwayTeamRank      uint
+	ArenaID           uint
+	Arena             string
+	Capacity          uint
+	Attendance        uint
+	City              string
+	State             string
+	Country           string
+	HomeTeamWin       bool
+	AwayTeamWin       bool
+	HTScore           uint
+	ATScore           uint
+	HTSScore          uint
+	ATSScore          uint
+	Streams           []PlayByPlayResponse
+}

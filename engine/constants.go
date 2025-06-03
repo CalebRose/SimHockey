@@ -40,6 +40,7 @@ const (
 	RegularPeriodTime       uint16  = 1200
 	OvertimePeriodTime      uint16  = 300
 	MaxTimeOnClock          uint16  = 65000
+	GoalieStaminaThreshold  uint8   = 30
 )
 
 // Event Constants

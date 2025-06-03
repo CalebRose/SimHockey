@@ -67,7 +67,9 @@ const (
 	GoalieReboundID      uint8 = 28
 	ShotOnGoalID         uint8 = 29
 	GoalieHoldID         uint8 = 30
-
+	NoOneOpenID          uint8 = 31
+	ReceivedLongPassID   uint8 = 32
+	ReceivedBackPassID   uint8 = 33
 	// Free Agency Preferences
 	Average                  uint8 = 1
 	MarketCTH                uint8 = 2
@@ -92,4 +94,7 @@ const (
 	Canada string = "Canada"
 	Sweden string = "Sweden"
 	Russia string = "Russia"
+
+	MaxGoalieStamina uint8 = 100
+	MinGoalieStamina uint8 = 1
 )

@@ -6,7 +6,6 @@ import (
 	"math/rand"
 	"sort"
 	"strconv"
-	"sync"
 
 	"github.com/CalebRose/SimHockey/dbprovider"
 	"github.com/CalebRose/SimHockey/repository"
@@ -228,56 +227,6 @@ func allocatePointsToRecruit(recruit structs.Recruit, recruitProfiles *[]structs
 	}
 
 	return allocations
-}
-
-func processRecruitProfile(i int, recruit structs.Recruit, recruitProfiles *[]structs.RecruitPlayerProfile, pointLimit float32, spendingCountAdjusted *bool, pointsPlaced *bool, timestamp structs.Timestamp, recruitProfilePointsMap *map[uint]float32, db *gorm.DB, m *sync.Mutex) error {
-	if (*recruitProfiles)[i].CurrentWeeksPoints == 0 {
-		if (*recruitProfiles)[i].SpendingCount > 0 {
-			(*recruitProfiles)[i].ResetSpendingCount()
-			*spendingCountAdjusted = true
-			fmt.Println("Resetting spending count for " + recruit.FirstName + " " + recruit.LastName + " for Team " + strconv.Itoa(int((*recruitProfiles)[i].ProfileID)))
-		}
-		return nil
-	} else {
-		*pointsPlaced = true
-	}
-
-	var curr float32 = 0
-
-	var modifier float32 = 1
-
-	if (*recruitProfiles)[i].IsHomeState {
-		modifier += 0.25
-	}
-	if (*recruitProfiles)[i].IsPipelineState {
-		modifier += 0.15
-	}
-
-	curr = float32((*recruitProfiles)[i].CurrentWeeksPoints) * modifier
-
-	if (*recruitProfiles)[i].CurrentWeeksPoints < 0 || (*recruitProfiles)[i].CurrentWeeksPoints > pointLimit {
-		curr = 0
-	}
-
-	rpa := structs.RecruitPointAllocation{
-		RecruitID:          (*recruitProfiles)[i].RecruitID,
-		TeamProfileID:      (*recruitProfiles)[i].ProfileID,
-		RecruitProfileID:   (*recruitProfiles)[i].ID,
-		WeekID:             timestamp.WeekID,
-		IsHomeStateApplied: (*recruitProfiles)[i].IsHomeState,
-		IsPipelineApplied:  (*recruitProfiles)[i].IsPipelineState,
-		Points:             (*recruitProfiles)[i].CurrentWeeksPoints,
-		ModAffectedPoints:  curr,
-	}
-
-	(*recruitProfiles)[i].AddCurrentWeekPointsToTotal(curr)
-	m.Lock()
-	(*recruitProfilePointsMap)[(*recruitProfiles)[i].ProfileID] += float32((*recruitProfiles)[i].CurrentWeeksPoints)
-	m.Unlock()
-
-	// Add RPA to point allocations list
-	repository.CreatePointAllocationRecord(db, rpa)
-	return nil
 }
 
 func updateTeamRankings(teamRecruitingProfiles []structs.RecruitingTeamProfile, teamMap map[uint]*structs.RecruitingTeamProfile, recruitProfilePointsMap map[uint]float32, db *gorm.DB, week int) {

@@ -165,3 +165,23 @@ func GetCHLRecruitViaDiscord(w http.ResponseWriter, r *http.Request) {
 
 	json.NewEncoder(w).Encode(recruit)
 }
+
+func GetCHLGameStreams(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	streamType := vars["streamType"]
+	if len(streamType) == 0 {
+		panic("User did not provide timeslot")
+	}
+	streams := managers.GetCHLPlayByPlayStreamData(streamType)
+	json.NewEncoder(w).Encode(streams)
+}
+
+func GetPHLGameStreams(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	streamType := vars["streamType"]
+	if len(streamType) == 0 {
+		panic("User did not provide timeslot")
+	}
+	streams := managers.GetPHLPlayByPlayStreamData(streamType)
+	json.NewEncoder(w).Encode(streams)
+}
