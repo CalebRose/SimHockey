@@ -21,7 +21,7 @@ func GetCHLPlayByPlayStreamData(streamType string) []structs.StreamResponse {
 	streams := []structs.StreamResponse{}
 
 	for _, game := range games {
-		if !game.GameComplete {
+		if !game.GameComplete || game.ID == 2449 || game.ID == 2451 || game.ID == 2452 {
 			continue
 		}
 		homeTeam := teamMap[uint(game.HomeTeamID)]
@@ -95,13 +95,13 @@ func GetCHLPlayByPlayStreamData(streamType string) []structs.StreamResponse {
 			GameID:            game.ID,
 			HomeTeamID:        uint(game.HomeTeamID),
 			HomeTeam:          game.HomeTeam,
-			HomeTeamCoach:     game.HomeTeamCoach,
+			HomeTeamCoach:     homeTeam.Coach,
 			HomeTeamRank:      game.HomeTeamRank,
 			HomeLabel:         homeTeam.TeamName + " " + homeTeam.Mascot,
 			HomeTeamDiscordID: homeTeam.DiscordID,
 			AwayTeamID:        uint(game.AwayTeamID),
 			AwayTeam:          game.AwayTeam,
-			AwayTeamCoach:     game.AwayTeamCoach,
+			AwayTeamCoach:     awayTeam.Coach,
 			AwayTeamRank:      game.AwayTeamRank,
 			AwayTeamDiscordID: awayTeam.DiscordID,
 			AwayLabel:         awayTeam.TeamName + " " + awayTeam.Mascot,

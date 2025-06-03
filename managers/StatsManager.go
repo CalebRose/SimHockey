@@ -534,6 +534,9 @@ func GetPHLGameResultsByGameID(gameID string) structs.GameResultsResponse {
 func GenerateCHLPlayByPlayResponse(playByPlays []structs.CollegePlayByPlay, teamMap map[uint]structs.CollegeTeam, playerMap map[uint]structs.CollegePlayer, isStream bool, ht, at uint) []structs.PlayByPlayResponse {
 	results := []structs.PlayByPlayResponse{}
 	for idx, play := range playByPlays {
+		if play.Outcome == util.CarrierKeepsPuckID {
+			continue
+		}
 		timeOnClock := FormatTimeToClock(play.TimeOnClock)
 		event := util.ReturnStringFromPBPID(play.EventID)
 		outcome := util.ReturnStringFromPBPID(play.Outcome)
@@ -586,6 +589,9 @@ func GenerateCHLPlayByPlayResponse(playByPlays []structs.CollegePlayByPlay, team
 func GeneratePHLPlayByPlayResponse(playByPlays []structs.ProPlayByPlay, teamMap map[uint]structs.ProfessionalTeam, playerMap map[uint]structs.ProfessionalPlayer, isStream bool, ht, at uint) []structs.PlayByPlayResponse {
 	results := []structs.PlayByPlayResponse{}
 	for idx, play := range playByPlays {
+		if play.Outcome == util.CarrierKeepsPuckID {
+			continue
+		}
 		timeOnClock := FormatTimeToClock(play.TimeOnClock)
 		event := util.ReturnStringFromPBPID(play.EventID)
 		outcome := util.ReturnStringFromPBPID(play.Outcome)
