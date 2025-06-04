@@ -21,7 +21,7 @@ func HandleCollegePlayByPlayExport(w http.ResponseWriter, gameID string) {
 	collegePlayByPlays := GetCHLPlayByPlaysByGameID(gameID)
 	game := repository.FindCollegeGameRecord(gameID)
 	season := 2024 + game.SeasonID
-	fileName := gameID + "_Season_" + strconv.Itoa(int(season)) + "_Week_" + strconv.Itoa(game.Week) + "_" + game.HomeTeam + "_vs_" + game.AwayTeam + "_Day_" + game.GameDay
+	fileName := gameID + "_Season_" + strconv.Itoa(int(season)) + "_Week_" + strconv.Itoa(game.Week) + "_" + game.HomeTeam + "_vs_" + game.AwayTeam + "_Day_" + game.GameDay + ".csv"
 	w.Header().Set("Content-Disposition", "attachment;filename="+fileName)
 	w.Header().Set("Access-Control-Expose-Headers", "Content-Disposition")
 	w.Header().Set("Transfer-Encoding", "chunked")
@@ -88,7 +88,7 @@ func HandleProPlayByPlayExport(w http.ResponseWriter, gameID string) {
 	proPlayByPlays := GetPHLPlayByPlaysByGameID(gameID)
 	game := repository.FindProfessionalGameRecord(gameID)
 	season := 2024 + game.SeasonID
-	fileName := gameID + "_Season_" + strconv.Itoa(int(season)) + "_Week_" + strconv.Itoa(game.Week) + "_" + game.HomeTeam + "_vs_" + game.AwayTeam + "_Day_" + game.GameDay
+	fileName := gameID + "_Season_" + strconv.Itoa(int(season)) + "_Week_" + strconv.Itoa(game.Week) + "_" + game.HomeTeam + "_vs_" + game.AwayTeam + "_Day_" + game.GameDay + ".csv"
 	w.Header().Set("Content-Disposition", "attachment;filename="+fileName)
 	w.Header().Set("Access-Control-Expose-Headers", "Content-Disposition")
 	w.Header().Set("Transfer-Encoding", "chunked")
