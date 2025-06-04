@@ -32,9 +32,10 @@ func RunGames() {
 	weekID := strconv.Itoa(int(ts.WeekID))
 	seasonID := strconv.Itoa(int(ts.SeasonID))
 	gameDay := ts.GetGameDay()
-	collegeGames := GetCollegeGamesForCurrentMatchup(weekID, seasonID, gameDay, ts.IsPreseason)
-	proGames := []structs.ProfessionalGame{}
-	// proGames := GetProfessionalGamesForCurrentMatchup(weekID, seasonID, gameDay)
+	// collegeGames := GetCollegeGamesForCurrentMatchup(weekID, seasonID, gameDay, ts.IsPreseason)
+	collegeGames := []structs.CollegeGame{}
+	// proGames := []structs.ProfessionalGame{}
+	proGames := GetProfessionalGamesForCurrentMatchup(weekID, seasonID, gameDay, ts.IsPreseason)
 	collegeGameMap := MakeCollegeGameMap(collegeGames)
 	collegeStandingsMap := GetCollegeStandingsMap(seasonID)
 	proStandingsMap := GetProStandingsMap(seasonID)
@@ -867,7 +868,7 @@ func GetPlayoffSeriesBySeriesID(seriesID string) structs.PlayoffSeries {
 }
 
 func GenerateThreeStars(state engine.GameState, seasonID uint) structs.ThreeStars {
-	types := [][]engine.LineStrategy{state.HomeStrategy.Forwards, state.HomeStrategy.Defenders, state.HomeStrategy.Goalies}
+	types := [][]engine.LineStrategy{state.HomeStrategy.Forwards, state.HomeStrategy.Defenders, state.HomeStrategy.Goalies, state.AwayStrategy.Forwards, state.AwayStrategy.Defenders, state.AwayStrategy.Goalies}
 	threeStars := []structs.ThreeStarsObj{}
 	winningTeamID := state.HomeTeamID
 	if state.AwayTeamWin {
@@ -901,18 +902,18 @@ func GenerateThreeStars(state engine.GameState, seasonID uint) structs.ThreeStar
 	starTwo := 0
 	starThree := 0
 	for _, star := range threeStars {
-		if totalCount > 2 {
+		if starOne > 0 && starTwo > 0 && starThree > 0 {
 			break
 		}
 		if winningTeamCount > 1 && star.TeamID == winningTeamID {
 			continue
 		}
-		if starOne == 0 {
-			starOne = int(star.PlayerID)
+		if starThree == 0 {
+			starThree = int(star.PlayerID)
 		} else if starTwo == 0 {
 			starTwo = int(star.PlayerID)
-		} else if starThree == 0 {
-			starThree = int(star.PlayerID)
+		} else if starOne == 0 {
+			starOne = int(star.PlayerID)
 		}
 		if star.TeamID == winningTeamID {
 			winningTeamCount++

@@ -47,6 +47,8 @@ const (
 	FightPenalty         string = "Fight Penalty"
 	InterceptedPass      string = "Intercepted Pass"
 	ReceivedPass         string = "Received Pass"
+	ReceivedLongPass     string = "Received Long Pass"
+	ReceivedBackPass     string = "Received Back Pass"
 	HomeFaceoffWin       string = "Home Faceoff Win"
 	AwayFaceoffWin       string = "Away Faceoff Win"
 	InAccurateShot       string = "Inaccurate Shot"

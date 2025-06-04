@@ -190,7 +190,7 @@ func UpdateStandings(ts structs.Timestamp, gameDay string) {
 		collegeGames := GetCollegeGamesForCurrentMatchup(weekID, seasonID, gameDay, ts.IsPreseason)
 
 		for _, game := range collegeGames {
-			if !game.GameComplete {
+			if !game.GameComplete || game.IsPreseason {
 				continue
 			}
 
@@ -252,7 +252,7 @@ func UpdateStandings(ts structs.Timestamp, gameDay string) {
 		proGames := GetProfessionalGamesForCurrentMatchup(weekID, seasonID, gameDay, ts.IsPreseason)
 
 		for _, game := range proGames {
-			if !game.GameComplete {
+			if !game.GameComplete || game.IsPreseason {
 				continue
 			}
 

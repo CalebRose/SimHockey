@@ -15,6 +15,140 @@ import (
 	"github.com/CalebRose/SimHockey/structs"
 )
 
+func HandleCollegePlayByPlayExport(w http.ResponseWriter, gameID string) {
+	collegePlayerMap := GetCollegePlayersMap()
+	collegeTeamMap := GetCollegeTeamMap()
+	collegePlayByPlays := GetCHLPlayByPlaysByGameID(gameID)
+	game := repository.FindCollegeGameRecord(gameID)
+	season := 2024 + game.SeasonID
+	fileName := gameID + "_Season_" + strconv.Itoa(int(season)) + "_Week_" + strconv.Itoa(game.Week) + "_" + game.HomeTeam + "_vs_" + game.AwayTeam + "_Day_" + game.GameDay
+	w.Header().Set("Content-Disposition", "attachment;filename="+fileName)
+	w.Header().Set("Access-Control-Expose-Headers", "Content-Disposition")
+	w.Header().Set("Transfer-Encoding", "chunked")
+	pbps := []structs.PbP{}
+
+	for _, p := range collegePlayByPlays {
+		pbps = append(pbps, p.PbP)
+	}
+
+	writer := csv.NewWriter(w)
+
+	writer.Write([]string{"Period", "TimeOnClock", "Time Consumed", "Zone", "Event", "Outcome", "Penalty Called", "Severity", "Fight?", "HTS", "ATS", "PossessingTeam", "Notes"})
+	// Iterate through play by play data to generate []string
+
+	for _, play := range pbps {
+		periodStr := strconv.Itoa(int(play.Period))
+		timeOnClock := FormatTimeToClock(play.TimeOnClock)
+		timeConsumed := strconv.Itoa(int(play.SecondsConsumed))
+		event := util.ReturnStringFromPBPID(play.EventID)
+		outcome := util.ReturnStringFromPBPID(play.Outcome)
+		hts := strconv.Itoa(int(play.HomeTeamScore))
+		ats := strconv.Itoa(int(play.AwayTeamScore))
+		possessingTeam := collegeTeamMap[uint(play.TeamID)]
+		zone := getZoneLabel(play.ZoneID)
+		abbr := possessingTeam.Abbreviation
+		penalty := getPenaltyByID(uint(play.PenaltyID))
+		severity := getSeverityByID(play.Severity)
+		isFight := "No"
+		if play.IsFight {
+			isFight = "Yes"
+		}
+
+		result := generateCollegeResultsString(play, event, outcome, collegePlayerMap, possessingTeam)
+		err := writer.Write([]string{
+			periodStr,
+			timeOnClock,
+			timeConsumed,
+			zone,
+			event,
+			outcome,
+			penalty,
+			severity,
+			isFight,
+			hts,
+			ats,
+			abbr,
+			result,
+		})
+		if err != nil {
+			log.Fatal("Cannot write player row to CSV", err)
+		}
+
+		writer.Flush()
+		err = writer.Error()
+		if err != nil {
+			log.Fatal("Error while writing to file ::", err)
+		}
+	}
+}
+
+func HandleProPlayByPlayExport(w http.ResponseWriter, gameID string) {
+	proPlayerMap := GetProPlayersMap()
+	proTeamMap := GetProTeamMap()
+	proPlayByPlays := GetPHLPlayByPlaysByGameID(gameID)
+	game := repository.FindProfessionalGameRecord(gameID)
+	season := 2024 + game.SeasonID
+	fileName := gameID + "_Season_" + strconv.Itoa(int(season)) + "_Week_" + strconv.Itoa(game.Week) + "_" + game.HomeTeam + "_vs_" + game.AwayTeam + "_Day_" + game.GameDay
+	w.Header().Set("Content-Disposition", "attachment;filename="+fileName)
+	w.Header().Set("Access-Control-Expose-Headers", "Content-Disposition")
+	w.Header().Set("Transfer-Encoding", "chunked")
+	pbps := []structs.PbP{}
+
+	for _, p := range proPlayByPlays {
+		pbps = append(pbps, p.PbP)
+	}
+
+	writer := csv.NewWriter(w)
+
+	writer.Write([]string{"Period", "TimeOnClock", "Time Consumed", "Zone", "Event", "Outcome", "Penalty Called", "Severity", "Fight?", "HTS", "ATS", "PossessingTeam", "Notes"})
+	// Iterate through play by play data to generate []string
+
+	for _, play := range pbps {
+		periodStr := strconv.Itoa(int(play.Period))
+		timeOnClock := FormatTimeToClock(play.TimeOnClock)
+		timeConsumed := strconv.Itoa(int(play.SecondsConsumed))
+		event := util.ReturnStringFromPBPID(play.EventID)
+		outcome := util.ReturnStringFromPBPID(play.Outcome)
+		hts := strconv.Itoa(int(play.HomeTeamScore))
+		ats := strconv.Itoa(int(play.AwayTeamScore))
+		possessingTeam := proTeamMap[uint(play.TeamID)]
+		zone := getZoneLabel(play.ZoneID)
+		abbr := possessingTeam.Abbreviation
+		penalty := getPenaltyByID(uint(play.PenaltyID))
+		severity := getSeverityByID(play.Severity)
+		isFight := "No"
+		if play.IsFight {
+			isFight = "Yes"
+		}
+
+		result := generateProResultsString(play, event, outcome, proPlayerMap, possessingTeam)
+		err := writer.Write([]string{
+			periodStr,
+			timeOnClock,
+			timeConsumed,
+			zone,
+			event,
+			outcome,
+			penalty,
+			severity,
+			isFight,
+			hts,
+			ats,
+			abbr,
+			result,
+		})
+		if err != nil {
+			log.Fatal("Cannot write player row to CSV", err)
+		}
+
+		writer.Flush()
+		err = writer.Error()
+		if err != nil {
+			log.Fatal("Error while writing to file ::", err)
+		}
+	}
+}
+
 func WritePlayByPlayCSVFile(playByPlays []structs.PbP, filename string, collegePlayerMap map[uint]structs.CollegePlayer, collegeTeamMap map[uint]structs.CollegeTeam) error {
 	file, err := os.Create(filename)
 	if err != nil {
@@ -237,6 +371,8 @@ func generateCollegeResultsString(play structs.PbP, event, outcome string, playe
 			statement = defendingPlayerLabel + " intercepts the pass right from " + puckCarrierLabel + "!"
 		} else if outcome == ReceivedPass {
 			statement = puckCarrierLabel + " finds " + receivingPlayerLabel + " and makes the pass!"
+		} else if outcome == ReceivedLongPass || outcome == ReceivedBackPass {
+			statement = puckCarrierLabel + " finds " + receivingPlayerLabel + " in the " + nextZoneLabel + " and makes the pass!"
 		}
 	} else if event == AgilityCheck {
 		if outcome == DefenseStopAgility {

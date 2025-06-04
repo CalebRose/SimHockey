@@ -54,6 +54,9 @@ const (
 	WristshotCheckID   uint8 = 6
 	SlapshotCheckID    uint8 = 7
 	PenaltyCheckID     uint8 = 8
+	EnteringShootout   uint8 = 9
+	WSShootoutID       uint8 = 10
+	CSShootoutID       uint8 = 11
 
 	// Zone IDs
 	HomeGoalZoneID uint8 = 9

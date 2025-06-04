@@ -63,3 +63,23 @@ func ExportHCKGameResults(w http.ResponseWriter, r *http.Request) {
 	timeslot := vars["timeslot"]
 	managers.ExportHCKGameResults(w, seasonID, weekID, timeslot)
 }
+
+func ExportCollegePlayByPlayResults(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	gameID := vars["gameID"]
+	if len(gameID) == 0 {
+		panic("User did not provide a first name")
+	}
+
+	managers.HandleCollegePlayByPlayExport(w, gameID)
+}
+
+func ExportProPlayByPlayResults(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	gameID := vars["gameID"]
+	if len(gameID) == 0 {
+		panic("User did not provide a first name")
+	}
+
+	managers.HandleProPlayByPlayExport(w, gameID)
+}

@@ -684,7 +684,9 @@ func HandleShootoutAttempt(gs *GameState) {
 	accuracy := int(pb.CloseShotAccMod)
 	power := int(pb.CloseShotPowerMod)
 	isSlapshot := true
+	eventID := CSShootoutID
 	if wsPower > slapPower {
+		eventID = WSShootoutID
 		isSlapshot = false
 		accuracy = int(pb.LongShotAccMod)
 		power = int(pb.LongShotPowerMod)
@@ -710,6 +712,10 @@ func HandleShootoutAttempt(gs *GameState) {
 
 	if shotAttempt {
 		gs.IncrementShootoutScore(isHome)
+		RecordPlay(gs, eventID, ShotOnGoalID, 0, 0, 0, 0, 0, 0, false, pb.ID, 0, 0, 0, goalie.ID, false)
+
+	} else {
+		RecordPlay(gs, eventID, GoalieSaveID, 0, 0, 0, 0, 0, 0, false, pb.ID, 0, 0, 0, goalie.ID, false)
 	}
 }
 
@@ -720,6 +726,8 @@ func HandleOvertimeShootout(gs *GameState) {
 	shootoutQueue := formShootoutQueue(gs.HomeStrategy, gs.AwayStrategy)
 	// Run For Loop for Shootout. Once six players from each team have made an attempt, compare the shootout scores
 	// If score is still the same, keep running through loop
+
+	RecordPlay(gs, EnteringShootout, 0, 0, 0, 0, 0, 0, 0, false, 0, 0, 0, 0, 0, false)
 
 	for gs.HomeTeamShootoutScore == gs.AwayTeamShootoutScore {
 		for idx, player := range shootoutQueue {
@@ -851,29 +859,32 @@ func getShootoutLineup(gp GamePlaybook) []*GamePlayer {
 func RecordPlay(gs *GameState, eventID, outcomeID, nextZoneID, injuryID, injuryType, injuryDuration, penaltyID, severity uint8, isFight bool, pcID, ppID, apID, dpID, gpID uint, isBreakaway bool) {
 	_, zoneID := getZoneID(gs.PuckLocation, gs.HomeTeamID, gs.AwayTeamID)
 	play := structs.PbP{
-		GameID:            gs.GameID,
-		Period:            gs.Period,
-		TimeOnClock:       gs.TimeOnClock,
-		SecondsConsumed:   uint8(gs.SecondsConsumed),
-		EventID:           eventID,
-		ZoneID:            uint8(zoneID),
-		NextZoneID:        nextZoneID,
-		Outcome:           outcomeID,
-		HomeTeamScore:     gs.HomeTeamScore,
-		AwayTeamScore:     gs.AwayTeamScore,
-		TeamID:            uint8(gs.PossessingTeam),
-		PuckCarrierID:     pcID,
-		PassedPlayerID:    ppID,
-		AssistingPlayerID: apID,
-		DefenderID:        dpID,
-		GoalieID:          gpID,
-		InjuryID:          injuryID,
-		InjuryType:        injuryType,
-		InjuryDuration:    injuryDuration,
-		PenaltyID:         penaltyID,
-		IsFight:           false,
-		Severity:          severity,
-		IsBreakaway:       isBreakaway,
+		GameID:                gs.GameID,
+		Period:                gs.Period,
+		TimeOnClock:           gs.TimeOnClock,
+		SecondsConsumed:       uint8(gs.SecondsConsumed),
+		EventID:               eventID,
+		ZoneID:                uint8(zoneID),
+		NextZoneID:            nextZoneID,
+		Outcome:               outcomeID,
+		HomeTeamScore:         gs.HomeTeamScore,
+		AwayTeamScore:         gs.AwayTeamScore,
+		HomeTeamShootoutScore: gs.HomeTeamShootoutScore,
+		AwayTeamShootoutScore: gs.AwayTeamShootoutScore,
+		TeamID:                uint8(gs.PossessingTeam),
+		PuckCarrierID:         pcID,
+		PassedPlayerID:        ppID,
+		AssistingPlayerID:     apID,
+		DefenderID:            dpID,
+		GoalieID:              gpID,
+		InjuryID:              injuryID,
+		InjuryType:            injuryType,
+		InjuryDuration:        injuryDuration,
+		PenaltyID:             penaltyID,
+		IsFight:               false,
+		Severity:              severity,
+		IsBreakaway:           isBreakaway,
+		IsShootout:            gs.IsOvertimeShootout,
 	}
 
 	gs.RecordPlay(play)

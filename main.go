@@ -111,6 +111,8 @@ func handleRequests() http.Handler {
 	// Games
 	apiRouter.HandleFunc("/games/result/chl/{gameID}", controllers.GetCollegeGameResultsByGameID).Methods("GET")
 	apiRouter.HandleFunc("/games/result/phl/{gameID}", controllers.GetProGameResultsByGameID).Methods("GET")
+	apiRouter.HandleFunc("/games/result/export/chl/{gameID}", controllers.ExportCollegePlayByPlayResults).Methods("GET")
+	apiRouter.HandleFunc("/games/result/export/phl/{gameID}", controllers.ExportProPlayByPlayResults).Methods("GET")
 	apiRouter.HandleFunc("/games/export/results/{seasonID}/{weekID}/{timeslot}", controllers.ExportHCKGameResults).Methods("GET")
 
 	// Imports
