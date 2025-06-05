@@ -400,7 +400,7 @@ func generateCollegeResultsString(play structs.PbP, event, outcome string, playe
 		} else if outcome == GoalieSave {
 			statement += " and the shot is SAVED by " + goalieLabel + "!"
 		} else if outcome == InAccurateShot {
-			statement += " and he misses the goal! It's a loose pick! Picked up by " + receivingPlayerLabel + "!"
+			statement += " and he misses the goal! It's a loose puck! Picked up by " + receivingPlayerLabel + "!"
 		} else if outcome == ShotOnGoal {
 			statement += " and he scores! That's a point for " + teamLabel + "!"
 		} else if outcome == PenaltyCheck {
