@@ -353,7 +353,9 @@ func generateCollegeResultsString(play structs.PbP, event, outcome string, playe
 			statement = receivingPlayerLabel + " wins the faceoff! "
 		}
 		// Mention receiving player
-		statement += assistingPlayerLabel + " receives the puck on the faceoff."
+		if outcome != util.GoalieHold {
+			statement += assistingPlayerLabel + " receives the puck on the faceoff."
+		}
 	} else if event == PhysDefenseCheck {
 		if outcome == DefenseTakesPuck {
 			statement = defendingPlayerLabel + " bodies " + puckCarrierLabel + " right into the boards and snatches the puck away!"
@@ -386,8 +388,8 @@ func generateCollegeResultsString(play structs.PbP, event, outcome string, playe
 			statement += " and the shot is blocked by " + defendingPlayerLabel + "!"
 		} else if outcome == GoalieSave {
 			statement += " and the shot is SAVED by " + goalieLabel + "!"
-		} else if outcome == GoalieReboundOutcome {
-			//
+		} else if outcome == InAccurateShot {
+			statement += " and he misses the goal! It's a loose pick! Picked up by " + receivingPlayerLabel + "!"
 		} else if outcome == ShotOnGoal {
 			statement += " and he scores! That's a point for " + teamLabel + "!"
 		}
@@ -397,8 +399,8 @@ func generateCollegeResultsString(play structs.PbP, event, outcome string, playe
 			statement += " and the shot is blocked by " + defendingPlayerLabel + "!"
 		} else if outcome == GoalieSave {
 			statement += " and the shot is SAVED by " + goalieLabel + "!"
-		} else if outcome == GoalieReboundOutcome {
-			//
+		} else if outcome == InAccurateShot {
+			statement += " and he misses the goal! It's a loose pick! Picked up by " + receivingPlayerLabel + "!"
 		} else if outcome == ShotOnGoal {
 			statement += " and he scores! That's a point for " + teamLabel + "!"
 		} else if outcome == PenaltyCheck {
@@ -460,7 +462,9 @@ func generateProResultsString(play structs.PbP, event, outcome string, playerMap
 			statement = receivingPlayerLabel + " wins the faceoff! "
 		}
 		// Mention receiving player
-		statement += assistingPlayerLabel + " receives the puck on the faceoff."
+		if outcome != util.GoalieHold {
+			statement += assistingPlayerLabel + " receives the puck on the faceoff."
+		}
 	} else if event == PhysDefenseCheck {
 		if outcome == DefenseTakesPuck {
 			statement = defendingPlayerLabel + " bodies " + puckCarrierLabel + " right into the boards and snatches the puck away!"
@@ -478,6 +482,8 @@ func generateProResultsString(play structs.PbP, event, outcome string, playerMap
 			statement = defendingPlayerLabel + " intercepts the pass right from " + puckCarrierLabel + "!"
 		} else if outcome == ReceivedPass {
 			statement = puckCarrierLabel + " finds " + receivingPlayerLabel + " and makes the pass!"
+		} else if outcome == ReceivedLongPass || outcome == ReceivedBackPass {
+			statement = puckCarrierLabel + " finds " + receivingPlayerLabel + " in the " + nextZoneLabel + " and makes the pass!"
 		}
 	} else if event == AgilityCheck {
 		if outcome == DefenseStopAgility {
@@ -491,8 +497,8 @@ func generateProResultsString(play structs.PbP, event, outcome string, playerMap
 			statement += " and the shot is blocked by " + defendingPlayerLabel + "!"
 		} else if outcome == GoalieSave {
 			statement += " and the shot is SAVED by " + goalieLabel + "!"
-		} else if outcome == GoalieReboundOutcome {
-			//
+		} else if outcome == InAccurateShot {
+			statement += " and he misses the goal! It's a loose pick! Picked up by " + receivingPlayerLabel + "!"
 		} else if outcome == ShotOnGoal {
 			statement += " and he scores! That's a point for " + teamLabel + "!"
 		}
@@ -502,8 +508,8 @@ func generateProResultsString(play structs.PbP, event, outcome string, playerMap
 			statement += " and the shot is blocked by " + defendingPlayerLabel + "!"
 		} else if outcome == GoalieSave {
 			statement += " and the shot is SAVED by " + goalieLabel + "!"
-		} else if outcome == GoalieReboundOutcome {
-			//
+		} else if outcome == InAccurateShot {
+			statement += " and he misses the goal! It's a loose pick! Picked up by " + receivingPlayerLabel + "!"
 		} else if outcome == ShotOnGoal {
 			statement += " and he scores! That's a point for " + teamLabel + "!"
 		} else if outcome == PenaltyCheck {
@@ -526,6 +532,15 @@ func generateProResultsString(play structs.PbP, event, outcome string, playerMap
 			statement = "There's a fight on center ice! " + defendingPlayerLabel + " and " + goalieLabel + " are right at with the fisticuffs. Refs are breaking up the fight. Both players are out for " + penaltyMinutes + " minutes. Resetting play with a faceoff. "
 		} else {
 			statement = "Penalty called! " + defendingPlayerLabel + " has been called for " + severity + " " + penalty + " on " + puckCarrierLabel + ". Power play for " + penaltyMinutes + " minutes."
+		}
+	} else if event == EnteringShootout {
+		statement = "END OF OVERTIME, STARTING SHOOTOUT"
+	} else if event == Shootout {
+		statement = puckCarrierLabel + " faces " + goalieLabel + " in the shootout..."
+		if outcome == GoalieSave {
+			statement += " and the shot is SAVED by " + goalieLabel + "! The next player is up!"
+		} else if outcome == ShotOnGoal {
+			statement += " and he scores! That's a point for " + teamLabel + "!"
 		}
 	}
 
