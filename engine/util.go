@@ -100,7 +100,7 @@ func selectPlayerIDByWeights(totalWeight float64, playerWeights []PlayerWeight) 
 
 	for _, rw := range playerWeights {
 		currWeight += rw.Weight
-		if currWeight <= selectedWeight {
+		if currWeight >= selectedWeight {
 			return rw.PlayerID
 		}
 		lastID = rw.PlayerID

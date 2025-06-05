@@ -43,6 +43,7 @@ func RunGames() {
 	gameDTOs := PrepareGames(collegeGames, proGames, collegeStandingsMap, proStandingsMap)
 	// RUN THE GAMES!
 	results := engine.RunGames(gameDTOs)
+	return
 	// collegeTeamMap := GetCollegeTeamMap()
 	// proTeamMap := GetProTeamMap()
 	collegePlayerMap := GetCollegePlayersMap()

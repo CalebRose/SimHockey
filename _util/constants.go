@@ -70,6 +70,10 @@ const (
 	NoOneOpenID          uint8 = 31
 	ReceivedLongPassID   uint8 = 32
 	ReceivedBackPassID   uint8 = 33
+	EnteringShootout     uint8 = 34
+	WSShootoutID         uint8 = 35
+	CSShootoutID         uint8 = 36
+
 	// Free Agency Preferences
 	Average                  uint8 = 1
 	MarketCTH                uint8 = 2
@@ -95,6 +99,8 @@ const (
 	Sweden string = "Sweden"
 	Russia string = "Russia"
 
-	MaxGoalieStamina uint8 = 100
-	MinGoalieStamina uint8 = 1
+	MaxGoalieStamina   uint8 = 100
+	MinGoalieStamina   uint8 = 1
+	ForwardShiftLimit  int   = 40
+	DefenderShiftLimit int   = 25
 )

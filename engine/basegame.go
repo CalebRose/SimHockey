@@ -140,14 +140,18 @@ func loadGamePlaybook(isCollegeGame, isHome bool, pb structs.PlayBookDTO, season
 	forwardLines, defenderLines, goalieLines, activeIDs := LoadAllLineStrategies(pb, gameRoster)
 	benchPlayers := LoadBenchPlayers(activeIDs, gameRoster)
 	return GamePlaybook{
-		Forwards:         forwardLines,
-		Defenders:        defenderLines,
-		Goalies:          goalieLines,
-		CurrentForwards:  0,
-		CurrentDefenders: 0,
-		CurrentGoalie:    0,
-		BenchPlayers:     benchPlayers,
-		ShootoutLineUp:   pb.ShootoutLineup,
-		RosterMap:        rosterMap,
+		Forwards:           forwardLines,
+		Defenders:          defenderLines,
+		Goalies:            goalieLines,
+		CurrentForwards:    0,
+		CurrentDefenders:   0,
+		CurrentGoalie:      0,
+		BenchPlayers:       benchPlayers,
+		ShootoutLineUp:     pb.ShootoutLineup,
+		RosterMap:          rosterMap,
+		ForwardShiftTimer:  0,
+		DefenderShiftTimer: 0,
+		ForwardShiftLimit:  ForwardShiftLimit,
+		DefenderShiftLimit: DefenderShiftLimit,
 	}
 }

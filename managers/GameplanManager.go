@@ -46,48 +46,169 @@ func GetProLineupsMap() map[uint][]structs.ProfessionalLineup {
 	return MakeProfessionalLineupMap(lineups)
 }
 
-func SaveCHLLineup(dto structs.UpdateLineupsDTO) structs.UpdateLineupsDTO {
-	db := dbprovider.GetInstance().GetDB()
-	chlLineups := dto.CHLLineups
-	chlSOLineup := dto.CHLShootoutLineup
-	chlPlayers := dto.CollegePlayers
-	teamID := strconv.Itoa(int(dto.CHLTeamID))
-	// Make map of each lineup?
-	chlLineupMap := MakeIndCollegeLineupMap(chlLineups)
-	// Make map of each updated CHL player
-	chlPlayerMap := MakeCollegePlayerMap(chlPlayers)
-	// Get CHL Lineup Records
-	playerIDs := []string{}
-	chlLineupRecords := repository.FindCollegeLineupsByTeamID(teamID)
-	for _, c := range chlLineupRecords {
-		updatedLineup := chlLineupMap[c.ID]
-		c.MapIDsAndAllocations(updatedLineup.LineupPlayerIDs, updatedLineup.Allocations)
+// ----------------------------------------------------------------
+//  1. Helper: compare two Allocations structs field‐by‐field.
+//     Returns true if any field differs.
+//
+// ----------------------------------------------------------------
+func allocationsDiffer(a1, a2 structs.Allocations) bool {
+	return a1.AGZShot != a2.AGZShot ||
+		a1.AGZPass != a2.AGZPass ||
+		a1.AGZPassBack != a2.AGZPassBack ||
+		a1.AGZAgility != a2.AGZAgility ||
+		a1.AGZStickCheck != a2.AGZStickCheck ||
+		a1.AGZBodyCheck != a2.AGZBodyCheck ||
 
-		// Iterate by player
-		if c.LineType == 1 {
-			cID := strconv.Itoa(int(c.CenterID))
-			f1ID := strconv.Itoa(int(c.Forward1ID))
-			f2ID := strconv.Itoa(int(c.Forward2ID))
-			playerIDs = append(playerIDs, cID, f1ID, f2ID)
-		} else if c.LineType == 2 {
-			d1ID := strconv.Itoa(int(c.Defender1ID))
-			d2ID := strconv.Itoa(int(c.Defender2ID))
-			playerIDs = append(playerIDs, d1ID, d2ID)
-		} else {
-			gID := strconv.Itoa(int(c.GoalieID))
-			playerIDs = append(playerIDs, gID)
+		a1.AZShot != a2.AZShot ||
+		a1.AZPass != a2.AZPass ||
+		a1.AZLongPass != a2.AZLongPass ||
+		a1.AZAgility != a2.AZAgility ||
+		a1.AZStickCheck != a2.AZStickCheck ||
+		a1.AZBodyCheck != a2.AZBodyCheck ||
+
+		a1.NPass != a2.NPass ||
+		a1.NAgility != a2.NAgility ||
+		a1.NStickCheck != a2.NStickCheck ||
+		a1.NBodyCheck != a2.NBodyCheck ||
+
+		a1.DZPass != a2.DZPass ||
+		a1.DZPassBack != a2.DZPassBack ||
+		a1.DZAgility != a2.DZAgility ||
+		a1.DZStickCheck != a2.DZStickCheck ||
+		a1.DZBodyCheck != a2.DZBodyCheck ||
+
+		a1.DGZPass != a2.DGZPass ||
+		a1.DGZLongPass != a2.DGZLongPass ||
+		a1.DGZAgility != a2.DGZAgility ||
+		a1.DGZStickCheck != a2.DGZStickCheck ||
+		a1.DGZBodyCheck != a2.DGZBodyCheck
+}
+
+// ----------------------------------------------------------------
+//
+//  2. Helper: compare two CollegeLineup records (old vs updated DTO).
+//     Checks both the player‐ID slots and the Allocations fields.
+//     Returns true if any slot or allocation value is different.
+//
+//     Assumes `updated` is a DTO‐style CollegeLineup that has the
+//     desired (LineupPlayerIDs + Allocations) packed in.
+//
+// ----------------------------------------------------------------
+func chlLineupHasChanged(old *structs.CollegeLineup, updated *structs.CollegeLineup) bool {
+	// Compare "slots" (LineType tells you how many IDs to check)
+	if old.LineType == 1 {
+		// forward line: CenterID, Forward1ID, Forward2ID
+		if old.CenterID != updated.CenterID ||
+			old.Forward1ID != updated.Forward1ID ||
+			old.Forward2ID != updated.Forward2ID {
+			return true
 		}
-
-		repository.SaveCollegeLineupRecord(c, db)
+	} else if old.LineType == 2 {
+		// defender line: Defender1ID, Defender2ID
+		if old.Defender1ID != updated.Defender1ID ||
+			old.Defender2ID != updated.Defender2ID {
+			return true
+		}
+	} else {
+		// goalie line: GoalieID
+		if old.GoalieID != updated.GoalieID {
+			return true
+		}
 	}
 
-	chlSORecord := repository.FindCollegeShootoutLineupByTeamID(teamID)
-	chlSORecord.AssignIDs(chlSOLineup.Shooter1ID, chlSOLineup.Shooter2ID, chlSOLineup.Shooter3ID,
-		chlSOLineup.Shooter4ID, chlSOLineup.Shooter5ID, chlSOLineup.Shooter6ID)
-	chlSORecord.AssignShotTypes(chlSOLineup.Shooter1ShotType, chlSOLineup.Shooter2ShotType, chlSOLineup.Shooter3ShotType,
-		chlSOLineup.Shooter4ShotType, chlSOLineup.Shooter5ShotType, chlSOLineup.Shooter6ShotType)
+	// If the player‐ID slots match, check allocations:
+	if allocationsDiffer(old.Allocations, updated.Allocations) {
+		return true
+	}
 
-	repository.SaveCollegeShootoutLineupRecord(chlSORecord, db)
+	// If we got here, nothing changed:
+	return false
+}
+
+func phlLineupHasChanged(old *structs.ProfessionalLineup, updated *structs.ProfessionalLineup) bool {
+	// Compare "slots" (LineType tells you how many IDs to check)
+	if old.LineType == 1 {
+		// forward line: CenterID, Forward1ID, Forward2ID
+		if old.CenterID != updated.CenterID ||
+			old.Forward1ID != updated.Forward1ID ||
+			old.Forward2ID != updated.Forward2ID {
+			return true
+		}
+	} else if old.LineType == 2 {
+		// defender line: Defender1ID, Defender2ID
+		if old.Defender1ID != updated.Defender1ID ||
+			old.Defender2ID != updated.Defender2ID {
+			return true
+		}
+	} else {
+		// goalie line: GoalieID
+		if old.GoalieID != updated.GoalieID {
+			return true
+		}
+	}
+
+	// If the player‐ID slots match, check allocations:
+	if allocationsDiffer(old.Allocations, updated.Allocations) {
+		return true
+	}
+
+	// If we got here, nothing changed:
+	return false
+}
+
+// ----------------------------------------------------------------
+//  3. Helper: compare two CollegePlayer records’ Allocations.
+//     Returns true if any allocation field is different.
+//
+// ----------------------------------------------------------------
+func playerAllocationsDiffer(old *structs.BasePlayer, newAlloc structs.Allocations) bool {
+	return allocationsDiffer(old.Allocations, newAlloc)
+}
+
+func SaveCHLLineup(dto structs.UpdateLineupsDTO) structs.UpdateLineupsDTO {
+	db := dbprovider.GetInstance().GetDB()
+	incomingLineups := dto.CHLLineups
+	incomingSOLineup := dto.CHLShootoutLineup
+	incomingPlayers := dto.CollegePlayers
+	teamID := strconv.Itoa(int(dto.CHLTeamID))
+	// Make map of each lineup?
+	chlLineupMap := MakeIndCollegeLineupMap(incomingLineups)
+	// Make map of each updated CHL player
+	chlPlayerMap := MakeCollegePlayerMap(incomingPlayers)
+	// Get CHL Lineup Records
+	playerIDs := []string{}
+	existingLineupRecords := repository.FindCollegeLineupsByTeamID(teamID)
+	for _, rec := range existingLineupRecords {
+		updatedLineup := chlLineupMap[rec.ID]
+		// Iterate by player
+		if rec.LineType == 1 {
+			cID := strconv.Itoa(int(rec.CenterID))
+			f1ID := strconv.Itoa(int(rec.Forward1ID))
+			f2ID := strconv.Itoa(int(rec.Forward2ID))
+			playerIDs = append(playerIDs, cID, f1ID, f2ID)
+		} else if rec.LineType == 2 {
+			d1ID := strconv.Itoa(int(rec.Defender1ID))
+			d2ID := strconv.Itoa(int(rec.Defender2ID))
+			playerIDs = append(playerIDs, d1ID, d2ID)
+		} else {
+			gID := strconv.Itoa(int(rec.GoalieID))
+			playerIDs = append(playerIDs, gID)
+		}
+		changedLineupCheck := chlLineupHasChanged(&rec, &updatedLineup)
+		if !changedLineupCheck {
+			continue
+		}
+		rec.MapIDsAndAllocations(updatedLineup.LineupPlayerIDs, updatedLineup.Allocations)
+		repository.SaveCollegeLineupRecord(rec, db)
+	}
+
+	soRec := repository.FindCollegeShootoutLineupByTeamID(teamID)
+	soRec.AssignIDs(incomingSOLineup.Shooter1ID, incomingSOLineup.Shooter2ID, incomingSOLineup.Shooter3ID,
+		incomingSOLineup.Shooter4ID, incomingSOLineup.Shooter5ID, incomingSOLineup.Shooter6ID)
+	soRec.AssignShotTypes(incomingSOLineup.Shooter1ShotType, incomingSOLineup.Shooter2ShotType, incomingSOLineup.Shooter3ShotType,
+		incomingSOLineup.Shooter4ShotType, incomingSOLineup.Shooter5ShotType, incomingSOLineup.Shooter6ShotType)
+
+	repository.SaveCollegeShootoutLineupRecord(soRec, db)
 
 	// Get CHL Players based on updated
 	collegePlayers := repository.FindAllCollegePlayers(repository.PlayerQuery{PlayerIDs: playerIDs})
@@ -96,7 +217,14 @@ func SaveCHLLineup(dto structs.UpdateLineupsDTO) structs.UpdateLineupsDTO {
 		if p.ID == 0 {
 			continue
 		}
-		updatedPlayer := chlPlayerMap[p.ID]
+		updatedPlayer, exists := chlPlayerMap[p.ID]
+		if !exists {
+			continue
+		}
+		allocationChangeCheck := playerAllocationsDiffer(&p.BasePlayer, updatedPlayer.Allocations)
+		if !allocationChangeCheck {
+			continue
+		}
 		p.AssignAllocations(updatedPlayer.Allocations)
 		repository.SaveCollegeHockeyPlayerRecord(p, db)
 	}
@@ -107,44 +235,48 @@ func SaveCHLLineup(dto structs.UpdateLineupsDTO) structs.UpdateLineupsDTO {
 func SavePHLLineup(dto structs.UpdateLineupsDTO) structs.UpdateLineupsDTO {
 	db := dbprovider.GetInstance().GetDB()
 
-	phlLineups := dto.PHLLineups
-	phlSOLineup := dto.PHLShootoutLineup
-	phlPlayers := dto.ProPlayers
+	incomingLineups := dto.PHLLineups
+	incomingSOLineup := dto.PHLShootoutLineup
+	incomingPlayers := dto.ProPlayers
 	teamID := strconv.Itoa(int(dto.PHLTeamID))
 	// Make map of each lineup?
-	phlLineupMap := MakeIndProLineupMap(phlLineups)
+	phlLineupMap := MakeIndProLineupMap(incomingLineups)
 	// Make map of each updated CHL player
-	phlPlayerMap := MakeProfessionalPlayerMap(phlPlayers)
+	phlPlayerMap := MakeProfessionalPlayerMap(incomingPlayers)
 	// Get CHL Lineup Records
 	playerIDs := []string{}
-	phlLineupRecords := repository.FindProLineupsByTeamID(teamID)
-	for _, p := range phlLineupRecords {
-		updatedLineup := phlLineupMap[p.ID]
-		p.MapIDsAndAllocations(updatedLineup.LineupPlayerIDs, updatedLineup.Allocations)
+	existingRecords := repository.FindProLineupsByTeamID(teamID)
+	for _, rec := range existingRecords {
+		updatedLineup := phlLineupMap[rec.ID]
 
 		// Iterate by player
-		if p.LineType == 1 {
-			cID := strconv.Itoa(int(p.CenterID))
-			f1ID := strconv.Itoa(int(p.Forward1ID))
-			f2ID := strconv.Itoa(int(p.Forward2ID))
+		if rec.LineType == 1 {
+			cID := strconv.Itoa(int(rec.CenterID))
+			f1ID := strconv.Itoa(int(rec.Forward1ID))
+			f2ID := strconv.Itoa(int(rec.Forward2ID))
 			playerIDs = append(playerIDs, cID, f1ID, f2ID)
-		} else if p.LineType == 2 {
-			d1ID := strconv.Itoa(int(p.Defender1ID))
-			d2ID := strconv.Itoa(int(p.Defender2ID))
+		} else if rec.LineType == 2 {
+			d1ID := strconv.Itoa(int(rec.Defender1ID))
+			d2ID := strconv.Itoa(int(rec.Defender2ID))
 			playerIDs = append(playerIDs, d1ID, d2ID)
 		} else {
-			gID := strconv.Itoa(int(p.GoalieID))
+			gID := strconv.Itoa(int(rec.GoalieID))
 			playerIDs = append(playerIDs, gID)
 		}
+		changedLineupCheck := phlLineupHasChanged(&rec, &updatedLineup)
+		if !changedLineupCheck {
+			continue
+		}
+		rec.MapIDsAndAllocations(updatedLineup.LineupPlayerIDs, updatedLineup.Allocations)
 
-		repository.SaveProfessionalLineupRecord(p, db)
+		repository.SaveProfessionalLineupRecord(rec, db)
 	}
 
 	phlSORecord := repository.FindProShootoutLineupByTeamID(teamID)
-	phlSORecord.AssignIDs(phlSOLineup.Shooter1ID, phlSOLineup.Shooter2ID, phlSOLineup.Shooter3ID,
-		phlSOLineup.Shooter4ID, phlSOLineup.Shooter5ID, phlSOLineup.Shooter6ID)
-	phlSORecord.AssignShotTypes(phlSOLineup.Shooter1ShotType, phlSOLineup.Shooter2ShotType, phlSOLineup.Shooter3ShotType,
-		phlSOLineup.Shooter4ShotType, phlSOLineup.Shooter5ShotType, phlSOLineup.Shooter6ShotType)
+	phlSORecord.AssignIDs(incomingSOLineup.Shooter1ID, incomingSOLineup.Shooter2ID, incomingSOLineup.Shooter3ID,
+		incomingSOLineup.Shooter4ID, incomingSOLineup.Shooter5ID, incomingSOLineup.Shooter6ID)
+	phlSORecord.AssignShotTypes(incomingSOLineup.Shooter1ShotType, incomingSOLineup.Shooter2ShotType, incomingSOLineup.Shooter3ShotType,
+		incomingSOLineup.Shooter4ShotType, incomingSOLineup.Shooter5ShotType, incomingSOLineup.Shooter6ShotType)
 
 	repository.SaveProfessionalShootoutLineupRecord(phlSORecord, db)
 
@@ -155,7 +287,14 @@ func SavePHLLineup(dto structs.UpdateLineupsDTO) structs.UpdateLineupsDTO {
 		if p.ID == 0 {
 			continue
 		}
-		updatedPlayer := phlPlayerMap[p.ID]
+		updatedPlayer, exists := phlPlayerMap[p.ID]
+		if !exists {
+			continue
+		}
+		allocationChangeCheck := playerAllocationsDiffer(&p.BasePlayer, updatedPlayer.Allocations)
+		if !allocationChangeCheck {
+			continue
+		}
 		p.AssignAllocations(updatedPlayer.Allocations)
 		repository.SaveProPlayerRecord(p, db)
 	}

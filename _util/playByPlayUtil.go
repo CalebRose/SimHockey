@@ -38,6 +38,9 @@ var eventIDMap = map[uint8]string{
 	GoalieReboundID:      "Goalie Rebound",
 	ShotOnGoalID:         "Shot on Goal",
 	GoalieHoldID:         "Goalie Hold",
+	EnteringShootout:     "EnteringShootout",
+	WSShootoutID:         "Shootout",
+	CSShootoutID:         "Shootout",
 }
 
 func ReturnStringFromPBPID(id uint8) string {

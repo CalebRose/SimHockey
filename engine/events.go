@@ -356,10 +356,10 @@ func handleAgilityCheck(gs *GameState) {
 		defendingTeamID := getDefendingTeamID(uint(pb.TeamID), gs.HomeTeamID, gs.AwayTeamID)
 		defender := selectDefendingPlayer(gs, defendingTeamID)
 		diceRoll := util.GenerateIntFromRange(1, 20)
-		puckHandling := DiffReq + pb.HandlingMod
-		if !gs.IsCollegeGame {
-			puckHandling = ToughReq + pb.HandlingMod
-		}
+		puckHandling := ToughReq + 1 + pb.HandlingMod
+		// if !gs.IsCollegeGame {
+		// 	puckHandling = ToughReq + pb.HandlingMod
+		// }
 		coinFlip := util.CoinFlip()
 		if coinFlip == Heads {
 			puckHandling -= defender.BodyCheckMod

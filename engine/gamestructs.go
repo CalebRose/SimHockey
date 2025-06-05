@@ -349,6 +349,10 @@ type GamePlaybook struct {
 	Forward2Out                 bool
 	Defender1Out                bool
 	Defender2Out                bool
+	ForwardShiftTimer           int
+	DefenderShiftTimer          int
+	ForwardShiftLimit           int
+	DefenderShiftLimit          int
 	ShootoutLineUp              structs.ShootoutPlayerIDs
 	RosterMap                   map[uint]*GamePlayer
 }
@@ -499,6 +503,8 @@ func (gp *GamePlaybook) InitializeStamina() {
 }
 
 func (gp *GamePlaybook) HandleLineups(secondsConsumed int, isPowerPlay bool) {
+	gp.ForwardShiftTimer += secondsConsumed
+	gp.DefenderShiftTimer += secondsConsumed
 	for idx := range gp.Forwards {
 		if idx == gp.CurrentForwards {
 			gp.Forwards[idx].DecrementStamina()
@@ -530,11 +536,13 @@ func (gp *GamePlaybook) HandleLineups(secondsConsumed int, isPowerPlay bool) {
 }
 
 func (gp *GamePlaybook) CheckAndRotateLineup() {
-	if gp.Forwards[gp.CurrentForwards].CurrentStamina < gp.MinForwardStaminaThreshold {
+	if gp.Forwards[gp.CurrentForwards].CurrentStamina < gp.MinForwardStaminaThreshold || gp.ForwardShiftTimer >= gp.ForwardShiftLimit {
 		gp.CurrentForwards = (gp.CurrentForwards + 1) % len(gp.Forwards)
+		gp.ForwardShiftTimer = 0
 	}
-	if gp.Defenders[gp.CurrentDefenders].CurrentStamina < gp.MinDefenderStaminaThreshold {
+	if gp.Defenders[gp.CurrentDefenders].CurrentStamina < gp.MinDefenderStaminaThreshold || gp.DefenderShiftTimer >= gp.DefenderShiftLimit {
 		gp.CurrentDefenders = (gp.CurrentDefenders + 1) % len(gp.Defenders)
+		gp.DefenderShiftTimer = 0
 	}
 	// Goalies do not swap unless overtime
 	if float64(gp.Goalies[gp.CurrentGoalie].CurrentStamina) < float64(gp.Goalies[gp.CurrentGoalie].TotalStamina)*(0.1) {

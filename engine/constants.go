@@ -41,6 +41,8 @@ const (
 	OvertimePeriodTime      uint16  = 300
 	MaxTimeOnClock          uint16  = 65000
 	GoalieStaminaThreshold  uint8   = 30
+	ForwardShiftLimit       int     = 40
+	DefenderShiftLimit      int     = 25
 )
 
 // Event Constants
@@ -54,9 +56,6 @@ const (
 	WristshotCheckID   uint8 = 6
 	SlapshotCheckID    uint8 = 7
 	PenaltyCheckID     uint8 = 8
-	EnteringShootout   uint8 = 9
-	WSShootoutID       uint8 = 10
-	CSShootoutID       uint8 = 11
 
 	// Zone IDs
 	HomeGoalZoneID uint8 = 9
@@ -85,6 +84,9 @@ const (
 	NoOneOpenID          uint8 = 31
 	ReceivedLongPassID   uint8 = 32
 	ReceivedBackPassID   uint8 = 33
+	EnteringShootout     uint8 = 34
+	WSShootoutID         uint8 = 35
+	CSShootoutID         uint8 = 36
 )
 
 // PenaltyIDs
