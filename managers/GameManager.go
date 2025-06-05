@@ -32,18 +32,19 @@ func RunGames() {
 	weekID := strconv.Itoa(int(ts.WeekID))
 	seasonID := strconv.Itoa(int(ts.SeasonID))
 	gameDay := ts.GetGameDay()
-	// collegeGames := GetCollegeGamesForCurrentMatchup(weekID, seasonID, gameDay, ts.IsPreseason)
-	collegeGames := []structs.CollegeGame{}
+	collegeGames := GetCollegeGamesForCurrentMatchup(weekID, seasonID, gameDay, ts.IsPreseason)
+	// collegeGames := []structs.CollegeGame{}
 	// proGames := []structs.ProfessionalGame{}
 	proGames := GetProfessionalGamesForCurrentMatchup(weekID, seasonID, gameDay, ts.IsPreseason)
-	collegeGameMap := MakeCollegeGameMap(collegeGames)
+
 	collegeStandingsMap := GetCollegeStandingsMap(seasonID)
 	proStandingsMap := GetProStandingsMap(seasonID)
-	proGameMap := MakeProGameMap(proGames)
 	gameDTOs := PrepareGames(collegeGames, proGames, collegeStandingsMap, proStandingsMap)
 	// RUN THE GAMES!
 	results := engine.RunGames(gameDTOs)
-	return
+	collegeGameMap := MakeCollegeGameMap(collegeGames)
+	proGameMap := MakeProGameMap(proGames)
+
 	// collegeTeamMap := GetCollegeTeamMap()
 	// proTeamMap := GetProTeamMap()
 	collegePlayerMap := GetCollegePlayersMap()

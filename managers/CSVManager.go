@@ -422,6 +422,15 @@ func generateCollegeResultsString(play structs.PbP, event, outcome string, playe
 		} else {
 			statement = "Penalty called! " + defendingPlayerLabel + " has been called for " + severity + " " + penalty + " on " + puckCarrierLabel + ". Power play for " + penaltyMinutes + " minutes."
 		}
+	} else if event == EnteringShootout {
+		statement = "END OF OVERTIME, STARTING SHOOTOUT"
+	} else if event == Shootout {
+		statement = puckCarrierLabel + " faces " + goalieLabel + " in the shootout..."
+		if outcome == GoalieSave {
+			statement += " and the shot is SAVED by " + goalieLabel + "! The next player is up!"
+		} else if outcome == ShotOnGoal {
+			statement += " and he scores! That's a point for " + teamLabel + "!"
+		}
 	}
 
 	return statement

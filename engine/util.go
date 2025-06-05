@@ -187,9 +187,9 @@ func getPlayerWeight(playerTeamID, ZoneID uint, mod float64, Position, CurrentZo
 	weight := mod
 	defendingPlayer := playerTeamID == ZoneID
 	if (CurrentZone == HomeGoal || CurrentZone == HomeZone) && Position == Defender && defendingPlayer {
-		weight += 0.025
+		weight += 0.035
 	} else if (CurrentZone == AwayGoal || CurrentZone == AwayZone) && Position == Defender && defendingPlayer {
-		weight += 0.025
+		weight += 0.035
 	}
 	return weight
 }

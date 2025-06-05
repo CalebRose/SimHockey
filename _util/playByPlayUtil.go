@@ -38,7 +38,7 @@ var eventIDMap = map[uint8]string{
 	GoalieReboundID:      "Goalie Rebound",
 	ShotOnGoalID:         "Shot on Goal",
 	GoalieHoldID:         "Goalie Hold",
-	EnteringShootout:     "EnteringShootout",
+	EnteringShootout:     "Entering Shootout",
 	WSShootoutID:         "Shootout",
 	CSShootoutID:         "Shootout",
 }

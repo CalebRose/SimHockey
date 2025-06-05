@@ -66,4 +66,6 @@ const (
 	NeutralZone          string = "Neutral Zone"
 	AwayZone             string = "Away Zone"
 	AwayGoal             string = "Away Goal"
+	EnteringShootout     string = "Entering Shootout"
+	Shootout             string = "Shootout"
 )
