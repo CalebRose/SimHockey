@@ -104,12 +104,15 @@ func reduceTimeOnClock(gs *GameState) {
 	// Calculate remaining time
 	gs.TimeOnClock -= gs.SecondsConsumed
 	if len(gs.ActivePowerPlays) > 0 {
-		for _, pp := range gs.ActivePowerPlays {
-			if pp.PowerPlayTime > 0 {
-				pp.PowerPlayTime -= gs.SecondsConsumed
-				if pp.PowerPlayTime > MaxTimeOnClock {
-					pp.PowerPlayTime = 0
-					gs.TurnOffPowerPlay(pp)
+		for i := len(gs.ActivePowerPlays) - 1; i >= 0; i-- {
+			if gs.ActivePowerPlays[i].PowerPlayTime > 0 {
+				// Decrement
+				newTime := int(gs.ActivePowerPlays[i].PowerPlayTime) - int(gs.SecondsConsumed)
+				if newTime <= 0 {
+					gs.ActivePowerPlays[i].PowerPlayTime = 0
+					gs.TurnOffPowerPlay(gs.ActivePowerPlays[i])
+				} else {
+					gs.ActivePowerPlays[i].PowerPlayTime = uint16(newTime)
 				}
 			}
 		}
@@ -186,7 +189,7 @@ func (gs *GameState) SetPuckBearer(player *GamePlayer) {
 			gs.ResetMomentum()
 			gs.AssistingPlayer = &GamePlayer{}
 		} else {
-			gs.Momentum += 0.125
+			gs.Momentum += 0.175
 			gs.AssistingPlayer = gs.PuckCarrier
 		}
 		gs.PuckCarrier = player
@@ -197,7 +200,7 @@ func (gs *GameState) SetPuckBearer(player *GamePlayer) {
 }
 
 func (gs *GameState) TriggerBreakaway() {
-	gs.Momentum += 0.275
+	gs.Momentum += 0.325
 }
 
 func (gs *GameState) ResetMomentum() {
@@ -364,9 +367,13 @@ func (gp *GamePlaybook) ActivatePowerPlayer(playerID uint, position string) {
 func (gp *GamePlaybook) ReturnPlayerFromPowerPlay(powerPlayID uint, powerPlayPostion string) {
 	// Iterate through forwards and defenders to find the penalized player and return them in play
 	if powerPlayPostion == Forward {
-		gp.Forwards[gp.CurrentForwards].ReturnPlayerFromPowerPlay(powerPlayID)
+		for i := range gp.Forwards {
+			gp.Forwards[i].ReturnPlayerFromPowerPlay(powerPlayID)
+		}
 	} else if powerPlayPostion == Defender {
-		gp.Defenders[gp.CurrentDefenders].ReturnPlayerFromPowerPlay(powerPlayID)
+		for i := range gp.Defenders {
+			gp.Defenders[i].ReturnPlayerFromPowerPlay(powerPlayID)
+		}
 	}
 	gp.HandlePositionToggle(powerPlayID, powerPlayPostion, false)
 }

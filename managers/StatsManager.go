@@ -313,7 +313,7 @@ func makeCollegePlayerStatsObject(weekID, gameID uint, s engine.PlayerStatsDTO) 
 			OvertimeGoals:        s.OvertimeGoals,
 			GameWinningGoals:     s.GameWinningGoals,
 			Shots:                s.Shots,
-			ShootingPercentage:   s.ShootingPercentage,
+			ShootingPercentage:   float32(s.Goals) / float32(s.Shots),
 			TimeOnIce:            s.TimeOnIce,
 			FaceOffWinPercentage: s.FaceOffWinPercentage,
 			FaceOffsWon:          s.FaceOffsWon,
@@ -503,8 +503,8 @@ func GetPHLGameResultsByGameID(gameID string) structs.GameResultsResponse {
 	allStats := repository.FindProPlayerStatsRecordByGame(gameID)
 	playerMap := GetProPlayersMap()
 	teamMap := GetProTeamMap()
-	homeTeamStats := repository.FindCollegeTeamStatsRecordByGame(htID, gameID)
-	awayTeamStats := repository.FindCollegeTeamStatsRecordByGame(atID, gameID)
+	homeTeamStats := repository.FindProTeamStatsRecordByGame(htID, gameID)
+	awayTeamStats := repository.FindProTeamStatsRecordByGame(atID, gameID)
 	homePlayerStats := MakeProPlayerGameStatsListByTeamID(allStats, game.HomeTeamID)
 	awayPlayerStats := MakeProPlayerGameStatsListByTeamID(allStats, game.AwayTeamID)
 	score := structs.ScoreBoard{

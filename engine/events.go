@@ -509,7 +509,9 @@ func handlePenalties(gs *GameState) {
 
 	// Apply Penalty to Player
 	ApplyPenalty(gs, penalty, player)
-	ApplyPenalty(gs, penalty, secondPlayer)
+	if player.ID != secondPlayer.ID {
+		ApplyPenalty(gs, penalty, secondPlayer)
+	}
 }
 
 func HandleFaceoff(gs *GameState) {
@@ -639,9 +641,9 @@ func HandleShot(gs *GameState, isCloseShot bool) {
 		return
 	}
 
-	baseCheck := 15.275
+	baseCheck := 15.325
 	if !gs.IsCollegeGame {
-		baseCheck = 15.5
+		baseCheck = 15.725
 	}
 	// If Overtime, open more opportunities for shooting
 	if gs.IsOvertime {
