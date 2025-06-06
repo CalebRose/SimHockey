@@ -121,7 +121,10 @@ func (t *Timestamp) SyncToNextWeek() {
 	// Reset Toggles
 	t.AIDepthchartsSync = false
 	t.AIRecruitingBoardsSynced = false
-	t.RunGames = false
+	t.GamesARan = false
+	t.GamesBRan = false
+	t.GamesCRan = false
+	t.GamesDRan = false
 	// t.ToggleRES()
 	t.ToggleRecruiting()
 	t.ToggleGMActions()

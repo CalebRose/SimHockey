@@ -55,7 +55,7 @@ func SyncToNextWeekViaCron() {
 	ts := managers.GetTimestamp()
 	if ts.RunCron {
 		// Move up Week
-		// managers.MoveUpWeek()
+		managers.MoveUpWeek()
 	}
 }
 

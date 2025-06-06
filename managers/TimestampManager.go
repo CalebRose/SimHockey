@@ -44,7 +44,6 @@ func MoveUpWeek() structs.Timestamp {
 	if ts.Week > 15 {
 		// SyncExtensionOffers()
 		AllocateCapsheets()
-
 	}
 	if ts.CollegeSeasonOver && ts.NHLSeasonOver {
 		ts.MoveUpSeason()
