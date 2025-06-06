@@ -395,13 +395,16 @@ func (t *ThreeStarsObj) MapPoints(stats BasePlayerStats, wonGame bool) {
 		t.Points += float32(stats.Assists)
 	}
 	if stats.BodyChecks > 0 {
-		t.Points += float32(stats.BodyChecks) * 0.1
+		t.Points += float32(stats.BodyChecks) * 0.05
 	}
 	if stats.StickChecks > 0 {
-		t.Points += float32(stats.StickChecks) * 0.1
+		t.Points += float32(stats.StickChecks) * 0.05
 	}
 	if stats.Saves > 0 {
 		t.Points += float32(stats.Saves) * stats.SavePercentage
+	}
+	if stats.GoalsAgainst > 0 {
+		t.Points -= float32(stats.GoalsAgainst)
 	}
 
 	if !wonGame {
