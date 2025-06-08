@@ -97,22 +97,22 @@ func MassDeleteCollegePlayByPlaysExceptShotsOnGoal(db *gorm.DB) error {
 	return err
 }
 
-func FindCollegePlayerSeasonStatsRecords(SeasonID string) []structs.CollegePlayerSeasonStats {
+func FindCollegePlayerSeasonStatsRecords(SeasonID, gameType string) []structs.CollegePlayerSeasonStats {
 	db := dbprovider.GetInstance().GetDB()
 
 	var playerStats []structs.CollegePlayerSeasonStats
 
-	db.Order("points desc").Where("season_id = ?", SeasonID).Find(&playerStats)
+	db.Order("points desc").Where("season_id = ? AND game_type = ?", SeasonID, gameType).Find(&playerStats)
 
 	return playerStats
 }
 
-func FindProPlayerSeasonStatsRecords(SeasonID string) []structs.ProfessionalPlayerSeasonStats {
+func FindProPlayerSeasonStatsRecords(SeasonID, gameType string) []structs.ProfessionalPlayerSeasonStats {
 	db := dbprovider.GetInstance().GetDB()
 
 	var playerStats []structs.ProfessionalPlayerSeasonStats
 
-	db.Order("points desc").Where("season_id = ?", SeasonID).Find(&playerStats)
+	db.Order("points desc").Where("season_id = ? AND game_type = ?", SeasonID, gameType).Find(&playerStats)
 
 	return playerStats
 }
@@ -122,57 +122,57 @@ func FindCollegePlayerGameStatsRecords(SeasonID, GameID string) []structs.Colleg
 
 	var playerStats []structs.CollegePlayerGameStats
 
-	db.Order("points desc").Where("season_id = ?", SeasonID).Find(&playerStats)
+	db.Order("points desc").Where("season_id = ? AND game_id = ?", SeasonID, GameID).Find(&playerStats)
 
 	return playerStats
 }
 
-func FindProPlayerGameStatsRecords(SeasonID string) []structs.ProfessionalPlayerGameStats {
+func FindProPlayerGameStatsRecords(SeasonID, GameID string) []structs.ProfessionalPlayerGameStats {
 	db := dbprovider.GetInstance().GetDB()
 
 	var playerStats []structs.ProfessionalPlayerGameStats
 
-	db.Order("points desc").Where("season_id = ?", SeasonID).Find(&playerStats)
+	db.Order("points desc").Where("season_id = ? AND game_id = ?", SeasonID, GameID).Find(&playerStats)
 
 	return playerStats
 }
 
-func FindCollegeTeamSeasonStatsRecords(SeasonID string) []structs.CollegeTeamSeasonStats {
+func FindCollegeTeamSeasonStatsRecords(SeasonID, gameType string) []structs.CollegeTeamSeasonStats {
 	db := dbprovider.GetInstance().GetDB()
 
 	var teamStats []structs.CollegeTeamSeasonStats
 
-	db.Order("points desc").Where("season_id = ?", SeasonID).Find(&teamStats)
+	db.Order("points desc").Where("season_id = ? AND game_type = ?", SeasonID, gameType).Find(&teamStats)
 
 	return teamStats
 }
 
-func FindProTeamSeasonStatsRecords(SeasonID string) []structs.ProfessionalTeamSeasonStats {
+func FindProTeamSeasonStatsRecords(SeasonID, gameType string) []structs.ProfessionalTeamSeasonStats {
 	db := dbprovider.GetInstance().GetDB()
 
 	var teamStats []structs.ProfessionalTeamSeasonStats
 
-	db.Order("points desc").Where("season_id = ?", SeasonID).Find(&teamStats)
+	db.Order("points desc").Where("season_id = ? AND game_type = ?", SeasonID, gameType).Find(&teamStats)
 
 	return teamStats
 }
 
-func FindCollegeTeamGameStatsRecords(SeasonID string) []structs.CollegeTeamGameStats {
+func FindCollegeTeamGameStatsRecords(SeasonID, gameType string) []structs.CollegeTeamGameStats {
 	db := dbprovider.GetInstance().GetDB()
 
 	var teamStats []structs.CollegeTeamGameStats
 
-	db.Order("points desc").Where("season_id = ?", SeasonID).Find(&teamStats)
+	db.Order("points desc").Where("season_id = ? AND game_type = ?", SeasonID, gameType).Find(&teamStats)
 
 	return teamStats
 }
 
-func FindProTeamGameStatsRecords(SeasonID string) []structs.ProfessionalTeamGameStats {
+func FindProTeamGameStatsRecords(SeasonID, gameType string) []structs.ProfessionalTeamGameStats {
 	db := dbprovider.GetInstance().GetDB()
 
 	var teamStats []structs.ProfessionalTeamGameStats
 
-	db.Order("points desc").Where("season_id = ?", SeasonID).Find(&teamStats)
+	db.Order("points desc").Where("season_id = ? AND game_type = ?", SeasonID, gameType).Find(&teamStats)
 
 	return teamStats
 }

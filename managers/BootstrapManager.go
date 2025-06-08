@@ -88,6 +88,8 @@ func GetBootstrapData(collegeID, proID string) structs.BootstrapData {
 		draftPicks          []structs.DraftPick
 	)
 	ts := GetTimestamp()
+	_, collegeGameType := ts.GetCurrentGameType(true)
+	_, proGameType := ts.GetCurrentGameType(false)
 	seasonID := strconv.Itoa(int(ts.SeasonID))
 
 	// Start concurrent queries
@@ -106,7 +108,7 @@ func GetBootstrapData(collegeID, proID string) structs.BootstrapData {
 		go func() {
 			defer wg.Done()
 			collegePlayers := GetAllCollegePlayers()
-			chlStats := GetCollegePlayerSeasonStatsBySeason(seasonID)
+			chlStats := GetCollegePlayerSeasonStatsBySeason(seasonID, collegeGameType)
 			mu.Lock()
 			collegePlayerMap = MakeCollegePlayerMapByTeamID(collegePlayers)
 			collegePlayerIndvMap := MakeCollegePlayerMap(collegePlayers)
@@ -180,7 +182,7 @@ func GetBootstrapData(collegeID, proID string) structs.BootstrapData {
 		go func() {
 			defer wg.Done()
 			proPlayers := GetAllProPlayers()
-			phlStats := GetProPlayerSeasonStatsBySeason(seasonID)
+			phlStats := GetProPlayerSeasonStatsBySeason(seasonID, proGameType)
 			mu.Lock()
 			proRosterMap = MakeProfessionalPlayerMapByTeamID(proPlayers)
 			proPlayerMap := MakeProfessionalPlayerMap(proPlayers)

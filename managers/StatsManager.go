@@ -17,11 +17,13 @@ func UpdateSeasonStats(ts structs.Timestamp, gameDay string) {
 	seasonId := strconv.Itoa(int(ts.SeasonID))
 	collegeGameIDs := []string{}
 	proGameIDs := []string{}
+	_, collegeGameType := ts.GetCurrentGameType(true)
+	_, proGameType := ts.GetCurrentGameType(true)
 	games := GetCollegeGamesForCurrentMatchup(weekId, seasonId, gameDay, ts.IsPreseason)
-	collegePlayerSeasonStatMap := GetCollegePlayerSeasonStatMap(seasonId)
-	proPlayerSeasonStatMap := GetProPlayerSeasonStatMap(seasonId)
-	collegeTeamSeasonStatMap := GetCollegeTeamSeasonStatMap(seasonId)
-	proTeamSeasonStatMap := GetProTeamSeasonStatMap(seasonId)
+	collegePlayerSeasonStatMap := GetCollegePlayerSeasonStatMap(seasonId, collegeGameType)
+	proPlayerSeasonStatMap := GetProPlayerSeasonStatMap(seasonId, proGameType)
+	collegeTeamSeasonStatMap := GetCollegeTeamSeasonStatMap(seasonId, collegeGameType)
+	proTeamSeasonStatMap := GetProTeamSeasonStatMap(seasonId, proGameType)
 
 	for _, game := range games {
 		if !game.GameComplete {
@@ -137,7 +139,7 @@ func SearchCollegeStats(seasonID, weekID, viewType, gameType string) structs.Sea
 		playerGameStatsChan := make(chan []structs.CollegePlayerGameStats)
 		teamGameStatsChan := make(chan []structs.CollegeTeamGameStats)
 		go func() {
-			pGameStats := GetCollegePlayerGameStatsBySeason(seasonID)
+			pGameStats := GetCollegePlayerGameStatsBySeason(seasonID, gameType)
 			playerGameStatsChan <- pGameStats
 		}()
 
@@ -145,7 +147,7 @@ func SearchCollegeStats(seasonID, weekID, viewType, gameType string) structs.Sea
 		close(playerGameStatsChan)
 
 		go func() {
-			tGameStats := GetCollegeTeamGameStatsBySeason(seasonID)
+			tGameStats := GetCollegeTeamGameStatsBySeason(seasonID, gameType)
 			teamGameStatsChan <- tGameStats
 		}()
 		teamGameStats = <-teamGameStatsChan
@@ -155,7 +157,7 @@ func SearchCollegeStats(seasonID, weekID, viewType, gameType string) structs.Sea
 		teamSeasonStatsChan := make(chan []structs.CollegeTeamSeasonStats)
 
 		go func() {
-			pSeasonStats := GetCollegePlayerSeasonStatsBySeason(seasonID)
+			pSeasonStats := GetCollegePlayerSeasonStatsBySeason(seasonID, gameType)
 			playerSeasonStatsChan <- pSeasonStats
 		}()
 
@@ -163,7 +165,7 @@ func SearchCollegeStats(seasonID, weekID, viewType, gameType string) structs.Sea
 		close(playerSeasonStatsChan)
 
 		go func() {
-			tSeasonStats := GetCollegeTeamSeasonStatsBySeason(seasonID)
+			tSeasonStats := GetCollegeTeamSeasonStatsBySeason(seasonID, gameType)
 			teamSeasonStatsChan <- tSeasonStats
 		}()
 		teamSeasonStats = <-teamSeasonStatsChan
@@ -191,7 +193,7 @@ func SearchProStats(seasonID, weekID, viewType, gameType string) structs.SearchS
 		playerGameStatsChan := make(chan []structs.ProfessionalPlayerGameStats)
 		teamGameStatsChan := make(chan []structs.ProfessionalTeamGameStats)
 		go func() {
-			pGameStats := GetProPlayerGameStatsBySeason(seasonID)
+			pGameStats := GetProPlayerGameStatsBySeason(seasonID, gameType)
 			playerGameStatsChan <- pGameStats
 		}()
 
@@ -199,7 +201,7 @@ func SearchProStats(seasonID, weekID, viewType, gameType string) structs.SearchS
 		close(playerGameStatsChan)
 
 		go func() {
-			tGameStats := GetProTeamGameStatsBySeason(seasonID)
+			tGameStats := GetProTeamGameStatsBySeason(seasonID, gameType)
 			teamGameStatsChan <- tGameStats
 		}()
 		teamGameStats = <-teamGameStatsChan
@@ -209,7 +211,7 @@ func SearchProStats(seasonID, weekID, viewType, gameType string) structs.SearchS
 		teamSeasonStatsChan := make(chan []structs.ProfessionalTeamSeasonStats)
 
 		go func() {
-			pSeasonStats := GetProPlayerSeasonStatsBySeason(seasonID)
+			pSeasonStats := GetProPlayerSeasonStatsBySeason(seasonID, gameType)
 			playerSeasonStatsChan <- pSeasonStats
 		}()
 
@@ -217,7 +219,7 @@ func SearchProStats(seasonID, weekID, viewType, gameType string) structs.SearchS
 		close(playerSeasonStatsChan)
 
 		go func() {
-			tSeasonStats := GetProTeamSeasonStatsBySeason(seasonID)
+			tSeasonStats := GetProTeamSeasonStatsBySeason(seasonID, gameType)
 			teamSeasonStatsChan <- tSeasonStats
 		}()
 		teamSeasonStats = <-teamSeasonStatsChan
@@ -232,25 +234,25 @@ func SearchProStats(seasonID, weekID, viewType, gameType string) structs.SearchS
 	}
 }
 
-func GetCollegePlayerSeasonStatMap(seasonID string) map[uint]structs.CollegePlayerSeasonStats {
-	seasonStats := GetCollegePlayerSeasonStatsBySeason(seasonID)
+func GetCollegePlayerSeasonStatMap(seasonID, gameType string) map[uint]structs.CollegePlayerSeasonStats {
+	seasonStats := GetCollegePlayerSeasonStatsBySeason(seasonID, gameType)
 	return MakeCollegePlayerSeasonStatMap(seasonStats)
 }
 
-func GetProPlayerSeasonStatMap(seasonID string) map[uint]structs.ProfessionalPlayerSeasonStats {
-	seasonStats := GetProPlayerSeasonStatsBySeason(seasonID)
+func GetProPlayerSeasonStatMap(seasonID, gameType string) map[uint]structs.ProfessionalPlayerSeasonStats {
+	seasonStats := GetProPlayerSeasonStatsBySeason(seasonID, gameType)
 	return MakeProPlayerSeasonStatMap(seasonStats)
 }
 
-func GetCollegePlayerSeasonStatsBySeason(SeasonID string) []structs.CollegePlayerSeasonStats {
-	return repository.FindCollegePlayerSeasonStatsRecords(SeasonID)
+func GetCollegePlayerSeasonStatsBySeason(SeasonID, gameType string) []structs.CollegePlayerSeasonStats {
+	return repository.FindCollegePlayerSeasonStatsRecords(SeasonID, gameType)
 }
 
-func GetProPlayerSeasonStatsBySeason(SeasonID string) []structs.ProfessionalPlayerSeasonStats {
-	return repository.FindProPlayerSeasonStatsRecords(SeasonID)
+func GetProPlayerSeasonStatsBySeason(SeasonID, gameType string) []structs.ProfessionalPlayerSeasonStats {
+	return repository.FindProPlayerSeasonStatsRecords(SeasonID, gameType)
 }
 
-func GetCollegePlayerGameStatsBySeason(SeasonID string) []structs.CollegePlayerGameStats {
+func GetCollegePlayerGameStatsBySeason(SeasonID, gameType string) []structs.CollegePlayerGameStats {
 	return repository.FindCollegePlayerGameStatsRecords(SeasonID, "")
 }
 
@@ -258,43 +260,44 @@ func GetCollegePlayerGameStatsByGame(GameID string) []structs.CollegePlayerGameS
 	return repository.FindCollegePlayerGameStatsRecords("", GameID)
 }
 
-func GetProPlayerGameStatsBySeason(SeasonID string) []structs.ProfessionalPlayerGameStats {
-	return repository.FindProPlayerGameStatsRecords(SeasonID)
+func GetProPlayerGameStatsBySeason(SeasonID, gameType string) []structs.ProfessionalPlayerGameStats {
+	return repository.FindProPlayerGameStatsRecords(SeasonID, gameType)
 }
 
-func GetCollegeTeamSeasonStatMap(seasonID string) map[uint]structs.CollegeTeamSeasonStats {
-	seasonStats := GetCollegeTeamSeasonStatsBySeason(seasonID)
+func GetCollegeTeamSeasonStatMap(seasonID, gameType string) map[uint]structs.CollegeTeamSeasonStats {
+	seasonStats := GetCollegeTeamSeasonStatsBySeason(seasonID, gameType)
 	return MakeCollegeTeamSeasonStatMap(seasonStats)
 }
 
-func GetProTeamSeasonStatMap(seasonID string) map[uint]structs.ProfessionalTeamSeasonStats {
-	seasonStats := GetProTeamSeasonStatsBySeason(seasonID)
+func GetProTeamSeasonStatMap(seasonID, gameType string) map[uint]structs.ProfessionalTeamSeasonStats {
+	seasonStats := GetProTeamSeasonStatsBySeason(seasonID, gameType)
 	return MakeProTeamSeasonStatMap(seasonStats)
 }
 
-func GetCollegeTeamSeasonStatsBySeason(SeasonID string) []structs.CollegeTeamSeasonStats {
-	return repository.FindCollegeTeamSeasonStatsRecords(SeasonID)
+func GetCollegeTeamSeasonStatsBySeason(SeasonID, gameType string) []structs.CollegeTeamSeasonStats {
+	return repository.FindCollegeTeamSeasonStatsRecords(SeasonID, gameType)
 }
 
-func GetProTeamSeasonStatsBySeason(SeasonID string) []structs.ProfessionalTeamSeasonStats {
-	return repository.FindProTeamSeasonStatsRecords(SeasonID)
+func GetProTeamSeasonStatsBySeason(SeasonID, gameType string) []structs.ProfessionalTeamSeasonStats {
+	return repository.FindProTeamSeasonStatsRecords(SeasonID, gameType)
 }
 
-func GetCollegeTeamGameStatsBySeason(SeasonID string) []structs.CollegeTeamGameStats {
-	return repository.FindCollegeTeamGameStatsRecords(SeasonID)
+func GetCollegeTeamGameStatsBySeason(SeasonID, gameType string) []structs.CollegeTeamGameStats {
+	return repository.FindCollegeTeamGameStatsRecords(SeasonID, gameType)
 }
 
-func GetProTeamGameStatsBySeason(SeasonID string) []structs.ProfessionalTeamGameStats {
-	return repository.FindProTeamGameStatsRecords(SeasonID)
+func GetProTeamGameStatsBySeason(SeasonID, gameType string) []structs.ProfessionalTeamGameStats {
+	return repository.FindProTeamGameStatsRecords(SeasonID, gameType)
 }
 
-func makeCollegePlayerStatsObject(weekID, gameID uint, s engine.PlayerStatsDTO) structs.CollegePlayerGameStats {
+func makeCollegePlayerStatsObject(weekID, gameID, gameType uint, s engine.PlayerStatsDTO) structs.CollegePlayerGameStats {
 	return structs.CollegePlayerGameStats{
 		WeekID:        weekID,
 		GameID:        gameID,
 		RevealResults: false,
 		BasePlayerStats: structs.BasePlayerStats{
 			StartedGame:          s.StartedGame,
+			GameType:             uint8(gameType),
 			GameDay:              s.GameDay,
 			PlayerID:             s.PlayerID,
 			TeamID:               s.TeamID,
@@ -334,12 +337,13 @@ func makeCollegePlayerStatsObject(weekID, gameID uint, s engine.PlayerStatsDTO) 
 	}
 }
 
-func makeProPlayerStatsObject(weekID, gameID uint, s engine.PlayerStatsDTO) structs.ProfessionalPlayerGameStats {
+func makeProPlayerStatsObject(weekID, gameID, gameType uint, s engine.PlayerStatsDTO) structs.ProfessionalPlayerGameStats {
 	return structs.ProfessionalPlayerGameStats{
 		WeekID:        weekID,
 		GameID:        gameID,
 		RevealResults: false,
 		BasePlayerStats: structs.BasePlayerStats{
+			GameType:             uint8(gameType),
 			StartedGame:          s.StartedGame,
 			GameDay:              s.GameDay,
 			PlayerID:             s.PlayerID,
@@ -503,8 +507,8 @@ func GetPHLGameResultsByGameID(gameID string) structs.GameResultsResponse {
 	allStats := repository.FindProPlayerStatsRecordByGame(gameID)
 	playerMap := GetProPlayersMap()
 	teamMap := GetProTeamMap()
-	homeTeamStats := repository.FindProTeamStatsRecordByGame(htID, gameID)
-	awayTeamStats := repository.FindProTeamStatsRecordByGame(atID, gameID)
+	homeTeamStats := repository.FindProTeamStatsRecordByGame(gameID, htID)
+	awayTeamStats := repository.FindProTeamStatsRecordByGame(gameID, atID)
 	homePlayerStats := MakeProPlayerGameStatsListByTeamID(allStats, game.HomeTeamID)
 	awayPlayerStats := MakeProPlayerGameStatsListByTeamID(allStats, game.AwayTeamID)
 	score := structs.ScoreBoard{

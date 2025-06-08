@@ -50,6 +50,8 @@ func RunGames() {
 	collegePlayerMap := GetCollegePlayersMap()
 	proPlayersMap := GetProPlayersMap()
 	upload := NewStatsUpload()
+	collegeGameType, _ := ts.GetCurrentGameType(true)
+	proGameType, _ := ts.GetCurrentGameType(false)
 	for _, r := range results {
 		// Iterate through all lines, players, accumulate stats to upload
 		// WriteBoxScoreFile(r, "test_results/test_twelve/box_score/"+r.HomeTeam+"_vs_"+r.AwayTeam+".csv")
@@ -60,7 +62,11 @@ func RunGames() {
 		// } else {
 		// 	WriteProPlayByPlayCSVFile(pbps, "test_results/test_twelve/play_by_play/"+r.HomeTeam+"_vs_"+r.AwayTeam+".csv", proPlayersMap, proTeamMap)
 		// }
-		upload.Collect(r, ts.SeasonID)
+		gameType := collegeGameType
+		if !r.IsCollegeGame {
+			gameType = proGameType
+		}
+		upload.Collect(r, ts.SeasonID, uint(gameType))
 		stars := GenerateThreeStars(r, ts.SeasonID)
 		if r.IsCollegeGame {
 			upload.ApplyGoalieStaminaChangesCollege(db, r, collegePlayerMap)
@@ -83,13 +89,13 @@ func NewStatsUpload() *StatsUpload {
 	return &StatsUpload{}
 }
 
-func (u *StatsUpload) Collect(state engine.GameState, seasonID uint) {
+func (u *StatsUpload) Collect(state engine.GameState, seasonID, gameType uint) {
 	// Team stats
 	u.collectTeamStats(state, seasonID)
 
 	// Player stats for both teams
-	u.collectPlayerStats(state.HomeStrategy, state.WeekID, state.GameID, state.IsCollegeGame)
-	u.collectPlayerStats(state.AwayStrategy, state.WeekID, state.GameID, state.IsCollegeGame)
+	u.collectPlayerStats(state.HomeStrategy, state.WeekID, state.GameID, gameType, state.IsCollegeGame)
+	u.collectPlayerStats(state.AwayStrategy, state.WeekID, state.GameID, gameType, state.IsCollegeGame)
 
 	// Play-by-play
 	u.collectPbP(state.Collector.PlayByPlays, state.IsCollegeGame)
@@ -109,18 +115,18 @@ func (u *StatsUpload) collectTeamStats(state engine.GameState, seasonID uint) {
 	}
 }
 
-func (u *StatsUpload) collectPlayerStats(pl engine.GamePlaybook, week, gameID uint, isCollege bool) {
+func (u *StatsUpload) collectPlayerStats(pl engine.GamePlaybook, week, gameID, gameType uint, isCollege bool) {
 	types := [][]engine.LineStrategy{pl.Forwards, pl.Defenders, pl.Goalies}
 	for _, group := range types {
 		for _, line := range group {
 			for _, p := range line.Players {
 				if isCollege {
 					u.CollegePlayerStats = append(u.CollegePlayerStats,
-						makeCollegePlayerStatsObject(week, gameID, p.Stats),
+						makeCollegePlayerStatsObject(week, gameID, gameType, p.Stats),
 					)
 				} else {
 					u.ProPlayerStats = append(u.ProPlayerStats,
-						makeProPlayerStatsObject(week, gameID, p.Stats),
+						makeProPlayerStatsObject(week, gameID, gameType, p.Stats),
 					)
 				}
 			}
@@ -883,12 +889,12 @@ func GenerateThreeStars(state engine.GameState, seasonID uint) structs.ThreeStar
 			for _, p := range line.Players {
 				wonGame := (p.TeamID == uint16(state.HomeTeamID) && state.HomeTeamWin) || (p.TeamID == uint16(state.AwayTeamID) && state.AwayTeamWin)
 				if state.IsCollegeGame {
-					statsObj := makeCollegePlayerStatsObject(state.WeekID, state.GameID, p.Stats)
+					statsObj := makeCollegePlayerStatsObject(state.WeekID, state.GameID, 0, p.Stats)
 					star := structs.ThreeStarsObj{GameID: state.GameID, PlayerID: p.ID, TeamID: uint(p.TeamID)}
 					star.MapPoints(statsObj.BasePlayerStats, wonGame)
 					threeStars = append(threeStars, star)
 				} else {
-					statsObj := makeProPlayerStatsObject(state.WeekID, state.GameID, p.Stats)
+					statsObj := makeProPlayerStatsObject(state.WeekID, state.GameID, 0, p.Stats)
 					star := structs.ThreeStarsObj{GameID: state.GameID, PlayerID: p.ID, TeamID: uint(p.TeamID)}
 					star.MapPoints(statsObj.BasePlayerStats, wonGame)
 					threeStars = append(threeStars, star)

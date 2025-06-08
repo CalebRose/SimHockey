@@ -1184,11 +1184,6 @@ func ExportHCKGameResults(w http.ResponseWriter, seasonID, weekID, timeslot stri
 	w.Header().Set("Transfer-Encoding", "chunked")
 	zipWriter := zip.NewWriter(w)
 	defer zipWriter.Close()
-	isExactWeek := weekID == strconv.Itoa(int(ts.WeekID)) && seasonID == strconv.Itoa(int(ts.SeasonID))
-	gameNotRan := (timeslot == "A" && !ts.GamesARan) ||
-		(timeslot == "B" && !ts.GamesBRan) ||
-		(timeslot == "C" && !ts.GamesCRan) ||
-		(timeslot == "D" && !ts.GamesDRan)
 	// Get All needed data
 	matchChn := make(chan []structs.CollegeGame)
 	phlMatchChn := make(chan []structs.ProfessionalGame)
@@ -1241,9 +1236,13 @@ func ExportHCKGameResults(w http.ResponseWriter, seasonID, weekID, timeslot stri
 			log.Fatal("Cannot write header row", err)
 		}
 		for _, m := range collegeGames {
-			if isExactWeek && gameNotRan {
+			if !m.GameComplete {
+				continue
+			}
+			if m.Week == int(ts.Week) && ((timeslot == "A" && !ts.GamesARan) || (timeslot == "B" && !ts.GamesBRan) || (timeslot == "C" && !ts.GamesCRan) || (timeslot == "D" && !ts.GamesDRan)) {
 				m.HideScore()
 			}
+
 			neutralStr := "N"
 			if m.IsNeutralSite {
 				neutralStr = "Y"
