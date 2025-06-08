@@ -42,6 +42,14 @@ func RunGames() {
 	gameDTOs := PrepareGames(collegeGames, proGames, collegeStandingsMap, proStandingsMap)
 	// RUN THE GAMES!
 	results := engine.RunGames(gameDTOs)
+
+	// for _, r := range results {
+	// 	homestats := r.HomeTeamStats
+	// 	awaystats := r.AwayTeamStats
+
+	// 	fmt.Printf("%s : Shots: %d, Goals: %d \n", r.HomeTeam, homestats.Shots, homestats.GoalsFor)
+	// 	fmt.Printf("%s : Shots: %d, Goals: %d \n", r.AwayTeam, awaystats.Shots, awaystats.GoalsFor)
+	// }
 	collegeGameMap := MakeCollegeGameMap(collegeGames)
 	proGameMap := MakeProGameMap(proGames)
 

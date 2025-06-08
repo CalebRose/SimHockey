@@ -435,8 +435,8 @@ func RunLineupsForAICollegeTeams() {
 			backPass := 0
 			closeShot := 20
 			longShot := 20
-			bodyCheck := 15
-			stickCheck := 15
+			bodyCheck := 10
+			stickCheck := 10
 			if gameplan.LongerPassesEnabled {
 				pass = 10
 				longPass = 10
@@ -451,11 +451,11 @@ func RunLineupsForAICollegeTeams() {
 					longShot = 25
 				}
 				if gameplan.ForwardCheckPreference == 1 {
-					bodyCheck = 20
-					stickCheck = 10
+					bodyCheck = 15
+					stickCheck = 5
 				} else if gameplan.ForwardCheckPreference == 3 {
-					bodyCheck = 10
-					stickCheck = 20
+					bodyCheck = 5
+					stickCheck = 15
 				}
 			}
 			if isDefenderLine {
@@ -467,11 +467,11 @@ func RunLineupsForAICollegeTeams() {
 					longShot = 25
 				}
 				if gameplan.DefenderCheckPreference == 1 {
-					bodyCheck = 20
-					stickCheck = 10
+					bodyCheck = 15
+					stickCheck = 5
 				} else if gameplan.DefenderCheckPreference == 3 {
-					bodyCheck = 10
-					stickCheck = 20
+					bodyCheck = 5
+					stickCheck = 15
 				}
 			}
 			allocations := structs.Allocations{
@@ -726,8 +726,8 @@ func RunLineupsForAIProTeams() {
 			backPass := 0
 			closeShot := 20
 			longShot := 20
-			bodyCheck := 15
-			stickCheck := 15
+			bodyCheck := 10
+			stickCheck := 10
 			if gameplan.LongerPassesEnabled {
 				pass = 10
 				longPass = 10
@@ -742,11 +742,11 @@ func RunLineupsForAIProTeams() {
 					longShot = 25
 				}
 				if gameplan.ForwardCheckPreference == 1 {
-					bodyCheck = 20
-					stickCheck = 10
+					bodyCheck = 15
+					stickCheck = 5
 				} else if gameplan.ForwardCheckPreference == 3 {
-					bodyCheck = 10
-					stickCheck = 20
+					bodyCheck = 5
+					stickCheck = 15
 				}
 			}
 			if isDefenderLine {
@@ -758,11 +758,11 @@ func RunLineupsForAIProTeams() {
 					longShot = 25
 				}
 				if gameplan.DefenderCheckPreference == 1 {
-					bodyCheck = 20
-					stickCheck = 10
+					bodyCheck = 15
+					stickCheck = 5
 				} else if gameplan.DefenderCheckPreference == 3 {
-					bodyCheck = 10
-					stickCheck = 20
+					bodyCheck = 5
+					stickCheck = 15
 				}
 			}
 			allocations := structs.Allocations{
