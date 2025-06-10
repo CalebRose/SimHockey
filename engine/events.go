@@ -696,6 +696,7 @@ func HandleShootoutAttempt(gs *GameState) {
 
 	accuracyCheck := CalculateAccuracy(float64(accuracy), isSlapshot)
 	if !accuracyCheck {
+		RecordPlay(gs, eventID, InAccurateShotID, 0, 0, 0, 0, 0, 0, false, pb.ID, 0, 0, 0, goalie.ID, false)
 		return
 	}
 

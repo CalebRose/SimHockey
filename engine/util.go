@@ -347,7 +347,7 @@ func calculateAttributeModifier(attribute, scaleFactor float64, isHome bool, hra
 	hraMod := 1.0
 	penalty := 0.0
 	if !isHome {
-		penalty = 0.05 + (0.15 * hra)
+		penalty = 0.03 + (0.12 * hra)
 		hraMod = hraMod - penalty
 	}
 	// return scaleFactor * math.Log(float64(attribute)+1)
