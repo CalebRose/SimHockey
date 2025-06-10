@@ -860,6 +860,16 @@ type Recruit struct {
 	RecruitPlayerProfiles []RecruitPlayerProfile `gorm:"foreignKey:RecruitID"`
 }
 
+func (r *Recruit) ToggleCustomCroot(crootFor string) {
+	r.IsCustomCroot = true
+	r.CustomCrootFor = crootFor
+}
+
+func (r *Recruit) AssignHeightAndWeight(height, weight int) {
+	r.Height = uint8(height)
+	r.Weight = uint16(weight)
+}
+
 func (r *Recruit) AssignID(id uint) {
 	r.ID = id
 }

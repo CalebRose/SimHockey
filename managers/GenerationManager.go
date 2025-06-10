@@ -343,6 +343,69 @@ func GenerateCroots() {
 	// AssignAllRecruitRanks()
 }
 
+func GenerateCustomCroots() {
+	db := dbprovider.GetInstance().GetDB()
+	lastPlayerRecord := repository.FindLatestGlobalPlayerRecord()
+	latestID := lastPlayerRecord.ID + 1
+	cpList := []structs.Recruit{}
+	globalList := []structs.GlobalPlayer{}
+	facesList := []structs.FaceData{}
+
+	filePath := filepath.Join(os.Getenv("ROOT"), "data", "gen", "custom_croots.csv")
+	playersCSV := util.ReadCSV(filePath)
+	pg := CrootGenerator{
+		attributeBlob: getAttributeBlob(),
+		faceDataBlob:  getFaceDataBlob(),
+	}
+	for idx, row := range playersCSV {
+		if idx == 0 {
+			continue
+		}
+
+		star := util.GetStarRating(true)
+		fName := row[0]
+		lName := row[1]
+		position := row[2]
+		archetype := row[3]
+		country := row[4]
+		state := row[5]
+		city := row[6]
+		hs := row[7]
+		height := util.ConvertStringToInt(row[8])
+		weight := util.ConvertStringToInt(row[9])
+		crootFor := row[10]
+		player := createRecruit(position, archetype, star, fName, lName, pg.attributeBlob, country, state, city, hs, []structs.CrootLocation{})
+		player.AssignHeightAndWeight(height, weight)
+		player.ToggleCustomCroot(crootFor)
+
+		skinColor := getSkinColor(country)
+		face := getFace(latestID, int(player.Weight), skinColor, pg.faceDataBlob)
+
+		facesList = append(facesList, face)
+
+		globalPlayer := structs.GlobalPlayer{
+			Model: gorm.Model{
+				ID: latestID,
+			},
+			RecruitID:            latestID,
+			CollegePlayerID:      latestID,
+			ProfessionalPlayerID: latestID,
+		}
+		globalPlayer.AssignID(latestID)
+		player.AssignID(latestID)
+		latestID++
+
+		globalList = append(globalList, globalPlayer)
+		cpList = append(cpList, player)
+
+	}
+	repository.CreateHockeyRecruitRecordsBatch(db, cpList, 100)
+	repository.CreateGlobalPlayerRecordsBatch(db, globalList, 100)
+	repository.CreateFaceRecordsBatch(db, facesList, 100)
+
+	AssignAllRecruitRanks()
+}
+
 func GenerateInitialRosters() {
 	db := dbprovider.GetInstance().GetDB()
 	lastPlayerRecord := repository.FindLatestGlobalPlayerRecord()

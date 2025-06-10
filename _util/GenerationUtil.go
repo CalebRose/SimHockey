@@ -22,7 +22,7 @@ func GetStarRating(isCustom bool) int {
 	if roll < 0 {
 		roll = 1
 	}
-	if roll < 2 && !isCustom {
+	if roll < 2 {
 		return 6
 	}
 	if roll < 42 {
@@ -31,7 +31,7 @@ func GetStarRating(isCustom bool) int {
 	if roll < 122 {
 		return 4
 	}
-	if roll < 352 {
+	if roll < 352 || isCustom {
 		return 3
 	}
 	if roll < 652 {
@@ -383,79 +383,6 @@ func GetArchetype(pos string) string {
 
 func GeneratePotential(pos, arch, attr string) uint8 {
 	mean := 50
-	if pos == Center || pos == Forward {
-		if arch == Enforcer && (attr == Agility || attr == Strength || attr == PuckHandling) {
-			mean += 10
-		}
-		if arch == Enforcer && (attr == CloseShotPower || attr == LongShotPower) {
-			mean -= 10
-		}
-		if arch == Grinder && (attr == BodyChecking || attr == Strength || attr == StickChecking || attr == Passing) {
-			mean += 10
-		}
-		if arch == Grinder && (attr == CloseShotPower || attr == CloseShotAccuracy || attr == LongShotPower || attr == LongShotAccuracy || attr == PuckHandling) {
-			mean -= 10
-		}
-		if arch == Playmaker && (attr == Passing || attr == PuckHandling) {
-			mean += 10
-		}
-		if arch == Playmaker && (attr == Strength) {
-			mean -= 10
-		}
-		if arch == Power && (attr == CloseShotPower || attr == Strength) {
-			mean += 10
-		}
-		if arch == Power && (attr == BodyChecking || attr == StickChecking || attr == LongShotPower) {
-			mean -= 10
-		}
-		if arch == Sniper && (attr == LongShotPower || attr == LongShotAccuracy || attr == Passing) {
-			mean += 10
-		}
-		if arch == Sniper && (attr == BodyChecking || attr == StickChecking || attr == LongShotPower) {
-			mean -= 10
-		}
-		if arch == TwoWay && (attr == Passing || attr == BodyChecking || attr == StickChecking) {
-			mean += 5
-		}
-	} else if pos == Defender {
-		if arch == Enforcer && (attr == Agility || attr == Strength || attr == BodyChecking) {
-			mean += 10
-		}
-		if arch == Enforcer && (attr == StickChecking || attr == PuckHandling) {
-			mean -= 10
-		}
-		if arch == Defensive && (attr == BodyChecking || attr == Strength || attr == StickChecking || attr == ShotBlocking) {
-			mean += 10
-		}
-		if arch == Defensive && (attr == LongShotAccuracy || attr == LongShotPower || attr == CloseShotAccuracy || attr == CloseShotPower || attr == PuckHandling) {
-			mean -= 10
-		}
-		if arch == Offensive && (attr == LongShotAccuracy || attr == LongShotPower || attr == Passing || attr == StickChecking || attr == PuckHandling) {
-			mean += 10
-		}
-		if arch == Offensive && (attr == BodyChecking || attr == Strength || attr == CloseShotAccuracy || attr == CloseShotPower || attr == ShotBlocking) {
-			mean -= 10
-		}
-		if arch == TwoWay && (attr == BodyChecking || attr == Passing || attr == StickChecking) {
-			mean += 10
-		}
-		if arch == TwoWay && (attr == PuckHandling || attr == Agility || attr == CloseShotAccuracy || attr == CloseShotPower) {
-			mean -= 10
-		}
-	} else if pos == Goalie {
-		if arch == StandUp && (attr == GoalieVision || attr == Strength) {
-			mean += 10
-		}
-		if arch == StandUp && (attr == Goalkeeping || attr == Agility) {
-			mean -= 10
-		}
-		if arch == Butterfly && (attr == Goalkeeping || attr == Agility) {
-			mean += 10
-		}
-		if arch == Butterfly && (attr == GoalieVision || attr == Strength) {
-			mean -= 10
-		}
-	}
 	val := GenerateNormalizedIntFromMeanStdev(float64(mean), 15)
 	if val > 100 {
 		val = 100

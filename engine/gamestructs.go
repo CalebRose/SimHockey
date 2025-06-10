@@ -183,13 +183,16 @@ func (gs *GameState) SetFaceoffOnCenterIce(check bool) {
 	gs.FaceoffOnCenterIce = check
 }
 
-func (gs *GameState) SetPuckBearer(player *GamePlayer) {
+func (gs *GameState) SetPuckBearer(player *GamePlayer, isLongerPass bool) {
 	if gs.PuckCarrier != nil {
 		if gs.PuckCarrier.ID > 0 && gs.PuckCarrier.TeamID != player.TeamID {
 			gs.ResetMomentum()
 			gs.AssistingPlayer = &GamePlayer{}
 		} else {
 			gs.Momentum += 0.175
+			if isLongerPass {
+				gs.Momentum += .025
+			}
 			gs.AssistingPlayer = gs.PuckCarrier
 		}
 		gs.PuckCarrier = player
@@ -266,7 +269,7 @@ func (gs *GameState) IncrementScore(isHome bool) {
 	gs.AwayStrategy.HandlePlusMinus(!isHome, gs.PuckCarrier.ID, gs.AssistingPlayer.ID)
 	gs.SetFaceoffOnCenterIce(true)
 	gs.SetNewZone(NeutralZone)
-	gs.SetPuckBearer(&GamePlayer{})
+	gs.SetPuckBearer(&GamePlayer{}, false)
 	if gs.IsPowerPlay {
 		for _, pp := range gs.ActivePowerPlays {
 			if ((isHome && pp.PowerPlayTeamID == gs.HomeTeamID) ||

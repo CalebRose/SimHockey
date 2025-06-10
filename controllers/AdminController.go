@@ -111,3 +111,9 @@ func AssignAllRecruitRanks(w http.ResponseWriter, r *http.Request) {
 	managers.AssignAllRecruitRanks()
 	json.NewEncoder(w).Encode("Game results revealed!")
 }
+
+func GenerateCustomCroots(w http.ResponseWriter, r *http.Request) {
+	managers.GenerateCustomCroots()
+
+	json.NewEncoder(w).Encode("Data Generated ran!")
+}

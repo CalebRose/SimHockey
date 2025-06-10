@@ -202,18 +202,20 @@ func GetPHLPlayByPlayStreamData(streamType string) []structs.StreamResponse {
 		playbyPlayResponse := GeneratePHLPlayByPlayResponse(playByPlays, teamMap, participantMap, true, game.HomeTeamID, game.AwayTeamID)
 
 		stream := structs.StreamResponse{
-			GameID:        game.ID,
-			HomeTeamID:    uint(game.HomeTeamID),
-			HomeTeam:      game.HomeTeam,
-			HomeTeamCoach: game.HomeTeamCoach,
-			HomeLabel:     game.HomeTeam,
-			AwayTeamID:    uint(game.AwayTeamID),
-			AwayTeam:      game.AwayTeam,
-			AwayTeamCoach: game.AwayTeamCoach,
-			AwayLabel:     game.AwayTeam,
-			Streams:       playbyPlayResponse,
-			City:          game.City,
-			State:         game.State,
+			GameID:            game.ID,
+			HomeTeamID:        uint(game.HomeTeamID),
+			HomeTeam:          game.HomeTeam,
+			HomeTeamCoach:     game.HomeTeamCoach,
+			HomeTeamDiscordID: homeTeam.DiscordID,
+			HomeLabel:         game.HomeTeam,
+			AwayTeamID:        uint(game.AwayTeamID),
+			AwayTeam:          game.AwayTeam,
+			AwayTeamCoach:     game.AwayTeamCoach,
+			AwayLabel:         game.AwayTeam,
+			AwayTeamDiscordID: awayTeam.DiscordID,
+			Streams:           playbyPlayResponse,
+			City:              game.City,
+			State:             game.State,
 		}
 
 		streams = append(streams, stream)
