@@ -70,7 +70,7 @@ func FindCollegeRecruitRecord(id string, includePlayerProfiles bool) structs.Rec
 	return recruits
 }
 
-func FindRecruitPlayerProfileRecords(profileID, recruitID string, includeRecruit, orderByOverall, removeFromBoard bool) []structs.RecruitPlayerProfile {
+func FindRecruitPlayerProfileRecords(profileID, recruitID string, includeRecruit, orderByPoints, removeFromBoard bool) []structs.RecruitPlayerProfile {
 	db := dbprovider.GetInstance().GetDB()
 
 	var croots []structs.RecruitPlayerProfile
@@ -93,8 +93,8 @@ func FindRecruitPlayerProfileRecords(profileID, recruitID string, includeRecruit
 		query = query.Where("removed_from_board = ?", false)
 	}
 
-	if orderByOverall {
-		query = query.Order("overall desc")
+	if orderByPoints {
+		query = query.Order("total_points desc")
 	}
 
 	if err := query.Find(&croots).Error; err != nil {
@@ -241,4 +241,16 @@ func SaveCollegeHockeyRecruitRecord(recruitRecord structs.Recruit, db *gorm.DB) 
 	if err != nil {
 		log.Panicln("Could not save college player " + strconv.Itoa(int(recruitRecord.ID)))
 	}
+}
+
+func CreateRecruitProfileRecordsBatch(db *gorm.DB, records []structs.RecruitPlayerProfile, batchSize int) error {
+	total := len(records)
+	for i := 0; i < total; i += batchSize {
+		end := min(i+batchSize, total)
+
+		if err := db.CreateInBatches(records[i:end], batchSize).Error; err != nil {
+			return err
+		}
+	}
+	return nil
 }

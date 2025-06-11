@@ -23,20 +23,23 @@ func FillAIRecruitingBoards() {
 	allCollegePlayersMap := GetAllCollegePlayersMapByTeam()
 	recruitProfiles := repository.FindRecruitPlayerProfileRecords("", "", true, true, false)
 	recruitProfileMap := MakeRecruitProfileMapByRecruitID(recruitProfiles)
+	collegeTeamMap := GetCollegeTeamMap()
 	existingBoardMap := MakeRecruitProfileMapByProfileID(recruitProfiles)
 	fmt.Println("Loaded all unsigned recruits.")
+	profilesToUpload := []structs.RecruitPlayerProfile{}
 
 	boardCount := 75
 
 	for _, team := range AITeams {
 		count := 0
-		if !team.IsAI || team.TotalCommitments >= team.RecruitClassSize {
+		if !team.IsAI || team.TotalCommitments >= team.RecruitClassSize || team.SpentPoints == 50 {
 			continue
 		}
 		fmt.Println("Iterating through " + team.Team + ".")
 		existingBoard := existingBoardMap[team.ID]
 		teamRecruitProfileMap := MakeRecruitProfileMapByRecruitID(existingBoard)
 		teamNeeds := getRecruitingNeeds(allCollegePlayersMap[team.ID])
+		collegeTeam := collegeTeamMap[team.ID]
 
 		// Get Current Count of the existing board
 		for _, r := range existingBoard {
@@ -89,9 +92,11 @@ func FillAIRecruitingBoards() {
 
 			// Check and see if the croot already exists on the player's board
 			crootProfile := teamRecruitProfileMap[croot.ID]
-			if crootProfile[0].ProfileID == team.ID || crootProfile[0].ID > 0 || crootProfile[0].RemovedFromBoard || crootProfile[0].IsLocked {
-				fmt.Println(croot.FirstName + " " + croot.LastName + " is already on " + team.Team + "'s board.")
-				continue
+			if len(crootProfile) > 0 {
+				if crootProfile[0].ProfileID == team.ID || crootProfile[0].ID > 0 || crootProfile[0].RemovedFromBoard || crootProfile[0].IsLocked {
+					fmt.Println(croot.FirstName + " " + croot.LastName + " is already on " + team.Team + "'s board.")
+					continue
+				}
 			}
 
 			oddsObject := getRecruitingOdds(ts, croot, team, allCollegePlayersMap[team.ID])
@@ -110,6 +115,8 @@ func FillAIRecruitingBoards() {
 			if !addPlayer {
 				continue
 			}
+
+			modifier := CalculateModifierTowardsRecruit(croot.PlayerPreferences, collegeTeam)
 			playerProfile := structs.RecruitPlayerProfile{
 				RecruitID:          croot.ID,
 				ProfileID:          team.ID,
@@ -123,9 +130,11 @@ func FillAIRecruitingBoards() {
 				IsPipelineState:    oddsObject.IsPipeline,
 				IsSigned:           false,
 				IsLocked:           false,
+				Modifier:           modifier,
 			}
 
-			repository.CreateRecruitProfileRecord(db, playerProfile)
+			profilesToUpload = append(profilesToUpload, playerProfile)
+			fmt.Printf("Adding %d %s %s %s to %s Board \n", croot.Stars, croot.Position, croot.FirstName, croot.LastName, team.Team)
 			teamNeeds[croot.Position] -= 1
 			recruitProfileMap[croot.ID] = append(recruitProfileMap[croot.ID], playerProfile)
 			sort.Slice(recruitProfileMap[croot.ID], func(i, j int) bool {
@@ -134,6 +143,7 @@ func FillAIRecruitingBoards() {
 			count++
 		}
 	}
+	repository.CreateRecruitProfileRecordsBatch(db, profilesToUpload, 200)
 }
 
 func AllocatePointsToAIBoards() {
@@ -142,6 +152,7 @@ func AllocatePointsToAIBoards() {
 	ts := GetTimestamp()
 
 	AITeams := repository.FindTeamRecruitingProfiles(true)
+	collegeTeams := GetCollegeTeamMap()
 	fmt.Println("Loading recruits...")
 	allCollegePlayersMap := GetAllCollegePlayersMapByTeam()
 	recruitProfiles := repository.FindRecruitPlayerProfileRecords("", "", true, true, false)
@@ -188,10 +199,7 @@ func AllocatePointsToAIBoards() {
 					leadingTeamVal := IsAITeamContendingForCroot(profiles)
 
 					if croot.PreviousWeekPoints+croot.TotalPoints >= leadingTeamVal*0.66 || leadingTeamVal < 15 {
-						num = croot.PreviousWeekPoints
-						if num > pointsRemaining {
-							num = pointsRemaining
-						}
+						num = min(croot.PreviousWeekPoints, pointsRemaining)
 					} else {
 						removeCrootFromBoard = true
 					}
@@ -244,7 +252,11 @@ func AllocatePointsToAIBoards() {
 				croot.ToggleScholarship(true, false)
 				team.SubtractScholarshipsAvailable()
 			}
-
+			if team.IsAI && !team.IsUserTeam {
+				collegeTeam := collegeTeams[team.ID]
+				modifier := CalculateModifierTowardsRecruit(croot.Recruit.PlayerPreferences, collegeTeam)
+				croot.ApplyModifier(modifier)
+			}
 			team.AIAllocateSpentPoints(num)
 			repository.SaveRecruitProfileRecord(db, croot)
 			fmt.Println(team.Team + " allocating " + strconv.Itoa(int(num)) + " points to " + croot.Recruit.FirstName + " " + croot.Recruit.LastName)
@@ -334,15 +346,15 @@ func IsAITeamContendingForCroot(profiles []structs.RecruitPlayerProfile) float32
 }
 
 func getRecruitingOdds(ts structs.Timestamp, croot structs.Recruit, team structs.RecruitingTeamProfile, roster []structs.CollegePlayer) structs.RecruitingOdds {
-	odds := 5
+	odds := 15
 	if ts.Week > 5 {
-		odds = 10
-	} else if ts.Week > 14 && odds < 20 {
 		odds = 20
+	} else if ts.Week > 14 && odds < 20 {
+		odds = 30
 	}
 
 	if croot.State == team.State {
-		odds = 25
+		odds = 35
 	}
 
 	country := croot.Country

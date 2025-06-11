@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 
 	"github.com/CalebRose/SimHockey/managers"
@@ -116,4 +117,20 @@ func GenerateCustomCroots(w http.ResponseWriter, r *http.Request) {
 	managers.GenerateCustomCroots()
 
 	json.NewEncoder(w).Encode("Data Generated ran!")
+}
+
+func FillAIBoards(w http.ResponseWriter, r *http.Request) {
+	managers.FillAIRecruitingBoards()
+	fmt.Println(w, "AI Teams Successfully filled boards.")
+}
+
+func SyncAIBoards(w http.ResponseWriter, r *http.Request) {
+	managers.ResetAIBoardsForCompletedTeams()
+	managers.AllocatePointsToAIBoards()
+	fmt.Println(w, "AI teams successfully spent points.")
+}
+
+func SyncRecruiting(w http.ResponseWriter, r *http.Request) {
+	managers.SyncCollegeRecruiting()
+	json.NewEncoder(w).Encode("Recruiting Sync Complete")
 }

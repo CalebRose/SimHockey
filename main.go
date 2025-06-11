@@ -89,6 +89,9 @@ func handleRequests() http.Handler {
 	// apiRouter.HandleFunc("/admin/generate/fa/preferences/", controllers.AddFAPreferences).Methods("GET")
 	// apiRouter.HandleFunc("/admin/run/fa/sync/", controllers.TestFASync).Methods("GET")
 	// apiRouter.HandleFunc("/admin/run/fa/sync/", controllers.TestFAOffers).Methods("GET")
+	// apiRouter.HandleFunc("/admin/ai/fill/boards", controllers.FillAIBoards).Methods("GET")
+	// apiRouter.HandleFunc("/admin/ai/sync/boards", controllers.SyncAIBoards).Methods("GET")
+	apiRouter.HandleFunc("/simhck/sync/recruiting/", controllers.SyncRecruiting).Methods("GET")
 
 	// Bootstrap
 	apiRouter.HandleFunc("/bootstrap/{collegeID}/{proID}", controllers.BootstrapHockeyData).Methods("GET")
@@ -219,7 +222,7 @@ func handleCron() *cron.Cron {
 		c.AddFunc("0 14 * * 0,2,4,6", controllers.RunTheGamesViaCron)
 		c.AddFunc("0 20 * * 0,2,4,6", controllers.ShowResultsViaCron)
 		c.AddFunc("0 22 * * 0", controllers.SyncToNextWeekViaCron)
-		// c.AddFunc("0 16 * * 3", controllers.SyncRecruitingViaCron)
+		c.AddFunc("0 16 * * 3", controllers.SyncRecruitingViaCron)
 		c.AddFunc("0 3 * * 4,6", controllers.SyncAIBoardsViaCron)
 		c.AddFunc("0 5 * * 4", controllers.FillAIBoardsViaCron)
 	}

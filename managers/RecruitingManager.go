@@ -77,7 +77,7 @@ func CreateRecruitingProfileForRecruit(dto structs.CreateRecruitProfileDto) stru
 		return recruitEntry
 	}
 
-	modifier := CalculateModifierTowardsRecruit(dto.PlayerRecruit, dto.Team)
+	modifier := CalculateModifierTowardsRecruit(dto.PlayerRecruit.PlayerPreferences, dto.Team)
 
 	// Find CTH Value
 	state := dto.PlayerRecruit.State
@@ -133,16 +133,16 @@ func CreateRecruitingProfileForRecruit(dto structs.CreateRecruitProfileDto) stru
 	return createRecruitEntry
 }
 
-func CalculateModifierTowardsRecruit(recruit structs.Croot, team structs.CollegeTeam) float32 {
-	programMod := calculateMultiplier(uint(team.ProgramPrestige), uint(recruit.ProgramPref))
-	professionalDevMod := calculateMultiplier(uint(team.ProfessionalPrestige), uint(recruit.ProfDevPref))
-	traditionsMod := calculateMultiplier(uint(team.Traditions), uint(recruit.TraditionsPref))
-	facilitiesMod := calculateMultiplier(uint(team.Facilities), uint(recruit.FacilitiesPref))
-	atmosphereMod := calculateMultiplier(uint(team.Atmosphere), uint(recruit.AtmospherePref))
-	academicsMod := calculateMultiplier(uint(team.Academics), uint(recruit.AcademicsPref))
-	conferenceMod := calculateMultiplier(uint(team.ConferencePrestige), uint(recruit.ConferencePref))
-	coachMod := calculateMultiplier(uint(team.CoachRating), uint(recruit.CoachPref))
-	seasonMod := calculateMultiplier(uint(team.SeasonMomentum), uint(recruit.SeasonMomentumPref))
+func CalculateModifierTowardsRecruit(prefs structs.PlayerPreferences, team structs.CollegeTeam) float32 {
+	programMod := calculateMultiplier(uint(team.ProgramPrestige), uint(prefs.ProgramPref))
+	professionalDevMod := calculateMultiplier(uint(team.ProfessionalPrestige), uint(prefs.ProfDevPref))
+	traditionsMod := calculateMultiplier(uint(team.Traditions), uint(prefs.TraditionsPref))
+	facilitiesMod := calculateMultiplier(uint(team.Facilities), uint(prefs.FacilitiesPref))
+	atmosphereMod := calculateMultiplier(uint(team.Atmosphere), uint(prefs.AtmospherePref))
+	academicsMod := calculateMultiplier(uint(team.Academics), uint(prefs.AcademicsPref))
+	conferenceMod := calculateMultiplier(uint(team.ConferencePrestige), uint(prefs.ConferencePref))
+	coachMod := calculateMultiplier(uint(team.CoachRating), uint(prefs.CoachPref))
+	seasonMod := calculateMultiplier(uint(team.SeasonMomentum), uint(prefs.SeasonMomentumPref))
 
 	return (programMod + professionalDevMod + traditionsMod + facilitiesMod + atmosphereMod + academicsMod + conferenceMod + coachMod + seasonMod) / 9
 }

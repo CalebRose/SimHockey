@@ -181,7 +181,7 @@ func MakeRecruitProfileMapByProfileID(profiles []structs.RecruitPlayerProfile) m
 	profileMap := make(map[uint][]structs.RecruitPlayerProfile)
 
 	for _, p := range profiles {
-		if len(profileMap[uint(p.RecruitID)]) > 0 {
+		if len(profileMap[uint(p.ProfileID)]) > 0 {
 			profileMap[uint(p.ProfileID)] = append(profileMap[uint(p.ProfileID)], p)
 		} else {
 			profileMap[uint(p.ProfileID)] = []structs.RecruitPlayerProfile{p}

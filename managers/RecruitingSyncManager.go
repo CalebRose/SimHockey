@@ -17,10 +17,13 @@ func SyncCollegeRecruiting() {
 	db := dbprovider.GetInstance().GetDB()
 	ts := GetTimestamp()
 
+	if ts.IsRecruitingLocked {
+		return
+	}
+
 	if !ts.IsRecruitingLocked {
 		ts.ToggleLockRecruiting()
 		repository.SaveTimestamp(ts, db)
-		return
 	}
 	// Constants
 	var mod1 float32 = 75
@@ -203,7 +206,7 @@ func allocatePointsToRecruit(recruit structs.Recruit, recruitProfiles *[]structs
 			modifier += 0.15
 		}
 
-		curr = float32((*recruitProfiles)[i].CurrentWeeksPoints) * modifier
+		curr = float32((*recruitProfiles)[i].CurrentWeeksPoints) * modifier * ((*recruitProfiles)[i].Modifier)
 
 		if (*recruitProfiles)[i].CurrentWeeksPoints < 0 || (*recruitProfiles)[i].CurrentWeeksPoints > pointLimit {
 			curr = 0
