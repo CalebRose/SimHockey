@@ -102,7 +102,14 @@ func handleNewPeriod(gs *GameState) {
 
 func reduceTimeOnClock(gs *GameState) {
 	// Calculate remaining time
-	gs.TimeOnClock -= gs.SecondsConsumed
+	if gs.TimeOnClock > 0 {
+		diff := int(gs.TimeOnClock) - int(gs.SecondsConsumed)
+		if diff < 0 {
+			gs.TimeOnClock = 0
+		} else {
+			gs.TimeOnClock -= gs.SecondsConsumed
+		}
+	}
 	if len(gs.ActivePowerPlays) > 0 {
 		for i := len(gs.ActivePowerPlays) - 1; i >= 0; i-- {
 			if gs.ActivePowerPlays[i].PowerPlayTime > 0 {
@@ -279,6 +286,9 @@ func (gs *GameState) IncrementScore(isHome bool) {
 				break
 			}
 		}
+	}
+	if gs.IsOvertime {
+		gs.TimeOnClock = 0
 	}
 }
 

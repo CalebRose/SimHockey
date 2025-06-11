@@ -32,6 +32,9 @@ func RunTheGame(game structs.GameDTO) GameState {
 	if gs.HomeTeamScore == gs.AwayTeamScore {
 		playOvertime(&gs)
 	}
+	if gs.HomeTeamScore != gs.AwayTeamScore && gs.IsOvertime {
+		gs.CalculateWinner()
+	}
 
 	if gs.HomeTeamScore == gs.AwayTeamScore && gs.IsOvertime {
 		gs.IsOvertimeShootout = true
@@ -64,7 +67,6 @@ func playOvertime(gs *GameState) {
 		}
 		HandleBaseEvents(gs)
 		gs.SetTime(false, false)
-
 		// If a team scores, the game ends immediately
 		if gs.HomeTeamScore != gs.AwayTeamScore {
 			gs.CalculateWinner()
