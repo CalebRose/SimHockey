@@ -253,15 +253,15 @@ func GetProPlayerSeasonStatsBySeason(SeasonID, gameType string) []structs.Profes
 }
 
 func GetCollegePlayerGameStatsBySeason(SeasonID, gameType string) []structs.CollegePlayerGameStats {
-	return repository.FindCollegePlayerGameStatsRecords(SeasonID, "")
+	return repository.FindCollegePlayerGameStatsRecords(SeasonID, gameType, "")
 }
 
 func GetCollegePlayerGameStatsByGame(GameID string) []structs.CollegePlayerGameStats {
-	return repository.FindCollegePlayerGameStatsRecords("", GameID)
+	return repository.FindCollegePlayerGameStatsRecords("", "", GameID)
 }
 
 func GetProPlayerGameStatsBySeason(SeasonID, gameType string) []structs.ProfessionalPlayerGameStats {
-	return repository.FindProPlayerGameStatsRecords(SeasonID, gameType)
+	return repository.FindProPlayerGameStatsRecords(SeasonID, gameType, "")
 }
 
 func GetCollegeTeamSeasonStatMap(seasonID, gameType string) map[uint]structs.CollegeTeamSeasonStats {

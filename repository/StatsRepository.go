@@ -117,7 +117,7 @@ func FindProPlayerSeasonStatsRecords(SeasonID, gameType string) []structs.Profes
 	return playerStats
 }
 
-func FindCollegePlayerGameStatsRecords(SeasonID, GameID string) []structs.CollegePlayerGameStats {
+func FindCollegePlayerGameStatsRecords(SeasonID, GameType, GameID string) []structs.CollegePlayerGameStats {
 	db := dbprovider.GetInstance().GetDB()
 
 	var playerStats []structs.CollegePlayerGameStats
@@ -125,6 +125,10 @@ func FindCollegePlayerGameStatsRecords(SeasonID, GameID string) []structs.Colleg
 	query := db.Model(&playerStats)
 	if len(SeasonID) > 0 {
 		query = query.Where("season_id = ?", SeasonID)
+	}
+
+	if len(GameType) > 0 {
+		query = query.Where("game_type = ?", GameType)
 	}
 
 	if len(GameID) > 0 {
@@ -136,13 +140,17 @@ func FindCollegePlayerGameStatsRecords(SeasonID, GameID string) []structs.Colleg
 	return playerStats
 }
 
-func FindProPlayerGameStatsRecords(SeasonID, GameID string) []structs.ProfessionalPlayerGameStats {
+func FindProPlayerGameStatsRecords(SeasonID, GameType, GameID string) []structs.ProfessionalPlayerGameStats {
 	db := dbprovider.GetInstance().GetDB()
 
 	var playerStats []structs.ProfessionalPlayerGameStats
 	query := db.Model(&playerStats)
 	if len(SeasonID) > 0 {
 		query = query.Where("season_id = ?", SeasonID)
+	}
+
+	if len(GameType) > 0 {
+		query = query.Where("game_type = ?", GameType)
 	}
 
 	if len(GameID) > 0 {
