@@ -122,7 +122,16 @@ func FindCollegePlayerGameStatsRecords(SeasonID, GameID string) []structs.Colleg
 
 	var playerStats []structs.CollegePlayerGameStats
 
-	db.Order("points desc").Where("season_id = ? AND game_id = ?", SeasonID, GameID).Find(&playerStats)
+	query := db.Model(&playerStats)
+	if len(SeasonID) > 0 {
+		query = query.Where("season_id = ?", SeasonID)
+	}
+
+	if len(GameID) > 0 {
+		query = query.Where("game_id = ?", GameID)
+	}
+
+	query.Order("points desc").Find(&playerStats)
 
 	return playerStats
 }
@@ -131,8 +140,16 @@ func FindProPlayerGameStatsRecords(SeasonID, GameID string) []structs.Profession
 	db := dbprovider.GetInstance().GetDB()
 
 	var playerStats []structs.ProfessionalPlayerGameStats
+	query := db.Model(&playerStats)
+	if len(SeasonID) > 0 {
+		query = query.Where("season_id = ?", SeasonID)
+	}
 
-	db.Order("points desc").Where("season_id = ? AND game_id = ?", SeasonID, GameID).Find(&playerStats)
+	if len(GameID) > 0 {
+		query = query.Where("game_id = ?", GameID)
+	}
+
+	query.Order("points desc").Find(&playerStats)
 
 	return playerStats
 }

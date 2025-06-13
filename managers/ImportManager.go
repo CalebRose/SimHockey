@@ -861,63 +861,75 @@ func FixSeasonStatTables() {
 	seasonId := strconv.Itoa(int(ts.SeasonID))
 	_, collegeGameType := ts.GetCurrentGameType(true)
 	_, proGameType := ts.GetCurrentGameType(true)
-	collegePlayerSeasonStatMap := GetCollegePlayerSeasonStatMap(seasonId, collegeGameType)
-	proPlayerSeasonStatMap := GetProPlayerSeasonStatMap(seasonId, proGameType)
-	collegeTeamSeasonStatMap := GetCollegeTeamSeasonStatMap(seasonId, collegeGameType)
-	proTeamSeasonStatMap := GetProTeamSeasonStatMap(seasonId, proGameType)
+	collegePlayerSeasonStatMap := make(map[uint]*structs.CollegePlayerSeasonStats)
+	proPlayerSeasonStatMap := make(map[uint]*structs.ProfessionalPlayerSeasonStats)
+	collegeTeamSeasonStatMap := make(map[uint]*structs.CollegeTeamSeasonStats)
+	proTeamSeasonStatMap := make(map[uint]*structs.ProfessionalTeamSeasonStats)
 
 	collegePlayerGameStats := repository.FindCollegePlayerGameStatsRecords(seasonId, "")
-	collegeTeamGameStats := repository.FindCollegeTeamGameStatsRecords(seasonId, "")
+	collegeTeamGameStats := repository.FindCollegeTeamGameStatsRecords(seasonId, collegeGameType)
 	proPlayerGameStats := repository.FindProPlayerGameStatsRecords(seasonId, "")
-	proTeamGameStats := repository.FindProTeamGameStatsRecords(seasonId, "")
+	proTeamGameStats := repository.FindProTeamGameStatsRecords(seasonId, proGameType)
 
 	for _, stat := range collegePlayerGameStats {
 		if stat.GameType == 1 {
 			continue
 		}
-		playerSeasonStats := collegePlayerSeasonStatMap[stat.PlayerID]
-		playerSeasonStats.AddStatsToSeasonRecord(stat.BasePlayerStats)
+		if _, ok := collegePlayerSeasonStatMap[stat.PlayerID]; !ok {
+			collegePlayerSeasonStatMap[stat.PlayerID] = &structs.CollegePlayerSeasonStats{}
+		}
+		collegePlayerSeasonStatMap[stat.PlayerID].AddStatsToSeasonRecord(stat.BasePlayerStats)
 	}
 
 	for _, stat := range collegeTeamGameStats {
 		if stat.GameType == 1 {
 			continue
 		}
-		teamSeasonStats := collegeTeamSeasonStatMap[stat.TeamID]
-		teamSeasonStats.BaseTeamStats.AddStatsToSeasonRecord(stat.BaseTeamStats)
-		teamSeasonStats.TeamSeasonStats.AddStatsToSeasonRecord(stat.BaseTeamStats, false, false)
+		if _, ok := collegeTeamSeasonStatMap[stat.TeamID]; !ok {
+			collegeTeamSeasonStatMap[stat.TeamID] = &structs.CollegeTeamSeasonStats{}
+		}
+		collegeTeamSeasonStatMap[stat.TeamID].BaseTeamStats.AddStatsToSeasonRecord(stat.BaseTeamStats)
+		collegeTeamSeasonStatMap[stat.TeamID].TeamSeasonStats.AddStatsToSeasonRecord(stat.BaseTeamStats, false, false)
 	}
 
 	for _, stat := range proPlayerGameStats {
 		if stat.GameType == 1 {
 			continue
 		}
-		playerSeasonStats := proPlayerSeasonStatMap[stat.PlayerID]
-		playerSeasonStats.AddStatsToSeasonRecord(stat.BasePlayerStats)
+		if _, ok := proPlayerSeasonStatMap[stat.PlayerID]; !ok {
+			proPlayerSeasonStatMap[stat.PlayerID] = &structs.ProfessionalPlayerSeasonStats{}
+		}
+		proPlayerSeasonStatMap[stat.PlayerID].AddStatsToSeasonRecord(stat.BasePlayerStats)
 	}
 
 	for _, stat := range proTeamGameStats {
 		if stat.GameType == 1 {
 			continue
 		}
-		teamSeasonStats := proTeamSeasonStatMap[stat.TeamID]
-		teamSeasonStats.BaseTeamStats.AddStatsToSeasonRecord(stat.BaseTeamStats)
-		teamSeasonStats.TeamSeasonStats.AddStatsToSeasonRecord(stat.BaseTeamStats, false, false)
+		if _, ok := proTeamSeasonStatMap[stat.TeamID]; !ok {
+			proTeamSeasonStatMap[stat.TeamID] = &structs.ProfessionalTeamSeasonStats{}
+		}
+		proTeamSeasonStatMap[stat.TeamID].BaseTeamStats.AddStatsToSeasonRecord(stat.BaseTeamStats)
+		proTeamSeasonStatMap[stat.TeamID].TeamSeasonStats.AddStatsToSeasonRecord(stat.BaseTeamStats, false, false)
 	}
 
-	for _, key := range collegePlayerSeasonStatMap {
-		repository.SaveCollegePlayerSeasonStatsRecord(key, db)
+	for key := range collegePlayerSeasonStatMap {
+		value := collegePlayerSeasonStatMap[key]
+		repository.SaveCollegePlayerSeasonStatsRecord(*value, db)
 	}
 
-	for _, key := range collegeTeamSeasonStatMap {
-		repository.SaveCollegeTeamSeasonStatsRecord(key, db)
+	for key := range collegeTeamSeasonStatMap {
+		value := collegeTeamSeasonStatMap[key]
+		repository.SaveCollegeTeamSeasonStatsRecord(*value, db)
 	}
 
-	for _, key := range proPlayerSeasonStatMap {
-		repository.SaveProPlayerSeasonStatsRecord(key, db)
+	for key := range proPlayerSeasonStatMap {
+		value := proPlayerSeasonStatMap[key]
+		repository.SaveProPlayerSeasonStatsRecord(*value, db)
 	}
 
-	for _, key := range proTeamSeasonStatMap {
-		repository.SaveProTeamSeasonStatsRecord(key, db)
+	for key := range proTeamSeasonStatMap {
+		value := proTeamSeasonStatMap[key]
+		repository.SaveProTeamSeasonStatsRecord(*value, db)
 	}
 }
