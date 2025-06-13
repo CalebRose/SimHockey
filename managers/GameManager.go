@@ -58,8 +58,6 @@ func RunGames() {
 	collegePlayerMap := GetCollegePlayersMap()
 	proPlayersMap := GetProPlayersMap()
 	upload := NewStatsUpload()
-	collegeGameType, _ := ts.GetCurrentGameType(true)
-	proGameType, _ := ts.GetCurrentGameType(false)
 	for _, r := range results {
 		// Iterate through all lines, players, accumulate stats to upload
 		// WriteBoxScoreFile(r, "test_results/test_twelve/box_score/"+r.HomeTeam+"_vs_"+r.AwayTeam+".csv")
@@ -70,10 +68,7 @@ func RunGames() {
 		// } else {
 		// 	WriteProPlayByPlayCSVFile(pbps, "test_results/test_twelve/play_by_play/"+r.HomeTeam+"_vs_"+r.AwayTeam+".csv", proPlayersMap, proTeamMap)
 		// }
-		gameType := collegeGameType
-		if !r.IsCollegeGame {
-			gameType = proGameType
-		}
+		gameType, _ := ts.GetCurrentGameType(r.IsCollegeGame)
 		upload.Collect(r, ts.SeasonID, uint(gameType))
 		stars := GenerateThreeStars(r, ts.SeasonID)
 		if r.IsCollegeGame {
@@ -99,7 +94,7 @@ func NewStatsUpload() *StatsUpload {
 
 func (u *StatsUpload) Collect(state engine.GameState, seasonID, gameType uint) {
 	// Team stats
-	u.collectTeamStats(state, seasonID)
+	u.collectTeamStats(state, seasonID, gameType)
 
 	// Player stats for both teams
 	u.collectPlayerStats(state.HomeStrategy, state.WeekID, state.GameID, gameType, state.IsCollegeGame)
@@ -109,16 +104,16 @@ func (u *StatsUpload) Collect(state engine.GameState, seasonID, gameType uint) {
 	u.collectPbP(state.Collector.PlayByPlays, state.IsCollegeGame)
 }
 
-func (u *StatsUpload) collectTeamStats(state engine.GameState, seasonID uint) {
+func (u *StatsUpload) collectTeamStats(state engine.GameState, seasonID, gameType uint) {
 	if state.IsCollegeGame {
 		u.CollegeTeamStats = append(u.CollegeTeamStats,
-			makeCollegeTeamStatsObject(state.WeekID, state.GameID, seasonID, state.HomeTeamStats),
-			makeCollegeTeamStatsObject(state.WeekID, state.GameID, seasonID, state.AwayTeamStats),
+			makeCollegeTeamStatsObject(state.WeekID, state.GameID, seasonID, gameType, state.HomeTeamStats),
+			makeCollegeTeamStatsObject(state.WeekID, state.GameID, seasonID, gameType, state.AwayTeamStats),
 		)
 	} else {
 		u.ProTeamStats = append(u.ProTeamStats,
-			makeProTeamStatsObject(state.WeekID, state.GameID, seasonID, state.HomeTeamStats),
-			makeProTeamStatsObject(state.WeekID, state.GameID, seasonID, state.AwayTeamStats),
+			makeProTeamStatsObject(state.WeekID, state.GameID, seasonID, gameType, state.HomeTeamStats),
+			makeProTeamStatsObject(state.WeekID, state.GameID, seasonID, gameType, state.AwayTeamStats),
 		)
 	}
 }

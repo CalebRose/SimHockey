@@ -125,6 +125,7 @@ func handleRequests() http.Handler {
 
 	// Migrations
 	// apiRouter.HandleFunc("/migrate/faces", controllers.MigrateFaceData).Methods("GET")
+	apiRouter.HandleFunc("/migrate/stats/fix", controllers.FixSeasonStatTables).Methods("GET")
 
 	// Poll Controls
 	apiRouter.HandleFunc("/college/poll/create/", controllers.CreatePollSubmission).Methods("POST")

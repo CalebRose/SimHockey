@@ -61,6 +61,7 @@ func (s *BasePlayerStats) AddStatsToSeasonRecord(stat BasePlayerStats) {
 	}
 	// always keep seasonID in sync
 	s.SeasonID = stat.SeasonID
+	s.GameType = stat.GameType
 
 	// raw count accumulation
 	s.Goals += stat.Goals
@@ -153,6 +154,7 @@ func (s *BaseTeamStats) AddStatsToSeasonRecord(stat BaseTeamStats) {
 		s.TeamID = stat.TeamID
 		s.Team = stat.Team
 	}
+	s.GameType = stat.GameType
 	s.SeasonID = stat.SeasonID
 
 	s.GoalsFor += stat.GoalsFor
@@ -264,6 +266,7 @@ func (s *CollegePlayerSeasonStats) AddStatsToSeasonRecord(stat BasePlayerStats) 
 		s.GamesStarted++
 	}
 	s.StatType = 1
+	s.GameType = stat.GameType
 	s.GamesPlayed++
 	// If `stat` had a `Started` flag, you could do:
 	// if stat.Started { s.GamesStarted++ }
