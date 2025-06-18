@@ -56,6 +56,8 @@ func playPeriod(gs *GameState) {
 		HandleBaseEvents(gs)
 		gs.SetTime(false, false)
 	}
+	gs.SetNewZone(NeutralZone)
+	gs.SetFaceoffOnCenterIce(true)
 }
 
 // Handle the overtime phase
