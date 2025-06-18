@@ -6,6 +6,7 @@ import (
 	"math/rand"
 	"os"
 	"path/filepath"
+	"strconv"
 	"time"
 
 	util "github.com/CalebRose/SimHockey/_util"
@@ -851,5 +852,84 @@ func generateProGameRecord(teamA structs.ProfessionalTeam, teamB structs.Profess
 			IsConference: teamA.ConferenceID == teamB.ConferenceID,
 		},
 		IsDivisional: teamA.DivisionID == teamB.DivisionID,
+	}
+}
+
+func FixSeasonStatTables() {
+	db := dbprovider.GetInstance().GetDB()
+	ts := GetTimestamp()
+	seasonId := strconv.Itoa(int(ts.SeasonID))
+	_, collegeGameType := ts.GetCurrentGameType(true)
+	_, proGameType := ts.GetCurrentGameType(true)
+	collegePlayerSeasonStatMap := make(map[uint]*structs.CollegePlayerSeasonStats)
+	proPlayerSeasonStatMap := make(map[uint]*structs.ProfessionalPlayerSeasonStats)
+	collegeTeamSeasonStatMap := make(map[uint]*structs.CollegeTeamSeasonStats)
+	proTeamSeasonStatMap := make(map[uint]*structs.ProfessionalTeamSeasonStats)
+
+	collegePlayerGameStats := repository.FindCollegePlayerGameStatsRecords(seasonId, "")
+	collegeTeamGameStats := repository.FindCollegeTeamGameStatsRecords(seasonId, collegeGameType)
+	proPlayerGameStats := repository.FindProPlayerGameStatsRecords(seasonId, "")
+	proTeamGameStats := repository.FindProTeamGameStatsRecords(seasonId, proGameType)
+
+	for _, stat := range collegePlayerGameStats {
+		if stat.GameType == 1 {
+			continue
+		}
+		if _, ok := collegePlayerSeasonStatMap[stat.PlayerID]; !ok {
+			collegePlayerSeasonStatMap[stat.PlayerID] = &structs.CollegePlayerSeasonStats{}
+		}
+		collegePlayerSeasonStatMap[stat.PlayerID].AddStatsToSeasonRecord(stat.BasePlayerStats)
+	}
+
+	for _, stat := range collegeTeamGameStats {
+		if stat.GameType == 1 {
+			continue
+		}
+		if _, ok := collegeTeamSeasonStatMap[stat.TeamID]; !ok {
+			collegeTeamSeasonStatMap[stat.TeamID] = &structs.CollegeTeamSeasonStats{}
+		}
+		collegeTeamSeasonStatMap[stat.TeamID].BaseTeamStats.AddStatsToSeasonRecord(stat.BaseTeamStats)
+		collegeTeamSeasonStatMap[stat.TeamID].TeamSeasonStats.AddStatsToSeasonRecord(stat.BaseTeamStats, false, false)
+	}
+
+	for _, stat := range proPlayerGameStats {
+		if stat.GameType == 1 {
+			continue
+		}
+		if _, ok := proPlayerSeasonStatMap[stat.PlayerID]; !ok {
+			proPlayerSeasonStatMap[stat.PlayerID] = &structs.ProfessionalPlayerSeasonStats{}
+		}
+		proPlayerSeasonStatMap[stat.PlayerID].AddStatsToSeasonRecord(stat.BasePlayerStats)
+	}
+
+	for _, stat := range proTeamGameStats {
+		if stat.GameType == 1 {
+			continue
+		}
+		if _, ok := proTeamSeasonStatMap[stat.TeamID]; !ok {
+			proTeamSeasonStatMap[stat.TeamID] = &structs.ProfessionalTeamSeasonStats{}
+		}
+		proTeamSeasonStatMap[stat.TeamID].BaseTeamStats.AddStatsToSeasonRecord(stat.BaseTeamStats)
+		proTeamSeasonStatMap[stat.TeamID].TeamSeasonStats.AddStatsToSeasonRecord(stat.BaseTeamStats, false, false)
+	}
+
+	for key := range collegePlayerSeasonStatMap {
+		value := collegePlayerSeasonStatMap[key]
+		repository.SaveCollegePlayerSeasonStatsRecord(*value, db)
+	}
+
+	for key := range collegeTeamSeasonStatMap {
+		value := collegeTeamSeasonStatMap[key]
+		repository.SaveCollegeTeamSeasonStatsRecord(*value, db)
+	}
+
+	for key := range proPlayerSeasonStatMap {
+		value := proPlayerSeasonStatMap[key]
+		repository.SaveProPlayerSeasonStatsRecord(*value, db)
+	}
+
+	for key := range proTeamSeasonStatMap {
+		value := proTeamSeasonStatMap[key]
+		repository.SaveProTeamSeasonStatsRecord(*value, db)
 	}
 }

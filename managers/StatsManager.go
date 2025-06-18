@@ -253,15 +253,15 @@ func GetProPlayerSeasonStatsBySeason(SeasonID, gameType string) []structs.Profes
 }
 
 func GetCollegePlayerGameStatsBySeason(SeasonID, gameType string) []structs.CollegePlayerGameStats {
-	return repository.FindCollegePlayerGameStatsRecords(SeasonID, "")
+	return repository.FindCollegePlayerGameStatsRecords(SeasonID, gameType, "")
 }
 
 func GetCollegePlayerGameStatsByGame(GameID string) []structs.CollegePlayerGameStats {
-	return repository.FindCollegePlayerGameStatsRecords("", GameID)
+	return repository.FindCollegePlayerGameStatsRecords("", "", GameID)
 }
 
 func GetProPlayerGameStatsBySeason(SeasonID, gameType string) []structs.ProfessionalPlayerGameStats {
-	return repository.FindProPlayerGameStatsRecords(SeasonID, gameType)
+	return repository.FindProPlayerGameStatsRecords(SeasonID, gameType, "")
 }
 
 func GetCollegeTeamSeasonStatMap(seasonID, gameType string) map[uint]structs.CollegeTeamSeasonStats {
@@ -384,11 +384,12 @@ func makeProPlayerStatsObject(weekID, gameID, gameType uint, s engine.PlayerStat
 	}
 }
 
-func makeCollegeTeamStatsObject(weekID, gameID, seasonID uint, s engine.TeamStatDTO) structs.CollegeTeamGameStats {
+func makeCollegeTeamStatsObject(weekID, gameID, seasonID, gameType uint, s engine.TeamStatDTO) structs.CollegeTeamGameStats {
 	return structs.CollegeTeamGameStats{
 		WeekID: weekID,
 		GameID: gameID,
 		BaseTeamStats: structs.BaseTeamStats{
+			GameType:             uint8(gameType),
 			GameDay:              s.GameDay,
 			SeasonID:             seasonID,
 			TeamID:               s.TeamID,
@@ -424,11 +425,12 @@ func makeCollegeTeamStatsObject(weekID, gameID, seasonID uint, s engine.TeamStat
 	}
 }
 
-func makeProTeamStatsObject(weekID, gameID, seasonID uint, s engine.TeamStatDTO) structs.ProfessionalTeamGameStats {
+func makeProTeamStatsObject(weekID, gameID, seasonID, gameType uint, s engine.TeamStatDTO) structs.ProfessionalTeamGameStats {
 	return structs.ProfessionalTeamGameStats{
 		WeekID: weekID,
 		GameID: gameID,
 		BaseTeamStats: structs.BaseTeamStats{
+			GameType:             uint8(gameType),
 			GameDay:              s.GameDay,
 			SeasonID:             seasonID,
 			TeamID:               s.TeamID,
