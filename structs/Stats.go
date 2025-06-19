@@ -83,12 +83,23 @@ func (s *BasePlayerStats) AddStatsToSeasonRecord(stat BasePlayerStats) {
 	s.Shots += stat.Shots
 	s.TimeOnIce += stat.TimeOnIce
 
+	if s.Shots > 0 {
+		s.ShootingPercentage = float32(s.Goals) / float32(s.Shots)
+	}
+
 	s.FaceOffsWon += stat.FaceOffsWon
 	s.FaceOffs += stat.FaceOffs
+
+	if s.FaceOffs > 0 {
+		s.FaceOffWinPercentage = float32(s.FaceOffsWon) / float32(s.FaceOffs)
+	}
 
 	s.ShotsAgainst += stat.ShotsAgainst
 	s.Saves += stat.Saves
 	s.GoalsAgainst += stat.GoalsAgainst
+	if s.Saves > 0 && s.ShotsAgainst > 0 {
+		s.SavePercentage = float32(s.Saves) / float32(s.ShotsAgainst)
+	}
 
 	s.Shutouts += stat.Shutouts
 	s.ShotsBlocked += stat.ShotsBlocked
