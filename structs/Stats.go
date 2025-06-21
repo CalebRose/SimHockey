@@ -201,7 +201,7 @@ func (s *BaseTeamStats) AddStatsToSeasonRecord(stat BaseTeamStats) {
 	s.FaceOffsWon += stat.FaceOffsWon
 	s.FaceOffs += stat.FaceOffs
 	// likewise FaceOffWinPercentage = FaceOffsWon / FaceOffs
-	if s.FaceOffs > 0 && s.FaceOffWinPercentage > 0 {
+	if s.FaceOffs > 0 {
 		s.FaceOffWinPercentage = float32(s.FaceOffsWon) / float32(s.FaceOffs)
 	}
 

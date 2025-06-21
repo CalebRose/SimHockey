@@ -203,7 +203,6 @@ func handleRequests() http.Handler {
 	// Websocket
 	myRouter.HandleFunc("/ws", ws.WebSocketHandler)
 
-	// log.Fatal(http.ListenAndServe(":5001", handler))
 	return handlers.CORS(originsOk, headersOk, methodsOk)(myRouter)
 }
 
