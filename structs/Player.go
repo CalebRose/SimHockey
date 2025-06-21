@@ -910,7 +910,7 @@ func (r *Recruit) ApplySigningStatus(num, threshold float32, signing bool) {
 	} else if percentage < 0.51 {
 		r.RecruitingStatus = "Hearing Offers"
 	} else if percentage < 0.76 {
-		r.RecruitingStatus = "Narrowing Down Offers"
+		r.RecruitingStatus = "Visiting Schools"
 	} else if percentage < 0.96 {
 		r.RecruitingStatus = "Finalizing Decisions"
 	} else if percentage < 1 {
