@@ -950,10 +950,10 @@ func getAttendancePercent(wins, losses int) float64 {
 	case winRate >= 0.75:
 		return 1.0
 	case winRate >= 0.5:
-		return 0.85
+		return util.GenerateFloatFromRange(0.85, 0.99)
 	case winRate >= 0.35:
-		return 0.65
+		return util.GenerateFloatFromRange(0.65, 0.84)
 	default:
-		return 0.4 // minimum attendance
+		return util.GenerateFloatFromRange(0.4, 0.64)
 	}
 }
