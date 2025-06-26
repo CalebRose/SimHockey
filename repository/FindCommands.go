@@ -293,8 +293,7 @@ func FindAllProfessionalStandings(seasonID, conferenceID, teamID string) []struc
 		query = query.Where("season_id = ?", seasonID)
 	}
 
-	if err := query.Order("points desc").Order("conference_losses asc").Order("conference_wins desc").
-		Order("total_losses asc").Order("total_wins desc").Find(&standings).Error; err != nil {
+	if err := query.Order("points desc").Find(&standings).Error; err != nil {
 		return []structs.ProfessionalStandings{}
 	}
 
