@@ -32,6 +32,7 @@ export class BasePlayer {
     Discipline: number;
     Aggression: number;
     Stamina: number;
+    GoalieStamina: number;
     InjuryRating: number;
     DisciplineDeviation: number;
     InjuryDeviation: number;
@@ -122,6 +123,7 @@ export class BasePlayer {
         this.Discipline = source["Discipline"];
         this.Aggression = source["Aggression"];
         this.Stamina = source["Stamina"];
+        this.GoalieStamina = source["GoalieStamina"];
         this.InjuryRating = source["InjuryRating"];
         this.DisciplineDeviation = source["DisciplineDeviation"];
         this.InjuryDeviation = source["InjuryDeviation"];
@@ -1971,6 +1973,7 @@ export class CollegePlayer {
     Discipline: number;
     Aggression: number;
     Stamina: number;
+    GoalieStamina: number;
     InjuryRating: number;
     DisciplineDeviation: number;
     InjuryDeviation: number;
@@ -2100,6 +2103,7 @@ export class CollegePlayer {
         this.Discipline = source["Discipline"];
         this.Aggression = source["Aggression"];
         this.Stamina = source["Stamina"];
+        this.GoalieStamina = source["GoalieStamina"];
         this.InjuryRating = source["InjuryRating"];
         this.DisciplineDeviation = source["DisciplineDeviation"];
         this.InjuryDeviation = source["InjuryDeviation"];
@@ -2471,6 +2475,7 @@ export class ProfessionalPlayer {
     Discipline: number;
     Aggression: number;
     Stamina: number;
+    GoalieStamina: number;
     InjuryRating: number;
     DisciplineDeviation: number;
     InjuryDeviation: number;
@@ -2616,6 +2621,7 @@ export class ProfessionalPlayer {
         this.Discipline = source["Discipline"];
         this.Aggression = source["Aggression"];
         this.Stamina = source["Stamina"];
+        this.GoalieStamina = source["GoalieStamina"];
         this.InjuryRating = source["InjuryRating"];
         this.DisciplineDeviation = source["DisciplineDeviation"];
         this.InjuryDeviation = source["InjuryDeviation"];
@@ -4173,6 +4179,7 @@ export class NewsLog {
     Message: string;
     League: string;
     TeamID: number;
+    ShowLog: boolean;
 
     constructor(source: any = {}) {
         if ('string' === typeof source) source = JSON.parse(source);
@@ -4188,6 +4195,7 @@ export class NewsLog {
         this.Message = source["Message"];
         this.League = source["League"];
         this.TeamID = source["TeamID"];
+        this.ShowLog = source["ShowLog"];
     }
 
 	convertValues(a: any, classs: any, asMap: boolean = false): any {
@@ -4341,6 +4349,7 @@ export class Recruit {
     Discipline: number;
     Aggression: number;
     Stamina: number;
+    GoalieStamina: number;
     InjuryRating: number;
     DisciplineDeviation: number;
     InjuryDeviation: number;
@@ -4470,6 +4479,7 @@ export class Recruit {
         this.Discipline = source["Discipline"];
         this.Aggression = source["Aggression"];
         this.Stamina = source["Stamina"];
+        this.GoalieStamina = source["GoalieStamina"];
         this.InjuryRating = source["InjuryRating"];
         this.DisciplineDeviation = source["DisciplineDeviation"];
         this.InjuryDeviation = source["InjuryDeviation"];
@@ -5108,7 +5118,7 @@ export class CreateRecruitProfileDto {
     RecruitID: number;
     ProfileID: number;
     Team: CollegeTeam;
-    PlayerRecruit: Recruit;
+    PlayerRecruit: Croot;
     Recruiter: string;
 
     constructor(source: any = {}) {
@@ -5118,7 +5128,7 @@ export class CreateRecruitProfileDto {
         this.RecruitID = source["RecruitID"];
         this.ProfileID = source["ProfileID"];
         this.Team = this.convertValues(source["Team"], CollegeTeam);
-        this.PlayerRecruit = this.convertValues(source["PlayerRecruit"], Recruit);
+        this.PlayerRecruit = this.convertValues(source["PlayerRecruit"], Croot);
         this.Recruiter = source["Recruiter"];
     }
 

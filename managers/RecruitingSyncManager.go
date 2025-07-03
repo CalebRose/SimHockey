@@ -44,6 +44,9 @@ func SyncCollegeRecruiting() {
 	pointAllocations := []structs.RecruitPointAllocation{}
 
 	for _, r := range recruits {
+		if r.IsSigned {
+			continue
+		}
 		previousRecruitStatus := r.RecruitingStatus
 		recruitProfiles := recruitProfileMap[r.ID]
 
