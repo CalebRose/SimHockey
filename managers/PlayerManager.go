@@ -79,6 +79,14 @@ func RecoverPlayers() {
 		repository.SaveCollegeHockeyPlayerRecord(p, db)
 	}
 
+	for _, p := range collegePlayers {
+		if p.Position != Goalie || p.GoalieStamina == 100 {
+			continue
+		}
+		p.RecoverGoalieStamina()
+		repository.SaveCollegeHockeyPlayerRecord(p, db)
+	}
+
 	proPlayers := GetAllProPlayers()
 
 	for _, p := range proPlayers {
@@ -89,4 +97,13 @@ func RecoverPlayers() {
 		p.RecoveryCheck()
 		repository.SaveProPlayerRecord(p, db)
 	}
+
+	for _, p := range proPlayers {
+		if p.Position != Goalie || p.GoalieStamina == 100 {
+			continue
+		}
+		p.RecoverGoalieStamina()
+		repository.SaveProPlayerRecord(p, db)
+	}
+
 }

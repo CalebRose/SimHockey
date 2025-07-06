@@ -465,7 +465,7 @@ func (b *BasePlayer) ApplyGoalieStaminaDrain() {
 }
 
 func (b *BasePlayer) RecoverGoalieStamina() {
-	recovery := uint8(20) // Amount recovered between games/days
+	recovery := uint8(25) // Amount recovered between games/days
 	if b.GoalieStamina+recovery > util.MaxGoalieStamina {
 		b.GoalieStamina = util.MaxGoalieStamina
 	} else {
