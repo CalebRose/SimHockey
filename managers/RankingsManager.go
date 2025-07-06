@@ -128,14 +128,14 @@ func AssignAllRecruitRanks() {
 }
 
 func GetAveragePotentialGrade(pots structs.BasePotentials) string {
-	total := pots.AgilityPotential + pots.BodyCheckingPotential + pots.CloseShotAccuracyPotential + pots.CloseShotPowerPotential +
-		pots.FaceoffsPotential + pots.GoalieVisionPotential + pots.GoalkeepingPotential + pots.LongShotAccuracyPotential +
-		pots.LongShotPowerPotential + pots.PassingPotential + pots.PuckHandlingPotential + pots.ShotBlockingPotential + pots.StickCheckingPotential +
-		pots.StrengthPotential
+	total := int(pots.AgilityPotential) + int(pots.BodyCheckingPotential) + int(pots.CloseShotAccuracyPotential) + int(pots.CloseShotPowerPotential) +
+		int(pots.FaceoffsPotential) + int(pots.GoalieVisionPotential) + int(pots.GoalkeepingPotential) + int(pots.LongShotAccuracyPotential) +
+		int(pots.LongShotPowerPotential) + int(pots.PassingPotential) + int(pots.PuckHandlingPotential) + int(pots.ShotBlockingPotential) + int(pots.StickCheckingPotential) +
+		int(pots.StrengthPotential)
 
 	avg := total / 14
 
-	return util.GetPotentialGrade(int(avg))
+	return util.GetPotentialGrade(avg)
 }
 
 func Get247Ranking(pg string, ovr int) float32 {
@@ -146,31 +146,31 @@ func Get247Ranking(pg string, ovr int) float32 {
 
 func Get247PotentialModifier(pg string) float32 {
 	if pg == "A+" {
-		return 5.83
+		return 7.83
 	} else if pg == "A" {
-		return 5.06
+		return 7.06
 	} else if pg == "A-" {
-		return 4.77
+		return 6.77
 	} else if pg == "B+" {
-		return 4.33
+		return 6.33
 	} else if pg == "B" {
-		return 4.04
+		return 6.04
 	} else if pg == "B-" {
-		return 3.87
+		return 5.87
 	} else if pg == "C+" {
-		return 3.58
+		return 5.58
 	} else if pg == "C" {
-		return 3.43
+		return 5.43
 	} else if pg == "C-" {
-		return 3.31
+		return 5.31
 	} else if pg == "D+" {
-		return 3.03
+		return 5.03
 	} else if pg == "D" {
-		return 2.77
+		return 4.77
 	} else if pg == "D-" {
-		return 2.67
+		return 4.67
 	}
-	return 2.3
+	return 4.3
 }
 
 func GetESPNRanking(r structs.Recruit, pg string) float32 {
