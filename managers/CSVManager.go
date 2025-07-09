@@ -21,65 +21,154 @@ func HandleCollegePlayByPlayExport(w http.ResponseWriter, gameID string) {
 	collegePlayByPlays := GetCHLPlayByPlaysByGameID(gameID)
 	game := repository.FindCollegeGameRecord(gameID)
 	season := 2024 + game.SeasonID
-	fileName := gameID + "_Season_" + strconv.Itoa(int(season)) + "_Week_" + strconv.Itoa(game.Week) + "_" + game.HomeTeam + "_vs_" + game.AwayTeam + "_Day_" + game.GameDay + ".csv"
-	w.Header().Set("Content-Disposition", "attachment;filename="+fileName)
-	w.Header().Set("Access-Control-Expose-Headers", "Content-Disposition")
+	zipFileName := gameID + "_Season_" + strconv.Itoa(int(season)) + "_Week_" + strconv.Itoa(game.Week) + "_" + game.HomeTeam + "_vs_" + game.AwayTeam + "_Day_" + game.GameDay + ".zip"
+	w.Header().Set("Content-Type", "application/zip")
+	w.Header().Set("Content-Disposition", "attachment;filename="+zipFileName)
 	w.Header().Set("Transfer-Encoding", "chunked")
+	zipWriter := zip.NewWriter(w)
+	defer zipWriter.Close()
+	// Initialize writer
+	pbpFileName := "play_by_play.csv"
+	boxScoreFileName := "box_score.csv"
 	pbps := []structs.PbP{}
-
 	for _, p := range collegePlayByPlays {
 		pbps = append(pbps, p.PbP)
 	}
 
-	writer := csv.NewWriter(w)
-
-	writer.Write([]string{"Period", "TimeOnClock", "Time Consumed", "Zone", "Event", "Outcome", "Penalty Called", "Severity", "Fight?", "HTS", "ATS", "PossessingTeam", "Notes"})
-	// Iterate through play by play data to generate []string
-
-	for _, play := range pbps {
-		periodStr := strconv.Itoa(int(play.Period))
-		timeOnClock := FormatTimeToClock(play.TimeOnClock)
-		timeConsumed := strconv.Itoa(int(play.SecondsConsumed))
-		event := util.ReturnStringFromPBPID(play.EventID)
-		outcome := util.ReturnStringFromPBPID(play.Outcome)
-		hts := strconv.Itoa(int(play.HomeTeamScore))
-		ats := strconv.Itoa(int(play.AwayTeamScore))
-		possessingTeam := collegeTeamMap[uint(play.TeamID)]
-		zone := getZoneLabel(play.ZoneID)
-		abbr := possessingTeam.Abbreviation
-		penalty := getPenaltyByID(uint(play.PenaltyID))
-		severity := getSeverityByID(play.Severity)
-		isFight := "No"
-		if play.IsFight {
-			isFight = "Yes"
+	writeCSVIntoZip(zipWriter, pbpFileName, func(csvW *csv.Writer) error {
+		header := []string{"Period", "TimeOnClock", "Time Consumed", "Zone", "Event", "Outcome", "Penalty Called", "Severity", "Fight?", "HTS", "ATS", "PossessingTeam", "Notes"}
+		if err := csvW.Write(header); err != nil {
+			return err
 		}
+		// Iterate through play by play data to generate []string
 
-		result := generateCollegeResultsString(play, event, outcome, collegePlayerMap, possessingTeam)
-		err := writer.Write([]string{
-			periodStr,
-			timeOnClock,
-			timeConsumed,
-			zone,
-			event,
-			outcome,
-			penalty,
-			severity,
-			isFight,
-			hts,
-			ats,
-			abbr,
-			result,
-		})
-		if err != nil {
-			log.Fatal("Cannot write player row to CSV", err)
-		}
+		for _, play := range pbps {
+			periodStr := strconv.Itoa(int(play.Period))
+			timeOnClock := FormatTimeToClock(play.TimeOnClock)
+			timeConsumed := strconv.Itoa(int(play.SecondsConsumed))
+			event := util.ReturnStringFromPBPID(play.EventID)
+			outcome := util.ReturnStringFromPBPID(play.Outcome)
+			hts := strconv.Itoa(int(play.HomeTeamScore))
+			ats := strconv.Itoa(int(play.AwayTeamScore))
+			possessingTeam := collegeTeamMap[uint(play.TeamID)]
+			zone := getZoneLabel(play.ZoneID)
+			abbr := possessingTeam.Abbreviation
+			penalty := getPenaltyByID(uint(play.PenaltyID))
+			severity := getSeverityByID(play.Severity)
+			isFight := "No"
+			if play.IsFight {
+				isFight = "Yes"
+			}
 
-		writer.Flush()
-		err = writer.Error()
-		if err != nil {
-			log.Fatal("Error while writing to file ::", err)
+			result := generateCollegeResultsString(play, event, outcome, collegePlayerMap, possessingTeam)
+			err := csvW.Write([]string{
+				periodStr,
+				timeOnClock,
+				timeConsumed,
+				zone,
+				event,
+				outcome,
+				penalty,
+				severity,
+				isFight,
+				hts,
+				ats,
+				abbr,
+				result,
+			})
+			if err != nil {
+				log.Fatal("Cannot write player row to CSV", err)
+			}
+
+			csvW.Flush()
+			err = csvW.Error()
+			if err != nil {
+				log.Fatal("Error while writing to file ::", err)
+			}
 		}
-	}
+		return csvW.Error()
+	})
+	playerStats := repository.FindCollegePlayerGameStatsRecords(strconv.Itoa(int(game.SeasonID)), "", gameID)
+	hts := repository.FindCollegeTeamStatsRecordByGame(gameID, strconv.Itoa(int(game.HomeTeamID)))
+	ats := repository.FindCollegeTeamStatsRecordByGame(gameID, strconv.Itoa(int(game.AwayTeamID)))
+	writeCSVIntoZip(zipWriter, boxScoreFileName, func(csvW *csv.Writer) error {
+		header := []string{"Team", "1", "2", "3", "OT", "T"}
+		if err := csvW.Write(header); err != nil {
+			return err
+		}
+		csvW.Write([]string{game.HomeTeam, strconv.Itoa(int(hts.Period1Score)), strconv.Itoa(int(hts.Period2Score)), strconv.Itoa(int(hts.Period3Score)), strconv.Itoa(int(hts.OTScore)), strconv.Itoa(int(hts.Points))})
+		csvW.Write([]string{game.AwayTeam, strconv.Itoa(int(ats.Period1Score)), strconv.Itoa(int(ats.Period2Score)), strconv.Itoa(int(ats.Period3Score)), strconv.Itoa(int(ats.OTScore)), strconv.Itoa(int(ats.Points))})
+		csvW.Write([]string{})
+		csvW.Write([]string{"Home Team"})
+		csvW.Write([]string{"Position", "Name", "G", "A", "P", "+/-", "PIM", "TOI", "PPG", "S", "BLK", "BCHK", "STCHK", "FO"})
+		for _, s := range playerStats {
+			if s.TeamID != game.HomeTeamID || s.TimeOnIce <= 0 {
+				continue
+			}
+			p := collegePlayerMap[s.PlayerID]
+			if p.Position == Goalie {
+				continue
+			}
+			csvW.Write([]string{p.Position, p.FirstName + " " + p.LastName, strconv.Itoa(int(s.Goals)), strconv.Itoa(int(s.Assists)), strconv.Itoa(int(s.Points)), strconv.Itoa(int(s.PlusMinus)), FormatTimeToClock(s.PenaltyMinutes), FormatTimeToClock(uint16(s.TimeOnIce)), strconv.Itoa(int(s.PowerPlayGoals)), strconv.Itoa(int(s.Shots)), strconv.Itoa(int(s.ShotsBlocked)), strconv.Itoa(int(s.BodyChecks)), strconv.Itoa(int(s.StickChecks)), strconv.Itoa(int(s.FaceOffsWon))})
+			csvW.Flush()
+			err := csvW.Error()
+			if err != nil {
+				log.Fatal("Error while writing to file ::", err)
+			}
+		}
+		csvW.Write([]string{"Position", "Name", "SA", "SV", "GA", "SV%", "TOI"})
+		for _, s := range playerStats {
+			if s.TeamID != game.HomeTeamID || s.TimeOnIce <= 0 {
+				continue
+			}
+			p := collegePlayerMap[s.PlayerID]
+			if p.Position != Goalie {
+				continue
+			}
+			csvW.Write([]string{p.Position, p.FirstName + " " + p.LastName, strconv.Itoa(int(s.ShotsAgainst)), strconv.Itoa(int(s.Saves)), strconv.Itoa(int(s.GoalsAgainst)), strconv.Itoa(int(s.SavePercentage)), FormatTimeToClock(uint16(s.TimeOnIce))})
+			csvW.Flush()
+			err := csvW.Error()
+			if err != nil {
+				log.Fatal("Error while writing to file ::", err)
+			}
+		}
+		// Iterate through play by play data to generate []string
+		csvW.Write([]string{})
+		csvW.Write([]string{"Away Team"})
+		csvW.Write([]string{"Position", "Name", "G", "A", "P", "+/-", "PIM", "TOI", "PPG", "S", "BLK", "BCHK", "STCHK", "FO"})
+		for _, s := range playerStats {
+			if s.TeamID == game.HomeTeamID || s.TimeOnIce <= 0 {
+				continue
+			}
+			p := collegePlayerMap[s.PlayerID]
+			if p.Position == Goalie {
+				continue
+			}
+			csvW.Write([]string{p.Position, p.FirstName + " " + p.LastName, strconv.Itoa(int(s.Goals)), strconv.Itoa(int(s.Assists)), strconv.Itoa(int(s.Points)), strconv.Itoa(int(s.PlusMinus)), FormatTimeToClock(s.PenaltyMinutes), FormatTimeToClock(uint16(s.TimeOnIce)), strconv.Itoa(int(s.PowerPlayGoals)), strconv.Itoa(int(s.Shots)), strconv.Itoa(int(s.ShotsBlocked)), strconv.Itoa(int(s.BodyChecks)), strconv.Itoa(int(s.StickChecks)), strconv.Itoa(int(s.FaceOffsWon))})
+			csvW.Flush()
+			err := csvW.Error()
+			if err != nil {
+				log.Fatal("Error while writing to file ::", err)
+			}
+		}
+		csvW.Write([]string{"Position", "Name", "SA", "SV", "GA", "SV%", "TOI"})
+		for _, s := range playerStats {
+			if s.TeamID == game.HomeTeamID || s.TimeOnIce <= 0 {
+				continue
+			}
+			p := collegePlayerMap[s.PlayerID]
+			if p.Position != Goalie {
+				continue
+			}
+			csvW.Write([]string{p.Position, p.FirstName + " " + p.LastName, strconv.Itoa(int(s.ShotsAgainst)), strconv.Itoa(int(s.Saves)), strconv.Itoa(int(s.GoalsAgainst)), strconv.Itoa(int(s.SavePercentage)), FormatTimeToClock(uint16(s.TimeOnIce))})
+			csvW.Flush()
+			err := csvW.Error()
+			if err != nil {
+				log.Fatal("Error while writing to file ::", err)
+			}
+		}
+		return csvW.Error()
+	})
 }
 
 func HandleProPlayByPlayExport(w http.ResponseWriter, gameID string) {
@@ -88,65 +177,154 @@ func HandleProPlayByPlayExport(w http.ResponseWriter, gameID string) {
 	proPlayByPlays := GetPHLPlayByPlaysByGameID(gameID)
 	game := repository.FindProfessionalGameRecord(gameID)
 	season := 2024 + game.SeasonID
-	fileName := gameID + "_Season_" + strconv.Itoa(int(season)) + "_Week_" + strconv.Itoa(game.Week) + "_" + game.HomeTeam + "_vs_" + game.AwayTeam + "_Day_" + game.GameDay + ".csv"
-	w.Header().Set("Content-Disposition", "attachment;filename="+fileName)
-	w.Header().Set("Access-Control-Expose-Headers", "Content-Disposition")
+	zipFileName := gameID + "_Season_" + strconv.Itoa(int(season)) + "_Week_" + strconv.Itoa(game.Week) + "_" + game.HomeTeam + "_vs_" + game.AwayTeam + "_Day_" + game.GameDay + ".zip"
+	w.Header().Set("Content-Type", "application/zip")
+	w.Header().Set("Content-Disposition", "attachment;filename="+zipFileName)
 	w.Header().Set("Transfer-Encoding", "chunked")
+	zipWriter := zip.NewWriter(w)
+	defer zipWriter.Close()
+	// Initialize writer
+	pbpFileName := "play_by_play.csv"
+	boxScoreFileName := "box_score.csv"
 	pbps := []structs.PbP{}
-
 	for _, p := range proPlayByPlays {
 		pbps = append(pbps, p.PbP)
 	}
 
-	writer := csv.NewWriter(w)
-
-	writer.Write([]string{"Period", "TimeOnClock", "Time Consumed", "Zone", "Event", "Outcome", "Penalty Called", "Severity", "Fight?", "HTS", "ATS", "PossessingTeam", "Notes"})
-	// Iterate through play by play data to generate []string
-
-	for _, play := range pbps {
-		periodStr := strconv.Itoa(int(play.Period))
-		timeOnClock := FormatTimeToClock(play.TimeOnClock)
-		timeConsumed := strconv.Itoa(int(play.SecondsConsumed))
-		event := util.ReturnStringFromPBPID(play.EventID)
-		outcome := util.ReturnStringFromPBPID(play.Outcome)
-		hts := strconv.Itoa(int(play.HomeTeamScore))
-		ats := strconv.Itoa(int(play.AwayTeamScore))
-		possessingTeam := proTeamMap[uint(play.TeamID)]
-		zone := getZoneLabel(play.ZoneID)
-		abbr := possessingTeam.Abbreviation
-		penalty := getPenaltyByID(uint(play.PenaltyID))
-		severity := getSeverityByID(play.Severity)
-		isFight := "No"
-		if play.IsFight {
-			isFight = "Yes"
+	writeCSVIntoZip(zipWriter, pbpFileName, func(csvW *csv.Writer) error {
+		header := []string{"Period", "TimeOnClock", "Time Consumed", "Zone", "Event", "Outcome", "Penalty Called", "Severity", "Fight?", "HTS", "ATS", "PossessingTeam", "Notes"}
+		if err := csvW.Write(header); err != nil {
+			return err
 		}
+		// Iterate through play by play data to generate []string
 
-		result := generateProResultsString(play, event, outcome, proPlayerMap, possessingTeam)
-		err := writer.Write([]string{
-			periodStr,
-			timeOnClock,
-			timeConsumed,
-			zone,
-			event,
-			outcome,
-			penalty,
-			severity,
-			isFight,
-			hts,
-			ats,
-			abbr,
-			result,
-		})
-		if err != nil {
-			log.Fatal("Cannot write player row to CSV", err)
-		}
+		for _, play := range pbps {
+			periodStr := strconv.Itoa(int(play.Period))
+			timeOnClock := FormatTimeToClock(play.TimeOnClock)
+			timeConsumed := strconv.Itoa(int(play.SecondsConsumed))
+			event := util.ReturnStringFromPBPID(play.EventID)
+			outcome := util.ReturnStringFromPBPID(play.Outcome)
+			hts := strconv.Itoa(int(play.HomeTeamScore))
+			ats := strconv.Itoa(int(play.AwayTeamScore))
+			possessingTeam := proTeamMap[uint(play.TeamID)]
+			zone := getZoneLabel(play.ZoneID)
+			abbr := possessingTeam.Abbreviation
+			penalty := getPenaltyByID(uint(play.PenaltyID))
+			severity := getSeverityByID(play.Severity)
+			isFight := "No"
+			if play.IsFight {
+				isFight = "Yes"
+			}
 
-		writer.Flush()
-		err = writer.Error()
-		if err != nil {
-			log.Fatal("Error while writing to file ::", err)
+			result := generateProResultsString(play, event, outcome, proPlayerMap, possessingTeam)
+			err := csvW.Write([]string{
+				periodStr,
+				timeOnClock,
+				timeConsumed,
+				zone,
+				event,
+				outcome,
+				penalty,
+				severity,
+				isFight,
+				hts,
+				ats,
+				abbr,
+				result,
+			})
+			if err != nil {
+				log.Fatal("Cannot write player row to CSV", err)
+			}
+
+			csvW.Flush()
+			err = csvW.Error()
+			if err != nil {
+				log.Fatal("Error while writing to file ::", err)
+			}
 		}
-	}
+		return csvW.Error()
+	})
+	playerStats := repository.FindProPlayerGameStatsRecords(strconv.Itoa(int(game.SeasonID)), "", gameID)
+	hts := repository.FindProTeamStatsRecordByGame(gameID, strconv.Itoa(int(game.HomeTeamID)))
+	ats := repository.FindProTeamStatsRecordByGame(gameID, strconv.Itoa(int(game.AwayTeamID)))
+	writeCSVIntoZip(zipWriter, boxScoreFileName, func(csvW *csv.Writer) error {
+		header := []string{"Team", "1", "2", "3", "OT", "T"}
+		if err := csvW.Write(header); err != nil {
+			return err
+		}
+		csvW.Write([]string{game.HomeTeam, strconv.Itoa(int(hts.Period1Score)), strconv.Itoa(int(hts.Period2Score)), strconv.Itoa(int(hts.Period3Score)), strconv.Itoa(int(hts.OTScore)), strconv.Itoa(int(hts.Points))})
+		csvW.Write([]string{game.AwayTeam, strconv.Itoa(int(ats.Period1Score)), strconv.Itoa(int(ats.Period2Score)), strconv.Itoa(int(ats.Period3Score)), strconv.Itoa(int(ats.OTScore)), strconv.Itoa(int(ats.Points))})
+		csvW.Write([]string{})
+		csvW.Write([]string{"Home Team"})
+		csvW.Write([]string{"Position", "Name", "G", "A", "P", "+/-", "PIM", "TOI", "PPG", "S", "BLK", "BCHK", "STCHK", "FO"})
+		for _, s := range playerStats {
+			if s.TeamID != game.HomeTeamID || s.TimeOnIce <= 0 {
+				continue
+			}
+			p := proPlayerMap[s.PlayerID]
+			if p.Position == Goalie {
+				continue
+			}
+			csvW.Write([]string{p.Position, p.FirstName + " " + p.LastName, strconv.Itoa(int(s.Goals)), strconv.Itoa(int(s.Assists)), strconv.Itoa(int(s.Points)), strconv.Itoa(int(s.PlusMinus)), FormatTimeToClock(s.PenaltyMinutes), FormatTimeToClock(uint16(s.TimeOnIce)), strconv.Itoa(int(s.PowerPlayGoals)), strconv.Itoa(int(s.Shots)), strconv.Itoa(int(s.ShotsBlocked)), strconv.Itoa(int(s.BodyChecks)), strconv.Itoa(int(s.StickChecks)), strconv.Itoa(int(s.FaceOffsWon))})
+			csvW.Flush()
+			err := csvW.Error()
+			if err != nil {
+				log.Fatal("Error while writing to file ::", err)
+			}
+		}
+		csvW.Write([]string{"Position", "Name", "SA", "SV", "GA", "SV%", "TOI"})
+		for _, s := range playerStats {
+			if s.TeamID != game.HomeTeamID || s.TimeOnIce <= 0 {
+				continue
+			}
+			p := proPlayerMap[s.PlayerID]
+			if p.Position != Goalie {
+				continue
+			}
+			csvW.Write([]string{p.Position, p.FirstName + " " + p.LastName, strconv.Itoa(int(s.ShotsAgainst)), strconv.Itoa(int(s.Saves)), strconv.Itoa(int(s.GoalsAgainst)), strconv.Itoa(int(s.SavePercentage)), FormatTimeToClock(uint16(s.TimeOnIce))})
+			csvW.Flush()
+			err := csvW.Error()
+			if err != nil {
+				log.Fatal("Error while writing to file ::", err)
+			}
+		}
+		// Iterate through play by play data to generate []string
+		csvW.Write([]string{})
+		csvW.Write([]string{"Away Team"})
+		csvW.Write([]string{"Position", "Name", "G", "A", "P", "+/-", "PIM", "TOI", "PPG", "S", "BLK", "BCHK", "STCHK", "FO"})
+		for _, s := range playerStats {
+			if s.TeamID == game.HomeTeamID || s.TimeOnIce <= 0 {
+				continue
+			}
+			p := proPlayerMap[s.PlayerID]
+			if p.Position == Goalie {
+				continue
+			}
+			csvW.Write([]string{p.Position, p.FirstName + " " + p.LastName, strconv.Itoa(int(s.Goals)), strconv.Itoa(int(s.Assists)), strconv.Itoa(int(s.Points)), strconv.Itoa(int(s.PlusMinus)), FormatTimeToClock(s.PenaltyMinutes), FormatTimeToClock(uint16(s.TimeOnIce)), strconv.Itoa(int(s.PowerPlayGoals)), strconv.Itoa(int(s.Shots)), strconv.Itoa(int(s.ShotsBlocked)), strconv.Itoa(int(s.BodyChecks)), strconv.Itoa(int(s.StickChecks)), strconv.Itoa(int(s.FaceOffsWon))})
+			csvW.Flush()
+			err := csvW.Error()
+			if err != nil {
+				log.Fatal("Error while writing to file ::", err)
+			}
+		}
+		csvW.Write([]string{"Position", "Name", "SA", "SV", "GA", "SV%", "TOI"})
+		for _, s := range playerStats {
+			if s.TeamID == game.HomeTeamID || s.TimeOnIce <= 0 {
+				continue
+			}
+			p := proPlayerMap[s.PlayerID]
+			if p.Position != Goalie {
+				continue
+			}
+			csvW.Write([]string{p.Position, p.FirstName + " " + p.LastName, strconv.Itoa(int(s.ShotsAgainst)), strconv.Itoa(int(s.Saves)), strconv.Itoa(int(s.GoalsAgainst)), strconv.Itoa(int(s.SavePercentage)), FormatTimeToClock(uint16(s.TimeOnIce))})
+			csvW.Flush()
+			err := csvW.Error()
+			if err != nil {
+				log.Fatal("Error while writing to file ::", err)
+			}
+		}
+		return csvW.Error()
+	})
 }
 
 func WritePlayByPlayCSVFile(playByPlays []structs.PbP, filename string, collegePlayerMap map[uint]structs.CollegePlayer, collegeTeamMap map[uint]structs.CollegeTeam) error {
