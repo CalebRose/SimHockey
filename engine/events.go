@@ -641,9 +641,9 @@ func HandleShot(gs *GameState, isCloseShot bool) {
 		return
 	}
 
-	baseCheck := 15.325
+	baseCheck := CollegeBaseShot
 	if !gs.IsCollegeGame {
-		baseCheck = 15.75
+		baseCheck = ProBaseShot
 	}
 	// If Overtime, open more opportunities for shooting
 	if gs.IsOvertime {

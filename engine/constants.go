@@ -89,4 +89,10 @@ const (
 	CSShootoutID         uint8 = 36
 )
 
+// Magic Numbers
+const (
+	CollegeBaseShot float64 = 15.45 // Original == 15.325
+	ProBaseShot     float64 = 15.9  // Original == 15.75
+)
+
 // PenaltyIDs

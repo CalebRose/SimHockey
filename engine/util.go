@@ -185,12 +185,12 @@ func getFaceoffWeight(playerTeamID, faceoffWinID uint, mod float64, CurrentZone 
 
 func getPlayerWeight(playerTeamID, ZoneID uint, mod float64, Position, CurrentZone string) float64 {
 	weight := mod
-	defendingPlayer := playerTeamID == ZoneID
-	if (CurrentZone == HomeGoal || CurrentZone == HomeZone) && Position == Defender && defendingPlayer {
-		weight += 0.035
-	} else if (CurrentZone == AwayGoal || CurrentZone == AwayZone) && Position == Defender && defendingPlayer {
-		weight += 0.035
-	}
+	// defendingPlayer := playerTeamID == ZoneID
+	// if (CurrentZone == HomeGoal || CurrentZone == HomeZone) && Position == Defender && defendingPlayer {
+	// 	weight += 0.015
+	// } else if (CurrentZone == AwayGoal || CurrentZone == AwayZone) && Position == Defender && defendingPlayer {
+	// 	weight += 0.015
+	// }
 	return weight
 }
 
