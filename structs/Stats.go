@@ -404,7 +404,7 @@ type ThreeStarsObj struct {
 
 func (t *ThreeStarsObj) MapPoints(stats BasePlayerStats, wonGame bool) {
 	if stats.Goals > 0 {
-		t.Points += float32(stats.Goals) * 1.15
+		t.Points += float32(stats.Goals) * 1.175
 	}
 	if stats.GameWinningGoals > 0 {
 		t.Points += float32(stats.GameWinningGoals) * 1.25
@@ -419,16 +419,16 @@ func (t *ThreeStarsObj) MapPoints(stats BasePlayerStats, wonGame bool) {
 		t.Points += float32(stats.Assists)
 	}
 	if stats.BodyChecks > 0 {
-		t.Points += float32(stats.BodyChecks) * 0.025
+		t.Points += float32(stats.BodyChecks) * 0.00725
 	}
 	if stats.StickChecks > 0 {
-		t.Points += float32(stats.StickChecks) * 0.025
+		t.Points += float32(stats.StickChecks) * 0.00725
 	}
 	if stats.Saves > 0 {
 		t.Points += float32(stats.Saves) * (stats.SavePercentage / 10)
 	}
 	if stats.GoalsAgainst > 0 {
-		t.Points -= (float32(stats.GoalsAgainst) * 1.25)
+		t.Points -= (float32(stats.GoalsAgainst) * 1.33)
 	}
 
 	if !wonGame {

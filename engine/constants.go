@@ -91,8 +91,8 @@ const (
 
 // Magic Numbers
 const (
-	CollegeBaseShot float64 = 15.45 // Original == 15.325
-	ProBaseShot     float64 = 15.9  // Original == 15.75
+	CollegeBaseShot float64 = 15.6 // Original == 15.325 // 15.45
+	ProBaseShot     float64 = 16   // Original == 15.75 // 15.9
 )
 
 // PenaltyIDs
