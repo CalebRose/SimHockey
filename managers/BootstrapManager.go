@@ -4,6 +4,7 @@ import (
 	"strconv"
 	"sync"
 
+	"github.com/CalebRose/SimHockey/dbprovider"
 	"github.com/CalebRose/SimHockey/repository"
 	"github.com/CalebRose/SimHockey/structs"
 )
@@ -98,7 +99,11 @@ func GetBootstrapData(collegeID, proID string) structs.BootstrapData {
 		wg.Add(4)
 		go func() {
 			defer wg.Done()
+			mu.Lock()
 			collegeTeam = GetCollegeTeamByTeamID(collegeID)
+			collegeTeam.UpdateLatestInstance()
+			repository.SaveCollegeTeamRecord(dbprovider.GetInstance().GetDB(), collegeTeam)
+			mu.Unlock()
 		}()
 		go func() {
 			defer wg.Done()
@@ -177,7 +182,11 @@ func GetBootstrapData(collegeID, proID string) structs.BootstrapData {
 		wg.Add(5)
 		go func() {
 			defer wg.Done()
+			mu.Lock()
 			proTeam = GetProTeamByTeamID(proID)
+			proTeam.UpdateLatestInstance()
+			repository.SaveProTeamRecord(dbprovider.GetInstance().GetDB(), proTeam)
+			mu.Unlock()
 		}()
 		go func() {
 			defer wg.Done()

@@ -1,6 +1,10 @@
 package structs
 
-import "gorm.io/gorm"
+import (
+	"time"
+
+	"gorm.io/gorm"
+)
 
 type BaseTeam struct {
 	TeamName         string
@@ -24,6 +28,11 @@ type BaseTeam struct {
 	OverallGrade     string
 	OffenseGrade     string
 	DefenseGrade     string
+	LastLogin        time.Time
+}
+
+func (bt *BaseTeam) UpdateLatestInstance() {
+	bt.LastLogin = time.Now()
 }
 
 func (bt *BaseTeam) AssignDiscordID(id string) {
