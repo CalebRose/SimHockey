@@ -147,7 +147,7 @@ func SearchCollegeStats(seasonID, weekID, viewType, gameType string) structs.Sea
 		close(playerGameStatsChan)
 
 		go func() {
-			tGameStats := GetCollegeTeamGameStatsByWeek(seasonID, gameType)
+			tGameStats := GetCollegeTeamGameStatsByWeek(weekID, gameType)
 			teamGameStatsChan <- tGameStats
 		}()
 		teamGameStats = <-teamGameStatsChan
