@@ -443,7 +443,7 @@ func (gp *GamePlaybook) filterOutPlayer(playerID uint) {
 	if playerIDInLineup(playerID, gp.Forwards[forwardIdx].Players) {
 		isForward = true
 		gp.Forwards[forwardIdx].Players = gp.handleLineReplacement(
-			gp.Forwards[forwardIdx].Players, playerID, 3, 1)
+			gp.Forwards[forwardIdx].Players, playerID, 3, 1, Forward)
 	}
 
 	// If the player was a forward, we don't need to process defenders
@@ -455,7 +455,7 @@ func (gp *GamePlaybook) filterOutPlayer(playerID uint) {
 	defenderIdx := gp.CurrentDefenders
 	if playerIDInLineup(playerID, gp.Defenders[defenderIdx].Players) {
 		gp.Defenders[defenderIdx].Players = gp.handleLineReplacement(
-			gp.Defenders[defenderIdx].Players, playerID, 2, 2)
+			gp.Defenders[defenderIdx].Players, playerID, 2, 2, Defender)
 	}
 }
 
@@ -482,7 +482,7 @@ func (gp *GamePlaybook) getPlayerPositionEnum(playerID uint, position string) ui
 	return 0
 }
 
-func (gp *GamePlaybook) handleLineReplacement(players []*GamePlayer, playerID uint, requiredCount, lineType uint) []*GamePlayer {
+func (gp *GamePlaybook) handleLineReplacement(players []*GamePlayer, playerID, requiredCount, lineType uint, replacePos string) []*GamePlayer {
 	filteredPlayers, queue := filterOutPlayerFromLineup(players, playerID, lineType)
 
 	for len(filteredPlayers) < int(requiredCount) {
@@ -495,7 +495,7 @@ func (gp *GamePlaybook) handleLineReplacement(players []*GamePlayer, playerID ui
 			queue = GetPlayerFromLine(queue.SubstitutionID, nextLine)
 		} else {
 			// Use a player from the bench
-			replacement, gp.BenchPlayers = popPlayerFromBench(gp.BenchPlayers)
+			replacement, gp.BenchPlayers = popPlayerFromBench(gp.BenchPlayers, replacePos)
 		}
 
 		// Add replacement player to the lineup
@@ -835,11 +835,33 @@ func GetPlayerFromLine(playerID uint, players []*GamePlayer) RemovalQueue {
 	return RemovalQueue{}
 }
 
-func popPlayerFromBench(bench []*GamePlayer) (*GamePlayer, []*GamePlayer) {
-	if len(bench) == 0 {
-		return &GamePlayer{}, bench
+func popPlayerFromBench(bench []*GamePlayer, replacePos string) (*GamePlayer, []*GamePlayer) {
+	// Need to change this algorithm so that it doesn't place a backup goalie in replacement for a forward, center, or defender.
+	popAt := func(i int) (*GamePlayer, []*GamePlayer) {
+		p := bench[i]
+		newBench := append(bench[:i], bench[i+1:]...)
+		return p, newBench
 	}
-	return bench[0], bench[1:]
+
+	for i, p := range bench {
+		if p.Position == replacePos {
+			return popAt(i)
+		}
+	}
+
+	if replacePos != "G" {
+		for i, p := range bench {
+			if p.Position != "G" {
+				return popAt(i)
+			}
+		}
+	}
+
+	if len(bench) > 0 {
+		return popAt(0)
+	}
+
+	return &GamePlayer{}, bench
 }
 
 func playerIDInLineup(playerID uint, players []*GamePlayer) bool {

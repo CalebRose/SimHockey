@@ -139,7 +139,7 @@ func SearchCollegeStats(seasonID, weekID, viewType, gameType string) structs.Sea
 		playerGameStatsChan := make(chan []structs.CollegePlayerGameStats)
 		teamGameStatsChan := make(chan []structs.CollegeTeamGameStats)
 		go func() {
-			pGameStats := GetCollegePlayerGameStatsBySeason(seasonID, gameType)
+			pGameStats := GetCollegePlayerGameStatsByWeek(weekID, gameType)
 			playerGameStatsChan <- pGameStats
 		}()
 
@@ -147,7 +147,7 @@ func SearchCollegeStats(seasonID, weekID, viewType, gameType string) structs.Sea
 		close(playerGameStatsChan)
 
 		go func() {
-			tGameStats := GetCollegeTeamGameStatsBySeason(seasonID, gameType)
+			tGameStats := GetCollegeTeamGameStatsByWeek(seasonID, gameType)
 			teamGameStatsChan <- tGameStats
 		}()
 		teamGameStats = <-teamGameStatsChan
@@ -193,7 +193,7 @@ func SearchProStats(seasonID, weekID, viewType, gameType string) structs.SearchS
 		playerGameStatsChan := make(chan []structs.ProfessionalPlayerGameStats)
 		teamGameStatsChan := make(chan []structs.ProfessionalTeamGameStats)
 		go func() {
-			pGameStats := GetProPlayerGameStatsBySeason(seasonID, gameType)
+			pGameStats := GetProPlayerGameStatsByWeek(seasonID, gameType)
 			playerGameStatsChan <- pGameStats
 		}()
 
@@ -201,7 +201,7 @@ func SearchProStats(seasonID, weekID, viewType, gameType string) structs.SearchS
 		close(playerGameStatsChan)
 
 		go func() {
-			tGameStats := GetProTeamGameStatsBySeason(seasonID, gameType)
+			tGameStats := GetProTeamGameStatsByWeek(seasonID, gameType)
 			teamGameStatsChan <- tGameStats
 		}()
 		teamGameStats = <-teamGameStatsChan
@@ -252,16 +252,24 @@ func GetProPlayerSeasonStatsBySeason(SeasonID, gameType string) []structs.Profes
 	return repository.FindProPlayerSeasonStatsRecords(SeasonID, gameType)
 }
 
+func GetCollegePlayerGameStatsByWeek(WeekID, gameType string) []structs.CollegePlayerGameStats {
+	return repository.FindCollegePlayerGameStatsRecords("", WeekID, gameType, "")
+}
+
 func GetCollegePlayerGameStatsBySeason(SeasonID, gameType string) []structs.CollegePlayerGameStats {
-	return repository.FindCollegePlayerGameStatsRecords(SeasonID, gameType, "")
+	return repository.FindCollegePlayerGameStatsRecords(SeasonID, "", gameType, "")
 }
 
 func GetCollegePlayerGameStatsByGame(GameID string) []structs.CollegePlayerGameStats {
-	return repository.FindCollegePlayerGameStatsRecords("", "", GameID)
+	return repository.FindCollegePlayerGameStatsRecords("", "", "", GameID)
+}
+
+func GetProPlayerGameStatsByWeek(WeekID, gameType string) []structs.ProfessionalPlayerGameStats {
+	return repository.FindProPlayerGameStatsRecords("", WeekID, gameType, "")
 }
 
 func GetProPlayerGameStatsBySeason(SeasonID, gameType string) []structs.ProfessionalPlayerGameStats {
-	return repository.FindProPlayerGameStatsRecords(SeasonID, gameType, "")
+	return repository.FindProPlayerGameStatsRecords(SeasonID, "", gameType, "")
 }
 
 func GetCollegeTeamSeasonStatMap(seasonID, gameType string) map[uint]structs.CollegeTeamSeasonStats {
@@ -282,12 +290,20 @@ func GetProTeamSeasonStatsBySeason(SeasonID, gameType string) []structs.Professi
 	return repository.FindProTeamSeasonStatsRecords(SeasonID, gameType)
 }
 
+func GetCollegeTeamGameStatsByWeek(WeekID, gameType string) []structs.CollegeTeamGameStats {
+	return repository.FindCollegeTeamGameStatsRecords("", WeekID, gameType, "")
+}
+
+func GetProTeamGameStatsByWeek(WeekID, gameType string) []structs.ProfessionalTeamGameStats {
+	return repository.FindProTeamGameStatsRecords("", WeekID, gameType, "")
+}
+
 func GetCollegeTeamGameStatsBySeason(SeasonID, gameType string) []structs.CollegeTeamGameStats {
-	return repository.FindCollegeTeamGameStatsRecords(SeasonID, gameType)
+	return repository.FindCollegeTeamGameStatsRecords(SeasonID, "", gameType, "")
 }
 
 func GetProTeamGameStatsBySeason(SeasonID, gameType string) []structs.ProfessionalTeamGameStats {
-	return repository.FindProTeamGameStatsRecords(SeasonID, gameType)
+	return repository.FindProTeamGameStatsRecords(SeasonID, "", gameType, "")
 }
 
 func makeCollegePlayerStatsObject(weekID, gameID, gameType uint, s engine.PlayerStatsDTO) structs.CollegePlayerGameStats {

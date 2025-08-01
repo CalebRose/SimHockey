@@ -88,7 +88,7 @@ func HandleCollegePlayByPlayExport(w http.ResponseWriter, gameID string) {
 		}
 		return csvW.Error()
 	})
-	playerStats := repository.FindCollegePlayerGameStatsRecords(strconv.Itoa(int(game.SeasonID)), "", gameID)
+	playerStats := repository.FindCollegePlayerGameStatsRecords(strconv.Itoa(int(game.SeasonID)), "", "", gameID)
 	hts := repository.FindCollegeTeamStatsRecordByGame(gameID, strconv.Itoa(int(game.HomeTeamID)))
 	ats := repository.FindCollegeTeamStatsRecordByGame(gameID, strconv.Itoa(int(game.AwayTeamID)))
 	writeCSVIntoZip(zipWriter, boxScoreFileName, func(csvW *csv.Writer) error {
@@ -244,7 +244,7 @@ func HandleProPlayByPlayExport(w http.ResponseWriter, gameID string) {
 		}
 		return csvW.Error()
 	})
-	playerStats := repository.FindProPlayerGameStatsRecords(strconv.Itoa(int(game.SeasonID)), "", gameID)
+	playerStats := repository.FindProPlayerGameStatsRecords(strconv.Itoa(int(game.SeasonID)), "", "", gameID)
 	hts := repository.FindProTeamStatsRecordByGame(gameID, strconv.Itoa(int(game.HomeTeamID)))
 	ats := repository.FindProTeamStatsRecordByGame(gameID, strconv.Itoa(int(game.AwayTeamID)))
 	writeCSVIntoZip(zipWriter, boxScoreFileName, func(csvW *csv.Writer) error {

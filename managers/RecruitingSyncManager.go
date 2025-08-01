@@ -198,9 +198,9 @@ func allocatePointsToRecruit(recruit structs.Recruit, recruitProfiles *[]structs
 			*pointsPlaced = true
 		}
 
-		var curr float32 = 0
+		var curr float64 = 0
 
-		var modifier float32 = 1
+		var modifier float64 = 1
 
 		if (*recruitProfiles)[i].IsHomeState {
 			modifier += 0.25
@@ -209,7 +209,7 @@ func allocatePointsToRecruit(recruit structs.Recruit, recruitProfiles *[]structs
 			modifier += 0.15
 		}
 
-		curr = float32((*recruitProfiles)[i].CurrentWeeksPoints) * modifier * ((*recruitProfiles)[i].Modifier)
+		curr = float64((*recruitProfiles)[i].CurrentWeeksPoints) * modifier * float64((*recruitProfiles)[i].Modifier)
 
 		if (*recruitProfiles)[i].CurrentWeeksPoints < 0 || (*recruitProfiles)[i].CurrentWeeksPoints > pointLimit {
 			curr = 0
@@ -223,10 +223,10 @@ func allocatePointsToRecruit(recruit structs.Recruit, recruitProfiles *[]structs
 			IsHomeStateApplied: (*recruitProfiles)[i].IsHomeState,
 			IsPipelineApplied:  (*recruitProfiles)[i].IsPipelineState,
 			Points:             (*recruitProfiles)[i].CurrentWeeksPoints,
-			ModAffectedPoints:  curr,
+			ModAffectedPoints:  float32(curr),
 		}
 
-		(*recruitProfiles)[i].AddCurrentWeekPointsToTotal(curr)
+		(*recruitProfiles)[i].AddCurrentWeekPointsToTotal(float32(curr))
 		(*recruitProfilePointsMap)[(*recruitProfiles)[i].ProfileID] += float32((*recruitProfiles)[i].CurrentWeeksPoints)
 
 		allocations = append(allocations, rpa)

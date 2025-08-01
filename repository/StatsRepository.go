@@ -117,7 +117,7 @@ func FindProPlayerSeasonStatsRecords(SeasonID, gameType string) []structs.Profes
 	return playerStats
 }
 
-func FindCollegePlayerGameStatsRecords(SeasonID, GameType, GameID string) []structs.CollegePlayerGameStats {
+func FindCollegePlayerGameStatsRecords(SeasonID, WeekID, GameType, GameID string) []structs.CollegePlayerGameStats {
 	db := dbprovider.GetInstance().GetDB()
 
 	var playerStats []structs.CollegePlayerGameStats
@@ -125,6 +125,10 @@ func FindCollegePlayerGameStatsRecords(SeasonID, GameType, GameID string) []stru
 	query := db.Model(&playerStats)
 	if len(SeasonID) > 0 {
 		query = query.Where("season_id = ?", SeasonID)
+	}
+
+	if len(WeekID) > 0 {
+		query = query.Where("week_id = ?", WeekID)
 	}
 
 	if len(GameType) > 0 {
@@ -140,13 +144,17 @@ func FindCollegePlayerGameStatsRecords(SeasonID, GameType, GameID string) []stru
 	return playerStats
 }
 
-func FindProPlayerGameStatsRecords(SeasonID, GameType, GameID string) []structs.ProfessionalPlayerGameStats {
+func FindProPlayerGameStatsRecords(SeasonID, WeekID, GameType, GameID string) []structs.ProfessionalPlayerGameStats {
 	db := dbprovider.GetInstance().GetDB()
 
 	var playerStats []structs.ProfessionalPlayerGameStats
 	query := db.Model(&playerStats)
 	if len(SeasonID) > 0 {
 		query = query.Where("season_id = ?", SeasonID)
+	}
+
+	if len(WeekID) > 0 {
+		query = query.Where("week_id = ?", WeekID)
 	}
 
 	if len(GameType) > 0 {
@@ -182,22 +190,54 @@ func FindProTeamSeasonStatsRecords(SeasonID, gameType string) []structs.Professi
 	return teamStats
 }
 
-func FindCollegeTeamGameStatsRecords(SeasonID, gameType string) []structs.CollegeTeamGameStats {
+func FindCollegeTeamGameStatsRecords(SeasonID, WeekID, GameType, GameID string) []structs.CollegeTeamGameStats {
 	db := dbprovider.GetInstance().GetDB()
 
 	var teamStats []structs.CollegeTeamGameStats
+	query := db.Model(&teamStats)
+	if len(SeasonID) > 0 {
+		query = query.Where("season_id = ?", SeasonID)
+	}
 
-	db.Order("points desc").Where("season_id = ? AND game_type = ?", SeasonID, gameType).Find(&teamStats)
+	if len(WeekID) > 0 {
+		query = query.Where("week_id = ?", WeekID)
+	}
+
+	if len(GameType) > 0 {
+		query = query.Where("game_type = ?", GameType)
+	}
+
+	if len(GameID) > 0 {
+		query = query.Where("game_id = ?", GameID)
+	}
+
+	query.Order("points desc").Find(&teamStats)
 
 	return teamStats
 }
 
-func FindProTeamGameStatsRecords(SeasonID, gameType string) []structs.ProfessionalTeamGameStats {
+func FindProTeamGameStatsRecords(SeasonID, WeekID, GameType, GameID string) []structs.ProfessionalTeamGameStats {
 	db := dbprovider.GetInstance().GetDB()
 
 	var teamStats []structs.ProfessionalTeamGameStats
+	query := db.Model(&teamStats)
+	if len(SeasonID) > 0 {
+		query = query.Where("season_id = ?", SeasonID)
+	}
 
-	db.Order("points desc").Where("season_id = ? AND game_type = ?", SeasonID, gameType).Find(&teamStats)
+	if len(WeekID) > 0 {
+		query = query.Where("week_id = ?", WeekID)
+	}
+
+	if len(GameType) > 0 {
+		query = query.Where("game_type = ?", GameType)
+	}
+
+	if len(GameID) > 0 {
+		query = query.Where("game_id = ?", GameID)
+	}
+
+	query.Order("points desc").Find(&teamStats)
 
 	return teamStats
 }

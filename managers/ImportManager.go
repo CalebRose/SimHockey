@@ -866,10 +866,10 @@ func FixSeasonStatTables() {
 	collegeTeamSeasonStatMap := make(map[uint]*structs.CollegeTeamSeasonStats)
 	proTeamSeasonStatMap := make(map[uint]*structs.ProfessionalTeamSeasonStats)
 
-	collegePlayerGameStats := repository.FindCollegePlayerGameStatsRecords(seasonId, collegeGameType, "")
-	collegeTeamGameStats := repository.FindCollegeTeamGameStatsRecords(seasonId, collegeGameType)
-	proPlayerGameStats := repository.FindProPlayerGameStatsRecords(seasonId, proGameType, "")
-	proTeamGameStats := repository.FindProTeamGameStatsRecords(seasonId, proGameType)
+	collegePlayerGameStats := repository.FindCollegePlayerGameStatsRecords(seasonId, "", collegeGameType, "")
+	collegeTeamGameStats := repository.FindCollegeTeamGameStatsRecords(seasonId, "", collegeGameType, "")
+	proPlayerGameStats := repository.FindProPlayerGameStatsRecords(seasonId, "", proGameType, "")
+	proTeamGameStats := repository.FindProTeamGameStatsRecords(seasonId, "", proGameType, "")
 
 	for _, stat := range collegePlayerGameStats {
 		if stat.GameType == 1 {
