@@ -222,7 +222,7 @@ func handleCron() *cron.Cron {
 		c.AddFunc("0 14 * * 0,2,4,6", controllers.RunTheGamesViaCron)
 		c.AddFunc("0 20 * * 0,2,4,6", controllers.ShowResultsViaCron)
 		c.AddFunc("0 22 * * 0", controllers.SyncToNextWeekViaCron)
-		c.AddFunc("0 16 * * 3", controllers.SyncRecruitingViaCron)
+		c.AddFunc("0 7 * * 3", controllers.SyncRecruitingViaCron)
 		c.AddFunc("0 3 * * 4,6", controllers.SyncAIBoardsViaCron)
 		c.AddFunc("0 5 * * 4", controllers.FillAIBoardsViaCron)
 	}
