@@ -74,14 +74,14 @@ func handleRequests() http.Handler {
 	// apiRouter.HandleFunc("/admin/ai/generate/college/lineups/", controllers.RunAICollegeLineups).Methods("GET")
 	// apiRouter.HandleFunc("/admin/ai/generate/gameplans/", controllers.CreateGameplans).Methods("GET")
 	// apiRouter.HandleFunc("/admin/ai/generate/pro/lineups/", controllers.RunAIProLineups).Methods("GET")
-	apiRouter.HandleFunc("/admin/test/engine/", controllers.TestEngine).Methods("GET")
+	// apiRouter.HandleFunc("/admin/test/engine/", controllers.TestEngine).Methods("GET")
 	// apiRouter.HandleFunc("/admin/show/results/", controllers.ShowGameResults).Methods("GET")
 	// apiRouter.HandleFunc("/admin/assign/ranks/", controllers.AssignAllRecruitRanks).Methods("GET")
 	// apiRouter.HandleFunc("/admin/generate/test/college/teams/", controllers.GenerateCollegeTeams).Methods("GET")
 	// apiRouter.HandleFunc("/admin/generate/init/college/rosters/", controllers.GenerateInitialRosters).Methods("GET")
 	// apiRouter.HandleFunc("/admin/generate/college/recruits/", controllers.GenerateCroots).Methods("GET")
 	// apiRouter.HandleFunc("/admin/generate/custom/recruits/", controllers.GenerateCustomCroots).Methods("GET")
-	apiRouter.HandleFunc("/admin/generate/phl/schedule/", controllers.GeneratePHLSchedule).Methods("GET")
+	// apiRouter.HandleFunc("/admin/generate/phl/schedule/", controllers.GeneratePHLSchedule).Methods("GET")
 	// apiRouter.HandleFunc("/admin/generate/chl/schedule/", controllers.GenerateCHLSchedule).Methods("GET")
 	// apiRouter.HandleFunc("/admin/generate/pre/schedule/", controllers.GeneratePreseasonGames).Methods("GET")
 	// apiRouter.HandleFunc("/admin/generate/test/pro/rosters/", controllers.GenerateProTestData).Methods("GET")
@@ -91,7 +91,8 @@ func handleRequests() http.Handler {
 	// apiRouter.HandleFunc("/admin/run/fa/sync/", controllers.TestFAOffers).Methods("GET")
 	// apiRouter.HandleFunc("/admin/ai/fill/boards", controllers.FillAIBoards).Methods("GET")
 	// apiRouter.HandleFunc("/admin/ai/sync/boards", controllers.SyncAIBoards).Methods("GET")
-	apiRouter.HandleFunc("/simhck/sync/recruiting/", controllers.SyncRecruiting).Methods("GET")
+	// apiRouter.HandleFunc("/simhck/sync/recruiting/", controllers.SyncRecruiting).Methods("GET")
+	apiRouter.HandleFunc("/simhck/update/team/ranks/", controllers.UpdateTeamRankings).Methods("GET")
 
 	// Bootstrap
 	apiRouter.HandleFunc("/bootstrap/{collegeID}/{proID}", controllers.BootstrapHockeyData).Methods("GET")
@@ -125,7 +126,7 @@ func handleRequests() http.Handler {
 
 	// Migrations
 	// apiRouter.HandleFunc("/migrate/faces", controllers.MigrateFaceData).Methods("GET")
-	apiRouter.HandleFunc("/migrate/stats/fix", controllers.FixSeasonStatTables).Methods("GET")
+	// apiRouter.HandleFunc("/migrate/stats/fix", controllers.FixSeasonStatTables).Methods("GET")
 
 	// Poll Controls
 	apiRouter.HandleFunc("/college/poll/create/", controllers.CreatePollSubmission).Methods("POST")
@@ -222,7 +223,7 @@ func handleCron() *cron.Cron {
 		c.AddFunc("0 14 * * 0,2,4,6", controllers.RunTheGamesViaCron)
 		c.AddFunc("0 20 * * 0,2,4,6", controllers.ShowResultsViaCron)
 		c.AddFunc("0 22 * * 0", controllers.SyncToNextWeekViaCron)
-		c.AddFunc("0 7 * * 3", controllers.SyncRecruitingViaCron)
+		c.AddFunc("0 8 * * 3", controllers.SyncRecruitingViaCron)
 		c.AddFunc("0 3 * * 4,6", controllers.SyncAIBoardsViaCron)
 		c.AddFunc("0 5 * * 4", controllers.FillAIBoardsViaCron)
 	}

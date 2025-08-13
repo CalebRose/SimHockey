@@ -33,8 +33,8 @@ func SyncCollegeRecruiting() {
 
 	// Load Data
 	teamProfiles := repository.FindTeamRecruitingProfiles(false)
-	allRecruitProfiles := repository.FindRecruitPlayerProfileRecords("", "", false, false, true)
 	recruits := repository.FindAllRecruits(false, false, false, false, true, "")
+	allRecruitProfiles := repository.FindRecruitPlayerProfileRecords("", "", false, false, true)
 	recruitProfileMap := MakeRecruitProfileMapByRecruitID(allRecruitProfiles)
 	teamProfileMap := MakeTeamProfileMap(teamProfiles)
 	teamPointsMap := getTeamPointsMap()
@@ -235,6 +235,18 @@ func allocatePointsToRecruit(recruit structs.Recruit, recruitProfiles *[]structs
 	return allocations
 }
 
+func UpdateTeamRanks() {
+	db := dbprovider.GetInstance().GetDB()
+	ts := GetTimestamp()
+	teamProfiles := repository.FindTeamRecruitingProfiles(false)
+	teamProfileMap := MakeTeamProfileMap(teamProfiles)
+	teamPointsMap := getTeamPointsMap()
+	for _, tp := range teamProfiles {
+		teamPointsMap[tp.ID] = 50
+	}
+	updateTeamRankings(teamProfiles, teamProfileMap, teamPointsMap, db, int(ts.Week))
+}
+
 func updateTeamRankings(teamRecruitingProfiles []structs.RecruitingTeamProfile, teamMap map[uint]*structs.RecruitingTeamProfile, recruitProfilePointsMap map[uint]float32, db *gorm.DB, week int) {
 	// Update rank system for all teams
 	var maxESPNScore float32 = 0
@@ -390,17 +402,17 @@ func filterOutRecruitingProfile(profiles []structs.RecruitPlayerProfile, ID int)
 }
 
 func get247TeamRanking(signedCroots []structs.Recruit) float32 {
-	stddev := 10
+	stddev := 3.0
 
 	var Rank247 float32 = 0
 
 	for idx, croot := range signedCroots {
 
-		rank := float64((idx - 1) / stddev)
+		rank := (float64(idx) - 1.0) / stddev
 
 		expo := (-0.5 * (math.Pow(rank, 2)))
 
-		weightedScore := (float64(croot.Rank247) - 20) * math.Pow(math.E, expo)
+		weightedScore := (float64(croot.Rank247) - 10) * math.Pow(math.E, expo)
 
 		Rank247 += float32(weightedScore)
 	}

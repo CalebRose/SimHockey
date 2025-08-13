@@ -47,7 +47,7 @@ type RecruitingTeamProfile struct {
 }
 
 func (r *RecruitingTeamProfile) ResetSpentPoints() {
-	if r.SpentPoints == 0 {
+	if r.SpentPoints == 0 && r.TotalCommitments < r.RecruitClassSize {
 		r.WeeksMissed += 1
 	} else {
 		r.WeeksMissed = 0

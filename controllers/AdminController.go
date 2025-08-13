@@ -135,6 +135,11 @@ func SyncRecruiting(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode("Recruiting Sync Complete")
 }
 
+func UpdateTeamRankings(w http.ResponseWriter, r *http.Request) {
+	managers.UpdateTeamRanks()
+	json.NewEncoder(w).Encode("Recruiting Sync Complete")
+}
+
 func FixSeasonStatTables(w http.ResponseWriter, r *http.Request) {
 	managers.FixSeasonStatTables()
 	json.NewEncoder(w).Encode("Recruiting Sync Complete")
