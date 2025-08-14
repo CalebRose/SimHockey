@@ -933,3 +933,36 @@ func FixSeasonStatTables() {
 		repository.SaveProTeamSeasonStatsRecord(*value, db)
 	}
 }
+
+func FixStandingsTables() {
+	db := dbprovider.GetInstance().GetDB()
+	ts := GetTimestamp()
+	seasonId := strconv.Itoa(int(ts.SeasonID))
+	collegeStandings := repository.FindAllCollegeStandings(seasonId, "", "")
+	proStandings := repository.FindAllProfessionalStandings(seasonId, "", "")
+	for _, standing := range collegeStandings {
+		standing.ResetStandings()
+		games := repository.FindCollegeGames(repository.GamesClauses{TeamID: strconv.Itoa(int(standing.ID)), SeasonID: strconv.Itoa(int(ts.SeasonID))})
+		for _, g := range games {
+			if !g.GameComplete {
+				continue
+			}
+			standing.UpdateStandings(g.BaseGame)
+		}
+
+		repository.SaveCollegeStandingsRecord(standing, db)
+	}
+
+	for _, standing := range proStandings {
+		standing.ResetStandings()
+		games := repository.FindProfessionalGames(repository.GamesClauses{TeamID: strconv.Itoa(int(standing.ID)), SeasonID: strconv.Itoa(int(ts.SeasonID))})
+		for _, g := range games {
+			if !g.GameComplete {
+				continue
+			}
+			standing.UpdateStandings(g.BaseGame)
+		}
+
+		repository.SaveProfessionalStandingsRecord(standing, db)
+	}
+}

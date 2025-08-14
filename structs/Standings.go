@@ -78,7 +78,6 @@ func (cs *BaseStandings) UpdateStandings(game BaseGame) {
 		}
 		cs.Points += 3
 	} else {
-		cs.TotalLosses += 1
 		if cs.IsWinStreak {
 			cs.Streak = 1
 			cs.IsWinStreak = false
@@ -88,14 +87,17 @@ func (cs *BaseStandings) UpdateStandings(game BaseGame) {
 		if game.IsOvertime {
 			cs.TotalOTLosses += 1
 			cs.Points += 1
+		} else {
+			cs.TotalLosses += 1
 		}
 		if game.IsShootout {
 			cs.ShootoutLosses += 1
 		}
 		if game.IsConference {
-			cs.ConferenceLosses += 1
 			if game.IsOvertime {
 				cs.ConferenceOTLosses += 1
+			} else {
+				cs.ConferenceLosses += 1
 			}
 		}
 	}
