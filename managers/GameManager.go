@@ -509,6 +509,426 @@ func GeneratePreseasonGames() {
 	repository.CreatePHLGamesRecordsBatch(db, proGames, 20)
 }
 
+func PrepareCollegeTournamentGamesFormat(db *gorm.DB, ts structs.Timestamp) {
+	seasonID := ts.SeasonID
+	nextGameID := repository.FindLatestGameID() + 1
+	collegeTeams := repository.FindAllCollegeTeams()
+	teamMap := MakeCollegeTeamMap(collegeTeams)
+	standingsMap := GetCollegeStandingsMap(strconv.Itoa(int(seasonID)))
+	conferenceMap := map[uint8][]*structs.CollegeStandings{}
+	conferenceIDList := []uint8{1, 2, 3, 4, 5, 6, 7}
+	quarterfinalsSeries := []structs.CollegeSeries{}
+	semiFinalsAndFinalsGames := []structs.CollegeGame{}
+
+	for _, t := range collegeTeams {
+		standings := standingsMap[t.ID]
+		if standings.ID == 0 {
+			continue
+		}
+		if len(conferenceMap[t.ConferenceID]) > 0 {
+			conferenceMap[t.ConferenceID] = append(conferenceMap[t.ConferenceID], &standings)
+		} else {
+			conferenceMap[t.ConferenceID] = []*structs.CollegeStandings{&standings}
+		}
+	}
+
+	for _, cid := range conferenceIDList {
+		conference := conferenceMap[cid]
+		for _, s := range conference {
+			s.CalculateConferencePoints()
+		}
+
+		sort.Slice(conferenceMap[cid], func(i, j int) bool {
+			if conferenceMap[cid][i].Points == conferenceMap[cid][j].Points {
+				return conferenceMap[cid][i].GoalsFor > conferenceMap[cid][j].GoalsFor
+			}
+			return conferenceMap[cid][i].Points > conferenceMap[cid][j].Points
+		})
+
+		// If CID == 2, conduct different tournament structure for Big Ten.
+		// Else, standard 8 team tournament. Series are best of 3, followed by one semifinal game and one finals game
+		if cid == 2 {
+			seven := TopN(conferenceMap[cid], 7)
+			pairs := [][2]*structs.CollegeStandings{
+				{seven[1], seven[6]}, // 2v7  -> Semi #1 AWAY (vs #1)
+				{seven[2], seven[5]}, // 3v6  -> Semi #2 (TBD HOA or later)
+				{seven[3], seven[4]}, // 4v5  -> Semi #2 (TBD HOA or later)
+			}
+			semiFinalID1 := nextGameID     // 1 vs 2/7
+			semiFinalID2 := nextGameID + 1 // 3/6 vs 4/5
+			finalsID := nextGameID + 2     // winner of nextGameID & nextGameID2 == Conference Finals
+			conference := ""
+
+			for idx, p := range pairs {
+				a, b := p[0], p[1]
+				homeTeam := teamMap[a.TeamID]
+				conference = homeTeam.Conference
+				// Route: index 0 is (2/7) -> Semi #1, AWAY; others -> Semi #2
+				ngID := semiFinalID2
+				nextHOA := "H" // neutral placeholder; can be "" if you’ll reseed later
+				if idx == 0 {
+					ngID = semiFinalID1
+					nextHOA = "A" // winner is away vs #1
+				}
+
+				series := structs.CollegeSeries{
+					BaseSeries: structs.BaseSeries{
+						SeasonID:    seasonID,
+						SeriesName:  fmt.Sprintf("%s Conference Quarterfinals", conference),
+						BestOfCount: 3,
+						HomeTeamID:  a.TeamID, HomeTeam: a.TeamName, HomeTeamRank: 2 + uint(idx), // 2,3,4
+						AwayTeamID: b.TeamID, AwayTeam: b.TeamName, AwayTeamRank: uint(7 - idx), // 7,6,5
+						GameCount:     0,
+						IsPlayoffGame: true,
+					},
+					NextGameID:   ngID,
+					NextGameHOA:  nextHOA,
+					ConferenceID: uint8(cid),
+				}
+				quarterfinalsSeries = append(quarterfinalsSeries, series)
+			}
+			// Semifinal Game 1
+			top1 := seven[0]
+			top1Team := teamMap[top1.TeamID]
+			semifinalGame1 := structs.CollegeGame{
+				Model: gorm.Model{ID: semiFinalID1},
+				BaseGame: structs.BaseGame{
+					GameTitle: fmt.Sprintf("%s Conference Semifinals", conference),
+					SeasonID:  seasonID, WeekID: util.GetWeekID(seasonID, 19), Week: 19,
+					HomeTeamID: top1.TeamID, HomeTeam: top1.TeamName, HomeTeamRank: 1,
+					Arena: top1Team.Arena, NextGameID: finalsID, NextGameHOA: "H",
+					GameDay: "A",
+				},
+				IsConferenceTournament: true,
+			}
+
+			// Semifinal Game 2
+			semifinalGame2 := structs.CollegeGame{
+				Model: gorm.Model{ID: semiFinalID2},
+				BaseGame: structs.BaseGame{
+					GameTitle: fmt.Sprintf("%s Conference Semifinals", conference),
+					SeasonID:  seasonID, WeekID: util.GetWeekID(seasonID, 19), Week: 19,
+					NextGameID: finalsID, NextGameHOA: "A",
+					GameDay: "A",
+				},
+				IsConferenceTournament: true,
+			}
+
+			finalsGame := structs.CollegeGame{
+				Model: gorm.Model{ID: finalsID},
+				BaseGame: structs.BaseGame{
+					GameTitle: fmt.Sprintf("%s Conference Finals", conference),
+					SeasonID:  seasonID, WeekID: util.GetWeekID(seasonID, 19), Week: 19,
+					GameDay: "B",
+				},
+				IsConferenceTournament: true,
+			}
+
+			semiFinalsAndFinalsGames = append(semiFinalsAndFinalsGames, semifinalGame1, semifinalGame2, finalsGame)
+			nextGameID += 3
+		} else {
+			eight := TopN(conferenceMap[cid], 8)
+			if len(eight) < 8 {
+				// Should not happen since each conference is at least 8 and above.
+				// Not enough teams for 8—either skip or fall back to a smaller bracket.
+				// For now: continue (or handle your smaller-bracket flow here)
+				continue
+			}
+			pairs := SeededPairs(eight, 4) // (1v8),(2v7),(3v6),(4v5)
+			semiFinalID1 := nextGameID     // 1 vs 4
+			semiFinalID2 := nextGameID + 1 // 2 vs 3
+			finalsID := nextGameID + 2     // winner of nextGameID & nextGameID2 == Conference Finals
+			conference := ""
+			for qfIdx, p := range pairs {
+				a, b := p[0], p[1]
+				homeTeam := teamMap[a.TeamID]
+				conference = homeTeam.Conference
+
+				// QF1 and QF4 feed Semi #1; QF2 and QF3 feed Semi #2
+				ngID := semiFinalID2
+				if qfIdx == 0 || qfIdx == 3 {
+					ngID = semiFinalID1
+				}
+
+				// Since pairings in order are (1v8), (2v7), (3v6), (4v5);
+				// the first two should point to H as their nextHOA. the rest will be A.
+				nextHOA := "H"
+				if qfIdx > 1 {
+					nextHOA = "A"
+				}
+
+				series := structs.CollegeSeries{
+					BaseSeries: structs.BaseSeries{
+						SeasonID:    seasonID,
+						SeriesName:  fmt.Sprintf("%s Conference Quarterfinals", conference),
+						BestOfCount: 3,
+						HomeTeamID:  a.TeamID, HomeTeam: a.TeamName, HomeTeamRank: uint(qfIdx + 1),
+						AwayTeamID: b.TeamID, AwayTeam: b.TeamName, AwayTeamRank: uint(8 - qfIdx),
+						GameCount:     0,
+						IsPlayoffGame: true,
+					},
+					NextGameID:   ngID,
+					NextGameHOA:  nextHOA,
+					ConferenceID: uint8(cid),
+				}
+				quarterfinalsSeries = append(quarterfinalsSeries, series)
+			}
+			// Semifinal Game 1
+			semifinalGame1 := structs.CollegeGame{
+				Model: gorm.Model{ID: semiFinalID1},
+				BaseGame: structs.BaseGame{
+					GameTitle: fmt.Sprintf("%s Conference Semifinals", conference),
+					SeasonID:  seasonID, WeekID: util.GetWeekID(seasonID, 19), Week: 19,
+					NextGameID: finalsID, NextGameHOA: "H",
+					GameDay: "A", IsPlayoffGame: true,
+				},
+				IsConferenceTournament: true,
+			}
+
+			// Semifinal Game 2
+			semifinalGame2 := structs.CollegeGame{
+				Model: gorm.Model{ID: semiFinalID2},
+				BaseGame: structs.BaseGame{
+					GameTitle: fmt.Sprintf("%s Conference Semifinals", conference),
+					SeasonID:  seasonID, WeekID: util.GetWeekID(seasonID, 19), Week: 19,
+					NextGameID: finalsID, NextGameHOA: "A",
+					GameDay: "A", IsPlayoffGame: true,
+				},
+				IsConferenceTournament: true,
+			}
+
+			// Finals Game
+			finalsGame := structs.CollegeGame{
+				Model: gorm.Model{ID: finalsID},
+				BaseGame: structs.BaseGame{
+					GameTitle: fmt.Sprintf("%s Conference Finals", conference),
+					SeasonID:  seasonID, WeekID: util.GetWeekID(seasonID, 19), Week: 19,
+					GameDay: "B",
+				},
+				IsConferenceTournament: true,
+			}
+
+			semiFinalsAndFinalsGames = append(semiFinalsAndFinalsGames, semifinalGame1, semifinalGame2, finalsGame)
+			nextGameID += 3
+		}
+	}
+	// Create College Series in batch
+	// Create college games in batch
+	repository.CreateCHLSeriesRecordsBatch(db, quarterfinalsSeries, 20)
+	repository.CreateCHLGamesRecordsBatch(db, semiFinalsAndFinalsGames, 50)
+}
+
+func PrepareCHLPostSeasonGamesFormat(db *gorm.DB, ts structs.Timestamp) {
+	seasonID := ts.SeasonID
+	baseID := repository.FindLatestGameID() + 1
+	collegeTeams := repository.FindAllCollegeTeams()
+	collegeStandings := repository.FindAllCollegeStandings(strconv.Itoa(int(seasonID)), "", "")
+	stMap := MakeCollegeStandingsMap(collegeStandings)
+	pool := []*structs.CollegeStandings{}
+	qualified := map[uint]bool{}
+
+	// Conference Tournament Winners
+	for _, t := range collegeTeams {
+		standings := stMap[t.ID]
+		if standings.ID == 0 {
+			continue
+		}
+		if standings.IsConferenceTournamentChampion {
+			sCopy := standings // be safe
+			pool = append(pool, &sCopy)
+			qualified[t.ID] = true
+		}
+	}
+
+	// Sort collegeStandings by Points, Goals For
+	sort.Slice(collegeStandings, func(i, j int) bool {
+		if collegeStandings[i].Points == collegeStandings[j].Points {
+			return collegeStandings[i].GoalsFor > collegeStandings[j].GoalsFor
+		}
+		return collegeStandings[i].Points > collegeStandings[j].Points
+	})
+
+	// Iterate by collegeStandings, checkif standings.TeamID is in isQualified map
+	// If not, add to standingsList until length is 16
+	for _, s := range collegeStandings {
+		if len(pool) == 16 {
+			break
+		}
+		if !qualified[s.TeamID] {
+			sCopy := s // take address of stable copy
+			pool = append(pool, &sCopy)
+			qualified[s.TeamID] = true
+		}
+	}
+
+	// Then sort standingsList by points, goals for, and seed 1-16
+	// Then create individual games going by 1v16, 2v15, etc.
+	sort.Slice(pool, func(i, j int) bool {
+		if pool[i].Points == pool[j].Points {
+			return pool[i].GoalsFor > pool[j].GoalsFor
+		}
+		return pool[i].Points > pool[j].Points
+	})
+
+	// Update Seed Ranks (1,1,1,1,2,2,2,2,3,3,3,3,4,4,4,4)
+	for idx, s := range pool {
+		s.AssignRank(idx/4 + 1)
+	}
+
+	order := []int{0, 15, 7, 8, 3, 12, 4, 11, 1, 14, 6, 9, 2, 13, 5, 10}
+	games := make([]structs.CollegeGame, 0, 15)
+
+	mk := func(id uint, title string, week int) structs.CollegeGame {
+		return structs.CollegeGame{
+			Model: gorm.Model{ID: id},
+			BaseGame: structs.BaseGame{
+				GameTitle:     title,
+				SeasonID:      seasonID,
+				WeekID:        util.GetWeekID(seasonID, uint(week)),
+				Week:          week,
+				IsNeutralSite: true,
+				IsPlayoffGame: true,
+				Arena:         "TBD", City: "TBD", State: "TBD", Country: "TBD",
+			},
+		}
+	}
+
+	arenas := repository.FindAllArenas(repository.ArenaQuery{Country: "USA", GreaterThanID: "66", LessThanID: "123"})
+
+	// ---------- Round of 16 (ids baseID..baseID+7) ----------
+	for i := 0; i < 8; i++ {
+		a := pool[order[2*i+0]]
+		b := pool[order[2*i+1]]
+		arenaIdx := util.GenerateIntFromRange(0, len(arenas)-1)
+		arena := arenas[arenaIdx]
+
+		g := mk(baseID+uint(i), fmt.Sprintf("%d SimCHL Round of 16", ts.Season), 19)
+		g.HomeTeamID, g.HomeTeam, g.HomeTeamRank = a.TeamID, a.TeamName, a.Rank
+		g.AwayTeamID, g.AwayTeam, g.AwayTeamRank = b.TeamID, b.TeamName, b.Rank
+		g.ArenaID = arena.ID
+		g.Arena = arena.Name
+		g.City = arena.City
+		g.State = arena.State
+		g.Country = arena.Country
+
+		// parent = quarterfinal, HOA: upper child (even i) is H, lower (odd i) is A
+		g.NextGameID = baseID + 8 + uint(i/2)
+		if i%2 == 0 {
+			g.NextGameHOA = "H"
+		} else {
+			g.NextGameHOA = "A"
+		}
+
+		g.GameDay = "A"
+		games = append(games, g)
+	}
+
+	// ---------- Quarterfinals (ids baseID+8..baseID+11) ----------
+	for q := 0; q < 4; q++ {
+		arenaIdx := util.GenerateIntFromRange(0, len(arenas)-1)
+		arena := arenas[arenaIdx]
+		g := mk(baseID+8+uint(q), fmt.Sprintf("%d SimCHL Quarterfinal", ts.Season), 19)
+		g.NextGameID = baseID + 12 + uint(q/2)
+		if q%2 == 0 {
+			g.NextGameHOA = "H"
+		} else {
+			g.NextGameHOA = "A"
+		}
+		g.GameDay = "B"
+		g.ArenaID = arena.ID
+		g.Arena = arena.Name
+		g.City = arena.City
+		g.State = arena.State
+		g.Country = arena.Country
+		games = append(games, g)
+	}
+
+	// ---------- Frozen Four (Semifinals) (ids baseID+12..baseID+13) ----------
+	// Generate Frozen Four & National Championship Location
+	arenaIdx := util.GenerateIntFromRange(0, len(arenas)-1)
+	arena := arenas[arenaIdx]
+	for s := 0; s < 2; s++ {
+		g := mk(baseID+12+uint(s), fmt.Sprintf("%d SimCHL Frozen Four Semifinal", ts.Season), 20)
+		g.NextGameID = baseID + 14
+		if s == 0 {
+			g.NextGameHOA = "H"
+		} else {
+			g.NextGameHOA = "A"
+		}
+		g.GameDay = "A"
+		g.ArenaID = arena.ID
+		g.Arena = arena.Name
+		g.City = arena.City
+		g.State = arena.State
+		g.Country = arena.Country
+		games = append(games, g)
+	}
+
+	// ---------- National Championship (id baseID+14) ----------
+	final := mk(baseID+14, fmt.Sprintf("%d SimCHL National Championship", ts.Season), 20)
+	final.IsNationalChampionship = true
+	final.GameDay = "C"
+	final.ArenaID = arena.ID
+	final.Arena = arena.Name
+	final.City = arena.City
+	final.State = arena.State
+	final.Country = arena.Country
+	games = append(games, final)
+
+	repository.CreateCHLGamesRecordsBatch(db, games, 50)
+}
+
+func GenerateCollegeTournamentGames(db *gorm.DB, ts structs.Timestamp) {
+	weekID := strconv.Itoa(int(ts.WeekID))
+	seasonID := strconv.Itoa(int(ts.SeasonID))
+	teamMap := GetCollegeTeamMap()
+	collegeGames := repository.FindCollegeGames(repository.GamesClauses{SeasonID: seasonID, WeekID: weekID})
+	if len(collegeGames) > 0 {
+		return
+	}
+	collegeGamesUpload := []structs.CollegeGame{}
+	activeCHLSeries := repository.FindCollegeSeriesRecords(seasonID)
+
+	for _, s := range activeCHLSeries {
+		if s.HomeTeamID == 0 || s.AwayTeamID == 0 {
+			continue
+		}
+		gameCount := strconv.Itoa(int(s.GameCount))
+		arena := ""
+		city := ""
+		state := ""
+		country := ""
+		seriesName := s.SeriesName
+		matchName := seriesName + " Game: " + gameCount
+		ht := teamMap[s.HomeTeamID]
+		arena = ht.Arena
+		city = ht.City
+		state = ht.State
+		country = ht.Country
+
+		collegeGame := structs.CollegeGame{
+			BaseGame: structs.BaseGame{
+				GameTitle: matchName,
+				SeasonID:  ts.SeasonID, WeekID: ts.WeekID, Week: int(ts.Week),
+				HomeTeamID: s.HomeTeamID, HomeTeam: s.HomeTeam, HomeTeamRank: s.HomeTeamRank,
+				HomeTeamCoach: s.HomeTeamCoach,
+				AwayTeamID:    s.AwayTeamID, AwayTeam: s.AwayTeam, AwayTeamRank: s.AwayTeamRank,
+				AwayTeamCoach: s.AwayTeamCoach,
+				Arena:         arena,
+				City:          city,
+				State:         state,
+				Country:       country,
+				GameDay:       "A",
+				SeriesID:      s.ID,
+			},
+			IsConferenceTournament: true,
+		}
+		collegeGamesUpload = append(collegeGamesUpload, collegeGame)
+	}
+
+	repository.CreateCHLGamesRecordsBatch(db, collegeGamesUpload, 50)
+}
+
 func GetCollegeGamesForPreseason(teamMap map[uint]structs.CollegeTeam) []structs.CollegeGame {
 	games := []structs.CollegeGame{}
 	teamIDs := make([]uint, 0, len(teamMap))
@@ -547,7 +967,7 @@ func GetCollegeGamesForPreseason(teamMap map[uint]structs.CollegeTeam) []structs
 				2501, // seasonID
 				1,    // weekID
 				pair[0], pair[1],
-				gameDay, teamMap, true,
+				gameDay, "", teamMap, true,
 			)
 			games = append(games, game)
 		}
@@ -773,7 +1193,7 @@ func GetProfessionalGameByID(id string) structs.ProfessionalGame {
 }
 
 func GetArenaMap() map[uint]structs.Arena {
-	arenas := repository.FindAllArenas()
+	arenas := repository.FindAllArenas(repository.ArenaQuery{})
 	return MakeArenaMap(arenas)
 }
 
@@ -840,12 +1260,13 @@ func getProfessionalForwardDefenderGoalieLineups(lineups []structs.ProfessionalL
 	return forwards, defenders, goalies
 }
 
-func generateCollegeGame(seasonID, weekID, week, hid, aid uint, gameDay string, teamMap map[uint]structs.CollegeTeam, isPreseason bool) structs.CollegeGame {
+func generateCollegeGame(seasonID, weekID, week, hid, aid uint, gameDay, gameTitle string, teamMap map[uint]structs.CollegeTeam, isPreseason bool) structs.CollegeGame {
 	return structs.CollegeGame{
 		BaseGame: structs.BaseGame{
 			WeekID:      weekID,
 			Week:        int(week),
 			GameDay:     gameDay,
+			GameTitle:   gameTitle,
 			SeasonID:    seasonID,
 			HomeTeamID:  hid,
 			HomeTeam:    teamMap[hid].TeamName,
@@ -919,12 +1340,12 @@ func GenerateThreeStars(state engine.GameState, seasonID uint) structs.ThreeStar
 		if winningTeamCount > 1 && star.TeamID == winningTeamID {
 			continue
 		}
-		if starThree == 0 {
-			starThree = int(star.PlayerID)
+		if starOne == 0 {
+			starOne = int(star.PlayerID)
 		} else if starTwo == 0 {
 			starTwo = int(star.PlayerID)
-		} else if starOne == 0 {
-			starOne = int(star.PlayerID)
+		} else if starThree == 0 {
+			starThree = int(star.PlayerID)
 		}
 		if star.TeamID == winningTeamID {
 			winningTeamCount++
@@ -956,4 +1377,25 @@ func getAttendancePercent(wins, losses int) float64 {
 	default:
 		return util.GenerateFloatFromRange(0.4, 0.64)
 	}
+}
+
+// TopN returns the top n standings (or fewer if not enough teams).
+func TopN(ss []*structs.CollegeStandings, n int) []*structs.CollegeStandings {
+	if len(ss) < n {
+		n = len(ss)
+	}
+	return ss[:n]
+}
+
+// Quarter pairs: given a sorted slice (seed #1 at index 0),
+// return pairs [ (0,last), (1,last-1), ... ] of length count.
+func SeededPairs(ss []*structs.CollegeStandings, count int) [][2]*structs.CollegeStandings {
+	pairs := make([][2]*structs.CollegeStandings, 0, count)
+	top, bottom := 0, len(ss)-1
+	for i := 0; i < count && top < bottom; i++ {
+		pairs = append(pairs, [2]*structs.CollegeStandings{ss[top], ss[bottom]})
+		top++
+		bottom--
+	}
+	return pairs
 }

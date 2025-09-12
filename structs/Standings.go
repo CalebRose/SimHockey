@@ -1,15 +1,54 @@
 package structs
 
-import "gorm.io/gorm"
+import (
+	"strings"
+
+	"gorm.io/gorm"
+)
 
 type CollegeStandings struct {
 	gorm.Model
 	BaseStandings
-	Rank uint
+	Rank                           uint
+	IsConferenceTournamentChampion bool
+	IsPostSeasonQualified          bool
+	IsQuarterfinals                bool
+	IsFrozenFour                   bool
 }
 
 func (cs *CollegeStandings) AssignRank(rank int) {
 	cs.Rank = uint(rank)
+}
+
+func (cs *CollegeStandings) UpdateSeasonStatus(game CollegeGame) {
+	isAway := cs.TeamID == game.AwayTeamID
+	winner := (!isAway && game.HomeTeamWin) || (isAway && game.AwayTeamWin)
+	if winner {
+		// if game.IsInvitational && strings.Contains(game.GameTitle, "Finals") && !strings.Contains(game.GameTitle, "Semifinals") {
+		// 	cs.InvitationalChampion = true
+		// }
+		if game.IsConferenceTournament && strings.Contains(game.GameTitle, "Finals") && !strings.Contains(game.GameTitle, "Semifinals") {
+			cs.PostSeasonStatus = "Conference Tournament Champion"
+			cs.IsConferenceTournamentChampion = true
+		}
+		if game.IsPlayoffGame && strings.Contains(game.GameTitle, "Quarterfinals") {
+			cs.PostSeasonStatus = game.GameTitle
+			cs.IsQuarterfinals = true
+		} else if game.IsPlayoffGame && strings.Contains(game.GameTitle, "Frozen Four") {
+			cs.PostSeasonStatus = game.GameTitle
+			cs.IsFrozenFour = true
+		} else if game.IsPlayoffGame && game.IsNationalChampionship {
+			cs.PostSeasonStatus = "National Champion"
+		} else if game.IsPlayoffGame {
+			cs.PostSeasonStatus = "Playoffs"
+			cs.IsPostSeasonQualified = true
+		}
+	} else {
+		if game.IsPlayoffGame && game.IsNationalChampionship {
+			cs.PostSeasonStatus = "National Champion Runner-Up"
+			cs.IsRunnerUp = true
+		}
+	}
 }
 
 type ProfessionalStandings struct {
@@ -45,6 +84,8 @@ type BaseStandings struct {
 	HomeWins           uint8
 	AwayWins           uint8
 	PostSeasonStatus   string
+	IsRunnerUp         bool
+	IsNationalChampion bool
 }
 
 // Will need to include logic for OT wins/losses
@@ -189,4 +230,10 @@ func (cs *BaseStandings) MaskGames(wins, losses, confWins, confLosses, otWins, o
 	cs.ShootoutLosses = soLosses
 	cs.ConferenceWins = confWins
 	cs.ConferenceLosses = confLosses
+}
+
+func (cs *BaseStandings) CalculateConferencePoints() {
+	conferenceWinScore := cs.ConferenceWins * 3
+	conferenceOTLScore := cs.ConferenceOTLosses * 1
+	cs.Points = conferenceWinScore + conferenceOTLScore
 }

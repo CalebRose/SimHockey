@@ -321,3 +321,9 @@ func GetRoundAbbreviation(str string) string {
 	}
 	return "7th Round"
 }
+
+func GetWeekID(seasonID uint, week uint) uint {
+	// WeekID structure is the final two digits of the season year followed by the two digits representing the week.
+	// Season 1 == 2025
+	return (seasonID+2024-2000)*100 + week
+}

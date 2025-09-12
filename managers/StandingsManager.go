@@ -201,11 +201,134 @@ func UpdateStandings(ts structs.Timestamp, gameDay string) {
 
 			homeStandings.UpdateStandings(game.BaseGame)
 			awayStandings.UpdateStandings(game.BaseGame)
+			homeStandings.UpdateSeasonStatus(game)
+			awayStandings.UpdateSeasonStatus(game)
 
 			repository.SaveCollegeStandingsRecord(homeStandings, db)
 			repository.SaveCollegeStandingsRecord(awayStandings, db)
 
-			if game.NextGameID > 0 {
+			if game.IsPlayoffGame && game.SeriesID > 0 {
+				seriesID := strconv.Itoa(int(game.SeriesID))
+
+				series := repository.FindCollegeSeriesRecord(seriesID)
+
+				winningID := 0
+				if game.HomeTeamWin {
+					winningID = int(game.HomeTeamID)
+				} else {
+					winningID = int(game.AwayTeamID)
+				}
+				series.UpdateWinCount(winningID)
+
+				if series.GameCount <= series.BestOfCount && (series.HomeTeamWins < 2 && series.AwayTeamWins < 2) {
+					homeTeamID := 0
+					nextHomeTeam := ""
+					nextHomeTeamCoach := ""
+					nextHomeRank := 0
+					awayTeamID := 0
+					nextAwayTeam := ""
+					nextAwayTeamCoach := ""
+					nextAwayRank := 0
+					city := ""
+					arena := ""
+					state := ""
+					country := ""
+					if series.GameCount == 1 || series.GameCount == 2 || series.GameCount == 5 || series.GameCount == 7 {
+						homeTeam := proTeamMap[series.HomeTeamID]
+						homeTeamID = int(series.HomeTeamID)
+						nextHomeTeam = series.HomeTeam
+						nextHomeTeamCoach = series.HomeTeamCoach
+						nextHomeRank = int(series.HomeTeamRank)
+						city = homeTeam.City
+						arena = homeTeam.Arena
+						state = homeTeam.State
+						country = homeTeam.Country
+						awayTeamID = int(series.AwayTeamID)
+						nextAwayTeam = series.AwayTeam
+						nextAwayTeamCoach = series.AwayTeamCoach
+						nextAwayRank = int(series.AwayTeamRank)
+					} else if series.GameCount == 3 || series.GameCount == 4 || series.GameCount == 6 {
+						awayTeam := proTeamMap[series.AwayTeamID]
+						homeTeamID = int(series.AwayTeamID)
+						nextHomeTeam = series.AwayTeam
+						nextHomeTeamCoach = series.AwayTeamCoach
+						nextHomeRank = int(series.AwayTeamRank)
+						city = awayTeam.City
+						arena = awayTeam.Arena
+						state = awayTeam.State
+						country = awayTeam.Country
+						awayTeamID = int(series.HomeTeamID)
+						nextAwayTeam = series.HomeTeam
+						nextAwayTeamCoach = series.HomeTeamCoach
+						nextAwayRank = int(series.HomeTeamRank)
+					}
+					weekID := ts.WeekID
+					week := ts.Week
+					matchOfWeek := "A"
+					if game.GameDay == "A" {
+						matchOfWeek = "B"
+					} else if game.GameDay == "B" {
+						matchOfWeek = "C"
+					} else if game.GameDay == "C" {
+						matchOfWeek = "D"
+					} else if game.GameDay == "D" {
+						// Move game to next week
+						weekID += 1
+						week += 1
+					}
+					matchTitle := series.SeriesName + ": " + nextHomeTeam + " vs. " + nextAwayTeam
+					nextGame := structs.CollegeGame{
+						BaseGame: structs.BaseGame{
+							WeekID:        weekID,
+							Week:          int(week),
+							SeasonID:      ts.SeasonID,
+							GameDay:       matchOfWeek,
+							GameTitle:     matchTitle,
+							HomeTeamID:    uint(homeTeamID),
+							HomeTeam:      nextHomeTeam,
+							HomeTeamCoach: nextHomeTeamCoach,
+							HomeTeamRank:  uint(nextHomeRank),
+							AwayTeamID:    uint(awayTeamID),
+							AwayTeam:      nextAwayTeam,
+							AwayTeamCoach: nextAwayTeamCoach,
+							AwayTeamRank:  uint(nextAwayRank),
+							City:          city,
+							Arena:         arena,
+							State:         state,
+							Country:       country,
+							IsPlayoffGame: false,
+							SeriesID:      series.ID,
+						},
+						IsConferenceTournament: true,
+					}
+					repository.CreateCHLGamesRecordsBatch(db, []structs.CollegeGame{nextGame}, 1)
+				} else {
+					if !series.IsTheFinals && series.NextSeriesID > 0 {
+						// Promote Team to Next Series
+						nextSeriesID := strconv.Itoa(int(series.NextSeriesID))
+						nextSeriesHoa := series.NextSeriesHOA
+						nextSeries := GetPlayoffSeriesBySeriesID(nextSeriesID)
+						var teamID uint = 0
+						teamLabel := ""
+						teamCoach := ""
+						teamRank := 0
+						if series.HomeTeamSeriesWin {
+							teamID = series.HomeTeamID
+							teamLabel = series.HomeTeam
+							teamCoach = series.HomeTeamCoach
+							teamRank = int(series.HomeTeamRank)
+						} else {
+							teamID = series.AwayTeamID
+							teamLabel = series.AwayTeam
+							teamCoach = series.AwayTeamCoach
+							teamRank = int(series.AwayTeamRank)
+						}
+						nextSeries.AddTeam(nextSeriesHoa == "H", teamID, uint(teamRank), teamLabel, teamCoach)
+						repository.SavePlayoffSeriesRecord(nextSeries, db)
+					}
+				}
+				repository.SaveCollegeSeriesRecord(series, db)
+			} else if game.NextGameID > 0 {
 
 				nextGameID := strconv.Itoa(int(game.NextGameID))
 				winningTeamID := 0

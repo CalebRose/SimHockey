@@ -37,13 +37,22 @@ func MoveUpWeek() structs.Timestamp {
 	RecoverPlayers()
 	ts.SyncToNextWeek()
 
+	if ts.Week == 18 {
+		// If Week is 18, generate CHL conference tournament structure
+		PrepareCollegeTournamentGamesFormat(db, ts)
+		GenerateCollegeTournamentGames(db, ts)
+	}
+	if ts.Week == 19 {
+		// Generate CHL Postseason tournament structure
+		PrepareCollegeTournamentGamesFormat(db, ts)
+	}
+
 	if ts.Week < 21 && !ts.CollegeSeasonOver && !ts.IsOffSeason && !ts.IsPreseason {
 		SyncCollegePollSubmissionForCurrentWeek(uint(ts.Week), uint(ts.WeekID), uint(ts.SeasonID))
 		ts.TogglePollRan()
 	}
 	if ts.Week > 15 {
 		// SyncExtensionOffers()
-		AllocateCapsheets()
 	}
 	if ts.CollegeSeasonOver && ts.NHLSeasonOver {
 		ts.MoveUpSeason()

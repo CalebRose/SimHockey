@@ -33,6 +33,30 @@ func CreateCHLGamesRecordsBatch(db *gorm.DB, games []structs.CollegeGame, batchS
 	return nil
 }
 
+func CreateCHLSeriesRecordsBatch(db *gorm.DB, series []structs.CollegeSeries, batchSize int) error {
+	total := len(series)
+	for i := 0; i < total; i += batchSize {
+		end := min(i+batchSize, total)
+
+		if err := db.CreateInBatches(series[i:end], batchSize).Error; err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func CreatePHLSeriesRecordsBatch(db *gorm.DB, series []structs.ProSeries, batchSize int) error {
+	total := len(series)
+	for i := 0; i < total; i += batchSize {
+		end := min(i+batchSize, total)
+
+		if err := db.CreateInBatches(series[i:end], batchSize).Error; err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
 func SaveCollegeGameRecord(gameRecord structs.CollegeGame, db *gorm.DB) {
 	err := db.Save(&gameRecord).Error
 	if err != nil {
@@ -177,5 +201,76 @@ func SavePlayoffSeriesRecord(seriesRecord structs.PlayoffSeries, db *gorm.DB) {
 	err := db.Save(&seriesRecord).Error
 	if err != nil {
 		log.Panicln("Could not save college player " + strconv.Itoa(int(seriesRecord.ID)))
+	}
+}
+
+func FindLatestGameID() uint {
+	db := dbprovider.GetInstance().GetDB()
+	var games structs.CollegeGame
+	err := db.Last(&games).Error
+	if err != nil {
+		return games.ID
+	}
+
+	return games.ID
+}
+
+func FindCollegeSeriesRecords(seasonID string) []structs.CollegeSeries {
+	db := dbprovider.GetInstance().GetDB()
+
+	var games []structs.CollegeSeries
+
+	query := db.Model(&games)
+	if len(seasonID) > 0 {
+		query = query.Where("season_id = ?", seasonID)
+	}
+	if err := query.Find(&games).Error; err != nil {
+		return []structs.CollegeSeries{}
+	}
+
+	return games
+}
+
+func FindCollegeSeriesRecord(id string) structs.CollegeSeries {
+	db := dbprovider.GetInstance().GetDB()
+
+	var games structs.CollegeSeries
+
+	query := db.Model(&games)
+	if len(id) > 0 {
+		query = query.Where("id = ?", id)
+	}
+	if err := query.Find(&games).Error; err != nil {
+		return structs.CollegeSeries{}
+	}
+
+	return games
+}
+
+func FindProSeriesRecords(seasonID string) []structs.ProSeries {
+	db := dbprovider.GetInstance().GetDB()
+
+	var games []structs.ProSeries
+	query := db.Model(&games)
+	if len(seasonID) > 0 {
+		query = query.Where("season_id = ?", seasonID)
+	}
+	if err := query.Find(&games).Error; err != nil {
+		return []structs.ProSeries{}
+	}
+	return games
+}
+
+func SaveCollegeSeriesRecord(gameRecord structs.CollegeSeries, db *gorm.DB) {
+	err := db.Save(&gameRecord).Error
+	if err != nil {
+		log.Panicln("Could not save college player " + strconv.Itoa(int(gameRecord.ID)))
+	}
+}
+
+func SaveProSeriesRecord(gameRecord structs.ProSeries, db *gorm.DB) {
+	err := db.Save(&gameRecord).Error
+	if err != nil {
+		log.Panicln("Could not save college player " + strconv.Itoa(int(gameRecord.ID)))
 	}
 }

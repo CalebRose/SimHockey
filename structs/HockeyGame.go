@@ -6,6 +6,7 @@ type BaseGame struct {
 	WeekID                uint
 	Week                  int
 	SeasonID              uint
+	SeriesID              uint
 	GameDay               string
 	HomeTeamRank          uint
 	HomeTeamID            uint
@@ -135,6 +136,7 @@ type CollegeGame struct {
 	gorm.Model
 	BaseGame
 	IsNationalChampionship bool
+	IsConferenceTournament bool
 }
 
 type ProfessionalGame struct {

@@ -26,6 +26,8 @@ type Timestamp struct {
 	CrootsGenerated               bool
 	ProgressedCollegePlayers      bool
 	ProgressedProfessionalPlayers bool
+	CHLAttributesUpdated          bool
+	SeasonMigrationDone           bool
 	TransferPortalPhase           uint
 	TransferPortalRound           uint
 	IsFreeAgencyLocked            bool

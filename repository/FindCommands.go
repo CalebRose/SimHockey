@@ -221,16 +221,6 @@ func FindProShootoutLineupByTeamID(TeamID string) structs.ProfessionalShootoutLi
 	return lineups
 }
 
-func FindAllArenas() []structs.Arena {
-	var arenas []structs.Arena
-	db := dbprovider.GetInstance().GetDB()
-	err := db.Find(&arenas).Error
-	if err != nil {
-		log.Fatal(err)
-	}
-	return arenas
-}
-
 func FindAllCollegePolls(weekID, seasonID, username string) []structs.CollegePollSubmission {
 	db := dbprovider.GetInstance().GetDB()
 	submissions := []structs.CollegePollSubmission{}
