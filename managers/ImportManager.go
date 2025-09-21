@@ -414,7 +414,7 @@ func ImportProRosters() {
 		if team.ID == 0 {
 			fmt.Println("ERROR!")
 		}
-		player.AssignTeam(team.ID, team.Abbreviation)
+		player.AssignTeam(team.ID, team.Abbreviation, 1)
 		contract := structs.ProContract{
 			PlayerID:       player.ID,
 			TeamID:         team.ID,

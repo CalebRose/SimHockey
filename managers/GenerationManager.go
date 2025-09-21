@@ -460,7 +460,7 @@ func GenerateInitialRosters() {
 				BaseInjuryData: p.BaseInjuryData,
 				Year:           1,
 			}
-			cp.AssignTeam(team.ID, team.Abbreviation)
+			cp.AssignTeam(team.ID, team.Abbreviation, 1)
 			cp.AssignID(latestID)
 
 			for j := cp.Age; j < uint8(age); j++ {
@@ -543,7 +543,7 @@ func GenerateInitialProPool() {
 			}
 			teamIdx := util.GenerateIntFromRange(0, len(collegeTeams)-1)
 			team := collegeTeams[teamIdx]
-			cp.AssignTeam(team.ID, team.Abbreviation)
+			cp.AssignTeam(team.ID, team.Abbreviation, 1)
 
 			for range 4 {
 				cp = ProgressCollegePlayer(cp, "1", []structs.CollegePlayerGameStats{})
@@ -556,7 +556,7 @@ func GenerateInitialProPool() {
 				Year:           1,
 				CollegeID:      uint(cp.TeamID),
 			}
-			pro.AssignTeam(0, "")
+			pro.AssignTeam(0, "", 0)
 			pro.AssignID(latestID)
 
 			// pro.AssignTeam(proTeam.ID, proTeam.Abbreviation)

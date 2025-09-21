@@ -10,6 +10,7 @@ type BaseTeam struct {
 	TeamName         string
 	Mascot           string
 	Abbreviation     string
+	LeagueID         uint8
 	ConferenceID     uint8
 	Conference       string
 	Coach            string

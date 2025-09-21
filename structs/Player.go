@@ -358,6 +358,7 @@ type BasePlayer struct {
 	LastName             string
 	Position             string
 	Archetype            string
+	LeagueID             uint8
 	TeamID               uint16
 	Team                 string
 	Height               uint8
@@ -577,9 +578,10 @@ func (b *BasePlayer) GetOverall() {
 	}
 }
 
-func (cp *BasePlayer) AssignTeam(teamID uint, team string) {
+func (cp *BasePlayer) AssignTeam(teamID uint, team string, leagueID uint8) {
 	cp.TeamID = uint16(teamID)
 	cp.Team = team
+	cp.LeagueID = leagueID
 }
 
 func (cp *BasePlayer) AssignAllocations(updatedAllocations Allocations) {
@@ -712,6 +714,7 @@ func (cp *CollegePlayer) WillTransfer() {
 	cp.PreviousTeamID = uint8(cp.TeamID)
 	cp.Team = ""
 	cp.TeamID = 0
+	cp.LeagueID = 0
 }
 
 func (cp *CollegePlayer) WillReturn() {
@@ -722,11 +725,12 @@ func (cp *CollegePlayer) WillReturn() {
 	cp.PreviousTeamID = 0
 }
 
-func (cp *CollegePlayer) SignWithNewTeam(teamID int, teamAbbr string) {
+func (cp *CollegePlayer) SignWithNewTeam(teamID int, teamAbbr string, leagueID uint8) {
 	cp.TransferStatus = 0
 	cp.Team = teamAbbr
 	cp.TeamID = uint16(teamID)
 	cp.TransferLikeliness = ""
+	cp.LeagueID = leagueID
 }
 
 type HistoricCollegePlayer struct {

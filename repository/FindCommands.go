@@ -1,17 +1,11 @@
 package repository
 
 import (
-	"fmt"
 	"log"
 
 	"github.com/CalebRose/SimHockey/dbprovider"
 	"github.com/CalebRose/SimHockey/structs"
 )
-
-type PlayerQuery struct {
-	TeamID    string
-	PlayerIDs []string
-}
 
 func FindTimestamp() structs.Timestamp {
 	db := dbprovider.GetInstance().GetDB()
@@ -24,103 +18,6 @@ func FindTimestamp() structs.Timestamp {
 	}
 
 	return timestamp
-}
-
-func FindLatestGlobalPlayerRecord() structs.GlobalPlayer {
-	db := dbprovider.GetInstance().GetDB()
-
-	var lastPlayerRecord structs.GlobalPlayer
-	err := db.Last(&lastPlayerRecord).Error
-	if err != nil {
-		return lastPlayerRecord
-	}
-
-	return lastPlayerRecord
-}
-
-// College Players
-func FindAllCollegePlayers(clauses PlayerQuery) []structs.CollegePlayer {
-	db := dbprovider.GetInstance().GetDB()
-
-	var CollegePlayers []structs.CollegePlayer
-
-	query := db.Model(&CollegePlayers)
-
-	if len(clauses.TeamID) > 0 {
-		query = query.Where("team_id = ?", clauses.TeamID)
-	}
-
-	if len(clauses.PlayerIDs) > 0 {
-		query = query.Where("id in (?)", clauses.PlayerIDs)
-	}
-
-	if err := query.Find(&CollegePlayers).Error; err != nil {
-		return []structs.CollegePlayer{}
-	}
-
-	return CollegePlayers
-}
-
-func FindCollegePlayersByTeamID(TeamID string) []structs.CollegePlayer {
-	db := dbprovider.GetInstance().GetDB()
-
-	var CollegePlayers []structs.CollegePlayer
-
-	err := db.Order("overall desc").Where("team_id = ?", TeamID).Find(&CollegePlayers).Error
-	if err != nil {
-		fmt.Println(err.Error())
-	}
-
-	return CollegePlayers
-}
-
-func FindAllHistoricCollegePlayers() []structs.HistoricCollegePlayer {
-	db := dbprovider.GetInstance().GetDB()
-
-	var CollegePlayers []structs.HistoricCollegePlayer
-	err := db.Find(&CollegePlayers).Error
-	if err != nil {
-		log.Printf("Error querying for college players: %v", err)
-
-	}
-
-	return CollegePlayers
-}
-
-// Professional Players
-func FindAllProPlayers(clauses PlayerQuery) []structs.ProfessionalPlayer {
-	db := dbprovider.GetInstance().GetDB()
-
-	var proPlayers []structs.ProfessionalPlayer
-
-	query := db.Model(&proPlayers)
-
-	if len(clauses.TeamID) > 0 {
-		query = query.Where("team_id = ?", clauses.TeamID)
-	}
-
-	if len(clauses.PlayerIDs) > 0 {
-		query = query.Where("id in (?)", clauses.PlayerIDs)
-	}
-
-	if err := query.Order("overall desc").Find(&proPlayers).Error; err != nil {
-		return []structs.ProfessionalPlayer{}
-	}
-
-	return proPlayers
-}
-
-func FindAllHistoricProPlayers() []structs.RetiredPlayer {
-	db := dbprovider.GetInstance().GetDB()
-
-	var retiredPlayers []structs.RetiredPlayer
-	err := db.Find(&retiredPlayers).Error
-	if err != nil {
-		log.Printf("Error querying for college players: %v", err)
-
-	}
-
-	return retiredPlayers
 }
 
 func FindAllCollegeLineups() []structs.CollegeLineup {

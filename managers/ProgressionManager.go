@@ -49,7 +49,7 @@ func CollegeProgressionMain() {
 						Year:           0,
 					}
 					// Assign their drafted team ID if they have been drafted
-					professionalPlayer.AssignTeam(player.DraftedTeamID, player.DraftedTeam)
+					professionalPlayer.AssignTeam(player.DraftedTeamID, player.DraftedTeam, 1)
 					graduatingPlayers = append(graduatingPlayers, professionalPlayer)
 				} else if willDeclare && player.DraftedTeamID == 0 {
 					// Graduate players with no draft rights become draftee records before UDFAs
