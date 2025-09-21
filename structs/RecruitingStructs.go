@@ -196,11 +196,12 @@ func (r *RecruitingTeamProfile) ResetStarCount() {
 }
 
 func (r *RecruitingTeamProfile) AddStarPlayer(stars uint8) {
-	if stars == 3 {
+	switch stars {
+	case 3:
 		r.ThreeStars += 1
-	} else if stars == 4 {
+	case 4:
 		r.FourStars += 1
-	} else if stars == 5 {
+	case 5:
 		r.FiveStars += 1
 	}
 }

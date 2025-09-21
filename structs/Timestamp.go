@@ -139,13 +139,14 @@ func (t *Timestamp) ToggleTimeSlot(ts string) {
 }
 
 func (t *Timestamp) ToggleGames(matchType string) {
-	if matchType == "A" {
+	switch matchType {
+	case "A":
 		t.GamesARan = true
-	} else if matchType == "B" {
+	case "B":
 		t.GamesBRan = true
-	} else if matchType == "C" {
+	case "C":
 		t.GamesCRan = true
-	} else if matchType == "D" {
+	case "D":
 		t.GamesDRan = true
 	}
 	if t.IsPreseason {

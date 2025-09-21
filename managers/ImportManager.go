@@ -390,7 +390,7 @@ func ImportProRosters() {
 	db := dbprovider.GetInstance().GetDB()
 	filePath := filepath.Join(os.Getenv("ROOT"), "data", "init_pro_rosters.csv")
 	rosterCSV := util.ReadCSV(filePath)
-	teams := repository.FindAllProTeams()
+	teams := repository.FindAllProTeams(repository.TeamClauses{LeagueID: "1"})
 	proPlayers := repository.FindAllProPlayers(repository.PlayerQuery{})
 	proPlayerMap := MakeProfessionalPlayerMap(proPlayers)
 	contracts := []structs.ProContract{}
@@ -440,7 +440,7 @@ func ImportStandingsForNewSeason() {
 	db := dbprovider.GetInstance().GetDB()
 	ts := GetTimestamp()
 
-	collegeTeams := repository.FindAllCollegeTeams()
+	collegeTeams := repository.FindAllCollegeTeams(repository.TeamClauses{})
 	// proTeams := repository.FindAllProTeams()
 
 	for _, team := range collegeTeams {
@@ -481,10 +481,10 @@ func ImportStandingsForNewSeason() {
 func ImportTeamRecruitingProfiles() {
 	db := dbprovider.GetInstance().GetDB()
 
-	teams := repository.FindAllCollegeTeams()
+	teams := repository.FindAllCollegeTeams(repository.TeamClauses{LeagueID: "1"})
 
 	for _, team := range teams {
-		if team.ID < 67 {
+		if team.ID < 72 {
 			continue
 		}
 		teamProfile := structs.RecruitingTeamProfile{
@@ -639,7 +639,7 @@ func (sg *ScheduledGame) ApplyRoundAndSlot(round int, slot string) {
 func ImportPHLSeasonSchedule() {
 	db := dbprovider.GetInstance().GetDB()
 	ts := repository.FindTimestamp()
-	phlTeams := repository.FindAllProTeams()
+	phlTeams := repository.FindAllProTeams(repository.TeamClauses{LeagueID: "1"})
 	schedule, err := GenerateSeasonSchedule(phlTeams, ts.SeasonID, 2000)
 	if err != nil {
 		log.Println("Generation Failed: ", err)

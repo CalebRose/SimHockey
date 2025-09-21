@@ -233,7 +233,8 @@ func UpdateStandings(ts structs.Timestamp, gameDay string) {
 					arena := ""
 					state := ""
 					country := ""
-					if series.GameCount == 1 || series.GameCount == 2 || series.GameCount == 5 || series.GameCount == 7 {
+					switch series.GameCount {
+					case 1, 2, 5, 7:
 						homeTeam := proTeamMap[series.HomeTeamID]
 						homeTeamID = int(series.HomeTeamID)
 						nextHomeTeam = series.HomeTeam
@@ -247,7 +248,7 @@ func UpdateStandings(ts structs.Timestamp, gameDay string) {
 						nextAwayTeam = series.AwayTeam
 						nextAwayTeamCoach = series.AwayTeamCoach
 						nextAwayRank = int(series.AwayTeamRank)
-					} else if series.GameCount == 3 || series.GameCount == 4 || series.GameCount == 6 {
+					case 3, 4, 6:
 						awayTeam := proTeamMap[series.AwayTeamID]
 						homeTeamID = int(series.AwayTeamID)
 						nextHomeTeam = series.AwayTeam
@@ -265,13 +266,14 @@ func UpdateStandings(ts structs.Timestamp, gameDay string) {
 					weekID := ts.WeekID
 					week := ts.Week
 					matchOfWeek := "A"
-					if game.GameDay == "A" {
+					switch game.GameDay {
+					case "A":
 						matchOfWeek = "B"
-					} else if game.GameDay == "B" {
+					case "B":
 						matchOfWeek = "C"
-					} else if game.GameDay == "C" {
+					case "C":
 						matchOfWeek = "D"
-					} else if game.GameDay == "D" {
+					case "D":
 						// Move game to next week
 						weekID += 1
 						week += 1
@@ -418,7 +420,8 @@ func UpdateStandings(ts structs.Timestamp, gameDay string) {
 					arena := ""
 					state := ""
 					country := ""
-					if series.GameCount == 1 || series.GameCount == 2 || series.GameCount == 5 || series.GameCount == 7 {
+					switch series.GameCount {
+					case 1, 2, 5, 7:
 						homeTeam := proTeamMap[series.HomeTeamID]
 						homeTeamID = int(series.HomeTeamID)
 						nextHomeTeam = series.HomeTeam
@@ -432,7 +435,7 @@ func UpdateStandings(ts structs.Timestamp, gameDay string) {
 						nextAwayTeam = series.AwayTeam
 						nextAwayTeamCoach = series.AwayTeamCoach
 						nextAwayRank = int(series.AwayTeamRank)
-					} else if series.GameCount == 3 || series.GameCount == 4 || series.GameCount == 6 {
+					case 3, 4, 6:
 						awayTeam := proTeamMap[series.AwayTeamID]
 						homeTeamID = int(series.AwayTeamID)
 						nextHomeTeam = series.AwayTeam
@@ -450,13 +453,14 @@ func UpdateStandings(ts structs.Timestamp, gameDay string) {
 					weekID := ts.WeekID
 					week := ts.Week
 					matchOfWeek := "A"
-					if game.GameDay == "A" {
+					switch game.GameDay {
+					case "A":
 						matchOfWeek = "B"
-					} else if game.GameDay == "B" {
+					case "B":
 						matchOfWeek = "C"
-					} else if game.GameDay == "C" {
+					case "C":
 						matchOfWeek = "D"
-					} else if game.GameDay == "D" {
+					case "D":
 						// Move game to next week
 						weekID += 1
 						week += 1

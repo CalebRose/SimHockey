@@ -96,20 +96,21 @@ func allocationsDiffer(a1, a2 structs.Allocations) bool {
 // ----------------------------------------------------------------
 func chlLineupHasChanged(old *structs.CollegeLineup, updated *structs.CollegeLineup) bool {
 	// Compare "slots" (LineType tells you how many IDs to check)
-	if old.LineType == 1 {
+	switch old.LineType {
+	case 1:
 		// forward line: CenterID, Forward1ID, Forward2ID
 		if old.CenterID != updated.CenterID ||
 			old.Forward1ID != updated.Forward1ID ||
 			old.Forward2ID != updated.Forward2ID {
 			return true
 		}
-	} else if old.LineType == 2 {
+	case 2:
 		// defender line: Defender1ID, Defender2ID
 		if old.Defender1ID != updated.Defender1ID ||
 			old.Defender2ID != updated.Defender2ID {
 			return true
 		}
-	} else {
+	default:
 		// goalie line: GoalieID
 		if old.GoalieID != updated.GoalieID {
 			return true
@@ -127,20 +128,21 @@ func chlLineupHasChanged(old *structs.CollegeLineup, updated *structs.CollegeLin
 
 func phlLineupHasChanged(old *structs.ProfessionalLineup, updated *structs.ProfessionalLineup) bool {
 	// Compare "slots" (LineType tells you how many IDs to check)
-	if old.LineType == 1 {
+	switch old.LineType {
+	case 1:
 		// forward line: CenterID, Forward1ID, Forward2ID
 		if old.CenterID != updated.CenterID ||
 			old.Forward1ID != updated.Forward1ID ||
 			old.Forward2ID != updated.Forward2ID {
 			return true
 		}
-	} else if old.LineType == 2 {
+	case 2:
 		// defender line: Defender1ID, Defender2ID
 		if old.Defender1ID != updated.Defender1ID ||
 			old.Defender2ID != updated.Defender2ID {
 			return true
 		}
-	} else {
+	default:
 		// goalie line: GoalieID
 		if old.GoalieID != updated.GoalieID {
 			return true
@@ -181,16 +183,17 @@ func SaveCHLLineup(dto structs.UpdateLineupsDTO) structs.UpdateLineupsDTO {
 	for _, rec := range existingLineupRecords {
 		updatedLineup := chlLineupMap[rec.ID]
 		// Iterate by player
-		if rec.LineType == 1 {
+		switch rec.LineType {
+		case 1:
 			cID := strconv.Itoa(int(rec.CenterID))
 			f1ID := strconv.Itoa(int(rec.Forward1ID))
 			f2ID := strconv.Itoa(int(rec.Forward2ID))
 			playerIDs = append(playerIDs, cID, f1ID, f2ID)
-		} else if rec.LineType == 2 {
+		case 2:
 			d1ID := strconv.Itoa(int(rec.Defender1ID))
 			d2ID := strconv.Itoa(int(rec.Defender2ID))
 			playerIDs = append(playerIDs, d1ID, d2ID)
-		} else {
+		default:
 			gID := strconv.Itoa(int(rec.GoalieID))
 			playerIDs = append(playerIDs, gID)
 		}
@@ -250,16 +253,17 @@ func SavePHLLineup(dto structs.UpdateLineupsDTO) structs.UpdateLineupsDTO {
 		updatedLineup := phlLineupMap[rec.ID]
 
 		// Iterate by player
-		if rec.LineType == 1 {
+		switch rec.LineType {
+		case 1:
 			cID := strconv.Itoa(int(rec.CenterID))
 			f1ID := strconv.Itoa(int(rec.Forward1ID))
 			f2ID := strconv.Itoa(int(rec.Forward2ID))
 			playerIDs = append(playerIDs, cID, f1ID, f2ID)
-		} else if rec.LineType == 2 {
+		case 2:
 			d1ID := strconv.Itoa(int(rec.Defender1ID))
 			d2ID := strconv.Itoa(int(rec.Defender2ID))
 			playerIDs = append(playerIDs, d1ID, d2ID)
-		} else {
+		default:
 			gID := strconv.Itoa(int(rec.GoalieID))
 			playerIDs = append(playerIDs, gID)
 		}
@@ -336,13 +340,14 @@ func RunLineupsForAICollegeTeams() {
 				continue
 			}
 
-			if p.Position == Center {
+			switch p.Position {
+			case Center:
 				cPlayers = append(cPlayers, p)
-			} else if p.Position == Forward {
+			case Forward:
 				fPlayers = append(fPlayers, p)
-			} else if p.Position == Defender {
+			case Defender:
 				dPlayers = append(dPlayers, p)
-			} else if p.Position == Goalie {
+			case Goalie:
 				gPlayers = append(gPlayers, p)
 			}
 		}
@@ -443,33 +448,37 @@ func RunLineupsForAICollegeTeams() {
 				backPass = 10
 			}
 			if isForwardLine {
-				if gameplan.ForwardShotPreference == 1 {
+				switch gameplan.ForwardShotPreference {
+				case 1:
 					closeShot = 25
 					longShot = 15
-				} else if gameplan.ForwardShotPreference == 3 {
+				case 3:
 					closeShot = 15
 					longShot = 25
 				}
-				if gameplan.ForwardCheckPreference == 1 {
+				switch gameplan.ForwardCheckPreference {
+				case 1:
 					bodyCheck = 15
 					stickCheck = 5
-				} else if gameplan.ForwardCheckPreference == 3 {
+				case 3:
 					bodyCheck = 5
 					stickCheck = 15
 				}
 			}
 			if isDefenderLine {
-				if gameplan.DefenderShotPreference == 1 {
+				switch gameplan.DefenderShotPreference {
+				case 1:
 					closeShot = 25
 					longShot = 15
-				} else if gameplan.DefenderShotPreference == 3 {
+				case 3:
 					closeShot = 15
 					longShot = 25
 				}
-				if gameplan.DefenderCheckPreference == 1 {
+				switch gameplan.DefenderCheckPreference {
+				case 1:
 					bodyCheck = 15
 					stickCheck = 5
-				} else if gameplan.DefenderCheckPreference == 3 {
+				case 3:
 					bodyCheck = 5
 					stickCheck = 15
 				}
@@ -595,7 +604,7 @@ func RunLineupsForAICollegeTeams() {
 
 func RunLineupsForAIProTeams() {
 	db := dbprovider.GetInstance().GetDB()
-	teams := repository.FindAllProTeams()
+	teams := repository.FindAllProTeams(repository.TeamClauses{LeagueID: "1"})
 	shootoutMap := GetProShootoutLineups()
 	gameplans := repository.FindProfessionalGameplanRecords()
 	proGameplanMap := MakeProGameplanMap(gameplans)
@@ -627,13 +636,14 @@ func RunLineupsForAIProTeams() {
 				continue
 			}
 
-			if p.Position == Center {
+			switch p.Position {
+			case Center:
 				cPlayers = append(cPlayers, p)
-			} else if p.Position == Forward {
+			case Forward:
 				fPlayers = append(fPlayers, p)
-			} else if p.Position == Defender {
+			case Defender:
 				dPlayers = append(dPlayers, p)
-			} else if p.Position == Goalie {
+			case Goalie:
 				gPlayers = append(gPlayers, p)
 			}
 		}
@@ -734,33 +744,37 @@ func RunLineupsForAIProTeams() {
 				backPass = 10
 			}
 			if isForwardLine {
-				if gameplan.ForwardShotPreference == 1 {
+				switch gameplan.ForwardShotPreference {
+				case 1:
 					closeShot = 25
 					longShot = 15
-				} else if gameplan.ForwardShotPreference == 3 {
+				case 3:
 					closeShot = 15
 					longShot = 25
 				}
-				if gameplan.ForwardCheckPreference == 1 {
+				switch gameplan.ForwardCheckPreference {
+				case 1:
 					bodyCheck = 15
 					stickCheck = 5
-				} else if gameplan.ForwardCheckPreference == 3 {
+				case 3:
 					bodyCheck = 5
 					stickCheck = 15
 				}
 			}
 			if isDefenderLine {
-				if gameplan.DefenderShotPreference == 1 {
+				switch gameplan.DefenderShotPreference {
+				case 1:
 					closeShot = 25
 					longShot = 15
-				} else if gameplan.DefenderShotPreference == 3 {
+				case 3:
 					closeShot = 15
 					longShot = 25
 				}
-				if gameplan.DefenderCheckPreference == 1 {
+				switch gameplan.DefenderCheckPreference {
+				case 1:
 					bodyCheck = 15
 					stickCheck = 5
-				} else if gameplan.DefenderCheckPreference == 3 {
+				case 3:
 					bodyCheck = 5
 					stickCheck = 15
 				}
@@ -899,8 +913,8 @@ func CreateGameplans() {
 	proGamePlans := []structs.ProGameplan{}
 	collegeGameplans := []structs.CollegeGameplan{}
 
-	chlTeams := repository.FindAllCollegeTeams()
-	proTeams := repository.FindAllProTeams()
+	chlTeams := repository.FindAllCollegeTeams(repository.TeamClauses{LeagueID: "1"})
+	proTeams := repository.FindAllProTeams(repository.TeamClauses{LeagueID: "1"})
 
 	for _, team := range chlTeams {
 		gameplan := structs.CollegeGameplan{
@@ -982,87 +996,90 @@ func GetNonGoalieSortExpression(pref1, pref2, pref3 uint8, i structs.BasePlayer,
 	jVal1 := uint8(0)
 	jVal2 := uint8(0)
 	jVal3 := uint8(0)
-	if pref1 == 2 {
+	switch pref1 {
+	case 2:
 		iVal1 = i.CloseShotAccuracy
 		jVal1 = j.CloseShotAccuracy
-	} else if pref1 == 3 {
+	case 3:
 		iVal1 = i.LongShotAccuracy
 		jVal1 = j.LongShotAccuracy
-	} else if pref1 == 4 {
+	case 4:
 		iVal1 = i.Agility
 		jVal1 = j.Agility
-	} else if pref1 == 5 {
+	case 5:
 		iVal1 = i.PuckHandling
 		jVal1 = j.PuckHandling
-	} else if pref1 == 6 {
+	case 6:
 		iVal1 = i.Strength
 		jVal1 = j.Strength
-	} else if pref1 == 7 {
+	case 7:
 		iVal1 = i.BodyChecking
 		jVal1 = j.BodyChecking
-	} else if pref1 == 8 {
+	case 8:
 		iVal1 = i.StickChecking
 		jVal1 = j.StickChecking
-	} else if pref1 == 9 {
+	case 9:
 		iVal1 = i.Faceoffs
 		jVal1 = j.Faceoffs
-	} else if pref1 == 10 {
+	case 10:
 		iVal1 = i.Passing
 		jVal1 = j.Passing
 	}
-	if pref2 == 2 {
+	switch pref2 {
+	case 2:
 		iVal2 = i.CloseShotAccuracy
 		jVal2 = j.CloseShotAccuracy
-	} else if pref2 == 3 {
+	case 3:
 		iVal2 = i.LongShotAccuracy
 		jVal2 = j.LongShotAccuracy
-	} else if pref2 == 4 {
+	case 4:
 		iVal2 = i.Agility
 		jVal2 = j.Agility
-	} else if pref2 == 5 {
+	case 5:
 		iVal2 = i.PuckHandling
 		jVal2 = j.PuckHandling
-	} else if pref2 == 6 {
+	case 6:
 		iVal2 = i.Strength
 		jVal2 = j.Strength
-	} else if pref2 == 7 {
+	case 7:
 		iVal2 = i.BodyChecking
 		jVal2 = j.BodyChecking
-	} else if pref2 == 8 {
+	case 8:
 		iVal2 = i.StickChecking
 		jVal2 = j.StickChecking
-	} else if pref2 == 9 {
+	case 9:
 		iVal2 = i.Faceoffs
 		jVal2 = j.Faceoffs
-	} else if pref2 == 10 {
+	case 10:
 		iVal2 = i.Passing
 		jVal2 = j.Passing
 	}
-	if pref3 == 2 {
+	switch pref3 {
+	case 2:
 		iVal3 = i.CloseShotAccuracy
 		jVal3 = j.CloseShotAccuracy
-	} else if pref3 == 3 {
+	case 3:
 		iVal3 = i.LongShotAccuracy
 		jVal3 = j.LongShotAccuracy
-	} else if pref3 == 4 {
+	case 4:
 		iVal3 = i.Agility
 		jVal3 = j.Agility
-	} else if pref3 == 5 {
+	case 5:
 		iVal3 = i.PuckHandling
 		jVal3 = j.PuckHandling
-	} else if pref3 == 6 {
+	case 6:
 		iVal3 = i.Strength
 		jVal3 = j.Strength
-	} else if pref3 == 7 {
+	case 7:
 		iVal3 = i.BodyChecking
 		jVal3 = j.BodyChecking
-	} else if pref3 == 8 {
+	case 8:
 		iVal3 = i.StickChecking
 		jVal3 = j.StickChecking
-	} else if pref3 == 9 {
+	case 9:
 		iVal3 = i.Faceoffs
 		jVal3 = j.Faceoffs
-	} else if pref3 == 10 {
+	case 10:
 		iVal3 = i.Passing
 		jVal3 = j.Passing
 	}
@@ -1074,10 +1091,11 @@ func GetNonGoalieSortExpression(pref1, pref2, pref3 uint8, i structs.BasePlayer,
 func GetGoalieSortExpression(preference uint8, i structs.BasePlayer, j structs.BasePlayer) bool {
 	iVal := i.Overall
 	jVal := j.Overall
-	if preference == 2 {
+	switch preference {
+	case 2:
 		iVal = i.Goalkeeping
 		jVal = j.Goalkeeping
-	} else if preference == 3 {
+	case 3:
 		iVal = i.GoalieVision
 		jVal = j.GoalieVision
 	}

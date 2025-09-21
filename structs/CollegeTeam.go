@@ -58,6 +58,7 @@ type CollegeTeam struct {
 	IsClub            bool
 	IsActive          bool
 	PlayersProgressed bool
+	RecruitsAdded     bool
 	ProfileAttributes
 }
 
@@ -71,41 +72,56 @@ func (t *CollegeTeam) RemoveUser() {
 	t.Coach = ""
 }
 
+func (t *CollegeTeam) ToggleRecruitsAdded() {
+	t.RecruitsAdded = !t.RecruitsAdded
+}
+
+func (t *CollegeTeam) TogglePlayersProgressed() {
+	t.PlayersProgressed = !t.PlayersProgressed
+}
+
 type ProfessionalTeam struct {
 	gorm.Model
 	BaseTeam
-	Owner      string
-	GM         string
-	Scout      string
-	Marketing  string
-	DivisionID uint8
-	Division   string
+	Owner             string
+	GM                string
+	Scout             string
+	Marketing         string
+	DivisionID        uint8
+	Division          string
+	PlayersProgressed bool
+}
+
+func (t *ProfessionalTeam) TogglePlayersProgressed() {
+	t.PlayersProgressed = !t.PlayersProgressed
 }
 
 func (t *ProfessionalTeam) AssignUser(username, role string) {
-	if role == "Owner" {
+	switch role {
+	case "Owner":
 		t.Owner = username
-	} else if role == "GM" {
+	case "GM":
 		t.GM = username
-	} else if role == "Scout" {
+	case "Scout":
 		t.Scout = username
-	} else if role == "Coach" {
+	case "Coach":
 		t.Coach = username
-	} else {
+	default:
 		t.Marketing = username
 	}
 }
 
 func (t *ProfessionalTeam) RemoveUser(role string) {
-	if role == "Owner" {
+	switch role {
+	case "Owner":
 		t.Owner = ""
-	} else if role == "GM" {
+	case "GM":
 		t.GM = ""
-	} else if role == "Scout" {
+	case "Scout":
 		t.Scout = ""
-	} else if role == "Coach" {
+	case "Coach":
 		t.Coach = ""
-	} else {
+	default:
 		t.Marketing = ""
 	}
 }

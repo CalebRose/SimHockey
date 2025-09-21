@@ -360,3 +360,17 @@ func MakeProGameplanMap(gameplans []structs.ProGameplan) map[uint]structs.ProGam
 
 	return gameplanMap
 }
+
+func MakeCollegePlayerGameStatsMap(stats []structs.CollegePlayerGameStats) map[uint][]structs.CollegePlayerGameStats {
+	statsMap := make(map[uint][]structs.CollegePlayerGameStats)
+
+	for _, stat := range stats {
+		if len(statsMap[stat.PlayerID]) > 0 {
+			statsMap[stat.PlayerID] = append(statsMap[uint(stat.PlayerID)], stat)
+		} else {
+			statsMap[stat.PlayerID] = []structs.CollegePlayerGameStats{stat}
+		}
+	}
+
+	return statsMap
+}

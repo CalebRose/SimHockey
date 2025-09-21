@@ -195,7 +195,7 @@ func CancelWaiverOffer(offer structs.WaiverOfferDTO) {
 func SyncAIOffers() {
 	db := dbprovider.GetInstance().GetDB()
 
-	teams := repository.FindAllProTeams()
+	teams := repository.FindAllProTeams(repository.TeamClauses{})
 
 	offers := GetAllFreeAgencyOffers()
 	offerMapByTeamID := MakeFreeAgencyOfferMapByTeamID(offers)
@@ -226,13 +226,14 @@ func SyncAIOffers() {
 		dBids := 0
 		gBids := 0
 		for _, p := range roster {
-			if p.Position == Center {
+			switch p.Position {
+			case Center:
 				cCount++
-			} else if p.Position == Forward {
+			case Forward:
 				fCount++
-			} else if p.Position == Defender {
+			case Defender:
 				dCount++
-			} else {
+			default:
 				gCount++
 			}
 		}
@@ -241,13 +242,14 @@ func SyncAIOffers() {
 		for _, fa := range freeAgents {
 			existingOffers := freeAgentOfferMap[fa.ID]
 			if len(existingOffers) > 0 {
-				if fa.Position == Center {
+				switch fa.Position {
+				case Center:
 					cBids++
-				} else if fa.Position == Forward {
+				case Forward:
 					fBids++
-				} else if fa.Position == Defender {
+				case Defender:
 					dBids++
-				} else {
+				default:
 					gBids++
 				}
 			}
@@ -299,13 +301,14 @@ func SyncAIOffers() {
 			if yearsOnContract > 1 {
 				y2 = basePay
 			}
-			if fa.Position == Center {
+			switch fa.Position {
+			case Center:
 				cBids++
-			} else if fa.Position == Forward {
+			case Forward:
 				fBids++
-			} else if fa.Position == Defender {
+			case Defender:
 				dBids++
-			} else {
+			default:
 				gBids++
 			}
 			offer := structs.FreeAgencyOffer{

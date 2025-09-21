@@ -78,13 +78,14 @@ func (pg *CrootGenerator) generatePlayer() (structs.Recruit, structs.GlobalPlaye
 	star := util.GetStarRating(false)
 	state := ""
 	country := pickCountry()
-	if country == util.USA {
+	switch country {
+	case util.USA:
 		state = util.PickState()
-	} else if country == util.Canada {
+	case util.Canada:
 		state = util.PickProvince()
-	} else if country == util.Sweden {
+	case util.Sweden:
 		state = util.PickSwedishRegion()
-	} else if country == util.Russia {
+	case util.Russia:
 		state = util.PickRussianRegion()
 	}
 	pickedEthnicity := pickLocale(country)
@@ -99,7 +100,8 @@ func (pg *CrootGenerator) generatePlayer() (structs.Recruit, structs.GlobalPlaye
 	relativeIdx := 0
 	if relativeRoll == roof {
 		relativeType = getRelativeType()
-		if relativeType == 2 {
+		switch relativeType {
+		case 2:
 			// Brother of college player
 			fmt.Println("BROTHER")
 			relativeIdx = util.GenerateIntFromRange(0, cpLen)
@@ -112,7 +114,7 @@ func (pg *CrootGenerator) generatePlayer() (structs.Recruit, structs.GlobalPlaye
 			state = cp.State
 			country = cp.Country
 			notes = "Brother of " + cp.Team + " " + cp.Position + " " + cp.FirstName + " " + cp.LastName
-		} else if relativeType == 3 {
+		case 3:
 			fmt.Println("COUSIN")
 			// Cousin
 			relativeIdx = util.GenerateIntFromRange(0, cpLen)
@@ -131,7 +133,7 @@ func (pg *CrootGenerator) generatePlayer() (structs.Recruit, structs.GlobalPlaye
 			state = cp.State
 			country = cp.Country
 			notes = "Cousin of " + cp.Team + " " + cp.Position + " " + cp.FirstName + " " + cp.LastName
-		} else if relativeType == 4 {
+		case 4:
 			// Half Brother
 			fmt.Println("HALF BROTHER GENERATED")
 			relativeIdx = util.GenerateIntFromRange(0, cpLen)
@@ -150,11 +152,11 @@ func (pg *CrootGenerator) generatePlayer() (structs.Recruit, structs.GlobalPlaye
 			state = cp.State
 			country = cp.Country
 			notes = "Half-Brother of " + cp.Team + " " + cp.Position + " " + cp.FirstName + " " + cp.LastName
-		} else if relativeType == 5 {
+		case 5:
 			// Twin
 			relativeType = 5
 			relativeID = int(pg.newID)
-		} else {
+		default:
 			relativeType = 1
 		}
 	}
@@ -168,11 +170,12 @@ func (pg *CrootGenerator) generatePlayer() (structs.Recruit, structs.GlobalPlaye
 
 	pickedPosition := util.PickPosition()
 	crootLocations := pg.usCrootLocations[state]
-	if country == util.Canada {
+	switch country {
+	case util.Canada:
 		crootLocations = pg.cnCrootLocations[state]
-	} else if country == util.Sweden {
+	case util.Sweden:
 		crootLocations = pg.svCrootLocations[state]
-	} else if country == util.Russia {
+	case util.Russia:
 		crootLocations = pg.ruCrootLocations[state]
 	}
 	player := createRecruit(pickedPosition, "", star, firstName, lastName, pg.attributeBlob, country, state, "", "", crootLocations)
@@ -244,24 +247,26 @@ func (pg *CrootGenerator) generateTwin(player *structs.Recruit) (structs.Recruit
 }
 
 func (pg *CrootGenerator) updateStatistics(player structs.Recruit) {
-	if player.Stars == 5 {
+	switch player.Stars {
+	case 5:
 		pg.star5++
-	} else if player.Stars == 4 {
+	case 4:
 		pg.star4++
-	} else if player.Stars == 3 {
+	case 3:
 		pg.star3++
-	} else if player.Stars == 2 {
+	case 2:
 		pg.star2++
-	} else {
+	default:
 		pg.star1++
 	}
-	if player.Position == "C" {
+	switch player.Position {
+	case "C":
 		pg.cCount++
-	} else if player.Position == "F" {
+	case "F":
 		pg.fCount++
-	} else if player.Position == "D" {
+	case "D":
 		pg.dCount++
-	} else if player.Position == "G" {
+	case "G":
 		pg.gCount++
 	}
 
@@ -487,7 +492,7 @@ func GenerateInitialProPool() {
 
 	lastPlayerRecord := repository.FindLatestGlobalPlayerRecord()
 	latestID := lastPlayerRecord.ID + 1
-	proTeams := repository.FindAllProTeams()
+	proTeams := repository.FindAllProTeams(repository.TeamClauses{LeagueID: "1"})
 	ageList := []int{1, 1, 1, 2, 2, 2, 3, 3, 3, 4, 4, 4, 4, 5, 5, 5, 5, 6, 6, 6, 7, 7, 7, 8, 8, 9}
 	collegeTeams := GetAllCollegeTeams()
 	proList := []structs.ProfessionalPlayer{}
@@ -771,13 +776,14 @@ func (pg *CrootGenerator) createInitialPlayer(position string) (structs.Recruit,
 	star := util.GetStarRating(false)
 	state := ""
 	country := pickCountry()
-	if country == util.USA {
+	switch country {
+	case util.USA:
 		state = util.PickState()
-	} else if country == util.Canada {
+	case util.Canada:
 		state = util.PickProvince()
-	} else if country == util.Sweden {
+	case util.Sweden:
 		state = util.PickSwedishRegion()
-	} else if country == util.Russia {
+	case util.Russia:
 		state = util.PickRussianRegion()
 	}
 	pickedEthnicity := pickLocale(country)
@@ -860,11 +866,12 @@ func (pg *CrootGenerator) createInitialPlayer(position string) (structs.Recruit,
 	}
 
 	crootLocations := pg.usCrootLocations[state]
-	if country == "Canada" {
+	switch country {
+	case util.Canada:
 		crootLocations = pg.cnCrootLocations[state]
-	} else if country == "Sweden" {
+	case util.Sweden:
 		crootLocations = pg.svCrootLocations[state]
-	} else if country == "Russia" {
+	case util.Russia:
 		crootLocations = pg.ruCrootLocations[state]
 	}
 
@@ -1138,160 +1145,152 @@ func getInternationalNameMap() map[string]map[string][]string {
 
 func getAttributeValue(pos string, arch string, star int, attr string, blob map[string]map[string]map[string]map[string]interface{}) int {
 	starStr := strconv.Itoa(star)
-	if pos == "C" {
-		if arch == "Enforcer" {
-			if attr == "LongShotAccuracy" || attr == "CloseShotAccuracy" || attr == "OneTimer" || attr == "Passing" || attr == "ShotBlocking" {
+	switch pos {
+	case "C":
+		switch arch {
+		case "Enforcer":
+			switch attr {
+			case "LongShotAccuracy", "CloseShotAccuracy", "OneTimer", "Passing", "ShotBlocking":
 				return getValueFromInterfaceRange(starStr, blob["Default"]["Default"]["Default"])
-			} else if attr == "LongShotPower" || attr == "CloseShotPower" || attr == "BodyChecking" ||
-				attr == "StickChecking" || attr == "GoalieVision" || attr == "Goalkeeping" ||
-				attr == "GoalieReboundControl" {
+			case "LongShotPower", "CloseShotPower", "BodyChecking", "StickChecking", "GoalieVision", "Goalkeeping", "GoalieReboundControl":
 				return getValueFromInterfaceRange(starStr, blob["Under"]["Under"]["Under"])
 			}
-		} else if arch == "Grinder" {
-			if attr == "OneTimer" || attr == "Passing" || attr == "Agility" {
+		case "Grinder":
+			switch attr {
+			case "OneTimer", "Passing", "Agility":
 				return getValueFromInterfaceRange(starStr, blob["Default"]["Default"]["Default"])
-			} else if attr == "LongShotPower" || attr == "CloseShotPower" || attr == "LongShotAccuracy" || attr == "CloseShotAccuracy" || attr == "PuckHandling" ||
-				attr == "GoalieVision" || attr == "Goalkeeping" || attr == "GoalieReboundControl" || attr == "ShotBlocking" {
+			case "LongShotPower", "CloseShotPower", "LongShotAccuracy", "CloseShotAccuracy", "PuckHandling", "GoalieVision", "Goalkeeping", "GoalieReboundControl", "ShotBlocking":
 				return getValueFromInterfaceRange(starStr, blob["Under"]["Under"]["Under"])
 			}
-		} else if arch == "Playmaker" {
-			if attr == "LongShotPower" || attr == "CloseShotPower" || attr == "BodyChecking" ||
-				attr == "StickChecking" || attr == "LongShotAccuracy" || attr == "CloseShotAccuracy" || attr == "OneTimer" || attr == "Agility" {
+		case "Playmaker":
+			switch attr {
+			case "LongShotPower", "CloseShotPower", "BodyChecking", "StickChecking", "LongShotAccuracy", "CloseShotAccuracy", "OneTimer", "Agility":
 				return getValueFromInterfaceRange(starStr, blob["Default"]["Default"]["Default"])
-			} else if attr == "GoalieVision" || attr == "Goalkeeping" || attr == "GoalieReboundControl" || attr == "Strength" || attr == "ShotBlocking" {
+			case "GoalieVision", "Goalkeeping", "GoalieReboundControl", "Strength", "ShotBlocking":
 				return getValueFromInterfaceRange(starStr, blob["Under"]["Under"]["Under"])
 			}
-		} else if arch == "Power" {
-			if attr == "LongShotAccuracy" || attr == "CloseShotAccuracy" || attr == "OneTimer" || attr == "Agility" || attr == "PuckHandling" || attr == "Passing" {
+		case "Power":
+			switch attr {
+			case "LongShotAccuracy", "CloseShotAccuracy", "OneTimer", "Agility", "PuckHandling", "Passing":
 				return getValueFromInterfaceRange(starStr, blob["Default"]["Default"]["Default"])
-			} else if attr == "GoalieVision" || attr == "Goalkeeping" || attr == "GoalieReboundControl" ||
-				attr == "LongShotPower" || attr == "BodyChecking" || attr == "StickChecking" || attr == "ShotBlocking" {
+			case "GoalieVision", "Goalkeeping", "GoalieReboundControl", "LongShotPower", "BodyChecking", "StickChecking", "ShotBlocking":
 				return getValueFromInterfaceRange(starStr, blob["Under"]["Under"]["Under"])
 			}
-		} else if arch == "Sniper" {
-			if attr == "CloseShotAccuracy" || attr == "OneTimer" || attr == "Agility" || attr == "PuckHandling" {
+		case "Sniper":
+			switch attr {
+			case "CloseShotAccuracy", "OneTimer", "Agility", "PuckHandling":
 				return getValueFromInterfaceRange(starStr, blob["Default"]["Default"]["Default"])
-			} else if attr == "GoalieVision" || attr == "Goalkeeping" || attr == "GoalieReboundControl" ||
-				attr == "CloseShotPower" || attr == "BodyChecking" || attr == "StickChecking" || attr == "ShotBlocking" || attr == "Strength" {
+			case "GoalieVision", "Goalkeeping", "GoalieReboundControl", "CloseShotPower", "BodyChecking", "StickChecking", "ShotBlocking", "Strength":
 				return getValueFromInterfaceRange(starStr, blob["Under"]["Under"]["Under"])
 			}
-		} else if arch == "Two-Way" {
-			if attr == "LongShotPower" || attr == "CloseShotPower" || attr == "BodyChecking" || attr == "PuckHandling" ||
-				attr == "StickChecking" || attr == "LongShotAccuracy" || attr == "CloseShotAccuracy" ||
-				attr == "OneTimer" || attr == "Agility" || attr == "Strength" || attr == "ShotBlocking" {
+		case "Two-Way":
+			switch attr {
+			case "LongShotPower", "CloseShotPower", "BodyChecking", "PuckHandling", "StickChecking", "LongShotAccuracy", "CloseShotAccuracy", "OneTimer", "Agility", "Strength", "ShotBlocking":
 				return getValueFromInterfaceRange(starStr, blob["Default"]["Default"]["Default"])
-			} else if attr == "GoalieVision" || attr == "Goalkeeping" || attr == "GoalieReboundControl" {
-				return getValueFromInterfaceRange(starStr, blob["Under"]["Under"]["Under"])
-			}
-		}
-		return getValueFromInterfaceRange(starStr, blob[pos][arch][attr])
-	} else if pos == "F" {
-		if arch == "Enforcer" {
-			if attr == "LongShotAccuracy" || attr == "CloseShotAccuracy" || attr == "OneTimer" || attr == "Passing" || attr == "Faceoffs" || attr == "ShotBlocking" {
-				return getValueFromInterfaceRange(starStr, blob["Default"]["Default"]["Default"])
-			} else if attr == "LongShotPower" || attr == "CloseShotPower" || attr == "BodyChecking" ||
-				attr == "StickChecking" || attr == "GoalieVision" || attr == "Goalkeeping" ||
-				attr == "GoalieReboundControl" {
-				return getValueFromInterfaceRange(starStr, blob["Under"]["Under"]["Under"])
-			}
-		} else if arch == "Grinder" {
-			if attr == "OneTimer" || attr == "Passing" || attr == "Agility" || attr == "Faceoffs" {
-				return getValueFromInterfaceRange(starStr, blob["Default"]["Default"]["Default"])
-			} else if attr == "LongShotPower" || attr == "CloseShotPower" || attr == "LongShotAccuracy" || attr == "CloseShotAccuracy" || attr == "ShotBlocking" || attr == "PuckHandling" ||
-				attr == "GoalieVision" || attr == "Goalkeeping" || attr == "GoalieReboundControl" {
-				return getValueFromInterfaceRange(starStr, blob["Under"]["Under"]["Under"])
-			}
-		} else if arch == "Playmaker" {
-			if attr == "LongShotPower" || attr == "CloseShotPower" || attr == "BodyChecking" ||
-				attr == "StickChecking" || attr == "LongShotAccuracy" || attr == "CloseShotAccuracy" ||
-				attr == "OneTimer" || attr == "Agility" || attr == "Faceoffs" {
-				return getValueFromInterfaceRange(starStr, blob["Default"]["Default"]["Default"])
-			} else if attr == "GoalieVision" || attr == "Goalkeeping" || attr == "GoalieReboundControl" || attr == "Strength" || attr == "ShotBlocking" {
-				return getValueFromInterfaceRange(starStr, blob["Under"]["Under"]["Under"])
-			}
-		} else if arch == "Power" {
-			if attr == "LongShotAccuracy" || attr == "CloseShotAccuracy" || attr == "OneTimer" || attr == "Agility" || attr == "PuckHandling" || attr == "Passing" || attr == "Faceoffs" {
-				return getValueFromInterfaceRange(starStr, blob["Default"]["Default"]["Default"])
-			} else if attr == "GoalieVision" || attr == "Goalkeeping" || attr == "GoalieReboundControl" ||
-				attr == "LongShotPower" || attr == "BodyChecking" || attr == "StickChecking" || attr == "ShotBlocking" {
-				return getValueFromInterfaceRange(starStr, blob["Under"]["Under"]["Under"])
-			}
-		} else if arch == "Sniper" {
-			if attr == "CloseShotAccuracy" || attr == "OneTimer" || attr == "Agility" || attr == "PuckHandling" || attr == "Faceoffs" {
-				return getValueFromInterfaceRange(starStr, blob["Default"]["Default"]["Default"])
-			} else if attr == "GoalieVision" || attr == "Goalkeeping" || attr == "GoalieReboundControl" ||
-				attr == "CloseShotPower" || attr == "BodyChecking" || attr == "StickChecking" || attr == "ShotBlocking" || attr == "Strength" {
-				return getValueFromInterfaceRange(starStr, blob["Under"]["Under"]["Under"])
-			}
-		} else if arch == "Two-Way" {
-			if attr == "LongShotPower" || attr == "CloseShotPower" || attr == "BodyChecking" || attr == "PuckHandling" ||
-				attr == "StickChecking" || attr == "LongShotAccuracy" || attr == "CloseShotAccuracy" ||
-				attr == "OneTimer" || attr == "Agility" || attr == "Strength" || attr == "Faceoffs" || attr == "ShotBlocking" {
-				return getValueFromInterfaceRange(starStr, blob["Default"]["Default"]["Default"])
-			} else if attr == "GoalieVision" || attr == "Goalkeeping" || attr == "GoalieReboundControl" {
+			case "GoalieVision", "Goalkeeping", "GoalieReboundControl":
 				return getValueFromInterfaceRange(starStr, blob["Under"]["Under"]["Under"])
 			}
 		}
 		return getValueFromInterfaceRange(starStr, blob[pos][arch][attr])
-	} else if pos == "D" {
-		if arch == "Defensive" {
-			if attr == "OneTimer" || attr == "Passing" || attr == "Agility" {
+	case "F":
+		switch arch {
+		case "Enforcer":
+			switch attr {
+			case "LongShotAccuracy", "CloseShotAccuracy", "OneTimer", "Passing", "Faceoffs", "ShotBlocking":
 				return getValueFromInterfaceRange(starStr, blob["Default"]["Default"]["Default"])
-			} else if attr == "LongShotAccuracy" || attr == "CloseShotAccuracy" || attr == "PuckHandling" ||
-				attr == "LongShotPower" || attr == "CloseShotPower" || attr == "StickChecking" ||
-				attr == "GoalieVision" || attr == "Goalkeeping" ||
-				attr == "GoalieReboundControl" || attr == "Faceoffs" {
+			case "LongShotPower", "CloseShotPower", "BodyChecking", "StickChecking", "GoalieVision", "Goalkeeping", "GoalieReboundControl":
 				return getValueFromInterfaceRange(starStr, blob["Under"]["Under"]["Under"])
 			}
-		} else if arch == "Enforcer" {
-			if attr == "LongShotAccuracy" || attr == "CloseShotAccuracy" || attr == "OneTimer" || attr == "Passing" || attr == "ShotBlocking" {
+		case "Grinder":
+			switch attr {
+			case "OneTimer", "Passing", "Agility", "Faceoffs":
 				return getValueFromInterfaceRange(starStr, blob["Default"]["Default"]["Default"])
-			} else if attr == "PuckHandling" || attr == "LongShotPower" || attr == "CloseShotPower" ||
-				attr == "StickChecking" || attr == "GoalieVision" || attr == "Goalkeeping" ||
-				attr == "GoalieReboundControl" || attr == "Faceoffs" {
+			case "LongShotPower", "CloseShotPower", "LongShotAccuracy", "CloseShotAccuracy", "ShotBlocking", "PuckHandling", "GoalieVision", "Goalkeeping", "GoalieReboundControl":
 				return getValueFromInterfaceRange(starStr, blob["Under"]["Under"]["Under"])
 			}
-		} else if arch == "Two-Way" {
-			if attr == "OneTimer" || attr == "Strength" || attr == "Agility" || attr == "LongShotAccuracy" || attr == "CloseShotAccuracy" || attr == "ShotBlocking" {
+		case "Playmaker":
+			switch attr {
+			case "LongShotPower", "CloseShotPower", "BodyChecking", "StickChecking", "LongShotAccuracy", "CloseShotAccuracy", "OneTimer", "Agility", "Faceoffs":
 				return getValueFromInterfaceRange(starStr, blob["Default"]["Default"]["Default"])
-			} else if attr == "PuckHandling" || attr == "LongShotPower" || attr == "CloseShotPower" || attr == "StickChecking" ||
-				attr == "GoalieVision" || attr == "Goalkeeping" || attr == "Agility" ||
-				attr == "GoalieReboundControl" || attr == "Faceoffs" {
+			case "GoalieVision", "Goalkeeping", "GoalieReboundControl", "Strength", "ShotBlocking":
 				return getValueFromInterfaceRange(starStr, blob["Under"]["Under"]["Under"])
 			}
-		} else if arch == "Offensive" {
-			if attr == "OneTimer" || attr == "Agility" || attr == "LongShotAccuracy" || attr == "CloseShotAccuracy" {
+		case "Power":
+			switch attr {
+			case "LongShotAccuracy", "CloseShotAccuracy", "OneTimer", "Agility", "PuckHandling", "Passing", "Faceoffs":
 				return getValueFromInterfaceRange(starStr, blob["Default"]["Default"]["Default"])
-			} else if attr == "StickChecking" || attr == "BodyChecking" || attr == "Strength" ||
-				attr == "GoalieVision" || attr == "Goalkeeping" || attr == "Agility" || attr == "ShotBlocking" ||
-				attr == "GoalieReboundControl" || attr == "Faceoffs" || attr == "CloseShotPower" {
+			case "GoalieVision", "Goalkeeping", "GoalieReboundControl", "LongShotPower", "BodyChecking", "StickChecking", "ShotBlocking":
+				return getValueFromInterfaceRange(starStr, blob["Under"]["Under"]["Under"])
+			}
+		case "Sniper":
+			switch attr {
+			case "CloseShotAccuracy", "OneTimer", "Agility", "PuckHandling", "Faceoffs":
+				return getValueFromInterfaceRange(starStr, blob["Default"]["Default"]["Default"])
+			case "GoalieVision", "Goalkeeping", "GoalieReboundControl", "CloseShotPower", "BodyChecking", "StickChecking", "ShotBlocking", "Strength":
+				return getValueFromInterfaceRange(starStr, blob["Under"]["Under"]["Under"])
+			}
+		case "Two-Way":
+			switch attr {
+			case "LongShotPower", "CloseShotPower", "BodyChecking", "PuckHandling", "StickChecking", "LongShotAccuracy", "CloseShotAccuracy", "OneTimer", "Agility", "Strength", "Faceoffs", "ShotBlocking":
+				return getValueFromInterfaceRange(starStr, blob["Default"]["Default"]["Default"])
+			case "GoalieVision", "Goalkeeping", "GoalieReboundControl":
 				return getValueFromInterfaceRange(starStr, blob["Under"]["Under"]["Under"])
 			}
 		}
 		return getValueFromInterfaceRange(starStr, blob[pos][arch][attr])
-	} else if pos == "G" {
-		if arch == "Stand-Up" {
-			if attr == "GoalieReboundControl" || attr == "Passing" || attr == "PuckHandling" {
+	case "D":
+		switch arch {
+		case "Defensive":
+			switch attr {
+			case "OneTimer", "Passing", "Agility":
 				return getValueFromInterfaceRange(starStr, blob["Default"]["Default"]["Default"])
-			} else if attr == "StickChecking" || attr == "BodyChecking" || attr == "LongShotAccuracy" || attr == "LongShotPower" ||
-				attr == "Goalkeeping" || attr == "Agility" || attr == "ShotBlocking" || attr == "CloseShotAccuracy" || attr == "CloseShotPower" ||
-				attr == "Faceoffs" || attr == "PuckHandling" || attr == "OneTimer" {
+			case "LongShotAccuracy", "CloseShotAccuracy", "PuckHandling", "LongShotPower", "CloseShotPower", "StickChecking", "GoalieVision", "Goalkeeping", "GoalieReboundControl", "Faceoffs":
 				return getValueFromInterfaceRange(starStr, blob["Under"]["Under"]["Under"])
 			}
-		} else if arch == "Hybrid" {
-			if attr == "GoalieReboundControl" || attr == "Passing" || attr == "PuckHandling" || attr == "Goalkeeping" || attr == "GoalieVision" || attr == "Agility" || attr == "Strength" {
+		case "Enforcer":
+			switch attr {
+			case "LongShotAccuracy", "CloseShotAccuracy", "OneTimer", "Passing", "ShotBlocking":
 				return getValueFromInterfaceRange(starStr, blob["Default"]["Default"]["Default"])
-			} else if attr == "StickChecking" || attr == "BodyChecking" || attr == "LongShotAccuracy" || attr == "LongShotPower" ||
-				attr == "ShotBlocking" || attr == "CloseShotAccuracy" || attr == "CloseShotPower" ||
-				attr == "Faceoffs" || attr == "PuckHandling" || attr == "OneTimer" {
+			case "PuckHandling", "LongShotPower", "CloseShotPower", "StickChecking", "GoalieVision", "Goalkeeping", "GoalieReboundControl", "Faceoffs":
 				return getValueFromInterfaceRange(starStr, blob["Under"]["Under"]["Under"])
 			}
-		} else if arch == "Butterfly" {
-			if attr == "GoalieReboundControl" || attr == "Passing" || attr == "PuckHandling" {
+		case "Two-Way":
+			switch attr {
+			case "OneTimer", "Strength", "LongShotAccuracy", "CloseShotAccuracy", "ShotBlocking":
 				return getValueFromInterfaceRange(starStr, blob["Default"]["Default"]["Default"])
-			} else if attr == "StickChecking" || attr == "BodyChecking" || attr == "LongShotAccuracy" || attr == "LongShotPower" ||
-				attr == "GoalieVision" || attr == "Strength" || attr == "ShotBlocking" || attr == "CloseShotAccuracy" || attr == "CloseShotPower" ||
-				attr == "Faceoffs" || attr == "PuckHandling" || attr == "OneTimer" {
+			case "PuckHandling", "LongShotPower", "CloseShotPower", "StickChecking", "GoalieVision", "Goalkeeping", "Agility", "GoalieReboundControl", "Faceoffs":
+				return getValueFromInterfaceRange(starStr, blob["Under"]["Under"]["Under"])
+			}
+		case "Offensive":
+			switch attr {
+			case "OneTimer", "Agility", "LongShotAccuracy", "CloseShotAccuracy":
+				return getValueFromInterfaceRange(starStr, blob["Default"]["Default"]["Default"])
+			case "StickChecking", "BodyChecking", "Strength", "GoalieVision", "Goalkeeping", "ShotBlocking", "GoalieReboundControl", "Faceoffs", "CloseShotPower":
+				return getValueFromInterfaceRange(starStr, blob["Under"]["Under"]["Under"])
+			}
+		}
+		return getValueFromInterfaceRange(starStr, blob[pos][arch][attr])
+	case "G":
+		switch arch {
+		case "Stand-Up":
+			switch attr {
+			case "GoalieReboundControl", "Passing":
+				return getValueFromInterfaceRange(starStr, blob["Default"]["Default"]["Default"])
+			case "StickChecking", "BodyChecking", "LongShotAccuracy", "LongShotPower", "Goalkeeping", "Agility", "ShotBlocking", "CloseShotAccuracy", "CloseShotPower", "Faceoffs", "PuckHandling", "OneTimer":
+				return getValueFromInterfaceRange(starStr, blob["Under"]["Under"]["Under"])
+			}
+		case "Hybrid":
+			switch attr {
+			case "GoalieReboundControl", "Passing", "Goalkeeping", "GoalieVision", "Agility", "Strength":
+				return getValueFromInterfaceRange(starStr, blob["Default"]["Default"]["Default"])
+			case "StickChecking", "BodyChecking", "LongShotAccuracy", "LongShotPower", "ShotBlocking", "CloseShotAccuracy", "CloseShotPower", "Faceoffs", "PuckHandling", "OneTimer":
+				return getValueFromInterfaceRange(starStr, blob["Under"]["Under"]["Under"])
+			}
+		case "Butterfly":
+			switch attr {
+			case "GoalieReboundControl", "Passing":
+				return getValueFromInterfaceRange(starStr, blob["Default"]["Default"]["Default"])
+			case "StickChecking", "BodyChecking", "LongShotAccuracy", "LongShotPower", "GoalieVision", "Strength", "ShotBlocking", "CloseShotAccuracy", "CloseShotPower", "Faceoffs", "PuckHandling", "OneTimer":
 				return getValueFromInterfaceRange(starStr, blob["Under"]["Under"]["Under"])
 			}
 		}
@@ -1305,7 +1304,8 @@ func getNationalityValueModifier(country, attr string, value int) int {
 		return value
 	}
 
-	if country == util.Russia {
+	switch country {
+	case util.Russia:
 		if attr == "Aggression" {
 			return value + 5
 		} else if attr == util.CloseShotPower || attr == util.Strength || attr == util.BodyChecking {
@@ -1313,13 +1313,13 @@ func getNationalityValueModifier(country, attr string, value int) int {
 		} else if (attr == util.LongShotPower || attr == util.Agility || attr == util.StickChecking) && value > 2 {
 			return value - 2
 		}
-	} else if country == util.Sweden {
+	case util.Sweden:
 		if (attr == util.CloseShotPower || attr == util.Agility) && value > 2 {
 			return value - 2
 		} else if attr == util.LongShotPower {
 			return value + 2
 		}
-	} else if country == "Finland" {
+	case "Finland":
 		if attr == "Aggression" {
 			return value - 5
 		} else if (attr == util.CloseShotPower || attr == util.Strength || attr == util.BodyChecking) && value > 2 {
@@ -1337,22 +1337,26 @@ func getNationalityPotentialModifier(country, attr string, value int) int {
 		return value
 	}
 
-	if country == util.Russia {
-		if attr == util.CloseShotPower || attr == util.Strength || attr == util.BodyChecking {
+	switch country {
+	case util.Russia:
+		switch attr {
+		case util.CloseShotPower, util.Strength, util.BodyChecking:
 			return value + 5
-		} else if attr == util.LongShotPower || attr == util.Agility || attr == util.StickChecking {
+		case util.LongShotPower, util.Agility, util.StickChecking:
 			return value - 5
 		}
-	} else if country == util.Sweden {
-		if attr == util.CloseShotPower || attr == util.Agility {
+	case util.Sweden:
+		switch attr {
+		case util.CloseShotPower, util.Agility:
 			return value - 5
-		} else if attr == util.LongShotPower {
+		case util.LongShotPower:
 			return value + 5
 		}
-	} else if country == "Finland" {
-		if attr == util.CloseShotPower || attr == util.Strength || attr == util.BodyChecking {
+	case "Finland":
+		switch attr {
+		case util.CloseShotPower, util.Strength, util.BodyChecking:
 			return value - 5
-		} else if attr == util.LongShotPower || attr == util.Agility || attr == util.PuckHandling || attr == util.StickChecking {
+		case util.LongShotPower, util.Agility, util.PuckHandling, util.StickChecking:
 			return value + 5
 		}
 	}

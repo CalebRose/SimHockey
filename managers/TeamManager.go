@@ -10,11 +10,11 @@ func GetCollegeTeamByTeamID(teamID string) structs.CollegeTeam {
 }
 
 func GetAllCollegeTeams() []structs.CollegeTeam {
-	return repository.FindAllCollegeTeams()
+	return repository.FindAllCollegeTeams(repository.TeamClauses{LeagueID: "1"})
 }
 
 func GetCollegeTeamMap() map[uint]structs.CollegeTeam {
-	teams := repository.FindAllCollegeTeams()
+	teams := repository.FindAllCollegeTeams(repository.TeamClauses{LeagueID: "1"})
 	return MakeCollegeTeamMap(teams)
 }
 
@@ -23,10 +23,10 @@ func GetProTeamByTeamID(teamID string) structs.ProfessionalTeam {
 }
 
 func GetAllProfessionalTeams() []structs.ProfessionalTeam {
-	return repository.FindAllProTeams()
+	return repository.FindAllProTeams(repository.TeamClauses{LeagueID: "1"})
 }
 
 func GetProTeamMap() map[uint]structs.ProfessionalTeam {
-	teams := repository.FindAllProTeams()
+	teams := repository.FindAllProTeams(repository.TeamClauses{LeagueID: "1"})
 	return MakeProTeamMap(teams)
 }

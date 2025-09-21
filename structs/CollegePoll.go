@@ -147,102 +147,103 @@ func (s *CollegePollSubmission) MoveSubmissionToNextWeek(weekID, week uint) {
 }
 
 func (c *CollegePollOfficial) AssignRank(idx int, vote TeamVote) {
-	if idx == 0 {
+	switch idx {
+	case 0:
 		c.Rank1 = vote.Team
 		c.Rank1Votes = vote.TotalVotes
 		c.Rank1ID = vote.TeamID
 		c.Rank1No1Votes = vote.Number1Votes
-	} else if idx == 1 {
+	case 1:
 		c.Rank2 = vote.Team
 		c.Rank2Votes = vote.TotalVotes
 		c.Rank2ID = vote.TeamID
 		c.Rank2No1Votes = vote.Number1Votes
-	} else if idx == 2 {
+	case 2:
 		c.Rank3 = vote.Team
 		c.Rank3Votes = vote.TotalVotes
 		c.Rank3ID = vote.TeamID
 		c.Rank3No1Votes = vote.Number1Votes
-	} else if idx == 3 {
+	case 3:
 		c.Rank4 = vote.Team
 		c.Rank4Votes = vote.TotalVotes
 		c.Rank4ID = vote.TeamID
 		c.Rank4No1Votes = vote.Number1Votes
-	} else if idx == 4 {
+	case 4:
 		c.Rank5 = vote.Team
 		c.Rank5Votes = vote.TotalVotes
 		c.Rank5ID = vote.TeamID
 		c.Rank5No1Votes = vote.Number1Votes
-	} else if idx == 5 {
+	case 5:
 		c.Rank6 = vote.Team
 		c.Rank6Votes = vote.TotalVotes
 		c.Rank6ID = vote.TeamID
 		c.Rank6No1Votes = vote.Number1Votes
-	} else if idx == 6 {
+	case 6:
 		c.Rank7 = vote.Team
 		c.Rank7Votes = vote.TotalVotes
 		c.Rank7ID = vote.TeamID
 		c.Rank7No1Votes = vote.Number1Votes
-	} else if idx == 7 {
+	case 7:
 		c.Rank8 = vote.Team
 		c.Rank8Votes = vote.TotalVotes
 		c.Rank8ID = vote.TeamID
 		c.Rank8No1Votes = vote.Number1Votes
-	} else if idx == 8 {
+	case 8:
 		c.Rank9 = vote.Team
 		c.Rank9Votes = vote.TotalVotes
 		c.Rank9ID = vote.TeamID
 		c.Rank9No1Votes = vote.Number1Votes
-	} else if idx == 9 {
+	case 9:
 		c.Rank10 = vote.Team
 		c.Rank10Votes = vote.TotalVotes
 		c.Rank10ID = vote.TeamID
 		c.Rank10No1Votes = vote.Number1Votes
-	} else if idx == 10 {
+	case 10:
 		c.Rank11 = vote.Team
 		c.Rank11Votes = vote.TotalVotes
 		c.Rank11ID = vote.TeamID
 		c.Rank11No1Votes = vote.Number1Votes
-	} else if idx == 11 {
+	case 11:
 		c.Rank12 = vote.Team
 		c.Rank12Votes = vote.TotalVotes
 		c.Rank12ID = vote.TeamID
 		c.Rank12No1Votes = vote.Number1Votes
-	} else if idx == 12 {
+	case 12:
 		c.Rank13 = vote.Team
 		c.Rank13Votes = vote.TotalVotes
 		c.Rank13ID = vote.TeamID
 		c.Rank13No1Votes = vote.Number1Votes
-	} else if idx == 13 {
+	case 13:
 		c.Rank14 = vote.Team
 		c.Rank14Votes = vote.TotalVotes
 		c.Rank14ID = vote.TeamID
 		c.Rank14No1Votes = vote.Number1Votes
-	} else if idx == 14 {
+	case 14:
 		c.Rank15 = vote.Team
 		c.Rank15Votes = vote.TotalVotes
 		c.Rank15ID = vote.TeamID
 		c.Rank15No1Votes = vote.Number1Votes
-	} else if idx == 15 {
+	case 15:
 		c.Rank16 = vote.Team
 		c.Rank16Votes = vote.TotalVotes
 		c.Rank16ID = vote.TeamID
 		c.Rank16No1Votes = vote.Number1Votes
-	} else if idx == 16 {
+	case 16:
 		c.Rank17 = vote.Team
 		c.Rank17Votes = vote.TotalVotes
 		c.Rank17ID = vote.TeamID
 		c.Rank17No1Votes = vote.Number1Votes
-	} else if idx == 17 {
+	case 17:
 		c.Rank18 = vote.Team
 		c.Rank18Votes = vote.TotalVotes
 		c.Rank18ID = vote.TeamID
 		c.Rank18No1Votes = vote.Number1Votes
-	} else if idx == 18 {
+	case 18:
 		c.Rank19 = vote.Team
 		c.Rank19Votes = vote.TotalVotes
 		c.Rank19ID = vote.TeamID
 		c.Rank19No1Votes = vote.Number1Votes
-	} else if idx == 19 {
+	case 19:
 		c.Rank20 = vote.Team
 		c.Rank20Votes = vote.TotalVotes
 		c.Rank20ID = vote.TeamID

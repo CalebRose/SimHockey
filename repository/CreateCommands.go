@@ -119,3 +119,33 @@ func CreateCollegePollSubmissionRecord(db *gorm.DB, poll structs.CollegePollSubm
 
 	return nil
 }
+
+func CreateDraftablePlayerRecordsBatch(db *gorm.DB, players []structs.DraftablePlayer, batchSize int) error {
+	total := len(players)
+	for i := 0; i < total; i += batchSize {
+		end := i + batchSize
+		if end > total {
+			end = total
+		}
+
+		if err := db.CreateInBatches(players[i:end], batchSize).Error; err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func CreateHistoricCollegePlayerRecordsBatch(db *gorm.DB, players []structs.HistoricCollegePlayer, batchSize int) error {
+	total := len(players)
+	for i := 0; i < total; i += batchSize {
+		end := i + batchSize
+		if end > total {
+			end = total
+		}
+
+		if err := db.CreateInBatches(players[i:end], batchSize).Error; err != nil {
+			return err
+		}
+	}
+	return nil
+}

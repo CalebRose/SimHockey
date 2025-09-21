@@ -606,6 +606,34 @@ type BasePotentials struct {
 	GoalieReboundPotential     uint8 // Goalkeepers' ability to block a shot
 }
 
+func (pot *BasePotentials) RerollPotentialsWithinRange() {
+	pot.AgilityPotential = RerollPotential(pot.AgilityPotential)
+	pot.FaceoffsPotential = RerollPotential(pot.FaceoffsPotential)
+	pot.CloseShotAccuracyPotential = RerollPotential(pot.CloseShotAccuracyPotential)
+	pot.CloseShotPowerPotential = RerollPotential(pot.CloseShotPowerPotential)
+	pot.LongShotAccuracyPotential = RerollPotential(pot.LongShotAccuracyPotential)
+	pot.LongShotPowerPotential = RerollPotential(pot.LongShotPowerPotential)
+	pot.PassingPotential = RerollPotential(pot.PassingPotential)
+	pot.PuckHandlingPotential = RerollPotential(pot.PuckHandlingPotential)
+	pot.StrengthPotential = RerollPotential(pot.StrengthPotential)
+	pot.BodyCheckingPotential = RerollPotential(pot.BodyCheckingPotential)
+	pot.StickCheckingPotential = RerollPotential(pot.StickCheckingPotential)
+	pot.ShotBlockingPotential = RerollPotential(pot.ShotBlockingPotential)
+	pot.GoalkeepingPotential = RerollPotential(pot.GoalkeepingPotential)
+	pot.GoalieVisionPotential = RerollPotential(pot.GoalieVisionPotential)
+	pot.GoalieReboundPotential = RerollPotential(pot.GoalieReboundPotential)
+}
+
+func RerollPotential(attr uint8) uint8 {
+	ap := util.GenerateIntFromRange(int(attr)-10, int(attr)+10)
+	if ap < 1 {
+		ap = util.GenerateIntFromRange(1, 10)
+	} else if ap > 100 {
+		ap = 100
+	}
+	return uint8(ap)
+}
+
 type BaseInjuryData struct {
 	IsInjured      bool
 	DaysOfRecovery int8
@@ -934,4 +962,37 @@ func (r *Recruit) AssignRankValues(rank247 float32, espnRank float32, rivalsRank
 
 func (r *Recruit) AssignRecruitingModifier(recruitingMod float32) {
 	r.RecruitingModifier = recruitingMod
+}
+
+type BaseLetterGrades struct {
+	AgilityGrade              string // How fast a player can go in a zone without a defense check
+	FaceoffsGrade             string // Ability to win faceoffs
+	LongShotAccuracyGrade     string // Accuracy on non-close shots
+	LongShotPowerGrade        string // Power on non-close shots. High power means less shotblocking
+	CloseShotAccuracyGrade    string // Accuracy on close shots. Great on pass plays
+	CloseShotPowerGrade       string // Power on Close shots
+	OneTimerGrade             string // Shots bassed on passing. Essentially a modifier that gets greater with each pass in a zone
+	PassingGrade              string // Passing ability
+	PuckHandlingGrade         string // Ability to handle the puck when going between zones.
+	StrengthGrade             string // General modifier on all physical attributes. Also used in fights
+	BodyCheckingGrade         string // Physical defense check.
+	StickCheckingGrade        string // Non-phyisical defense check
+	ShotBlockingGrade         string // Ability for defensemen to block a shot being made
+	GoalkeepingGrade          string // Goalkeepers' ability to block a shot
+	GoalieVisionGrade         string // Goalkeepers' vision
+	GoalieReboundControlGrade string // Ability to control a rebound
+}
+
+type DraftablePlayer struct {
+	gorm.Model
+	BasePlayer
+	BaseLetterGrades
+	BasePotentials
+	BaseInjuryData
+	CollegeID     uint
+	DraftedTeamID uint8
+	DraftedTeam   string
+	DraftedRound  uint8
+	DraftPickID   uint
+	DraftedPick   uint16
 }

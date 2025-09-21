@@ -512,7 +512,7 @@ func GeneratePreseasonGames() {
 func PrepareCollegeTournamentGamesFormat(db *gorm.DB, ts structs.Timestamp) {
 	seasonID := ts.SeasonID
 	nextGameID := repository.FindLatestGameID() + 1
-	collegeTeams := repository.FindAllCollegeTeams()
+	collegeTeams := repository.FindAllCollegeTeams(repository.TeamClauses{LeagueID: "1"})
 	teamMap := MakeCollegeTeamMap(collegeTeams)
 	standingsMap := GetCollegeStandingsMap(strconv.Itoa(int(seasonID)))
 	conferenceMap := map[uint8][]*structs.CollegeStandings{}
@@ -721,7 +721,7 @@ func PrepareCollegeTournamentGamesFormat(db *gorm.DB, ts structs.Timestamp) {
 func PrepareCHLPostSeasonGamesFormat(db *gorm.DB, ts structs.Timestamp) {
 	seasonID := ts.SeasonID
 	baseID := repository.FindLatestGameID() + 1
-	collegeTeams := repository.FindAllCollegeTeams()
+	collegeTeams := repository.FindAllCollegeTeams(repository.TeamClauses{LeagueID: "1"})
 	collegeStandings := repository.FindAllCollegeStandings(strconv.Itoa(int(seasonID)), "", "")
 	stMap := MakeCollegeStandingsMap(collegeStandings)
 	pool := []*structs.CollegeStandings{}
@@ -1233,11 +1233,12 @@ func getCollegeForwardDefenderGoalieLineups(lineups []structs.CollegeLineup) ([]
 	defenders := []structs.BaseLineup{}
 	goalies := []structs.BaseLineup{}
 	for _, l := range lineups {
-		if l.LineType == 1 {
+		switch l.LineType {
+		case 1:
 			forwards = append(forwards, l.BaseLineup)
-		} else if l.LineType == 2 {
+		case 2:
 			defenders = append(defenders, l.BaseLineup)
-		} else {
+		default:
 			goalies = append(goalies, l.BaseLineup)
 		}
 	}
@@ -1249,11 +1250,12 @@ func getProfessionalForwardDefenderGoalieLineups(lineups []structs.ProfessionalL
 	defenders := []structs.BaseLineup{}
 	goalies := []structs.BaseLineup{}
 	for _, l := range lineups {
-		if l.LineType == 1 {
+		switch l.LineType {
+		case 1:
 			forwards = append(forwards, l.BaseLineup)
-		} else if l.LineType == 2 {
+		case 2:
 			defenders = append(defenders, l.BaseLineup)
-		} else {
+		default:
 			goalies = append(goalies, l.BaseLineup)
 		}
 	}

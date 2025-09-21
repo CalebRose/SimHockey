@@ -23,15 +23,16 @@ func CutCHLPlayer(playerId string) {
 		collegePromise := GetCollegePromiseByCollegePlayerID(strconv.Itoa(int(player.ID)), previousTeamID)
 		if collegePromise.IsActive && collegePromise.PromiseMade {
 			weight := collegePromise.PromiseWeight
-			if weight == "Vew Low" {
+			switch weight {
+			case "Vew Low":
 				promiseDeduction = 3
-			} else if weight == "Low" {
+			case "Low":
 				promiseDeduction = 8
-			} else if weight == "Medium" {
+			case "Medium":
 				promiseDeduction = 13
-			} else if weight == "High" {
+			case "High":
 				promiseDeduction = 23
-			} else if weight == "Very High" {
+			case "Very High":
 				promiseDeduction = 28
 			}
 		}

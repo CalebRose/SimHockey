@@ -20,7 +20,7 @@ func GetProCapsheetMap() map[uint]structs.ProCapsheet {
 
 func AllocateCapsheets() {
 	db := dbprovider.GetInstance().GetDB()
-	teams := repository.FindAllProTeams()
+	teams := repository.FindAllProTeams(repository.TeamClauses{})
 	proCapSheetMap := GetProCapsheetMap()
 	contractMap := GetContractMap()
 

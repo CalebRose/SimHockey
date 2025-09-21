@@ -9,6 +9,13 @@ import (
 	"gorm.io/gorm"
 )
 
+type TeamClauses struct {
+	IDs           []string
+	ID            string
+	LeagueID      string
+	IsUserCoached string
+}
+
 func FindCollegeTeamRecord(id string) structs.CollegeTeam {
 	db := dbprovider.GetInstance().GetDB()
 
@@ -35,27 +42,60 @@ func FindProTeamRecord(id string) structs.ProfessionalTeam {
 	return proTeam
 }
 
-func FindAllCollegeTeams() []structs.CollegeTeam {
+func FindAllCollegeTeams(clauses TeamClauses) []structs.CollegeTeam {
 	db := dbprovider.GetInstance().GetDB()
 
 	var CollegeTeams []structs.CollegeTeam
-	err := db.Find(&CollegeTeams).Error
-	if err != nil {
-		log.Printf("Error querying for college teams: %v", err)
 
+	query := db.Model(&CollegeTeams)
+
+	if len(clauses.IDs) > 0 {
+		query = query.Where("id in (?)", clauses.IDs)
+	}
+
+	if len(clauses.ID) > 0 {
+		query = query.Where("id = ?", clauses.ID)
+	}
+
+	if len(clauses.LeagueID) > 0 {
+		query = query.Where("league_id = ?", clauses.LeagueID)
+	}
+
+	if len(clauses.IsUserCoached) > 0 {
+		query = query.Where("is_user_coached = ?", true)
+	}
+
+	if err := query.Find(&CollegeTeams).Error; err != nil {
+		return []structs.CollegeTeam{}
 	}
 
 	return CollegeTeams
 }
 
-func FindAllProTeams() []structs.ProfessionalTeam {
+func FindAllProTeams(clauses TeamClauses) []structs.ProfessionalTeam {
 	db := dbprovider.GetInstance().GetDB()
 
 	var proTeams []structs.ProfessionalTeam
-	err := db.Find(&proTeams).Error
-	if err != nil {
-		log.Printf("Error querying for college teams: %v", err)
+	query := db.Model(&proTeams)
 
+	if len(clauses.IDs) > 0 {
+		query = query.Where("id in (?)", clauses.IDs)
+	}
+
+	if len(clauses.ID) > 0 {
+		query = query.Where("id = ?", clauses.ID)
+	}
+
+	if len(clauses.LeagueID) > 0 {
+		query = query.Where("league_id = ?", clauses.LeagueID)
+	}
+
+	if len(clauses.IsUserCoached) > 0 {
+		query = query.Where("is_user_coached = ?", true)
+	}
+
+	if err := query.Find(&proTeams).Error; err != nil {
+		return []structs.ProfessionalTeam{}
 	}
 
 	return proTeams

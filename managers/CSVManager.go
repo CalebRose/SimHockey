@@ -522,70 +522,78 @@ func generateCollegeResultsString(play structs.PbP, event, outcome string, playe
 	nextZoneLabel := getZoneLabel(play.NextZoneID)
 	teamLabel := possessingTeam.TeamName
 	// First Segment
-	if event == Faceoff {
-		if outcome == "Home Faceoff Win" {
+	switch event {
+	case Faceoff:
+		switch outcome {
+		case "Home Faceoff Win":
 			statement = puckCarrierLabel + " wins the faceoff! "
-		} else if outcome == util.GoalieHold {
+		case util.GoalieHold:
 			statement = puckCarrierLabel + " holds onto the puck, and it's going to a faceoff."
-		} else {
+		default:
 			statement = receivingPlayerLabel + " wins the faceoff! "
 		}
 		// Mention receiving player
 		if outcome != util.GoalieHold {
 			statement += assistingPlayerLabel + " receives the puck on the faceoff."
 		}
-	} else if event == PhysDefenseCheck {
-		if outcome == DefenseTakesPuck {
+	case PhysDefenseCheck:
+		switch outcome {
+		case DefenseTakesPuck:
 			statement = defendingPlayerLabel + " bodies " + puckCarrierLabel + " right into the boards and snatches the puck away!"
-		} else if outcome == CarrierKeepsPuck {
+		case CarrierKeepsPuck:
 			statement = defendingPlayerLabel + " attempts to body right into " + puckCarrierLabel + ", but " + puckCarrierLabel + " maneuvers effortlessly within the zone!"
 		}
-	} else if event == DexDefenseCheck {
-		if outcome == DefenseTakesPuck {
+	case DexDefenseCheck:
+		switch outcome {
+		case DefenseTakesPuck:
 			statement = defendingPlayerLabel + " with a bit of stick-play swipes the puck right from under " + puckCarrierLabel + "!"
-		} else if outcome == CarrierKeepsPuck {
+		case CarrierKeepsPuck:
 			statement = defendingPlayerLabel + " attempts to swipe the puck from " + puckCarrierLabel + ", but his stick is batted away!"
 		}
-	} else if event == PassCheck {
-		if outcome == InterceptedPass {
+	case PassCheck:
+		switch outcome {
+		case InterceptedPass:
 			statement = defendingPlayerLabel + " intercepts the pass right from " + puckCarrierLabel + "!"
-		} else if outcome == ReceivedPass {
+		case ReceivedPass:
 			statement = puckCarrierLabel + " finds " + receivingPlayerLabel + " and makes the pass!"
-		} else if outcome == ReceivedLongPass || outcome == ReceivedBackPass {
+		case ReceivedLongPass, ReceivedBackPass:
 			statement = puckCarrierLabel + " finds " + receivingPlayerLabel + " in the " + nextZoneLabel + " and makes the pass!"
 		}
-	} else if event == AgilityCheck {
-		if outcome == DefenseStopAgility {
+	case AgilityCheck:
+		switch outcome {
+		case DefenseStopAgility:
 			statement = defendingPlayerLabel + " with a bit of stick-play swipes the puck right from under " + puckCarrierLabel + "!"
-		} else if outcome == OffenseMovesUp {
+		case OffenseMovesUp:
 			statement = puckCarrierLabel + " moves the puck up to the " + nextZoneLabel + "."
 		}
-	} else if event == WristshotCheck {
+	case WristshotCheck:
 		statement = puckCarrierLabel + " attempts a long shot on goal..."
-		if outcome == ShotBlocked {
+		switch outcome {
+		case ShotBlocked:
 			statement += " and the shot is blocked by " + defendingPlayerLabel + "!"
-		} else if outcome == GoalieSave {
+		case GoalieSave:
 			statement += " and the shot is SAVED by " + goalieLabel + "!"
-		} else if outcome == InAccurateShot {
+		case InAccurateShot:
 			statement += " and he misses the goal! It's a loose puck! Picked up by " + receivingPlayerLabel + "!"
-		} else if outcome == ShotOnGoal {
+		case ShotOnGoal:
 			statement += " and he scores! That's a point for " + teamLabel + "!"
 		}
-	} else if event == SlapshotCheck {
+	case SlapshotCheck:
 		statement = puckCarrierLabel + " attempts a slapshot on goal..."
-		if outcome == ShotBlocked {
+		switch outcome {
+		case ShotBlocked:
 			statement += " and the shot is blocked by " + defendingPlayerLabel + "!"
-		} else if outcome == GoalieSave {
+		case GoalieSave:
 			statement += " and the shot is SAVED by " + goalieLabel + "!"
-		} else if outcome == InAccurateShot {
+		case InAccurateShot:
 			if !play.IsShootout {
 				statement += " and he misses the goal! It's a loose puck! Picked up by " + receivingPlayerLabel + "!"
 			} else {
 				statement += " and he misses the net!"
 			}
-		} else if outcome == ShotOnGoal {
+		case ShotOnGoal:
 			statement += " and he scores! That's a point for " + teamLabel + "!"
-		} else if outcome == PenaltyCheck {
+		case PenaltyCheck:
 			penalty := getPenaltyByID(uint(play.PenaltyID))
 			severity := getSeverityByID(play.Severity)
 			penaltyMinutes := "two"
@@ -594,7 +602,7 @@ func generateCollegeResultsString(play structs.PbP, event, outcome string, playe
 			}
 			statement += " and a penalty is called! " + defendingPlayerLabel + " has been called for a " + severity + " " + penalty + " on " + puckCarrierLabel + ". This will lead into a faceoff. Power play for " + penaltyMinutes + " minutes."
 		}
-	} else if event == PenaltyCheck {
+	case PenaltyCheck:
 		penalty := getPenaltyByID(uint(play.PenaltyID))
 		severity := getSeverityByID(play.Severity)
 		penaltyMinutes := "two"
@@ -606,15 +614,16 @@ func generateCollegeResultsString(play structs.PbP, event, outcome string, playe
 		} else {
 			statement = "Penalty called! " + defendingPlayerLabel + " has been called for " + severity + " " + penalty + " on " + puckCarrierLabel + ". Power play for " + penaltyMinutes + " minutes."
 		}
-	} else if event == EnteringShootout {
+	case EnteringShootout:
 		statement = "END OF OVERTIME, STARTING SHOOTOUT"
-	} else if event == Shootout {
+	case Shootout:
 		statement = puckCarrierLabel + " faces " + goalieLabel + " in the shootout..."
-		if outcome == GoalieSave {
+		switch outcome {
+		case GoalieSave:
 			statement += " and the shot is SAVED by " + goalieLabel + "! The next player is up!"
-		} else if outcome == ShotOnGoal {
+		case ShotOnGoal:
 			statement += " and he scores! That's a point for " + teamLabel + "!"
-		} else if outcome == InAccurateShot {
+		case InAccurateShot:
 			statement += " and he misses the net! What an inaccurate shot!"
 		}
 	}
@@ -637,66 +646,74 @@ func generateProResultsString(play structs.PbP, event, outcome string, playerMap
 	nextZoneLabel := getZoneLabel(play.NextZoneID)
 	teamLabel := possessingTeam.TeamName
 	// First Segment
-	if event == Faceoff {
-		if outcome == "Home Faceoff Win" {
+	switch event {
+	case Faceoff:
+		switch outcome {
+		case "Home Faceoff Win":
 			statement = puckCarrierLabel + " wins the faceoff! "
-		} else if outcome == util.GoalieHold {
+		case util.GoalieHold:
 			statement = puckCarrierLabel + " holds onto the puck, and it's going to a faceoff."
-		} else {
+		default:
 			statement = receivingPlayerLabel + " wins the faceoff! "
 		}
 		// Mention receiving player
 		if outcome != util.GoalieHold {
 			statement += assistingPlayerLabel + " receives the puck on the faceoff."
 		}
-	} else if event == PhysDefenseCheck {
-		if outcome == DefenseTakesPuck {
+	case PhysDefenseCheck:
+		switch outcome {
+		case DefenseTakesPuck:
 			statement = defendingPlayerLabel + " bodies " + puckCarrierLabel + " right into the boards and snatches the puck away!"
-		} else if outcome == CarrierKeepsPuck {
+		case CarrierKeepsPuck:
 			statement = defendingPlayerLabel + " attempts to body right into " + puckCarrierLabel + ", but " + puckCarrierLabel + " maneuvers effortlessly within the zone!"
 		}
-	} else if event == DexDefenseCheck {
-		if outcome == DefenseTakesPuck {
+	case DexDefenseCheck:
+		switch outcome {
+		case DefenseTakesPuck:
 			statement = defendingPlayerLabel + " with a bit of stick-play swipes the puck right from under " + puckCarrierLabel + "!"
-		} else if outcome == CarrierKeepsPuck {
+		case CarrierKeepsPuck:
 			statement = defendingPlayerLabel + " attempts to swipe the puck from " + puckCarrierLabel + ", but his stick is batted away!"
 		}
-	} else if event == PassCheck {
-		if outcome == InterceptedPass {
+	case PassCheck:
+		switch outcome {
+		case InterceptedPass:
 			statement = defendingPlayerLabel + " intercepts the pass right from " + puckCarrierLabel + "!"
-		} else if outcome == ReceivedPass {
+		case ReceivedPass:
 			statement = puckCarrierLabel + " finds " + receivingPlayerLabel + " and makes the pass!"
-		} else if outcome == ReceivedLongPass || outcome == ReceivedBackPass {
+		case ReceivedLongPass, ReceivedBackPass:
 			statement = puckCarrierLabel + " finds " + receivingPlayerLabel + " in the " + nextZoneLabel + " and makes the pass!"
 		}
-	} else if event == AgilityCheck {
-		if outcome == DefenseStopAgility {
+	case AgilityCheck:
+		switch outcome {
+		case DefenseStopAgility:
 			statement = defendingPlayerLabel + " with a bit of stick-play swipes the puck right from under " + puckCarrierLabel + "!"
-		} else if outcome == OffenseMovesUp {
+		case OffenseMovesUp:
 			statement = puckCarrierLabel + " moves the puck up to the " + nextZoneLabel + "."
 		}
-	} else if event == WristshotCheck {
+	case WristshotCheck:
 		statement = puckCarrierLabel + " attempts a long shot on goal..."
-		if outcome == ShotBlocked {
+		switch outcome {
+		case ShotBlocked:
 			statement += " and the shot is blocked by " + defendingPlayerLabel + "!"
-		} else if outcome == GoalieSave {
+		case GoalieSave:
 			statement += " and the shot is SAVED by " + goalieLabel + "!"
-		} else if outcome == InAccurateShot {
+		case InAccurateShot:
 			statement += " and he misses the goal! It's a loose puck! Picked up by " + receivingPlayerLabel + "!"
-		} else if outcome == ShotOnGoal {
+		case ShotOnGoal:
 			statement += " and he scores! That's a point for " + teamLabel + "!"
 		}
-	} else if event == SlapshotCheck {
+	case SlapshotCheck:
 		statement = puckCarrierLabel + " attempts a slapshot on goal..."
-		if outcome == ShotBlocked {
+		switch outcome {
+		case ShotBlocked:
 			statement += " and the shot is blocked by " + defendingPlayerLabel + "!"
-		} else if outcome == GoalieSave {
+		case GoalieSave:
 			statement += " and the shot is SAVED by " + goalieLabel + "!"
-		} else if outcome == InAccurateShot {
+		case InAccurateShot:
 			statement += " and he misses the goal! It's a loose puck! Picked up by " + receivingPlayerLabel + "!"
-		} else if outcome == ShotOnGoal {
+		case ShotOnGoal:
 			statement += " and he scores! That's a point for " + teamLabel + "!"
-		} else if outcome == PenaltyCheck {
+		case PenaltyCheck:
 			penalty := getPenaltyByID(uint(play.PenaltyID))
 			severity := getSeverityByID(play.Severity)
 			penaltyMinutes := "two"
@@ -705,7 +722,7 @@ func generateProResultsString(play structs.PbP, event, outcome string, playerMap
 			}
 			statement += " and a penalty is called! " + defendingPlayerLabel + " has been called for a " + severity + " " + penalty + " on " + puckCarrierLabel + ". This will lead into a faceoff. Power play for " + penaltyMinutes + " minutes."
 		}
-	} else if event == PenaltyCheck {
+	case PenaltyCheck:
 		penalty := getPenaltyByID(uint(play.PenaltyID))
 		severity := getSeverityByID(play.Severity)
 		penaltyMinutes := "two"
@@ -717,15 +734,16 @@ func generateProResultsString(play structs.PbP, event, outcome string, playerMap
 		} else {
 			statement = "Penalty called! " + defendingPlayerLabel + " has been called for " + severity + " " + penalty + " on " + puckCarrierLabel + ". Power play for " + penaltyMinutes + " minutes."
 		}
-	} else if event == EnteringShootout {
+	case EnteringShootout:
 		statement = "END OF OVERTIME, STARTING SHOOTOUT"
-	} else if event == Shootout {
+	case Shootout:
 		statement = puckCarrierLabel + " faces " + goalieLabel + " in the shootout..."
-		if outcome == GoalieSave {
+		switch outcome {
+		case GoalieSave:
 			statement += " and the shot is SAVED by " + goalieLabel + "! The next player is up!"
-		} else if outcome == ShotOnGoal {
+		case ShotOnGoal:
 			statement += " and he scores! That's a point for " + teamLabel + "!"
-		} else if outcome == InAccurateShot {
+		case InAccurateShot:
 			statement += " and he misses the net! What an inaccurate shot!"
 		}
 	}

@@ -53,15 +53,16 @@ func MakeProAffiliateList(players []structs.ProfessionalPlayer) []structs.Profes
 func GetCollegeOrderedListByStatType(statType string, teamID uint, CollegeStats []structs.CollegePlayerSeasonStats, collegePlayerMap map[uint]structs.CollegePlayer) []structs.CollegePlayer {
 	orderedStats := CollegeStats
 	resultList := []structs.CollegePlayer{}
-	if statType == "GOALS" {
+	switch statType {
+	case "GOALS":
 		sort.Slice(orderedStats[:], func(i, j int) bool {
 			return orderedStats[i].Goals > orderedStats[j].Goals
 		})
-	} else if statType == "ASSISTS" {
+	case "ASSISTS":
 		sort.Slice(orderedStats[:], func(i, j int) bool {
 			return orderedStats[i].Assists > orderedStats[j].Assists
 		})
-	} else if statType == "SAVES" {
+	case "SAVES":
 		sort.Slice(orderedStats[:], func(i, j int) bool {
 			return orderedStats[i].Saves > orderedStats[j].Saves
 		})
@@ -96,15 +97,16 @@ func GetCollegeOrderedListByStatType(statType string, teamID uint, CollegeStats 
 func GetProOrderedListByStatType(statType string, teamID uint, CollegeStats []structs.ProfessionalPlayerSeasonStats, proPlayerMap map[uint]structs.ProfessionalPlayer) []structs.ProfessionalPlayer {
 	orderedStats := CollegeStats
 	resultList := []structs.ProfessionalPlayer{}
-	if statType == "GOALS" {
+	switch statType {
+	case "GOALS":
 		sort.Slice(orderedStats[:], func(i, j int) bool {
 			return orderedStats[i].Goals > orderedStats[j].Goals
 		})
-	} else if statType == "ASSISTS" {
+	case "ASSISTS":
 		sort.Slice(orderedStats[:], func(i, j int) bool {
 			return orderedStats[i].Assists > orderedStats[j].Assists
 		})
-	} else if statType == "SAVES" {
+	case "SAVES":
 		sort.Slice(orderedStats[:], func(i, j int) bool {
 			return orderedStats[i].Saves > orderedStats[j].Saves
 		})

@@ -145,29 +145,30 @@ func Get247Ranking(pg string, ovr int) float32 {
 }
 
 func Get247PotentialModifier(pg string) float32 {
-	if pg == "A+" {
+	switch pg {
+	case "A+":
 		return 7.83
-	} else if pg == "A" {
+	case "A":
 		return 7.06
-	} else if pg == "A-" {
+	case "A-":
 		return 6.77
-	} else if pg == "B+" {
+	case "B+":
 		return 6.33
-	} else if pg == "B" {
+	case "B":
 		return 6.04
-	} else if pg == "B-" {
+	case "B-":
 		return 5.87
-	} else if pg == "C+" {
+	case "C+":
 		return 5.58
-	} else if pg == "C" {
+	case "C":
 		return 5.43
-	} else if pg == "C-" {
+	case "C-":
 		return 5.31
-	} else if pg == "D+" {
+	case "D+":
 		return 5.03
-	} else if pg == "D" {
+	case "D":
 		return 4.77
-	} else if pg == "D-" {
+	case "D-":
 		return 4.67
 	}
 	return 4.3
@@ -190,53 +191,56 @@ func GetESPNRanking(r structs.Recruit, pg string) float32 {
 }
 
 func GetESPNPotentialModifier(pg string) float64 {
-	if pg == "A+" {
+	switch pg {
+	case "A+":
 		return 1
-	} else if pg == "A" {
+	case "A":
 		return 0.9
-	} else if pg == "A-" {
+	case "A-":
 		return 0.8
-	} else if pg == "B+" {
+	case "B+":
 		return 0.6
-	} else if pg == "B" {
+	case "B":
 		return 0.4
-	} else if pg == "B-" {
+	case "B-":
 		return 0.2
-	} else if pg == "C+" {
+	case "C+":
 		return 0
-	} else if pg == "C" {
+	case "C":
 		return -0.15
-	} else if pg == "C-" {
+	case "C-":
 		return -0.3
-	} else if pg == "D+" {
+	case "D+":
 		return -0.6
-	} else if pg == "D" {
+	case "D":
 		return -0.75
-	} else if pg == "D-" {
+	case "D-":
 		return -0.9
 	}
 	return -1
 }
 
 func GetESPNStarRank(star int) int {
-	if star == 5 {
+	switch star {
+	case 5:
 		return 95
-	} else if star == 4 {
+	case 4:
 		return 85
-	} else if star == 3 {
+	case 3:
 		return 75
-	} else if star == 2 {
+	case 2:
 		return 65
 	}
 	return 55
 }
 
 func GetArchetypeModifier(arch string) int {
-	if arch == Power || arch == Sniper {
+	switch arch {
+	case Power, Sniper:
 		return 1
-	} else if arch == Enforcer || arch == Grinder || arch == TwoWay {
+	case Enforcer, Grinder, TwoWay:
 		return -1
-	} else if arch == Playmaker || arch == Defensive || arch == Offensive {
+	case Playmaker, Defensive, Offensive:
 		return 2
 	}
 	return 0
@@ -245,15 +249,16 @@ func GetRivalsRanking(stars int, bonus float32) float32 {
 	return GetRivalsStarModifier(stars) + bonus
 }
 func GetRivalsStarModifier(stars int) float32 {
-	if stars == 5 {
+	switch stars {
+	case 5:
 		return 6.1
-	} else if stars == 4 {
+	case 4:
 		return RoundToFixedDecimalPlace(rand.Float64()*((6.0-5.8)+5.8), 1)
-	} else if stars == 3 {
+	case 3:
 		return RoundToFixedDecimalPlace(rand.Float64()*((5.7-5.5)+5.5), 1)
-	} else if stars == 2 {
+	case 2:
 		return RoundToFixedDecimalPlace(rand.Float64()*((5.4-5.2)+5.2), 1)
-	} else {
+	default:
 		return 5
 	}
 }
