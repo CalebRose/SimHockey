@@ -41,26 +41,27 @@ func GetBootstrapData(collegeID, proID string) structs.BootstrapData {
 
 	// College Data
 	var (
-		collegeTeam           structs.CollegeTeam
-		collegeStandings      []structs.CollegeStandings
-		collegePlayerMap      map[uint][]structs.CollegePlayer
-		teamProfileMap        map[uint]*structs.RecruitingTeamProfile
-		recruitProfiles       []structs.RecruitPlayerProfile
-		portalPlayers         []structs.CollegePlayer
-		injuredCollegePlayers []structs.CollegePlayer
-		chlGoals              []structs.CollegePlayer
-		chlAssists            []structs.CollegePlayer
-		chlSaves              []structs.CollegePlayer
-		collegeNews           []structs.NewsLog
-		collegeNotifications  []structs.Notification
-		collegeGames          []structs.CollegeGame
-		recruits              []structs.Croot
-		collegeGameplan       structs.CollegeGameplan
-		collegeLineups        []structs.CollegeLineup
-		collegeShootoutLineup structs.CollegeShootoutLineup
-		faceDataMap           map[uint]structs.FaceDataResponse
-		poll                  structs.CollegePollSubmission
-		officialPolls         []structs.CollegePollOfficial
+		collegeTeam            structs.CollegeTeam
+		collegeStandings       []structs.CollegeStandings
+		collegePlayerMap       map[uint][]structs.CollegePlayer
+		teamProfileMap         map[uint]*structs.RecruitingTeamProfile
+		recruitProfiles        []structs.RecruitPlayerProfile
+		portalPlayers          []structs.CollegePlayer
+		transferPortalProfiles []structs.TransferPortalProfile
+		injuredCollegePlayers  []structs.CollegePlayer
+		chlGoals               []structs.CollegePlayer
+		chlAssists             []structs.CollegePlayer
+		chlSaves               []structs.CollegePlayer
+		collegeNews            []structs.NewsLog
+		collegeNotifications   []structs.Notification
+		collegeGames           []structs.CollegeGame
+		recruits               []structs.Croot
+		collegeGameplan        structs.CollegeGameplan
+		collegeLineups         []structs.CollegeLineup
+		collegeShootoutLineup  structs.CollegeShootoutLineup
+		faceDataMap            map[uint]structs.FaceDataResponse
+		poll                   structs.CollegePollSubmission
+		officialPolls          []structs.CollegePollOfficial
 	)
 
 	// Professional Data
@@ -96,7 +97,7 @@ func GetBootstrapData(collegeID, proID string) structs.BootstrapData {
 	// Start concurrent queries
 
 	if len(collegeID) > 0 && collegeID != "0" {
-		wg.Add(4)
+		wg.Add(5)
 		go func() {
 			defer wg.Done()
 			mu.Lock()
@@ -127,6 +128,10 @@ func GetBootstrapData(collegeID, proID string) structs.BootstrapData {
 		go func() {
 			defer wg.Done()
 			recruits = GetAllCrootRecords()
+		}()
+		go func() {
+			defer wg.Done()
+			transferPortalProfiles = repository.FindTransferPortalProfileRecords(repository.TransferPortalQuery{RemovedFromBoard: "N"})
 		}()
 		wg.Wait()
 		wg.Add(5)
@@ -287,6 +292,7 @@ func GetBootstrapData(collegeID, proID string) structs.BootstrapData {
 		RecruitProfiles:           recruitProfiles,
 		TeamProfileMap:            teamProfileMap,
 		PortalPlayers:             portalPlayers,
+		TransferPortalProfiles:    transferPortalProfiles,
 		CollegeInjuryReport:       injuredCollegePlayers,
 		CollegeNews:               collegeNews,
 		CollegeNotifications:      collegeNotifications,

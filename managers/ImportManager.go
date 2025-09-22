@@ -17,7 +17,7 @@ import (
 
 func ImportCollegeTeams() {
 	db := dbprovider.GetInstance().GetDB()
-	filePath := filepath.Join(os.Getenv("ROOT"), "data", "simchl_teams.csv")
+	filePath := filepath.Join(os.Getenv("ROOT"), "data", "gen", "simchl_expansion_teams.csv")
 	teamsCSV := util.ReadCSV(filePath)
 	teams := []structs.CollegeTeam{}
 	arenas := []structs.Arena{}

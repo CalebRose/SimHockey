@@ -103,7 +103,7 @@ func (p *Provider) InitDatabase() bool {
 
 	// Portal
 	// db.AutoMigrate(&structs.CollegePromise{})
-	// db.AutoMigrate(&structs.TransferPortalProfile{})
+	db.AutoMigrate(&structs.TransferPortalProfile{})
 
 	// Administrative
 	// db.AutoMigrate(&structs.Arena{})
