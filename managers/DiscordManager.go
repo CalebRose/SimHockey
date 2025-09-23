@@ -15,7 +15,7 @@ func GetCHLTeamDataForDiscord(id string) structs.CollegeTeamResponseData {
 	seasonId := strconv.Itoa(int(ts.SeasonID))
 
 	team := repository.FindCollegeTeamRecord(id)
-	standings := repository.FindAllCollegeStandings(seasonId, "", id)
+	standings := repository.FindAllCollegeStandings(repository.StandingsQuery{SeasonID: seasonId, TeamID: id})
 	matches := repository.FindCollegeGames(repository.GamesClauses{SeasonID: seasonId, TeamID: id, IsPreseason: ts.IsPreseason})
 	wins := 0
 	losses := 0
@@ -85,7 +85,7 @@ func GetPHLTeamDataForDiscord(id string) structs.ProTeamResponseData {
 	seasonId := strconv.Itoa(int(ts.SeasonID))
 
 	team := repository.FindProTeamRecord(id)
-	standings := repository.FindAllProfessionalStandings(seasonId, "", id)
+	standings := repository.FindAllProfessionalStandings(repository.StandingsQuery{SeasonID: seasonId, TeamID: id})
 	matches := repository.FindProfessionalGames(repository.GamesClauses{SeasonID: seasonId, TeamID: id, IsPreseason: ts.IsPreseason})
 	wins := 0
 	losses := 0

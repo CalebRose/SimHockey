@@ -140,53 +140,6 @@ func FindAllCollegePolls(weekID, seasonID, username string) []structs.CollegePol
 	return submissions
 }
 
-func FindAllCollegeStandings(seasonID, conferenceID, teamID string) []structs.CollegeStandings {
-	var standings []structs.CollegeStandings
-	db := dbprovider.GetInstance().GetDB()
-
-	query := db.Model(&standings)
-
-	if len(teamID) > 0 {
-		query = query.Where("team_id = ?", teamID)
-	}
-	if len(conferenceID) > 0 {
-		query = query.Where("conference_id = ?", conferenceID)
-	}
-	if len(seasonID) > 0 {
-		query = query.Where("season_id = ?", seasonID)
-	}
-
-	if err := query.Order("conference_losses asc").Order("conference_wins desc").
-		Order("total_losses asc").Order("total_wins desc").Find(&standings).Error; err != nil {
-		return []structs.CollegeStandings{}
-	}
-
-	return standings
-}
-
-func FindAllProfessionalStandings(seasonID, conferenceID, teamID string) []structs.ProfessionalStandings {
-	var standings []structs.ProfessionalStandings
-	db := dbprovider.GetInstance().GetDB()
-
-	query := db.Model(&standings)
-
-	if len(teamID) > 0 {
-		query = query.Where("team_id = ?", teamID)
-	}
-	if len(conferenceID) > 0 {
-		query = query.Where("conference_id = ?", conferenceID)
-	}
-	if len(seasonID) > 0 {
-		query = query.Where("season_id = ?", seasonID)
-	}
-
-	if err := query.Order("points desc").Find(&standings).Error; err != nil {
-		return []structs.ProfessionalStandings{}
-	}
-
-	return standings
-}
-
 func FindCollegePollSubmission(id, weekID, seasonID, username string) structs.CollegePollSubmission {
 	db := dbprovider.GetInstance().GetDB()
 

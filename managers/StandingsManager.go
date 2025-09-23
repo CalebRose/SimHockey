@@ -9,25 +9,42 @@ import (
 )
 
 func GetCollegeStandingsByConferenceIDAndSeasonID(conferenceID string, seasonID string) []structs.CollegeStandings {
-	return repository.FindAllCollegeStandings(seasonID, conferenceID, "")
+	return repository.FindAllCollegeStandings(repository.StandingsQuery{
+		ConferenceID: conferenceID,
+		SeasonID:     seasonID,
+	})
 }
 
 func GetAllCollegeStandingsBySeasonID(seasonID string) []structs.CollegeStandings {
-	return repository.FindAllCollegeStandings(seasonID, "", "")
+	return repository.FindAllCollegeStandings(repository.StandingsQuery{
+		SeasonID: seasonID,
+	})
 }
 
 func GetAllProfessionalStandingsBySeasonID(seasonID string) []structs.ProfessionalStandings {
-	return repository.FindAllProfessionalStandings(seasonID, "", "")
+	return repository.FindAllProfessionalStandings(repository.StandingsQuery{
+		SeasonID: seasonID,
+	})
 }
 
 func GetCollegeStandingsMap(seasonID string) map[uint]structs.CollegeStandings {
-	standings := repository.FindAllCollegeStandings(seasonID, "", "")
+	standings := repository.FindAllCollegeStandings(repository.StandingsQuery{
+		SeasonID: seasonID,
+	})
 	return MakeCollegeStandingsMap(standings)
 }
 
 func GetProStandingsMap(seasonID string) map[uint]structs.ProfessionalStandings {
-	standings := repository.FindAllProfessionalStandings(seasonID, "", "")
+	standings := repository.FindAllProfessionalStandings(repository.StandingsQuery{
+		SeasonID: seasonID,
+	})
 	return MakeProfessionalStandingsMap(standings)
+}
+
+func GetStandingsHistoryByTeamID(id string) []structs.CollegeStandings {
+	return repository.FindAllCollegeStandings(repository.StandingsQuery{
+		TeamID: id,
+	})
 }
 
 // GetHistoricalRecordsByTeamID

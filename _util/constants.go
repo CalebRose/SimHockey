@@ -103,4 +103,8 @@ const (
 	MinGoalieStamina   uint8 = 1
 	ForwardShiftLimit  int   = 40
 	DefenderShiftLimit int   = 25
+
+	FinalPortalRound     int     = 10
+	MaxCollegeRosterSize int     = 34
+	PortalSigningMinimum float64 = 0.66
 )

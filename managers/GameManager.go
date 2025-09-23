@@ -722,7 +722,7 @@ func PrepareCHLPostSeasonGamesFormat(db *gorm.DB, ts structs.Timestamp) {
 	seasonID := ts.SeasonID
 	baseID := repository.FindLatestGameID() + 1
 	collegeTeams := repository.FindAllCollegeTeams(repository.TeamClauses{LeagueID: "1"})
-	collegeStandings := repository.FindAllCollegeStandings(strconv.Itoa(int(seasonID)), "", "")
+	collegeStandings := repository.FindAllCollegeStandings(repository.StandingsQuery{SeasonID: strconv.Itoa(int(seasonID))})
 	stMap := MakeCollegeStandingsMap(collegeStandings)
 	pool := []*structs.CollegeStandings{}
 	qualified := map[uint]bool{}

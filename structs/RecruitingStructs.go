@@ -43,6 +43,8 @@ type RecruitingTeamProfile struct {
 	AIStarMin             uint8
 	AIStarMax             uint8
 	Recruiter             string
+	OffensiveScheme       string
+	DefensiveScheme       string
 	Recruits              []RecruitPlayerProfile `gorm:"foreignKey:ProfileID"`
 }
 
@@ -760,4 +762,9 @@ type ScoutAttributeDTO struct {
 	ProfileID uint
 	RecruitID uint
 	Attribute string
+}
+
+type SchemeFits struct {
+	GoodFits []string
+	BadFits  []string
 }

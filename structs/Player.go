@@ -708,6 +708,17 @@ func (cp *CollegePlayer) CompleteRedshirt() {
 	cp.IsRedshirt = true
 }
 
+func (cp *CollegePlayer) DeclareTransferIntention(weight int) {
+	cp.TransferStatus = 1
+	if weight < 30 {
+		cp.TransferLikeliness = "Low"
+	} else if weight < 70 {
+		cp.TransferLikeliness = "Medium"
+	} else {
+		cp.TransferLikeliness = "High"
+	}
+}
+
 func (cp *CollegePlayer) WillTransfer() {
 	cp.TransferStatus = 2
 	cp.PreviousTeam = cp.Team
@@ -715,6 +726,10 @@ func (cp *CollegePlayer) WillTransfer() {
 	cp.Team = ""
 	cp.TeamID = 0
 	cp.LeagueID = 0
+}
+
+func (cp *CollegePlayer) WillStay() {
+	cp.TransferStatus = 0
 }
 
 func (cp *CollegePlayer) WillReturn() {

@@ -374,3 +374,74 @@ func MakeCollegePlayerGameStatsMap(stats []structs.CollegePlayerGameStats) map[u
 
 	return statsMap
 }
+
+func MakePortalProfileMapByTeamID(profiles []structs.TransferPortalProfile) map[uint][]structs.TransferPortalProfile {
+	playerMap := make(map[uint][]structs.TransferPortalProfile)
+
+	for _, p := range profiles {
+		if p.ProfileID == 0 {
+			continue
+		}
+		if len(playerMap[uint(p.ProfileID)]) > 0 {
+			playerMap[uint(p.ProfileID)] = append(playerMap[uint(p.ProfileID)], p)
+		} else {
+			playerMap[uint(p.ProfileID)] = []structs.TransferPortalProfile{p}
+		}
+	}
+
+	return playerMap
+}
+
+func MakeCollegePromiseMap(promises []structs.CollegePromise) map[uint]structs.CollegePromise {
+	playerMap := make(map[uint]structs.CollegePromise)
+
+	for _, p := range promises {
+		playerMap[p.ID] = p
+	}
+
+	return playerMap
+}
+
+func MakePromiseMapByTeamID(profiles []structs.CollegePromise) map[uint][]structs.CollegePromise {
+	playerMap := make(map[uint][]structs.CollegePromise)
+
+	for _, p := range profiles {
+		if p.TeamID == 0 || !p.IsActive {
+			continue
+		}
+		if len(playerMap[uint(p.TeamID)]) > 0 {
+			playerMap[uint(p.TeamID)] = append(playerMap[uint(p.TeamID)], p)
+		} else {
+			playerMap[uint(p.TeamID)] = []structs.CollegePromise{p}
+		}
+	}
+
+	return playerMap
+}
+
+func MakePromiseMapByPlayerIDByTeam(promises []structs.CollegePromise) map[uint]structs.CollegePromise {
+	playerMap := make(map[uint]structs.CollegePromise)
+
+	for _, p := range promises {
+		playerMap[p.CollegePlayerID] = p
+	}
+
+	return playerMap
+}
+
+func MakePortalProfileMapByPlayerID(profiles []structs.TransferPortalProfile) map[uint][]structs.TransferPortalProfile {
+	playerMap := make(map[uint][]structs.TransferPortalProfile)
+
+	for _, p := range profiles {
+		if p.ProfileID == 0 {
+			continue
+		}
+		if len(playerMap[uint(p.CollegePlayerID)]) > 0 {
+			playerMap[uint(p.CollegePlayerID)] = append(playerMap[uint(p.CollegePlayerID)], p)
+		} else {
+			playerMap[uint(p.CollegePlayerID)] = []structs.TransferPortalProfile{p}
+		}
+	}
+
+	return playerMap
+}

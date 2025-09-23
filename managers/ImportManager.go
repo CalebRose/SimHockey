@@ -938,8 +938,8 @@ func FixStandingsTables() {
 	db := dbprovider.GetInstance().GetDB()
 	ts := GetTimestamp()
 	seasonId := strconv.Itoa(int(ts.SeasonID))
-	collegeStandings := repository.FindAllCollegeStandings(seasonId, "", "")
-	proStandings := repository.FindAllProfessionalStandings(seasonId, "", "")
+	collegeStandings := repository.FindAllCollegeStandings(repository.StandingsQuery{SeasonID: seasonId})
+	proStandings := repository.FindAllProfessionalStandings(repository.StandingsQuery{SeasonID: seasonId})
 	for _, standing := range collegeStandings {
 		standing.ResetStandings()
 		games := repository.FindCollegeGames(repository.GamesClauses{TeamID: strconv.Itoa(int(standing.ID)), SeasonID: strconv.Itoa(int(ts.SeasonID))})
