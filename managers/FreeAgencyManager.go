@@ -431,10 +431,10 @@ func SignFreeAgent(offer structs.FreeAgencyOffer, FreeAgent structs.Professional
 	db := dbprovider.GetInstance().GetDB()
 
 	proTeam := repository.FindProTeamRecord(strconv.Itoa(int(offer.TeamID)))
-	Contract := structs.ProContract{}
 	messageStart := "FA "
+	value := offer.ContractValue
 	if !FreeAgent.IsAffiliatePlayer {
-		Contract = structs.ProContract{
+		Contract := structs.ProContract{
 			PlayerID:       FreeAgent.ID,
 			TeamID:         proTeam.ID,
 			OriginalTeamID: proTeam.ID,
@@ -452,8 +452,9 @@ func SignFreeAgent(offer structs.FreeAgencyOffer, FreeAgent structs.Professional
 		}
 		repository.CreateProContractRecord(db, Contract)
 	} else {
-		Contract = repository.FindProContract(strconv.Itoa(int(FreeAgent.ID)))
+		Contract := repository.FindProContract(strconv.Itoa(int(FreeAgent.ID)))
 		Contract.MapAffiliateOffer(offer)
+		value = Contract.ContractValue
 		repository.SaveProContractRecord(Contract, db)
 		messageStart = "PS "
 	}
@@ -461,6 +462,6 @@ func SignFreeAgent(offer structs.FreeAgencyOffer, FreeAgent structs.Professional
 	repository.SaveProPlayerRecord(FreeAgent, db)
 
 	// News Log
-	message := messageStart + FreeAgent.Position + " " + FreeAgent.FirstName + " " + FreeAgent.LastName + " has signed with the " + proTeam.TeamName + " with a contract worth approximately $" + strconv.Itoa(int(Contract.ContractValue)) + " Million Dollars."
+	message := messageStart + FreeAgent.Position + " " + FreeAgent.FirstName + " " + FreeAgent.LastName + " has signed with the " + proTeam.TeamName + " with a contract worth approximately $" + strconv.Itoa(int(value)) + " Million Dollars."
 	CreateNewsLog("PHL", message, "Free Agency", int(offer.TeamID), ts, true)
 }
