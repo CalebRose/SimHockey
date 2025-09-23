@@ -83,3 +83,8 @@ func ExportProPlayByPlayResults(w http.ResponseWriter, r *http.Request) {
 
 	managers.HandleProPlayByPlayExport(w, gameID)
 }
+
+func ExportPortalPlayersToCSV(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "text/csv")
+	managers.ExportTransferPortalToCSV(w)
+}

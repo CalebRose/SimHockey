@@ -186,6 +186,23 @@ func handleRequests() http.Handler {
 	apiRouter.HandleFunc("/trades/admin/veto/sync/{proposalID}", controllers.VetoAcceptedTrade).Methods("GET")
 	apiRouter.HandleFunc("/trades/admin/cleanup", controllers.CleanUpRejectedTrades).Methods("GET")
 
+	// Transfer Portal
+	// apiRouter.HandleFunc("/portal/transfer/intention", controllers.ProcessTransferIntention).Methods("GET")
+	// apiRouter.HandleFunc("/portal/transfer/pre/promises", controllers.ProcessPrePortalPromises).Methods("GET")
+	// apiRouter.HandleFunc("/portal/transfer/enter/portal", controllers.EnterTheTransferPortal).Methods("GET")
+	apiRouter.HandleFunc("/portal/transfer/sync", controllers.SyncTransferPortal).Methods("GET")
+	apiRouter.HandleFunc("/portal/ai/generate/profiles", controllers.FillUpTransferBoardsAI).Methods("GET")
+	apiRouter.HandleFunc("/portal/ai/allocate/profiles", controllers.AllocateAndPromisePlayersAI).Methods("GET")
+	// apiRouter.HandleFunc("/portal/page/data/{teamID}", controllers.GetTransferPortalPageData).Methods("GET")
+	apiRouter.HandleFunc("/portal/profile/create", controllers.AddTransferPlayerToBoard).Methods("POST")
+	apiRouter.HandleFunc("/portal/profile/remove/{profileID}", controllers.RemovePlayerFromTransferPortalBoard).Methods("GET")
+	apiRouter.HandleFunc("/portal/saveboard", controllers.SaveTransferBoard).Methods("POST")
+	apiRouter.HandleFunc("/portal/promise/create", controllers.CreatePromise).Methods("POST")
+	apiRouter.HandleFunc("/portal/promise/cancel/{promiseID}", controllers.CancelPromise).Methods("GET")
+	apiRouter.HandleFunc("/portal/promise/player/{playerID}/{teamID}", controllers.GetPromiseByPlayerID).Methods("GET")
+	// apiRouter.HandleFunc("/portal/player/scout/{id}", controllers.GetScoutingDataByTransfer).Methods("GET")
+	apiRouter.HandleFunc("/portal/export/players/", controllers.ExportPortalPlayersToCSV).Methods("GET")
+
 	// Discord
 	apiRouter.HandleFunc("/ds/chl/team/{teamID}/", controllers.GetCHLTeamByTeamIDForDiscord).Methods("GET")
 	apiRouter.HandleFunc("/ds/phl/team/{teamID}/", controllers.GetPHLTeamByTeamIDForDiscord).Methods("GET")
