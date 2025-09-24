@@ -299,18 +299,19 @@ func handleDefenseCheck(gs *GameState, isStickCheck bool) {
 	outcomeID := CarrierKeepsPuckID
 
 	// Critical checks
-	if diceRoll == CritFail {
+	switch diceRoll {
+	case CritFail:
 		// Defender gets puck
 		outcomeID = DefenseTakesPuckID
 		RecordPlay(gs, eventID, outcomeID, 0, 0, 0, 0, 0, 0, false, pc.ID, 0, 0, defender.ID, 0, false)
 		defender.AddDefensiveHit(!isStickCheck)
 		gs.SetPuckBearer(defender, false)
 		return
-	} else if diceRoll == CritSuccess {
+	case CritSuccess:
 		// Defense DOES NOT get puck
 		RecordPlay(gs, eventID, outcomeID, 0, 0, 0, 0, 0, 0, false, pc.ID, 0, 0, defender.ID, 0, false)
 		return
-	} else {
+	default:
 		// Determine if physical check or non-physical check
 		puckHandling := DiffReq + pc.HandlingMod
 		if isStickCheck {
@@ -570,15 +571,16 @@ func HandleReboundAfterShot(gs *GameState, eventID uint8, outcomeID uint8, puckC
 	reboundPlayerList := []*GamePlayer{}
 	hgs := gs.HomeStrategy
 	ags := gs.AwayStrategy
-	if puckLocation == HomeGoal {
+	switch puckLocation {
+	case HomeGoal:
 		reboundPlayerList = append(reboundPlayerList, hgs.Forwards[hgs.CurrentForwards].Players...)
 		reboundPlayerList = append(reboundPlayerList, ags.Defenders[ags.CurrentDefenders].Players...)
-	} else if puckLocation == HomeZone || puckLocation == AwayZone {
+	case HomeZone, AwayZone:
 		reboundPlayerList = append(reboundPlayerList, hgs.Forwards[hgs.CurrentForwards].Players...)
 		reboundPlayerList = append(reboundPlayerList, ags.Defenders[ags.CurrentDefenders].Players...)
 		reboundPlayerList = append(reboundPlayerList, ags.Forwards[ags.CurrentForwards].Players...)
 		reboundPlayerList = append(reboundPlayerList, hgs.Defenders[hgs.CurrentDefenders].Players...)
-	} else if puckLocation == AwayGoal {
+	case AwayGoal:
 		reboundPlayerList = append(reboundPlayerList, ags.Forwards[ags.CurrentForwards].Players...)
 		reboundPlayerList = append(reboundPlayerList, hgs.Defenders[hgs.CurrentDefenders].Players...)
 	}
@@ -665,9 +667,10 @@ func HandleShot(gs *GameState, isCloseShot bool) {
 		gs.AddShots(isHome)
 		goalie.AddShotAgainst(false)
 		pb.AddShot(false, false, false, false, false)
-		if gs.PuckLocation == HomeZone {
+		switch gs.PuckLocation {
+		case HomeZone:
 			gs.SetNewZone(HomeGoal)
-		} else if gs.PuckLocation == AwayZone {
+		case AwayZone:
 			gs.SetNewZone(AwayGoal)
 		}
 		RecordPlay(gs, eventTypeID, GoalieSaveID, 0, 0, 0, 0, 0, 0, false, pb.ID, 0, gs.AssistingPlayer.ID, 0, goalie.ID, false)
@@ -795,22 +798,23 @@ func getShootoutLineup(gp GamePlaybook) []*GamePlayer {
 	selectedMap := make(map[uint]bool)
 
 	for _, p := range allPlayers {
-		if p.ID == lineupIDs.Shooter1ID {
+		switch p.ID {
+		case lineupIDs.Shooter1ID:
 			s1 = p
 			selectedMap[p.ID] = true
-		} else if p.ID == lineupIDs.Shooter2ID {
+		case lineupIDs.Shooter2ID:
 			s2 = p
 			selectedMap[p.ID] = true
-		} else if p.ID == lineupIDs.Shooter3ID {
+		case lineupIDs.Shooter3ID:
 			s3 = p
 			selectedMap[p.ID] = true
-		} else if p.ID == lineupIDs.Shooter4ID {
+		case lineupIDs.Shooter4ID:
 			s4 = p
 			selectedMap[p.ID] = true
-		} else if p.ID == lineupIDs.Shooter5ID {
+		case lineupIDs.Shooter5ID:
 			s5 = p
 			selectedMap[p.ID] = true
-		} else if p.ID == lineupIDs.Shooter6ID {
+		case lineupIDs.Shooter6ID:
 			s6 = p
 			selectedMap[p.ID] = true
 		}

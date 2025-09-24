@@ -141,13 +141,14 @@ func getPlayerWeights(isFaceoff, homeTeamFaceoffWin bool, players []*GamePlayer,
 
 func getAttributeModifier(event string, p *GamePlayer) float64 {
 	mod := 0.0
-	if event == Rebound || event == Faceoff {
+	switch event {
+	case Rebound, Faceoff:
 		mod = p.AgilityMod
-	} else if event == Defense {
+	case Defense:
 		mod = p.StrengthMod
-	} else if event == Pass {
+	case Pass:
 		mod = p.PassMod
-	} else if event == ShotBlock {
+	case ShotBlock:
 		mod = p.StrengthMod
 	}
 	return mod
@@ -156,16 +157,17 @@ func getAttributeModifier(event string, p *GamePlayer) float64 {
 func getZoneID(currentZone string, homeTeamID, awayTeamID uint) (uint, uint8) {
 	var zoneID uint = 0
 	var zoneIDEnum uint8 = NeutralZoneID
-	if currentZone == HomeGoal {
+	switch currentZone {
+	case HomeGoal:
 		zoneID = homeTeamID
 		zoneIDEnum = HomeGoalZoneID
-	} else if currentZone == HomeZone {
+	case HomeZone:
 		zoneID = homeTeamID
 		zoneIDEnum = HomeZoneID
-	} else if currentZone == AwayZone {
+	case AwayZone:
 		zoneID = awayTeamID
 		zoneIDEnum = AwayZoneID
-	} else if currentZone == AwayGoal {
+	case AwayGoal:
 		zoneID = awayTeamID
 		zoneIDEnum = AwayGoalZoneID
 	}

@@ -31,13 +31,14 @@ func LoadLineStrategies(lines []structs.BaseLineup, rosterMap map[uint]*GamePlay
 
 	for _, l := range lines {
 		players := []*GamePlayer{}
-		if l.LineType == 1 {
+		switch l.LineType {
+		case 1:
 			players = append(players, rosterMap[l.CenterID], rosterMap[l.Forward1ID], rosterMap[l.Forward2ID])
 			activeIDs = append(activeIDs, l.CenterID, l.Forward1ID, l.Forward2ID)
-		} else if l.LineType == 2 {
+		case 2:
 			players = append(players, rosterMap[l.Defender1ID], rosterMap[l.Defender2ID])
 			activeIDs = append(activeIDs, l.Defender1ID, l.Defender2ID)
-		} else {
+		default:
 			goalie := rosterMap[l.GoalieID]
 			if goalie.GoalieStamina < GoalieStaminaThreshold {
 				triggerGoalieReSort = true

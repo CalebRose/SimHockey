@@ -379,11 +379,12 @@ func (gp *GamePlaybook) ActivatePowerPlayer(playerID uint, position string) {
 
 func (gp *GamePlaybook) ReturnPlayerFromPowerPlay(powerPlayID uint, powerPlayPostion string) {
 	// Iterate through forwards and defenders to find the penalized player and return them in play
-	if powerPlayPostion == Forward {
+	switch powerPlayPostion {
+	case Forward:
 		for i := range gp.Forwards {
 			gp.Forwards[i].ReturnPlayerFromPowerPlay(powerPlayID)
 		}
-	} else if powerPlayPostion == Defender {
+	case Defender:
 		for i := range gp.Defenders {
 			gp.Defenders[i].ReturnPlayerFromPowerPlay(powerPlayID)
 		}
@@ -393,15 +394,16 @@ func (gp *GamePlaybook) ReturnPlayerFromPowerPlay(powerPlayID uint, powerPlayPos
 
 func (gp *GamePlaybook) HandlePositionToggle(playerID uint, position string, isOut bool) {
 	enum := gp.getPlayerPositionEnum(playerID, position)
-	if enum == 1 {
+	switch enum {
+	case 1:
 		gp.CenterOut = isOut
-	} else if enum == 2 {
+	case 2:
 		gp.Forward1Out = isOut
-	} else if enum == 3 {
+	case 3:
 		gp.Forward2Out = isOut
-	} else if enum == 4 {
+	case 4:
 		gp.Defender1Out = isOut
-	} else if enum == 5 {
+	case 5:
 		gp.Defender2Out = isOut
 	}
 }
@@ -464,14 +466,15 @@ func (gp *GamePlaybook) getPlayerPositionEnum(playerID uint, position string) ui
 	if position == Center {
 		return 1
 	}
-	if position == Forward {
+	switch position {
+	case Forward:
 		currentForwards := gp.Forwards[gp.CurrentForwards]
 		for idx, p := range currentForwards.Players {
 			if p.ID == playerID {
 				return 1 + uint(idx)
 			}
 		}
-	} else if position == Defender {
+	case Defender:
 		currentDefenders := gp.Defenders[gp.CurrentDefenders]
 		for idx, p := range currentDefenders.Players {
 			if p.ID == playerID {
@@ -571,11 +574,12 @@ func (gp *GamePlaybook) CheckAndRotateLineup() {
 }
 
 func (gp *GamePlaybook) getNextLine(lineType uint) []*GamePlayer {
-	if lineType == 1 {
+	switch lineType {
+	case 1:
 		for i := gp.CurrentForwards + 1; i < len(gp.Forwards); i++ {
 			return gp.Forwards[i].Players
 		}
-	} else if lineType == 2 {
+	case 2:
 		for i := gp.CurrentDefenders + 1; i < len(gp.Defenders); i++ {
 			return gp.Defenders[i].Players
 		}
