@@ -106,8 +106,6 @@ func AddTransferPlayerToBoard(w http.ResponseWriter, r *http.Request) {
 	profile := managers.AddTransferPlayerToBoard(transferPortalProfile)
 
 	json.NewEncoder(w).Encode(profile)
-
-	fmt.Fprintf(w, "New Promise Created")
 }
 
 func RemovePlayerFromTransferPortalBoard(w http.ResponseWriter, r *http.Request) {
