@@ -4212,6 +4212,56 @@ export class NewsLog {
 	    return a;
 	}
 }
+export class CollegePromise {
+    ID: number;
+    CreatedAt: Time;
+    UpdatedAt: Time;
+    DeletedAt: DeletedAt;
+    TeamID: number;
+    CollegePlayerID: number;
+    PromiseType: string;
+    PromiseWeight: string;
+    Benchmark: number;
+    BenchmarkStr: string;
+    PromiseMade: boolean;
+    IsFullfilled: boolean;
+    IsActive: boolean;
+
+    constructor(source: any = {}) {
+        if ('string' === typeof source) source = JSON.parse(source);
+        this.ID = source["ID"];
+        this.CreatedAt = this.convertValues(source["CreatedAt"], Time);
+        this.UpdatedAt = this.convertValues(source["UpdatedAt"], Time);
+        this.DeletedAt = this.convertValues(source["DeletedAt"], DeletedAt);
+        this.TeamID = source["TeamID"];
+        this.CollegePlayerID = source["CollegePlayerID"];
+        this.PromiseType = source["PromiseType"];
+        this.PromiseWeight = source["PromiseWeight"];
+        this.Benchmark = source["Benchmark"];
+        this.BenchmarkStr = source["BenchmarkStr"];
+        this.PromiseMade = source["PromiseMade"];
+        this.IsFullfilled = source["IsFullfilled"];
+        this.IsActive = source["IsActive"];
+    }
+
+	convertValues(a: any, classs: any, asMap: boolean = false): any {
+	    if (!a) {
+	        return a;
+	    }
+	    if (Array.isArray(a)) {
+	        return (a as any[]).map(elem => this.convertValues(elem, classs));
+	    } else if ("object" === typeof a) {
+	        if (asMap) {
+	            for (const key of Object.keys(a)) {
+	                a[key] = new classs(a[key]);
+	            }
+	            return a;
+	        }
+	        return new classs(a);
+	    }
+	    return a;
+	}
+}
 export class RecruitingTeamProfile {
     ID: number;
     CreatedAt: Time;
@@ -4249,6 +4299,8 @@ export class RecruitingTeamProfile {
     AIStarMin: number;
     AIStarMax: number;
     Recruiter: string;
+    OffensiveScheme: string;
+    DefensiveScheme: string;
     Recruits: RecruitPlayerProfile[];
 
     constructor(source: any = {}) {
@@ -4289,6 +4341,8 @@ export class RecruitingTeamProfile {
         this.AIStarMin = source["AIStarMin"];
         this.AIStarMax = source["AIStarMax"];
         this.Recruiter = source["Recruiter"];
+        this.OffensiveScheme = source["OffensiveScheme"];
+        this.DefensiveScheme = source["DefensiveScheme"];
         this.Recruits = this.convertValues(source["Recruits"], RecruitPlayerProfile);
     }
 
@@ -4978,6 +5032,7 @@ export class BootstrapData {
     TeamProfileMap: {[key: uint]: RecruitingTeamProfile};
     PortalPlayers: CollegePlayer[];
     TransferPortalProfiles: TransferPortalProfile[];
+    CollegePromises: CollegePromise[];
     CollegeInjuryReport: CollegePlayer[];
     CollegeNews: NewsLog[];
     CollegeNotifications: Notification[];
@@ -5026,6 +5081,7 @@ export class BootstrapData {
         this.TeamProfileMap = source["TeamProfileMap"];
         this.PortalPlayers = this.convertValues(source["PortalPlayers"], CollegePlayer);
         this.TransferPortalProfiles = this.convertValues(source["TransferPortalProfiles"], TransferPortalProfile);
+        this.CollegePromises = this.convertValues(source["CollegePromises"], CollegePromise);
         this.CollegeInjuryReport = this.convertValues(source["CollegeInjuryReport"], CollegePlayer);
         this.CollegeNews = this.convertValues(source["CollegeNews"], NewsLog);
         this.CollegeNotifications = this.convertValues(source["CollegeNotifications"], Notification);

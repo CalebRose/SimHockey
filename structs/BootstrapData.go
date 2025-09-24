@@ -10,6 +10,7 @@ type BootstrapData struct {
 	TeamProfileMap            map[uint]*RecruitingTeamProfile
 	PortalPlayers             []CollegePlayer
 	TransferPortalProfiles    []TransferPortalProfile
+	CollegePromises           []CollegePromise
 	CollegeInjuryReport       []CollegePlayer
 	CollegeNews               []NewsLog
 	CollegeNotifications      []Notification

@@ -62,6 +62,7 @@ func GetBootstrapData(collegeID, proID string) structs.BootstrapData {
 		faceDataMap            map[uint]structs.FaceDataResponse
 		poll                   structs.CollegePollSubmission
 		officialPolls          []structs.CollegePollOfficial
+		collegePromises        []structs.CollegePromise
 	)
 
 	// Professional Data
@@ -180,6 +181,14 @@ func GetBootstrapData(collegeID, proID string) structs.BootstrapData {
 		}()
 		wg.Wait()
 
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			collegePromises = repository.FindCollegePromiseRecords(repository.TransferPortalQuery{TeamID: collegeID, IsActive: "Y"})
+		}()
+
+		wg.Wait()
+
 	}
 
 	// Pros
@@ -293,6 +302,7 @@ func GetBootstrapData(collegeID, proID string) structs.BootstrapData {
 		TeamProfileMap:            teamProfileMap,
 		PortalPlayers:             portalPlayers,
 		TransferPortalProfiles:    transferPortalProfiles,
+		CollegePromises:           collegePromises,
 		CollegeInjuryReport:       injuredCollegePlayers,
 		CollegeNews:               collegeNews,
 		CollegeNotifications:      collegeNotifications,
