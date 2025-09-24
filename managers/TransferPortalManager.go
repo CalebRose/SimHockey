@@ -526,11 +526,12 @@ func AddTransferPlayerToBoard(transferPortalProfileDto structs.TransferPortalPro
 	return newProfileForRecruit
 }
 
-func RemovePlayerFromTransferPortalBoard(id string) {
+func RemovePlayerFromTransferPortalBoard(dto structs.TransferPortalProfile) structs.TransferPortalProfile {
 	db := dbprovider.GetInstance().GetDB()
 
 	profile := repository.FindTransferPortalProfileRecord(repository.TransferPortalQuery{
-		ID: id,
+		CollegePlayerID: strconv.Itoa(int(dto.CollegePlayerID)),
+		ProfileID:       strconv.Itoa(int(dto.ProfileID)),
 	})
 
 	profile.Deactivate()
@@ -543,6 +544,8 @@ func RemovePlayerFromTransferPortalBoard(id string) {
 		promise.Deactivate()
 		repository.DeleteCollegePromise(promise, db)
 	}
+
+	return profile
 }
 
 func AllocatePointsToTransferPlayer(updateTransferPortalBoardDto structs.UpdateTransferPortalBoard) {
