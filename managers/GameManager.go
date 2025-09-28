@@ -740,7 +740,10 @@ func PrepareCHLPostSeasonGamesFormat(db *gorm.DB, ts structs.Timestamp) {
 		}
 	}
 
-	// Sort collegeStandings by Points, Goals For
+	// Sort collegeStandings by Points, Goals For.
+	// Note: This current format may be biased towards conference tournament teams considering that these games are added to the standings as well.
+	// May need to think of iterative approach where standings are updated in real time based on game and then we conduct a sort
+	// Thoughts?
 	sort.Slice(collegeStandings, func(i, j int) bool {
 		if collegeStandings[i].Points == collegeStandings[j].Points {
 			return collegeStandings[i].GoalsFor > collegeStandings[j].GoalsFor
