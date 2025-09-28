@@ -30,27 +30,30 @@ func ImportCollegeTeams() {
 		teamName := team[1]
 		mascot := team[2]
 		abbr := team[3]
-		conferenceId := util.ConvertStringToInt(team[4])
-		conference := team[5]
-		coach := team[6]
-		city := team[7]
-		state := team[8]
-		country := team[9]
-		arenaId := util.ConvertStringToInt(team[10])
-		arenaName := team[11]
-		capacity := util.ConvertStringToInt(team[12])
+		leagueID := util.ConvertStringToInt(team[4])
+		conferenceId := util.ConvertStringToInt(team[5])
+		conference := team[6]
+		coach := team[7]
+		city := team[8]
+		state := team[9]
+		country := team[10]
+		arenaId := util.ConvertStringToInt(team[11])
+		arenaName := team[12]
+		capacity := util.ConvertStringToInt(team[13])
 		record := 0
-		firstYear := 2025
+		firstYear := 2026
 		discordId := ""
-		colorOne := team[16]
-		colorTwo := team[17]
-		colorThree := team[18]
-		program := util.ConvertStringToInt(team[25])
-		profDev := util.ConvertStringToInt(team[26])
-		traditions := util.ConvertStringToInt(team[27])
-		facilities := util.ConvertStringToInt(team[28])
-		atmosphere := util.ConvertStringToInt(team[29])
-		academicPrestige := util.ConvertStringToInt(team[31])
+		colorOne := team[17]
+		colorTwo := team[18]
+		colorThree := team[19]
+		isClub := util.ConvertStringToBool(team[23])
+		isActive := util.ConvertStringToBool(team[24])
+		program := util.ConvertStringToInt(team[26])
+		profDev := util.ConvertStringToInt(team[27])
+		traditions := util.ConvertStringToInt(team[28])
+		facilities := util.ConvertStringToInt(team[29])
+		atmosphere := util.ConvertStringToInt(team[30])
+		academicPrestige := util.ConvertStringToInt(team[32])
 
 		arena := structs.Arena{
 			Name:             arenaName,
@@ -80,7 +83,10 @@ func ImportCollegeTeams() {
 				ColorOne:         colorOne,
 				ColorTwo:         colorTwo,
 				ColorThree:       colorThree,
+				LeagueID:         uint8(leagueID),
 			},
+			IsClub:   isClub,
+			IsActive: isActive,
 			ProfileAttributes: structs.ProfileAttributes{
 				ProgramPrestige:      uint8(program),
 				ProfessionalPrestige: uint8(profDev),

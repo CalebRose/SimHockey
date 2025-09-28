@@ -2,6 +2,7 @@ package managers
 
 import (
 	"fmt"
+	"log"
 	"math/rand"
 	"net/http"
 	"sort"
@@ -1420,4 +1421,32 @@ func FilterOutPortalProfile(profiles []structs.TransferPortalProfile, ID uint) [
 	}
 
 	return rp
+}
+
+func PortalScoutAttribute(dto structs.ScoutAttributeDTO) structs.TransferPortalProfile {
+	db := dbprovider.GetInstance().GetDB()
+
+	recruitID := strconv.Itoa(int(dto.RecruitID))
+	profileID := strconv.Itoa(int(dto.ProfileID))
+
+	teamProfile := repository.FindTeamRecruitingProfile(profileID, false, false)
+
+	portalProfile := repository.FindTransferPortalProfileRecord(repository.TransferPortalQuery{CollegePlayerID: recruitID, ProfileID: profileID})
+
+	if teamProfile.ID == 0 || portalProfile.ID == 0 {
+		log.Panic("ERROR: IDs PROVIDED DON'T LINE UP")
+	}
+
+	if teamProfile.WeeklyScoutingPoints == 0 {
+		log.Panic("ERROR: User doesn't have enough scouting points")
+	}
+
+	portalProfile.ApplyScoutingAttribute(dto.Attribute)
+
+	teamProfile.SubtractScoutingPoints()
+
+	repository.SaveTeamProfileRecord(db, teamProfile)
+	repository.SaveTransferPortalProfileRecord(portalProfile, db)
+
+	return portalProfile
 }

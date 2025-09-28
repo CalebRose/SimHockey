@@ -21,7 +21,7 @@ func MakeCollegePortalList(players []structs.CollegePlayer) []structs.CollegePla
 	portalList := []structs.CollegePlayer{}
 
 	for _, p := range players {
-		if p.TransferStatus > 0 {
+		if p.TransferStatus > 0 || (p.LeagueID == 2 && p.Age > 17) {
 			portalList = append(portalList, p)
 		}
 	}

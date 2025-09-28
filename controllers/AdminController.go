@@ -40,6 +40,12 @@ func GenerateInitialRosters(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode("Data Generated ran!")
 }
 
+func GenerateCHLRosters(w http.ResponseWriter, r *http.Request) {
+	managers.GenerateInitialCHLRosters()
+
+	json.NewEncoder(w).Encode("Data Generated ran!")
+}
+
 func GenerateProTestData(w http.ResponseWriter, r *http.Request) {
 	managers.GenerateInitialProPool()
 

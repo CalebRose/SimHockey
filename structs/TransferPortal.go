@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"sort"
 
+	util "github.com/CalebRose/SimHockey/_util"
 	"gorm.io/gorm"
 )
 
@@ -65,6 +66,22 @@ type TransferPortalProfile struct {
 	RolledOnPromise       bool
 	LockProfile           bool
 	IsSigned              bool
+	Agility               bool
+	Faceoffs              bool
+	LongShotAccuracy      bool
+	LongShotPower         bool
+	CloseShotAccuracy     bool
+	CloseShotPower        bool
+	OneTimer              bool
+	Passing               bool
+	PuckHandling          bool
+	Strength              bool
+	BodyChecking          bool
+	StickChecking         bool
+	ShotBlocking          bool
+	Goalkeeping           bool
+	GoalieVision          bool
+	GoalieReboundControl  bool
 	Recruiter             string
 }
 
@@ -115,6 +132,51 @@ func (p *TransferPortalProfile) AssignPromise(id uint) {
 }
 func (p *TransferPortalProfile) ToggleRolledOnPromise() {
 	p.RolledOnPromise = true
+}
+
+func (rp *TransferPortalProfile) ApplyScoutingAttribute(attr string) {
+	if attr == util.Faceoffs {
+		rp.Faceoffs = true
+	}
+	if attr == util.Agility {
+		rp.Agility = true
+	}
+	if attr == util.LongShotAccuracy {
+		rp.LongShotAccuracy = true
+	}
+	if attr == util.LongShotPower {
+		rp.LongShotPower = true
+	}
+	if attr == util.CloseShotAccuracy {
+		rp.CloseShotAccuracy = true
+	}
+	if attr == util.CloseShotPower {
+		rp.CloseShotPower = true
+	}
+	if attr == util.Strength {
+		rp.Strength = true
+	}
+	if attr == util.Passing {
+		rp.Passing = true
+	}
+	if attr == util.PuckHandling {
+		rp.PuckHandling = true
+	}
+	if attr == util.BodyChecking {
+		rp.BodyChecking = true
+	}
+	if attr == util.StickChecking {
+		rp.StickChecking = true
+	}
+	if attr == util.Goalkeeping {
+		rp.Goalkeeping = true
+	}
+	if attr == util.GoalieVision {
+		rp.GoalieVision = true
+	}
+	if attr == util.ShotBlocking {
+		rp.ShotBlocking = true
+	}
 }
 
 type TransferPlayerResponse struct {

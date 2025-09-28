@@ -695,6 +695,10 @@ func (cp *CollegePlayer) ProgressPlayer(progressions BasePlayerProgressions) {
 	cp.GetOverall()
 }
 
+func (cp *CollegePlayer) ResetCHLCollegeYear() {
+	cp.Year = 0
+}
+
 func (cp *CollegePlayer) AssignID(id uint) {
 	cp.ID = id
 }
@@ -923,6 +927,10 @@ func (r *Recruit) AssignID(id uint) {
 
 func (r *Recruit) AssignCollege(abbr string) {
 	r.College = abbr
+}
+
+func (r *Recruit) AssignAge(age int) {
+	r.Age = uint8(age)
 }
 
 func (r *Recruit) UpdateTeamID(id uint) {

@@ -1,24 +1,24 @@
-Sim College Hockey Teams,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
-id,Team Name,Mascot,Abbreviation,LeagueID,Conference ID,Conference,Coach (All schools are AI unless noted),City,State,Country,ArenaID,Arena,Arena Capacity,Record Attendance,First Played,Discord ID,Color One,Color Two,Color Three,Overall Grade,Offense Grade,Defense Grade,IsClub,IsActive,Players Progressed,Program,Prof. Development,Traditions,Facilities,Atmosphere,Coach Reputation,Academic Prestige,,
-73,Illinois,Illini,ILLI,1,2,Big Ten,AI,Champaign,IL,USA,129,Gies Ice Arena,3000,0,2026,,#e04e39,#13294b,#FFFFFF,,,,1,1,0,5,5,1,2,3,5,1,,
-74,Oregon,Ducks,OREG,1,2,Big Ten,AI,Eugene,OR,USA,130,The Rink Exchange,2700,0,2026,,#FEE123,#154733,#FFFFFF,,,,1,1,0,5,5,1,2,3,5,1,,
-,Brantford,Bulldogs,BRANT,2,8,OHL,AI,Brantford,ON,Canada,,TD Civic Centre,2900,0,2026,,,,,,,,,0,0,0,1,1,1,1,1,1,1,1
-,Kingston,Frontenacs,KINGF,2,8,OHL,AI,Kingston,ON,Canada,,Slush Puppie Place,5000,0,2026,,,,,,,,,0,0,0,1,1,1,1,1,1,1,1
-,Ohsawa,Generals,OSHA,2,8,OHL,AI,Oshawa,ON,Canada,,Tribute Communities Centre,6125,0,2026,,,,,,,,,0,0,0,1,1,1,1,1,1,1,1
-,Ottawa,67's,OTTA,2,8,OHL,AI,Ottawa,ON,Canada,,TD Place Arena,8585,0,2026,,,,,,,,,0,0,0,1,1,1,1,1,1,1,1
-,Peterborough,Petes,PETES,2,8,OHL,AI,Peterborough,ON,Canada,,Peterborough Memorial Centre,4329,0,2026,,,,,,,,,0,0,0,1,1,1,1,1,1,1,1
-,Barrie,Colts,BARRY,2,8,OHL,AI,Barrie,ON,Canada,,Sadlon Arena,4195,0,2026,,,,,,,,,0,0,0,1,1,1,1,1,1,1,1
-,Brampton,Steelheads,BRAMP,2,8,OHL,AI,Brampton,ON,Canada,,CAA Centre,5000,0,2026,,,,,,,,,0,0,0,1,1,1,1,1,1,1,1
-,Niagara,IceDogs,NIAID,2,8,OHL,AI,St. Catharines,ON,Canada,,Meridian Centre,5300,0,2026,,,,,,,,,0,0,0,1,1,1,1,1,1,1,1
-,North Bay,Battalion,NBB,2,8,OHL,AI,North Bay,ON,Canada,,Boart Longyear Memorial Gardens,4246,0,2026,,,,,,,,,0,0,0,1,1,1,1,1,1,1,1
-,Sudbury,Wolves,SUDWU,2,8,OHL,AI,Greater Sudbury,ON,Canada,,Sudbury Community Arena,4640,0,2026,,,,,,,,,0,0,0,1,1,1,1,1,1,1,1
-,Erie,Otters,ERIE,2,8,OHL,AI,Erie,PA,USA,,Erie Insurance Arena,6716,0,2026,,,,,,,,,0,0,0,1,1,1,1,1,1,1,1
-,Guelph,Storm,GUELF,2,8,OHL,AI,Guelph,ON,Canada,,Sleeman Centre,4715,0,2026,,,,,,,,,0,0,0,1,1,1,1,1,1,1,1
-,Kitchener,Rangers,KITCH,2,8,OHL,AI,Kitchener,ON,Canada,,Kitchener Memorial Auditorium Complex,7131,0,2026,,,,,,,,,0,0,0,1,1,1,1,1,1,1,1
-,London,Knights,LK,2,8,OHL,AI,London,ON,Canada,,Canada Life Place,9036,0,2026,,,,,,,,,0,0,0,1,1,1,1,1,1,1,1
-,Owen Sound,Attack,OSA,2,8,OHL,AI,Owen Sound,ON,Canada,,Harry Lumley Bayshore Community Centre,4300,0,2026,,,,,,,,,0,0,0,1,1,1,1,1,1,1,1
-,Flint,Firebirds,FLINT,2,8,OHL,AI,Flint,MI,USA,,Dort Financial Center,4021,0,2026,,,,,,,,,0,0,0,1,1,1,1,1,1,1,1
-,Saginaw,Spirit,SAGI,2,8,OHL,AI,Saginaw,MI,USA,,Dow Event Center,5500,0,2026,,,,,,,,,0,0,0,1,1,1,1,1,1,1,1
-,Sarnia,Stingers,SARN,2,8,OHL,AI,Sarnia,ON,Canada,,Progressive Auto Sales Arena,5500,0,2026,,,,,,,,,0,0,0,1,1,1,1,1,1,1,1
-,Sault Ste. Marie,Greyhounds,SOO,2,8,OHL,AI,Sault Ste. Marie,ON,Canada,,GFL Memorial Gardens,4928,0,2026,,,,,,,,,0,0,0,1,1,1,1,1,1,1,1
-,Windsor,Spitfires,WINDS,2,8,OHL,AI,Windsor,ON,Canada,,WFCU Centre,6450,0,2026,,,,,,,,,0,0,0,1,1,1,1,1,1,1,1
+Sim College Hockey Teams,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
+id,Team Name,Mascot,Abbreviation,LeagueID,Conference ID,Conference,Coach (All schools are AI unless noted),City,State,Country,ArenaID,Arena,Arena Capacity,Record Attendance,First Played,Discord ID,Color One,Color Two,Color Three,Overall Grade,Offense Grade,Defense Grade,IsClub,IsActive,Players Progressed,Program,Prof. Development,Traditions,Facilities,Atmosphere,Coach Reputation,Academic Prestige
+73,Illinois,Illini,ILLI,1,2,Big Ten,AI,Champaign,IL,USA,129,Gies Ice Arena,3000,0,2026,,#e04e39,#13294b,#FFFFFF,,,,1,1,0,5,5,1,2,3,5,1
+74,Oregon,Ducks,OREG,1,2,Big Ten,AI,Eugene,OR,USA,130,The Rink Exchange,2700,0,2026,,#FEE123,#154733,#FFFFFF,,,,1,1,0,5,5,1,2,3,5,1
+75,Brantford,Bulldogs,BRANT,2,8,OHL,AI,Brantford,ON,Canada,131,TD Civic Centre,2900,0,2026,,#231F20,#FDBF00,#FFFFFF,,,,0,0,0,0,1,1,1,1,1,1
+76,Kingston,Frontenacs,KINGF,2,8,OHL,AI,Kingston,ON,Canada,132,Slush Puppie Place,5000,0,2026,,#000000,#FCBA32,#FFFFFF,,,,0,0,0,0,1,1,1,1,1,1
+77,Ohsawa,Generals,OSHA,2,8,OHL,AI,Oshawa,ON,Canada,133,Tribute Communities Centre,6125,0,2026,,#E21836,#002D62,#FFFFFF,,,,0,0,0,0,1,1,1,1,1,1
+78,Ottawa,67's,OTTA,2,8,OHL,AI,Ottawa,ON,Canada,134,TD Place Arena,8585,0,2026,,#AC1F2D,#000000,#FFFFFF,,,,0,0,0,0,1,1,1,1,1,1
+79,Peterborough,Petes,PETES,2,8,OHL,AI,Peterborough,ON,Canada,135,Peterborough Memorial Centre,4329,0,2026,,#94002A,#000000,#FFFFFF,,,,0,0,0,0,1,1,1,1,1,1
+80,Barrie,Colts,BARRY,2,8,OHL,AI,Barrie,ON,Canada,136,Sadlon Arena,4195,0,2026,,#EC1B02,#A6B1B6,#FFFFFF,,,,0,0,0,0,1,1,1,1,1,1
+81,Brampton,Steelheads,BRAMP,2,8,OHL,AI,Brampton,ON,Canada,137,CAA Centre,5000,0,2026,,#1A2857,#8F9090,#FFFFFF,,,,0,0,0,0,1,1,1,1,1,1
+82,Niagara,IceDogs,NIAID,2,8,OHL,AI,St. Catharines,ON,Canada,138,Meridian Centre,5300,0,2026,,#BF0C26,#4C4E52,#FFFFFF,,,,0,0,0,0,1,1,1,1,1,1
+83,North Bay,Battalion,NBB,2,8,OHL,AI,North Bay,ON,Canada,139,Boart Longyear Memorial Gardens,4246,0,2026,,#FCD213,#ED192D,#FFFFFF,,,,0,0,0,0,1,1,1,1,1,1
+84,Sudbury,Wolves,SUDWU,2,8,OHL,AI,Greater Sudbury,ON,Canada,140,Sudbury Community Arena,4640,0,2026,,#B9BBBD,#EB252C,#FFFFFF,,,,0,0,0,0,1,1,1,1,1,1
+85,Erie,Otters,ERIE,2,8,OHL,AI,Erie,PA,USA,141,Erie Insurance Arena,6716,0,2026,,#FEC52F,#0A1E3F,#FFFFFF,,,,0,0,0,0,1,1,1,1,1,1
+86,Guelph,Storm,GUELF,2,8,OHL,AI,Guelph,ON,Canada,142,Sleeman Centre,4715,0,2026,,#900027,#B3B5B8,#FFFFFF,,,,0,0,0,0,1,1,1,1,1,1
+87,Kitchener,Rangers,KITCH,2,8,OHL,AI,Kitchener,ON,Canada,143,Kitchener Memorial Auditorium Complex,7131,0,2026,,#CF0A2C,#0033A0,#FFFFFF,,,,0,0,0,0,1,1,1,1,1,1
+88,London,Knights,LK,2,8,OHL,AI,London,ON,Canada,144,Canada Life Place,9036,0,2026,,#27824D,#FEB81C,#FFFFFF,,,,0,0,0,0,1,1,1,1,1,1
+89,Owen Sound,Attack,OSA,2,8,OHL,AI,Owen Sound,ON,Canada,145,Harry Lumley Bayshore Community Centre,4300,0,2026,,#FFDD00,#E03A3E,#FFFFFF,,,,0,0,0,0,1,1,1,1,1,1
+90,Flint,Firebirds,FLINT,2,8,OHL,AI,Flint,MI,USA,146,Dort Financial Center,4021,0,2026,,#0C1D3C,#9BA1A6,#FFFFFF,,,,0,0,0,0,1,1,1,1,1,1
+91,Saginaw,Spirit,SAGI,2,8,OHL,AI,Saginaw,MI,USA,147,Dow Event Center,5500,0,2026,,#003263,#C9CBCC,#FFFFFF,,,,0,0,0,0,1,1,1,1,1,1
+92,Sarnia,Stingers,SARN,2,8,OHL,AI,Sarnia,ON,Canada,148,Progressive Auto Sales Arena,5500,0,2026,,#FFC425,#B0B7BC,#FFFFFF,,,,0,0,0,0,1,1,1,1,1,1
+93,Sault Ste. Marie,Greyhounds,SOO,2,8,OHL,AI,Sault Ste. Marie,ON,Canada,149,GFL Memorial Gardens,4928,0,2026,,#FFFFFF,#CF2029,#FFFFFF,,,,0,0,0,0,1,1,1,1,1,1
+94,Windsor,Spitfires,WINDS,2,8,OHL,AI,Windsor,ON,Canada,150,WFCU Centre,6450,0,2026,,#E31B23,#00274D,#FFFFFF,,,,0,0,0,0,1,1,1,1,1,1

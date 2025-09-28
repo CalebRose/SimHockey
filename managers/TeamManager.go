@@ -13,6 +13,10 @@ func GetAllCollegeTeams() []structs.CollegeTeam {
 	return repository.FindAllCollegeTeams(repository.TeamClauses{LeagueID: "1"})
 }
 
+func GetAllCanadianCHLTeams() []structs.CollegeTeam {
+	return repository.FindAllCollegeTeams(repository.TeamClauses{LeagueID: "2"})
+}
+
 func GetCollegeTeamMap() map[uint]structs.CollegeTeam {
 	teams := repository.FindAllCollegeTeams(repository.TeamClauses{LeagueID: "1"})
 	return MakeCollegeTeamMap(teams)

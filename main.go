@@ -79,6 +79,7 @@ func handleRequests() http.Handler {
 	// apiRouter.HandleFunc("/admin/assign/ranks/", controllers.AssignAllRecruitRanks).Methods("GET")
 	// apiRouter.HandleFunc("/admin/generate/test/college/teams/", controllers.GenerateCollegeTeams).Methods("GET")
 	// apiRouter.HandleFunc("/admin/generate/init/college/rosters/", controllers.GenerateInitialRosters).Methods("GET")
+	// apiRouter.HandleFunc("/admin/generate/chl/rosters/", controllers.GenerateCHLRosters).Methods("GET")
 	// apiRouter.HandleFunc("/admin/generate/college/recruits/", controllers.GenerateCroots).Methods("GET")
 	// apiRouter.HandleFunc("/admin/generate/custom/recruits/", controllers.GenerateCustomCroots).Methods("GET")
 	// apiRouter.HandleFunc("/admin/generate/phl/schedule/", controllers.GeneratePHLSchedule).Methods("GET")
@@ -93,7 +94,7 @@ func handleRequests() http.Handler {
 	// apiRouter.HandleFunc("/admin/ai/sync/boards", controllers.SyncAIBoards).Methods("GET")
 	// apiRouter.HandleFunc("/simhck/sync/recruiting/", controllers.SyncRecruiting).Methods("GET")
 	// apiRouter.HandleFunc("/simhck/update/team/ranks/", controllers.UpdateTeamRankings).Methods("GET")
-	apiRouter.HandleFunc("/simhck/fix/standings/tables/", controllers.FixStandingsTables).Methods("GET")
+	// apiRouter.HandleFunc("/simhck/fix/standings/tables/", controllers.FixStandingsTables).Methods("GET")
 
 	// Bootstrap
 	apiRouter.HandleFunc("/bootstrap/{collegeID}/{proID}", controllers.BootstrapHockeyData).Methods("GET")
@@ -194,6 +195,7 @@ func handleRequests() http.Handler {
 	apiRouter.HandleFunc("/portal/ai/generate/profiles", controllers.FillUpTransferBoardsAI).Methods("GET")
 	apiRouter.HandleFunc("/portal/ai/allocate/profiles", controllers.AllocateAndPromisePlayersAI).Methods("GET")
 	// apiRouter.HandleFunc("/portal/page/data/{teamID}", controllers.GetTransferPortalPageData).Methods("GET")
+	apiRouter.HandleFunc("/portal/scout/attribute/", controllers.ScoutAttribute).Methods("POST")
 	apiRouter.HandleFunc("/portal/profile/create", controllers.AddTransferPlayerToBoard).Methods("POST")
 	apiRouter.HandleFunc("/portal/profile/remove", controllers.RemovePlayerFromTransferPortalBoard).Methods("POST")
 	apiRouter.HandleFunc("/portal/saveboard", controllers.SaveTransferBoard).Methods("POST")
