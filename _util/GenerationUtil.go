@@ -17,6 +17,9 @@ func GetPositionList() []string {
 func GetStarRating(isCustom, isCHL bool) int {
 	roll := GenerateIntFromRange(1, 1000)
 	if isCHL {
+		if roll < 4 {
+			return 5
+		}
 		if roll < 42 {
 			return 4
 		}
