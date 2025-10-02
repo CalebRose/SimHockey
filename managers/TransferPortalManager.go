@@ -200,18 +200,8 @@ func ProcessTransferIntention(w http.ResponseWriter) {
 		teamProfile := teamProfileMap[uint(teamID)]
 		schemeMod = getSchemeMod(teamProfile, p, mediumDrop, mediumGain)
 
-		fcsMod := 1.0
-		if p.TeamID > 134 && p.TeamID != 138 && p.TeamID != 206 {
-			if p.Year > 2 && p.Overall > 39 {
-				fcsMod += (0.1 * float64(p.Year))
-			}
-			if p.Personality == "Loyal" {
-				fcsMod = 0.0
-			}
-		}
-
 		/// Not playing = 25, low depth chart = 16 or 33, scheme = 10, if you're all 3, that's a ~60% chance of transferring pre- modifiers
-		transferWeight = starMod * ageMod * (snapMod + depthChartCompetitionMod + schemeMod) * fcsMod
+		transferWeight = starMod * ageMod * (snapMod + depthChartCompetitionMod + schemeMod)
 		diceRoll := util.GenerateIntFromRange(1, 100)
 
 		// NOT INTENDING TO TRANSFER

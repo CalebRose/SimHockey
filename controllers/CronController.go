@@ -74,7 +74,6 @@ func RunTheGamesViaCron() {
 	if ts.RunCron && !ts.IsOffSeason && ts.RunGames {
 		// Run the Games!
 		managers.RunGames()
-
 	}
 }
 

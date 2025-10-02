@@ -204,7 +204,7 @@ func SavePlayoffSeriesRecord(seriesRecord structs.PlayoffSeries, db *gorm.DB) {
 	}
 }
 
-func FindLatestGameID() uint {
+func FindLatestCHLGameID() uint {
 	db := dbprovider.GetInstance().GetDB()
 	var games structs.CollegeGame
 	err := db.Last(&games).Error
@@ -213,6 +213,28 @@ func FindLatestGameID() uint {
 	}
 
 	return games.ID
+}
+
+func FindLatestPHLGameID() uint {
+	db := dbprovider.GetInstance().GetDB()
+	var games structs.ProfessionalGame
+	err := db.Last(&games).Error
+	if err != nil {
+		return games.ID
+	}
+
+	return games.ID
+}
+
+func FindLatestPHLSeriesID() uint {
+	db := dbprovider.GetInstance().GetDB()
+	var series structs.ProSeries
+	err := db.Last(&series).Error
+	if err != nil {
+		return series.ID
+	}
+
+	return series.ID
 }
 
 func FindCollegeSeriesRecords(seasonID string) []structs.CollegeSeries {

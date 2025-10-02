@@ -23,6 +23,15 @@ func ShowGames() {
 	UpdateStandings(ts, gameDay)
 	UpdateSeasonStats(ts, gameDay)
 	ts.ToggleGames(gameDay)
+	if ts.Week == 17 && gameDay == "C" {
+		// If Week is 17, generate CHL conference tournament structure
+		PrepareCollegeTournamentGamesFormat(db, ts)
+		GenerateCollegeTournamentGames(db, ts)
+	}
+	if ts.Week == 18 && gameDay == "A" {
+		// Final PHL games have been ran, prepare playoff structure
+		PreparePHLPostSeasonGamesFormat(db, ts)
+	}
 	repository.SaveTimestamp(ts, db)
 }
 
@@ -37,14 +46,13 @@ func MoveUpWeek() structs.Timestamp {
 	RecoverPlayers()
 	ts.SyncToNextWeek()
 
-	if ts.Week == 18 {
-		// If Week is 18, generate CHL conference tournament structure
-		PrepareCollegeTournamentGamesFormat(db, ts)
-		GenerateCollegeTournamentGames(db, ts)
-	}
 	if ts.Week == 19 {
 		// Generate CHL Postseason tournament structure
-		PrepareCollegeTournamentGamesFormat(db, ts)
+		PrepareCHLPostSeasonGamesFormat(db, ts)
+	}
+	if ts.Week > 18 {
+		// Generate PHL Playoff Games
+		GenerateProPlayoffGames(db, ts)
 	}
 
 	if ts.Week < 21 && !ts.CollegeSeasonOver && !ts.IsOffSeason && !ts.IsPreseason {

@@ -511,7 +511,7 @@ func GeneratePreseasonGames() {
 
 func PrepareCollegeTournamentGamesFormat(db *gorm.DB, ts structs.Timestamp) {
 	seasonID := ts.SeasonID
-	nextGameID := repository.FindLatestGameID() + 1
+	nextGameID := repository.FindLatestCHLGameID() + 1
 	collegeTeams := repository.FindAllCollegeTeams(repository.TeamClauses{LeagueID: "1"})
 	teamMap := MakeCollegeTeamMap(collegeTeams)
 	standingsMap := GetCollegeStandingsMap(strconv.Itoa(int(seasonID)))
@@ -720,7 +720,7 @@ func PrepareCollegeTournamentGamesFormat(db *gorm.DB, ts structs.Timestamp) {
 
 func PrepareCHLPostSeasonGamesFormat(db *gorm.DB, ts structs.Timestamp) {
 	seasonID := ts.SeasonID
-	baseID := repository.FindLatestGameID() + 1
+	baseID := repository.FindLatestCHLGameID() + 1
 	collegeTeams := repository.FindAllCollegeTeams(repository.TeamClauses{LeagueID: "1"})
 	collegeStandings := repository.FindAllCollegeStandings(repository.StandingsQuery{SeasonID: strconv.Itoa(int(seasonID))})
 	stMap := MakeCollegeStandingsMap(collegeStandings)
@@ -881,6 +881,134 @@ func PrepareCHLPostSeasonGamesFormat(db *gorm.DB, ts structs.Timestamp) {
 	repository.CreateCHLGamesRecordsBatch(db, games, 50)
 }
 
+func PreparePHLPostSeasonGamesFormat(db *gorm.DB, ts structs.Timestamp) {
+	seasonID := ts.SeasonID
+	nextSeriesID := repository.FindLatestPHLSeriesID() + 1
+	proTeams := repository.FindAllProTeams(repository.TeamClauses{LeagueID: "1"})
+	teamMap := MakeProTeamMap(proTeams)
+	standingsMap := GetProStandingsMap(strconv.Itoa(int(seasonID)))
+	divisionMap := map[uint8][]*structs.ProfessionalStandings{}
+	divisionIDList := []uint8{1, 2, 3, 4}
+	qualifyingTeams := []*structs.ProfessionalStandings{}
+	postSeasonSeriesList := []structs.ProSeries{}
+
+	for _, t := range proTeams {
+		standings := standingsMap[t.ID]
+		if standings.ID == 0 {
+			continue
+		}
+		if len(divisionMap[t.DivisionID]) > 0 {
+			divisionMap[t.DivisionID] = append(divisionMap[t.DivisionID], &standings)
+		} else {
+			divisionMap[t.DivisionID] = []*structs.ProfessionalStandings{&standings}
+		}
+	}
+
+	// Get Qualifying Top 2 teams in each division
+	for _, did := range divisionIDList {
+		division := divisionMap[did]
+
+		// Sort by Points, Goals For
+		sort.Slice(division, func(i, j int) bool {
+			if division[i].Points == division[j].Points {
+				return division[i].GoalsFor > division[j].GoalsFor
+			}
+			return division[i].Points > division[j].Points
+		})
+
+		// Then get top two teams from the division
+		qualifyingTeams = append(qualifyingTeams, division[:2]...)
+	}
+
+	// So, Divisions 1 and 2 should be part of the same conference. 3 and 4 the same.
+	// We will need to pair the top team from 1 division to face the 2nd best team from the opposite division in the same conference. And then vice versa. This will serve as the quarterfinals series, best of 7.
+	pairs := [][2]*structs.ProfessionalStandings{
+		{qualifyingTeams[0], qualifyingTeams[3]}, // Div 1 #1 vs Div 2 #2
+		{qualifyingTeams[1], qualifyingTeams[2]}, // Div 1 #2 vs Div 2 #1
+		{qualifyingTeams[4], qualifyingTeams[7]}, // Div 3 #1 vs Div 4 #2
+		{qualifyingTeams[5], qualifyingTeams[6]}, // Div 3 #2 vs Div 4 #1
+	}
+
+	// Quarterfinal Series
+	for qfIdx, p := range pairs {
+		a, b := p[0], p[1]
+		homeTeam := teamMap[a.TeamID]
+		awayTeam := teamMap[b.TeamID]
+		nextSeriesHoa := "H"
+		if qfIdx%2 == 1 {
+			nextSeriesHoa = "A"
+		}
+
+		quarterFinalsSeries := structs.ProSeries{
+			Model: gorm.Model{ID: nextSeriesID + uint(qfIdx)},
+			BaseSeries: structs.BaseSeries{
+				SeasonID:   seasonID,
+				HomeTeamID: a.TeamID, HomeTeam: a.TeamName, HomeTeamRank: 1,
+				HomeTeamCoach:   homeTeam.Coach,
+				AwayTeamCoach:   awayTeam.Coach,
+				IsInternational: homeTeam.LeagueID != 1 && awayTeam.LeagueID != 1,
+				AwayTeamID:      b.TeamID, AwayTeam: b.TeamName, AwayTeamRank: 2,
+				SeriesName:    fmt.Sprintf("%d %s vs %s Quarterfinals", ts.Season, homeTeam.Division, awayTeam.Division),
+				BestOfCount:   7,
+				GameCount:     1,
+				IsPlayoffGame: true,
+				NextSeriesHOA: nextSeriesHoa,                    // Higher seed is home
+				NextSeriesID:  nextSeriesID + 4 + uint(qfIdx/2), // Semifinal Series ID
+			},
+		}
+		postSeasonSeriesList = append(postSeasonSeriesList, quarterFinalsSeries)
+	}
+
+	// Make two Semifinals Series records
+	for sfIdx := 0; sfIdx < 2; sfIdx++ {
+		nextSeriesHoa := "H"
+		if sfIdx == 1 {
+			nextSeriesHoa = "A"
+		}
+		semiFinalsSeries := structs.ProSeries{
+			Model: gorm.Model{ID: nextSeriesID + 4 + uint(sfIdx)},
+			BaseSeries: structs.BaseSeries{
+				SeasonID:   seasonID,
+				HomeTeamID: 0, HomeTeam: "", HomeTeamRank: 0,
+				AwayTeamID: 0, AwayTeam: "", AwayTeamRank: 0,
+				HomeTeamCoach:   "",
+				AwayTeamCoach:   "",
+				IsInternational: false,
+				NextSeriesHOA:   nextSeriesHoa,    // Higher seed is home
+				NextSeriesID:    nextSeriesID + 6, // Finals Series ID
+				SeriesName:      fmt.Sprintf("%d SimPHL Semifinals", ts.Season),
+				BestOfCount:     7,
+				GameCount:       1,
+			},
+		}
+		postSeasonSeriesList = append(postSeasonSeriesList, semiFinalsSeries)
+	}
+
+	// Finals Series
+	finalsSeries := structs.ProSeries{
+		Model: gorm.Model{ID: nextSeriesID + 6},
+		BaseSeries: structs.BaseSeries{
+			SeasonID:   seasonID,
+			HomeTeamID: 0, HomeTeam: "", HomeTeamRank: 0,
+			AwayTeamID: 0, AwayTeam: "", AwayTeamRank: 0,
+			HomeTeamCoach:   "",
+			AwayTeamCoach:   "",
+			IsInternational: false,
+			NextSeriesHOA:   "", // Higher seed is home
+			NextSeriesID:    0,
+			IsTheFinals:     true,
+			SeriesName:      fmt.Sprintf("%d SimPHL Finals", ts.Season),
+			BestOfCount:     7,
+			GameCount:       1,
+		},
+	}
+
+	postSeasonSeriesList = append(postSeasonSeriesList, finalsSeries)
+
+	repository.CreatePHLSeriesRecordsBatch(db, postSeasonSeriesList, 20)
+
+}
+
 func GenerateCollegeTournamentGames(db *gorm.DB, ts structs.Timestamp) {
 	weekID := strconv.Itoa(int(ts.WeekID))
 	seasonID := strconv.Itoa(int(ts.SeasonID))
@@ -930,6 +1058,106 @@ func GenerateCollegeTournamentGames(db *gorm.DB, ts structs.Timestamp) {
 	}
 
 	repository.CreateCHLGamesRecordsBatch(db, collegeGamesUpload, 50)
+}
+
+func GenerateProPlayoffGames(db *gorm.DB, ts structs.Timestamp) {
+	weekID := strconv.Itoa(int(ts.WeekID))
+	seasonID := strconv.Itoa(int(ts.SeasonID))
+	teamMap := GetProTeamMap()
+	professionalGames := repository.FindProfessionalGames(repository.GamesClauses{SeasonID: seasonID, WeekID: weekID})
+	// If game still exist, do not generate new games
+	if len(professionalGames) > 0 {
+		return
+	}
+
+	// Get Active Pro Series
+	proSeries := repository.FindProSeriesRecords(strconv.Itoa(int(ts.SeasonID)))
+	proGamesUpload := []structs.ProfessionalGame{}
+
+	for _, s := range proSeries {
+		if s.HomeTeamID == 0 || s.AwayTeamID == 0 || s.SeriesComplete {
+			continue
+		}
+
+		if s.IsTheFinals && s.SeriesComplete {
+			ts.EndTheProfessionalSeason()
+			repository.SaveTimestamp(ts, db)
+			break
+		}
+		gameCount := strconv.Itoa(int(s.GameCount))
+		homeTeam := ""
+		homeTeamID := 0
+		homeTeamCoach := ""
+		homeTeamRank := 0
+		awayTeam := ""
+		awayTeamID := 0
+		awayTeamCoach := ""
+		awayTeamRank := 0
+		arenaID := 0
+		arena := ""
+		city := ""
+		state := ""
+		country := ""
+		seriesName := s.SeriesName
+		matchName := seriesName + " Game: " + gameCount
+		// Game 1, 2, 5, or 7 => Higher Seed is Home
+		// Game 3, 4, or 6 => Lower Seed is Home
+		// If Game 7 does not exist, it means the series ended in 4, 5, or 6 games.
+		if gameCount == "1" || gameCount == "2" || gameCount == "5" || gameCount == "7" {
+			ht := teamMap[s.HomeTeamID]
+			homeTeam = s.HomeTeam
+			homeTeamID = int(s.HomeTeamID)
+			homeTeamCoach = s.HomeTeamCoach
+			homeTeamRank = int(s.HomeTeamRank)
+			awayTeam = s.AwayTeam
+			awayTeamID = int(s.AwayTeamID)
+			awayTeamCoach = s.AwayTeamCoach
+			awayTeamRank = int(s.AwayTeamRank)
+			arenaID = int(ht.ArenaID)
+			arena = ht.Arena
+			city = ht.City
+			state = ht.State
+			country = ht.Country
+		} else {
+			ht := teamMap[s.AwayTeamID]
+			homeTeam = s.AwayTeam
+			homeTeamID = int(s.AwayTeamID)
+			homeTeamCoach = s.AwayTeamCoach
+			homeTeamRank = int(s.AwayTeamRank)
+			awayTeam = s.HomeTeam
+			awayTeamID = int(s.HomeTeamID)
+			awayTeamCoach = s.HomeTeamCoach
+			awayTeamRank = int(s.HomeTeamRank)
+			arenaID = int(ht.ArenaID)
+			arena = ht.Arena
+			city = ht.City
+			state = ht.State
+			country = ht.Country
+		}
+
+		proGame := structs.ProfessionalGame{
+			BaseGame: structs.BaseGame{
+				GameTitle: matchName,
+				SeasonID:  ts.SeasonID, WeekID: ts.WeekID, Week: int(ts.Week),
+				HomeTeamID: uint(homeTeamID), HomeTeam: homeTeam, HomeTeamRank: uint(homeTeamRank),
+				HomeTeamCoach: homeTeamCoach,
+				AwayTeamID:    uint(awayTeamID), AwayTeam: awayTeam, AwayTeamRank: uint(awayTeamRank),
+				AwayTeamCoach: awayTeamCoach,
+				Arena:         arena,
+				ArenaID:       uint(arenaID),
+				City:          city,
+				State:         state,
+				Country:       country,
+				GameDay:       "A",
+				SeriesID:      s.ID,
+				IsPlayoffGame: s.IsPlayoffGame,
+			},
+			IsStanleyCup: s.IsTheFinals,
+		}
+		proGamesUpload = append(proGamesUpload, proGame)
+	}
+
+	repository.CreatePHLGamesRecordsBatch(db, proGamesUpload, 50)
 }
 
 func GetCollegeGamesForPreseason(teamMap map[uint]structs.CollegeTeam) []structs.CollegeGame {
