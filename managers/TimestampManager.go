@@ -23,10 +23,10 @@ func ShowGames() {
 	UpdateStandings(ts, gameDay)
 	UpdateSeasonStats(ts, gameDay)
 	ts.ToggleGames(gameDay)
-	if ts.Week == 17 && gameDay == "C" {
-		// If Week is 17, generate CHL conference tournament structure
+	if ts.Week == 17 && gameDay == "B" {
+		// If Week is 17, generate CHL conference tournament structure once the final games are complete
 		PrepareCollegeTournamentGamesFormat(db, ts)
-		GenerateCollegeTournamentGames(db, ts)
+		GenerateCollegeTournamentQuarterfinalsGames(db, ts)
 	}
 	if ts.Week == 18 && gameDay == "A" {
 		// Final PHL games have been ran, prepare playoff structure

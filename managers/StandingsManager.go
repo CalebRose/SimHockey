@@ -250,35 +250,71 @@ func UpdateStandings(ts structs.Timestamp, gameDay string) {
 					arena := ""
 					state := ""
 					country := ""
-					switch series.GameCount {
-					case 1, 2, 5, 7:
-						homeTeam := proTeamMap[series.HomeTeamID]
-						homeTeamID = int(series.HomeTeamID)
-						nextHomeTeam = series.HomeTeam
-						nextHomeTeamCoach = series.HomeTeamCoach
-						nextHomeRank = int(series.HomeTeamRank)
-						city = homeTeam.City
-						arena = homeTeam.Arena
-						state = homeTeam.State
-						country = homeTeam.Country
-						awayTeamID = int(series.AwayTeamID)
-						nextAwayTeam = series.AwayTeam
-						nextAwayTeamCoach = series.AwayTeamCoach
-						nextAwayRank = int(series.AwayTeamRank)
-					case 3, 4, 6:
-						awayTeam := proTeamMap[series.AwayTeamID]
-						homeTeamID = int(series.AwayTeamID)
-						nextHomeTeam = series.AwayTeam
-						nextHomeTeamCoach = series.AwayTeamCoach
-						nextHomeRank = int(series.AwayTeamRank)
-						city = awayTeam.City
-						arena = awayTeam.Arena
-						state = awayTeam.State
-						country = awayTeam.Country
-						awayTeamID = int(series.HomeTeamID)
-						nextAwayTeam = series.HomeTeam
-						nextAwayTeamCoach = series.HomeTeamCoach
-						nextAwayRank = int(series.HomeTeamRank)
+					if series.BestOfCount == 5 || series.BestOfCount == 7 {
+						switch series.GameCount {
+						case 1, 2, 5, 7:
+							homeTeam := collegeTeamMap[series.HomeTeamID]
+							homeTeamID = int(series.HomeTeamID)
+							nextHomeTeam = series.HomeTeam
+							nextHomeTeamCoach = series.HomeTeamCoach
+							nextHomeRank = int(series.HomeTeamRank)
+							city = homeTeam.City
+							arena = homeTeam.Arena
+							state = homeTeam.State
+							country = homeTeam.Country
+							awayTeamID = int(series.AwayTeamID)
+							nextAwayTeam = series.AwayTeam
+							nextAwayTeamCoach = series.AwayTeamCoach
+							nextAwayRank = int(series.AwayTeamRank)
+						case 3, 4, 6:
+							awayTeam := collegeTeamMap[series.AwayTeamID]
+							homeTeamID = int(series.AwayTeamID)
+							nextHomeTeam = series.AwayTeam
+							nextHomeTeamCoach = series.AwayTeamCoach
+							nextHomeRank = int(series.AwayTeamRank)
+							city = awayTeam.City
+							arena = awayTeam.Arena
+							state = awayTeam.State
+							country = awayTeam.Country
+							awayTeamID = int(series.HomeTeamID)
+							nextAwayTeam = series.HomeTeam
+							nextAwayTeamCoach = series.HomeTeamCoach
+							nextAwayRank = int(series.HomeTeamRank)
+						}
+					} else {
+						switch series.GameCount {
+						case 1, 3:
+							homeTeam := collegeTeamMap[series.HomeTeamID]
+							homeTeamID = int(series.HomeTeamID)
+							nextHomeTeam = series.HomeTeam
+							nextHomeTeamCoach = series.HomeTeamCoach
+							nextHomeRank = int(series.HomeTeamRank)
+							city = homeTeam.City
+							arena = homeTeam.Arena
+							state = homeTeam.State
+							country = homeTeam.Country
+							awayTeamID = int(series.AwayTeamID)
+							nextAwayTeam = series.AwayTeam
+							nextAwayTeamCoach = series.AwayTeamCoach
+							nextAwayRank = int(series.AwayTeamRank)
+						case 2:
+							awayTeam := collegeTeamMap[series.AwayTeamID]
+							homeTeamID = int(series.AwayTeamID)
+							nextHomeTeam = series.AwayTeam
+							nextHomeTeamCoach = series.AwayTeamCoach
+							nextHomeRank = int(series.AwayTeamRank)
+							city = awayTeam.City
+							arena = awayTeam.Arena
+							state = awayTeam.State
+							country = awayTeam.Country
+							awayTeamID = int(series.HomeTeamID)
+							nextAwayTeam = series.HomeTeam
+							nextAwayTeamCoach = series.HomeTeamCoach
+							nextAwayRank = int(series.HomeTeamRank)
+						default:
+							// Should not happen
+						}
+
 					}
 					weekID := ts.WeekID
 					week := ts.Week

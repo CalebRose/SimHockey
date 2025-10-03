@@ -630,6 +630,12 @@ func ImportCHLSchedule() {
 
 	repository.CreateCHLGamesRecordsBatch(db, games, 100)
 }
+func ImportCHLTourneySchedule() {
+	db := dbprovider.GetInstance().GetDB()
+	ts := repository.FindTimestamp()
+	// PrepareCollegeTournamentGamesFormat(db, ts)
+	GenerateCollegeTournamentQuarterfinalsGames(db, ts)
+}
 
 type ScheduledGame struct {
 	structs.ProfessionalGame

@@ -98,11 +98,12 @@ func FindProfessionalGamesByCurrentMatchup(weekID, seasonID, gameDay string, isP
 }
 
 type GamesClauses struct {
-	SeasonID    string
-	WeekID      string
-	TeamID      string
-	IsPreseason bool
-	Timeslot    string
+	SeasonID      string
+	WeekID        string
+	TeamID        string
+	IsPreseason   bool
+	Timeslot      string
+	GameCompleted string
 }
 
 func FindCollegeGames(clauses GamesClauses) []structs.CollegeGame {
@@ -123,6 +124,11 @@ func FindCollegeGames(clauses GamesClauses) []structs.CollegeGame {
 
 	if len(clauses.Timeslot) > 0 {
 		query = query.Where("game_day = ?", clauses.Timeslot)
+	}
+
+	if len(clauses.GameCompleted) > 0 {
+		gameCompleted := clauses.GameCompleted == "Y"
+		query = query.Where("game_complete = ?", gameCompleted)
 	}
 
 	if err := query.Order("week_id asc").Where("is_preseason = ?", clauses.IsPreseason).Find(&games).Error; err != nil {
@@ -149,6 +155,10 @@ func FindProfessionalGames(clauses GamesClauses) []structs.ProfessionalGame {
 
 	if len(clauses.Timeslot) > 0 {
 		query = query.Where("game_day = ?", clauses.Timeslot)
+	}
+	if len(clauses.GameCompleted) > 0 {
+		gameCompleted := clauses.GameCompleted == "Y"
+		query = query.Where("game_complete = ?", gameCompleted)
 	}
 
 	if err := query.Order("week_id asc").Where("is_preseason = ?", clauses.IsPreseason).Find(&games).Error; err != nil {

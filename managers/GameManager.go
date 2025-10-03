@@ -664,7 +664,7 @@ func PrepareCollegeTournamentGamesFormat(db *gorm.DB, ts structs.Timestamp) {
 						BestOfCount: 3,
 						HomeTeamID:  a.TeamID, HomeTeam: a.TeamName, HomeTeamRank: uint(qfIdx + 1),
 						AwayTeamID: b.TeamID, AwayTeam: b.TeamName, AwayTeamRank: uint(8 - qfIdx),
-						GameCount:     0,
+						GameCount:     1,
 						IsPlayoffGame: true,
 					},
 					NextGameID:   ngID,
@@ -805,7 +805,7 @@ func PrepareCHLPostSeasonGamesFormat(db *gorm.DB, ts structs.Timestamp) {
 		arenaIdx := util.GenerateIntFromRange(0, len(arenas)-1)
 		arena := arenas[arenaIdx]
 
-		g := mk(baseID+uint(i), fmt.Sprintf("%d SimCHL Round of 16", ts.Season), 19)
+		g := mk(baseID+uint(i), fmt.Sprintf("%d SimCHL Round of 16", ts.Season), 20)
 		g.HomeTeamID, g.HomeTeam, g.HomeTeamRank = a.TeamID, a.TeamName, a.Rank
 		g.AwayTeamID, g.AwayTeam, g.AwayTeamRank = b.TeamID, b.TeamName, b.Rank
 		g.ArenaID = arena.ID
@@ -830,7 +830,7 @@ func PrepareCHLPostSeasonGamesFormat(db *gorm.DB, ts structs.Timestamp) {
 	for q := 0; q < 4; q++ {
 		arenaIdx := util.GenerateIntFromRange(0, len(arenas)-1)
 		arena := arenas[arenaIdx]
-		g := mk(baseID+8+uint(q), fmt.Sprintf("%d SimCHL Quarterfinal", ts.Season), 19)
+		g := mk(baseID+8+uint(q), fmt.Sprintf("%d SimCHL Quarterfinal", ts.Season), 20)
 		g.NextGameID = baseID + 12 + uint(q/2)
 		if q%2 == 0 {
 			g.NextGameHOA = "H"
@@ -851,7 +851,7 @@ func PrepareCHLPostSeasonGamesFormat(db *gorm.DB, ts structs.Timestamp) {
 	arenaIdx := util.GenerateIntFromRange(0, len(arenas)-1)
 	arena := arenas[arenaIdx]
 	for s := 0; s < 2; s++ {
-		g := mk(baseID+12+uint(s), fmt.Sprintf("%d SimCHL Frozen Four Semifinal", ts.Season), 20)
+		g := mk(baseID+12+uint(s), fmt.Sprintf("%d SimCHL Frozen Four Semifinal", ts.Season), 21)
 		g.NextGameID = baseID + 14
 		if s == 0 {
 			g.NextGameHOA = "H"
@@ -868,7 +868,7 @@ func PrepareCHLPostSeasonGamesFormat(db *gorm.DB, ts structs.Timestamp) {
 	}
 
 	// ---------- National Championship (id baseID+14) ----------
-	final := mk(baseID+14, fmt.Sprintf("%d SimCHL National Championship", ts.Season), 20)
+	final := mk(baseID+14, fmt.Sprintf("%d SimCHL National Championship", ts.Season), 21)
 	final.IsNationalChampionship = true
 	final.GameDay = "C"
 	final.ArenaID = arena.ID
@@ -1009,11 +1009,11 @@ func PreparePHLPostSeasonGamesFormat(db *gorm.DB, ts structs.Timestamp) {
 
 }
 
-func GenerateCollegeTournamentGames(db *gorm.DB, ts structs.Timestamp) {
+func GenerateCollegeTournamentQuarterfinalsGames(db *gorm.DB, ts structs.Timestamp) {
 	weekID := strconv.Itoa(int(ts.WeekID))
 	seasonID := strconv.Itoa(int(ts.SeasonID))
 	teamMap := GetCollegeTeamMap()
-	collegeGames := repository.FindCollegeGames(repository.GamesClauses{SeasonID: seasonID, WeekID: weekID})
+	collegeGames := repository.FindCollegeGames(repository.GamesClauses{SeasonID: seasonID, WeekID: weekID, GameCompleted: "N"})
 	if len(collegeGames) > 0 {
 		return
 	}
@@ -1036,11 +1036,13 @@ func GenerateCollegeTournamentGames(db *gorm.DB, ts structs.Timestamp) {
 		city = ht.City
 		state = ht.State
 		country = ht.Country
+		weekID := util.GetWeekID(ts.SeasonID, 18)
+		week := 18
 
 		collegeGame := structs.CollegeGame{
 			BaseGame: structs.BaseGame{
 				GameTitle: matchName,
-				SeasonID:  ts.SeasonID, WeekID: ts.WeekID, Week: int(ts.Week),
+				SeasonID:  ts.SeasonID, WeekID: weekID, Week: week,
 				HomeTeamID: s.HomeTeamID, HomeTeam: s.HomeTeam, HomeTeamRank: s.HomeTeamRank,
 				HomeTeamCoach: s.HomeTeamCoach,
 				AwayTeamID:    s.AwayTeamID, AwayTeam: s.AwayTeam, AwayTeamRank: s.AwayTeamRank,

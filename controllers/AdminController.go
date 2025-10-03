@@ -104,6 +104,11 @@ func GenerateCHLSchedule(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode("Data Generated ran!")
 }
 
+func GenerateCHLTourneySchedule(w http.ResponseWriter, r *http.Request) {
+	managers.ImportCHLTourneySchedule()
+	json.NewEncoder(w).Encode("Data Generated ran!")
+}
+
 func GeneratePreseasonGames(w http.ResponseWriter, r *http.Request) {
 	managers.GeneratePreseasonGames()
 	json.NewEncoder(w).Encode("Data Generated ran!")
