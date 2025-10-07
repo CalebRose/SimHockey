@@ -98,6 +98,10 @@ func logGameResults(gs GameState) {
 func generateGameState(game structs.GameDTO) GameState {
 	gameInfo := game.GameInfo
 	hra := float64(game.Attendance) / float64(game.Capacity)
+	// If no arena generated, no home rink advantage. Granted, this edge case should never happen.
+	if game.Capacity == 0 {
+		hra = 1.0
+	}
 	gs := GameState{
 		GameID:            game.GameID,
 		WeekID:            game.GameInfo.WeekID,
