@@ -248,6 +248,7 @@ func UpdateStandings(ts structs.Timestamp, gameDay string) {
 					nextAwayRank := 0
 					city := ""
 					arena := ""
+					arenaID := 0
 					state := ""
 					country := ""
 					if series.BestOfCount == 5 || series.BestOfCount == 7 {
@@ -260,6 +261,7 @@ func UpdateStandings(ts structs.Timestamp, gameDay string) {
 							nextHomeRank = int(series.HomeTeamRank)
 							city = homeTeam.City
 							arena = homeTeam.Arena
+							arenaID = int(homeTeam.ArenaID)
 							state = homeTeam.State
 							country = homeTeam.Country
 							awayTeamID = int(series.AwayTeamID)
@@ -274,6 +276,7 @@ func UpdateStandings(ts structs.Timestamp, gameDay string) {
 							nextHomeRank = int(series.AwayTeamRank)
 							city = awayTeam.City
 							arena = awayTeam.Arena
+							arenaID = int(awayTeam.ArenaID)
 							state = awayTeam.State
 							country = awayTeam.Country
 							awayTeamID = int(series.HomeTeamID)
@@ -291,6 +294,7 @@ func UpdateStandings(ts structs.Timestamp, gameDay string) {
 							nextHomeRank = int(series.HomeTeamRank)
 							city = homeTeam.City
 							arena = homeTeam.Arena
+							arenaID = int(homeTeam.ArenaID)
 							state = homeTeam.State
 							country = homeTeam.Country
 							awayTeamID = int(series.AwayTeamID)
@@ -305,6 +309,7 @@ func UpdateStandings(ts structs.Timestamp, gameDay string) {
 							nextHomeRank = int(series.AwayTeamRank)
 							city = awayTeam.City
 							arena = awayTeam.Arena
+							arenaID = int(awayTeam.ArenaID)
 							state = awayTeam.State
 							country = awayTeam.Country
 							awayTeamID = int(series.HomeTeamID)
@@ -349,6 +354,7 @@ func UpdateStandings(ts structs.Timestamp, gameDay string) {
 							AwayTeamRank:  uint(nextAwayRank),
 							City:          city,
 							Arena:         arena,
+							ArenaID:       uint(arenaID),
 							State:         state,
 							Country:       country,
 							IsPlayoffGame: false,
@@ -471,6 +477,7 @@ func UpdateStandings(ts structs.Timestamp, gameDay string) {
 					nextAwayRank := 0
 					city := ""
 					arena := ""
+					arenaID := 0
 					state := ""
 					country := ""
 					switch series.GameCount {
@@ -482,6 +489,7 @@ func UpdateStandings(ts structs.Timestamp, gameDay string) {
 						nextHomeRank = int(series.HomeTeamRank)
 						city = homeTeam.City
 						arena = homeTeam.Arena
+						arenaID = int(homeTeam.ArenaID)
 						state = homeTeam.State
 						country = homeTeam.Country
 						awayTeamID = int(series.AwayTeamID)
@@ -496,6 +504,7 @@ func UpdateStandings(ts structs.Timestamp, gameDay string) {
 						nextHomeRank = int(series.AwayTeamRank)
 						city = awayTeam.City
 						arena = awayTeam.Arena
+						arenaID = int(awayTeam.ArenaID)
 						state = awayTeam.State
 						country = awayTeam.Country
 						awayTeamID = int(series.HomeTeamID)
@@ -536,6 +545,7 @@ func UpdateStandings(ts structs.Timestamp, gameDay string) {
 							AwayTeamRank:  uint(nextAwayRank),
 							City:          city,
 							Arena:         arena,
+							ArenaID:       uint(arenaID),
 							State:         state,
 							Country:       country,
 							IsPlayoffGame: true,

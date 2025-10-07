@@ -1032,6 +1032,7 @@ func GenerateCollegeTournamentQuarterfinalsGames(db *gorm.DB, ts structs.Timesta
 		seriesName := s.SeriesName
 		matchName := seriesName + " Game: " + gameCount
 		ht := teamMap[s.HomeTeamID]
+		arenaID := ht.ArenaID
 		arena = ht.Arena
 		city = ht.City
 		state = ht.State
@@ -1048,6 +1049,7 @@ func GenerateCollegeTournamentQuarterfinalsGames(db *gorm.DB, ts structs.Timesta
 				AwayTeamID:    s.AwayTeamID, AwayTeam: s.AwayTeam, AwayTeamRank: s.AwayTeamRank,
 				AwayTeamCoach: s.AwayTeamCoach,
 				Arena:         arena,
+				ArenaID:       uint(arenaID),
 				City:          city,
 				State:         state,
 				Country:       country,
