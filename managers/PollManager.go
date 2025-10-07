@@ -186,8 +186,11 @@ func SyncCollegePollSubmissionForCurrentWeek(week, weekID, seasonID uint) {
 		teamStandings.AssignRank(rank)
 		repository.SaveCollegeStandingsRecord(teamStandings, db)
 
-		matches := GetCollegeGamesByTeamIDAndSeasonID(teamID, seasonIDStr, false)
+		if week > 17 {
+			continue
+		}
 
+		matches := GetCollegeGamesByTeamIDAndSeasonID(teamID, seasonIDStr, false)
 		for _, m := range matches {
 			if m.Week < int(week) && !m.IsPreseason {
 				continue

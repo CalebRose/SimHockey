@@ -402,3 +402,31 @@ func ScoutAttribute(dto structs.ScoutAttributeDTO) structs.RecruitPlayerProfile 
 
 	return recruitProfile
 }
+
+func ScoutPortalAttribute(dto structs.ScoutAttributeDTO) structs.TransferPortalProfile {
+	db := dbprovider.GetInstance().GetDB()
+
+	playerID := strconv.Itoa(int(dto.RecruitID))
+	profileID := strconv.Itoa(int(dto.ProfileID))
+
+	teamProfile := repository.FindTeamRecruitingProfile(profileID, false, false)
+
+	portalProfile := repository.FindTransferPortalProfileRecord(repository.TransferPortalQuery{CollegePlayerID: playerID, ProfileID: profileID})
+
+	if teamProfile.ID == 0 || portalProfile.ID == 0 {
+		return portalProfile
+	}
+
+	if teamProfile.WeeklyScoutingPoints == 0 {
+		return portalProfile
+	}
+
+	portalProfile.ApplyScoutingAttribute(dto.Attribute)
+
+	teamProfile.SubtractScoutingPoints()
+
+	repository.SaveTeamProfileRecord(db, teamProfile)
+	repository.SaveTransferPortalProfileRecord(portalProfile, db)
+
+	return portalProfile
+}

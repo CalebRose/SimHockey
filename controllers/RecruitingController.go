@@ -103,3 +103,16 @@ func ScoutAttribute(w http.ResponseWriter, r *http.Request) {
 
 	json.NewEncoder(w).Encode(profile)
 }
+
+func ScoutPortalAttribute(w http.ResponseWriter, r *http.Request) {
+	var scoutAttributeDto structs.ScoutAttributeDTO
+	err := json.NewDecoder(r.Body).Decode(&scoutAttributeDto)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	profile := managers.ScoutPortalAttribute(scoutAttributeDto)
+
+	json.NewEncoder(w).Encode(profile)
+}

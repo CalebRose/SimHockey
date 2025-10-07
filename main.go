@@ -197,7 +197,7 @@ func handleRequests() http.Handler {
 	apiRouter.HandleFunc("/portal/ai/generate/profiles", controllers.FillUpTransferBoardsAI).Methods("GET")
 	apiRouter.HandleFunc("/portal/ai/allocate/profiles", controllers.AllocateAndPromisePlayersAI).Methods("GET")
 	// apiRouter.HandleFunc("/portal/page/data/{teamID}", controllers.GetTransferPortalPageData).Methods("GET")
-	apiRouter.HandleFunc("/portal/scout/attribute/", controllers.ScoutAttribute).Methods("POST")
+	apiRouter.HandleFunc("/portal/scout/attribute/", controllers.ScoutPortalAttribute).Methods("POST")
 	apiRouter.HandleFunc("/portal/profile/create", controllers.AddTransferPlayerToBoard).Methods("POST")
 	apiRouter.HandleFunc("/portal/profile/remove", controllers.RemovePlayerFromTransferPortalBoard).Methods("POST")
 	apiRouter.HandleFunc("/portal/saveboard", controllers.SaveTransferBoard).Methods("POST")
