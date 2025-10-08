@@ -224,7 +224,7 @@ func UpdateStandings(ts structs.Timestamp, gameDay string) {
 			repository.SaveCollegeStandingsRecord(homeStandings, db)
 			repository.SaveCollegeStandingsRecord(awayStandings, db)
 
-			if game.IsPlayoffGame && game.SeriesID > 0 {
+			if game.SeriesID > 0 {
 				seriesID := strconv.Itoa(int(game.SeriesID))
 
 				series := repository.FindCollegeSeriesRecord(seriesID)
