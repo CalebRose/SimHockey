@@ -386,6 +386,42 @@ func UpdateStandings(ts structs.Timestamp, gameDay string) {
 						}
 						nextSeries.AddTeam(nextSeriesHoa == "H", teamID, uint(teamRank), teamLabel, teamCoach)
 						repository.SavePlayoffSeriesRecord(nextSeries, db)
+					} else if game.NextGameID > 0 {
+
+						nextGameID := strconv.Itoa(int(game.NextGameID))
+						winningTeamID := 0
+						winningTeam := ""
+						winningCoach := ""
+						winningTeamRank := 0
+						arena := ""
+						city := ""
+						state := ""
+						if game.HomeTeamWin {
+							homeTeam := collegeTeamMap[HomeID]
+							winningTeamID = int(game.HomeTeamID)
+							winningTeam = game.HomeTeam
+							winningTeamRank = int(game.HomeTeamRank)
+							winningCoach = game.HomeTeamCoach
+							arena = homeTeam.Arena
+							city = homeTeam.City
+							state = homeTeam.State
+						} else {
+							winningTeamID = int(game.AwayTeamID)
+							winningTeam = game.AwayTeam
+							winningTeamRank = int(game.AwayTeamRank)
+							winningCoach = game.AwayTeamCoach
+							awayTeam := collegeTeamMap[AwayID]
+							arena = awayTeam.Arena
+							city = awayTeam.City
+							state = awayTeam.State
+						}
+
+						nextGame := GetCollegeGameByID(nextGameID)
+
+						nextGame.AddTeam(game.NextGameHOA == "H", uint(winningTeamID), uint(winningTeamRank),
+							winningTeam, winningCoach, arena, city, state)
+
+						repository.SaveCollegeGameRecord(nextGame, db)
 					}
 				}
 				repository.SaveCollegeSeriesRecord(series, db)
