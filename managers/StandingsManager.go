@@ -386,9 +386,9 @@ func UpdateStandings(ts structs.Timestamp, gameDay string) {
 						}
 						nextSeries.AddTeam(nextSeriesHoa == "H", teamID, uint(teamRank), teamLabel, teamCoach)
 						repository.SavePlayoffSeriesRecord(nextSeries, db)
-					} else if game.NextGameID > 0 {
+					} else if series.NextGameID > 0 {
 
-						nextGameID := strconv.Itoa(int(game.NextGameID))
+						nextGameID := strconv.Itoa(int(series.NextGameID))
 						winningTeamID := 0
 						winningTeam := ""
 						winningCoach := ""
