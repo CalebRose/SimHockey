@@ -110,6 +110,9 @@ func handleRequests() http.Handler {
 	apiRouter.HandleFunc("/export/pro/roster/{teamID}", controllers.ExportProRoster).Methods("GET")
 	apiRouter.HandleFunc("/export/stats/chl/{seasonID}/{weekID}/{viewType}/{gameType}", controllers.ExportCHLStatsPageContentForSeason).Methods("GET")
 	apiRouter.HandleFunc("/export/stats/phl/{seasonID}/{weekID}/{viewType}/{gameType}", controllers.ExportProStatsPageContent).Methods("GET")
+	apiRouter.HandleFunc("/games/export/results/{seasonID}/{weekID}/{timeslot}", controllers.ExportHCKGameResults).Methods("GET")
+	apiRouter.HandleFunc("/games/result/export/chl/{gameID}", controllers.ExportCollegePlayByPlayResults).Methods("GET")
+	apiRouter.HandleFunc("/games/result/export/phl/{gameID}", controllers.ExportProPlayByPlayResults).Methods("GET")
 
 	// Free Agency
 	apiRouter.HandleFunc("/phl/freeagency/create/offer", controllers.CreateFreeAgencyOffer).Methods("POST")
@@ -120,9 +123,6 @@ func handleRequests() http.Handler {
 	// Games
 	apiRouter.HandleFunc("/games/result/chl/{gameID}", controllers.GetCollegeGameResultsByGameID).Methods("GET")
 	apiRouter.HandleFunc("/games/result/phl/{gameID}", controllers.GetProGameResultsByGameID).Methods("GET")
-	apiRouter.HandleFunc("/games/result/export/chl/{gameID}", controllers.ExportCollegePlayByPlayResults).Methods("GET")
-	apiRouter.HandleFunc("/games/result/export/phl/{gameID}", controllers.ExportProPlayByPlayResults).Methods("GET")
-	apiRouter.HandleFunc("/games/export/results/{seasonID}/{weekID}/{timeslot}", controllers.ExportHCKGameResults).Methods("GET")
 
 	// Imports
 	// apiRouter.HandleFunc("/admin/import/pro/rosters/", controllers.ImportProRosters).Methods("GET")

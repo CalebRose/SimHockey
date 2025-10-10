@@ -1184,8 +1184,8 @@ func ExportProStats(seasonID, weekID, viewType, gameType string, w http.Response
 	zipWriter := zip.NewWriter(w)
 	defer zipWriter.Close()
 	// Initialize writer
-	fileName := "phl_player_stats_" + seasonStr + "_" + weekStr
-	teamFileName := "phl_team_stats_" + seasonStr + "_" + weekStr
+	fileName := "phl_player_stats_" + seasonStr + "_" + weekStr + ".csv"
+	teamFileName := "phl_team_stats_" + seasonStr + "_" + weekStr + ".csv"
 
 	proPlayerMap := GetProPlayersMap()
 	phlTeamMap := GetProTeamMap()
