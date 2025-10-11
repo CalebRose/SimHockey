@@ -90,7 +90,7 @@ func (b *BaseGame) UpdateThreeStars(stars ThreeStars) {
 	b.StarThree = stars.StarThree
 }
 
-func (m *BaseGame) AddTeam(isHome bool, id, rank uint, team, coach, arena, city, state string) {
+func (m *BaseGame) AddTeam(isHome bool, id, arenaId, rank uint, team, coach, arena, city, state string) {
 	if isHome {
 		m.HomeTeam = team
 		m.HomeTeamID = id
@@ -106,6 +106,7 @@ func (m *BaseGame) AddTeam(isHome bool, id, rank uint, team, coach, arena, city,
 		m.Arena = arena
 		m.City = city
 		m.State = state
+		m.ArenaID = arenaId
 	}
 }
 

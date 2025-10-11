@@ -396,12 +396,14 @@ func UpdateStandings(ts structs.Timestamp, gameDay string) {
 						arena := ""
 						city := ""
 						state := ""
+						arenaID := 0
 						if game.HomeTeamWin {
 							homeTeam := collegeTeamMap[HomeID]
 							winningTeamID = int(game.HomeTeamID)
 							winningTeam = game.HomeTeam
 							winningTeamRank = int(game.HomeTeamRank)
 							winningCoach = game.HomeTeamCoach
+							arenaID = int(homeTeam.ArenaID)
 							arena = homeTeam.Arena
 							city = homeTeam.City
 							state = homeTeam.State
@@ -411,6 +413,7 @@ func UpdateStandings(ts structs.Timestamp, gameDay string) {
 							winningTeamRank = int(game.AwayTeamRank)
 							winningCoach = game.AwayTeamCoach
 							awayTeam := collegeTeamMap[AwayID]
+							arenaID = int(awayTeam.ArenaID)
 							arena = awayTeam.Arena
 							city = awayTeam.City
 							state = awayTeam.State
@@ -418,7 +421,7 @@ func UpdateStandings(ts structs.Timestamp, gameDay string) {
 
 						nextGame := GetCollegeGameByID(nextGameID)
 
-						nextGame.AddTeam(game.NextGameHOA == "H", uint(winningTeamID), uint(winningTeamRank),
+						nextGame.AddTeam(series.NextGameHOA == "H", uint(winningTeamID), uint(arenaID), uint(winningTeamRank),
 							winningTeam, winningCoach, arena, city, state)
 
 						repository.SaveCollegeGameRecord(nextGame, db)
@@ -435,6 +438,7 @@ func UpdateStandings(ts structs.Timestamp, gameDay string) {
 				arena := ""
 				city := ""
 				state := ""
+				arenaID := 0
 				if game.HomeTeamWin {
 					homeTeam := collegeTeamMap[HomeID]
 					winningTeamID = int(game.HomeTeamID)
@@ -444,6 +448,7 @@ func UpdateStandings(ts structs.Timestamp, gameDay string) {
 					arena = homeTeam.Arena
 					city = homeTeam.City
 					state = homeTeam.State
+					arenaID = int(homeTeam.ArenaID)
 				} else {
 					winningTeamID = int(game.AwayTeamID)
 					winningTeam = game.AwayTeam
@@ -453,11 +458,12 @@ func UpdateStandings(ts structs.Timestamp, gameDay string) {
 					arena = awayTeam.Arena
 					city = awayTeam.City
 					state = awayTeam.State
+					arenaID = int(awayTeam.ArenaID)
 				}
 
 				nextGame := GetCollegeGameByID(nextGameID)
 
-				nextGame.AddTeam(game.NextGameHOA == "H", uint(winningTeamID), uint(winningTeamRank),
+				nextGame.AddTeam(game.NextGameHOA == "H", uint(winningTeamID), uint(arenaID), uint(winningTeamRank),
 					winningTeam, winningCoach, arena, city, state)
 
 				repository.SaveCollegeGameRecord(nextGame, db)
