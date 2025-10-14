@@ -15,6 +15,12 @@ func GetCollegeStandingsByConferenceIDAndSeasonID(conferenceID string, seasonID 
 	})
 }
 
+// HasSeriesBeenClinched returns true if either team has reached the required wins to clinch the series.
+func HasSeriesBeenClinched(series structs.BaseSeries) bool {
+	requiredWins := (series.BestOfCount / 2) + 1
+	return series.HomeTeamWins >= requiredWins || series.AwayTeamWins >= requiredWins
+}
+
 func GetAllCollegeStandingsBySeasonID(seasonID string) []structs.CollegeStandings {
 	return repository.FindAllCollegeStandings(repository.StandingsQuery{
 		SeasonID: seasonID,
@@ -236,8 +242,7 @@ func UpdateStandings(ts structs.Timestamp, gameDay string) {
 					winningID = int(game.AwayTeamID)
 				}
 				series.UpdateWinCount(winningID)
-
-				if series.GameCount <= series.BestOfCount && (series.HomeTeamWins < 2 && series.AwayTeamWins < 2) {
+				if !HasSeriesBeenClinched(series.BaseSeries) && series.GameCount <= series.BestOfCount {
 					homeTeamID := 0
 					nextHomeTeam := ""
 					nextHomeTeamCoach := ""
@@ -508,7 +513,8 @@ func UpdateStandings(ts structs.Timestamp, gameDay string) {
 				}
 				series.UpdateWinCount(winningID)
 
-				if series.GameCount <= 7 && (series.HomeTeamWins < 4 && series.AwayTeamWins < 4) {
+				// Change second half of condition to reflect either best of 7 or best of 5
+				if !HasSeriesBeenClinched(series.BaseSeries) && series.GameCount <= series.BestOfCount {
 					homeTeamID := 0
 					nextHomeTeam := ""
 					nextHomeTeamCoach := ""
@@ -522,37 +528,75 @@ func UpdateStandings(ts structs.Timestamp, gameDay string) {
 					arenaID := 0
 					state := ""
 					country := ""
-					switch series.GameCount {
-					case 1, 2, 5, 7:
-						homeTeam := proTeamMap[series.HomeTeamID]
-						homeTeamID = int(series.HomeTeamID)
-						nextHomeTeam = series.HomeTeam
-						nextHomeTeamCoach = series.HomeTeamCoach
-						nextHomeRank = int(series.HomeTeamRank)
-						city = homeTeam.City
-						arena = homeTeam.Arena
-						arenaID = int(homeTeam.ArenaID)
-						state = homeTeam.State
-						country = homeTeam.Country
-						awayTeamID = int(series.AwayTeamID)
-						nextAwayTeam = series.AwayTeam
-						nextAwayTeamCoach = series.AwayTeamCoach
-						nextAwayRank = int(series.AwayTeamRank)
-					case 3, 4, 6:
-						awayTeam := proTeamMap[series.AwayTeamID]
-						homeTeamID = int(series.AwayTeamID)
-						nextHomeTeam = series.AwayTeam
-						nextHomeTeamCoach = series.AwayTeamCoach
-						nextHomeRank = int(series.AwayTeamRank)
-						city = awayTeam.City
-						arena = awayTeam.Arena
-						arenaID = int(awayTeam.ArenaID)
-						state = awayTeam.State
-						country = awayTeam.Country
-						awayTeamID = int(series.HomeTeamID)
-						nextAwayTeam = series.HomeTeam
-						nextAwayTeamCoach = series.HomeTeamCoach
-						nextAwayRank = int(series.HomeTeamRank)
+					if series.BestOfCount == 5 || series.BestOfCount == 7 {
+						switch series.GameCount {
+						case 1, 2, 5, 7:
+							homeTeam := collegeTeamMap[series.HomeTeamID]
+							homeTeamID = int(series.HomeTeamID)
+							nextHomeTeam = series.HomeTeam
+							nextHomeTeamCoach = series.HomeTeamCoach
+							nextHomeRank = int(series.HomeTeamRank)
+							city = homeTeam.City
+							arena = homeTeam.Arena
+							arenaID = int(homeTeam.ArenaID)
+							state = homeTeam.State
+							country = homeTeam.Country
+							awayTeamID = int(series.AwayTeamID)
+							nextAwayTeam = series.AwayTeam
+							nextAwayTeamCoach = series.AwayTeamCoach
+							nextAwayRank = int(series.AwayTeamRank)
+						case 3, 4, 6:
+							awayTeam := collegeTeamMap[series.AwayTeamID]
+							homeTeamID = int(series.AwayTeamID)
+							nextHomeTeam = series.AwayTeam
+							nextHomeTeamCoach = series.AwayTeamCoach
+							nextHomeRank = int(series.AwayTeamRank)
+							city = awayTeam.City
+							arena = awayTeam.Arena
+							arenaID = int(awayTeam.ArenaID)
+							state = awayTeam.State
+							country = awayTeam.Country
+							awayTeamID = int(series.HomeTeamID)
+							nextAwayTeam = series.HomeTeam
+							nextAwayTeamCoach = series.HomeTeamCoach
+							nextAwayRank = int(series.HomeTeamRank)
+						}
+					} else {
+						switch series.GameCount {
+						case 1, 3:
+							homeTeam := proTeamMap[series.HomeTeamID]
+							homeTeamID = int(series.HomeTeamID)
+							nextHomeTeam = series.HomeTeam
+							nextHomeTeamCoach = series.HomeTeamCoach
+							nextHomeRank = int(series.HomeTeamRank)
+							city = homeTeam.City
+							arena = homeTeam.Arena
+							arenaID = int(homeTeam.ArenaID)
+							state = homeTeam.State
+							country = homeTeam.Country
+							awayTeamID = int(series.AwayTeamID)
+							nextAwayTeam = series.AwayTeam
+							nextAwayTeamCoach = series.AwayTeamCoach
+							nextAwayRank = int(series.AwayTeamRank)
+						case 2:
+							awayTeam := proTeamMap[series.AwayTeamID]
+							homeTeamID = int(series.AwayTeamID)
+							nextHomeTeam = series.AwayTeam
+							nextHomeTeamCoach = series.AwayTeamCoach
+							nextHomeRank = int(series.AwayTeamRank)
+							city = awayTeam.City
+							arena = awayTeam.Arena
+							arenaID = int(awayTeam.ArenaID)
+							state = awayTeam.State
+							country = awayTeam.Country
+							awayTeamID = int(series.HomeTeamID)
+							nextAwayTeam = series.HomeTeam
+							nextAwayTeamCoach = series.HomeTeamCoach
+							nextAwayRank = int(series.HomeTeamRank)
+						default:
+							// Should not happen
+						}
+
 					}
 					weekID := ts.WeekID
 					week := ts.Week
@@ -606,7 +650,7 @@ func UpdateStandings(ts structs.Timestamp, gameDay string) {
 						teamLabel := ""
 						teamCoach := ""
 						teamRank := 0
-						if series.HomeTeamWin {
+						if series.HomeTeamSeriesWin {
 							teamID = series.HomeTeamID
 							teamLabel = series.HomeTeam
 							teamCoach = series.HomeTeamCoach

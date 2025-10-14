@@ -46,7 +46,7 @@ func MoveUpWeek() structs.Timestamp {
 	RecoverPlayers()
 	ts.SyncToNextWeek()
 
-	if ts.Week == 19 {
+	if ts.Week == 20 {
 		// Generate CHL Postseason tournament structure
 		PrepareCHLPostSeasonGamesFormat(db, ts)
 	}

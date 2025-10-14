@@ -1532,7 +1532,7 @@ func generateProfessionalGame(seasonID, weekID, week, hid, aid uint, gameDay str
 	}
 }
 
-func GetPlayoffSeriesBySeriesID(seriesID string) structs.PlayoffSeries {
+func GetPlayoffSeriesBySeriesID(seriesID string) structs.ProSeries {
 	return repository.FindPlayoffSeriesByID(seriesID)
 }
 

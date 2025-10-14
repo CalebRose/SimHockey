@@ -197,20 +197,20 @@ func FindProfessionalGameRecord(id string) structs.ProfessionalGame {
 	return games
 }
 
-func FindPlayoffSeriesByID(seriesID string) structs.PlayoffSeries {
+func FindPlayoffSeriesByID(seriesID string) structs.ProSeries {
 	db := dbprovider.GetInstance().GetDB()
 
-	var series structs.PlayoffSeries
+	var series structs.ProSeries
 
 	db.Where("id = ?", seriesID).Find(&series)
 
 	return series
 }
 
-func SavePlayoffSeriesRecord(seriesRecord structs.PlayoffSeries, db *gorm.DB) {
+func SavePlayoffSeriesRecord(seriesRecord structs.ProSeries, db *gorm.DB) {
 	err := db.Save(&seriesRecord).Error
 	if err != nil {
-		log.Panicln("Could not save college player " + strconv.Itoa(int(seriesRecord.ID)))
+		log.Panicln("Could not save playoff series " + strconv.Itoa(int(seriesRecord.ID)))
 	}
 }
 
