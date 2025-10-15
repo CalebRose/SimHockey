@@ -845,7 +845,7 @@ func WriteProPlayersExport(w http.ResponseWriter, players []structs.Professional
 	w.Header().Set("Transfer-Encoding", "chunked")
 	writer := csv.NewWriter(w)
 
-	writer.Write([]string{"ID", "First Name", "Last Name", "Position", "Archetype",
+	writer.Write([]string{"ID", "Team", "First Name", "Last Name", "Position", "Archetype",
 		"Height", "Weight", "City", "Region", "Country", "Stars", "Age", "Overall",
 		util.Agility, util.Faceoffs, util.LongShotAccuracy, util.LongShotPower, util.CloseShotAccuracy,
 		util.CloseShotPower, util.Passing, util.PuckHandling, util.Strength, util.BodyChecking, util.StickChecking,
@@ -857,7 +857,7 @@ func WriteProPlayersExport(w http.ResponseWriter, players []structs.Professional
 		idStr := strconv.Itoa(int(p.ID))
 
 		playerRow := []string{
-			idStr, p.FirstName, p.LastName, p.Position, p.Archetype, strconv.Itoa(int(p.Height)), strconv.Itoa(int(p.Weight)), p.City, p.State, p.Country,
+			idStr, p.Team, p.FirstName, p.LastName, p.Position, p.Archetype, strconv.Itoa(int(p.Height)), strconv.Itoa(int(p.Weight)), p.City, p.State, p.Country,
 			strconv.Itoa(int(p.Stars)), strconv.Itoa(int(p.Age)), strconv.Itoa(int(p.Overall)), strconv.Itoa(int(p.Agility)), strconv.Itoa(int(p.Faceoffs)), strconv.Itoa(int(p.LongShotAccuracy)),
 			strconv.Itoa(int(p.LongShotPower)), strconv.Itoa(int(p.CloseShotAccuracy)), strconv.Itoa(int(p.CloseShotPower)), strconv.Itoa(int(p.Passing)), strconv.Itoa(int(p.PuckHandling)), strconv.Itoa(int(p.Strength)),
 			strconv.Itoa(int(p.BodyChecking)), strconv.Itoa(int(p.StickChecking)), strconv.Itoa(int(p.ShotBlocking)), strconv.Itoa(int(p.Goalkeeping)), strconv.Itoa(int(p.GoalieVision)), util.GetPotentialGrade(int(p.Stamina)),
