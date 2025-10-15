@@ -1157,6 +1157,7 @@ func GenerateProPlayoffGames(db *gorm.DB, ts structs.Timestamp) {
 				IsPlayoffGame: s.IsPlayoffGame,
 			},
 			IsStanleyCup: s.IsTheFinals,
+			SeriesID:     s.ID,
 		}
 		proGamesUpload = append(proGamesUpload, proGame)
 	}
