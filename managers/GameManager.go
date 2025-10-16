@@ -878,6 +878,29 @@ func PrepareCHLPostSeasonGamesFormat(db *gorm.DB, ts structs.Timestamp) {
 	final.Country = arena.Country
 	games = append(games, final)
 
+	// Generate a Toilet Bowl Matchup between the two lowest ranked teams in the entire standings.
+	// This is an exhibition game and does not affect any standings or stats.
+	secondWorstTeam := collegeStandings[len(collegeStandings)-2]
+	worstTeam := collegeStandings[len(collegeStandings)-1]
+	toiletBowl := mk(baseID+15, fmt.Sprintf("%d SimCHL Toilet Bowl", ts.Season), 21)
+	toiletBowl.GameDay = "C"
+	toiletBowl.HomeTeamID = secondWorstTeam.TeamID
+	toiletBowl.HomeTeam = secondWorstTeam.TeamName
+	toiletBowl.HomeTeamRank = secondWorstTeam.Rank
+
+	toiletBowl.AwayTeamID = worstTeam.TeamID
+	toiletBowl.AwayTeam = worstTeam.TeamName
+	toiletBowl.AwayTeamRank = worstTeam.Rank
+	// The Toilet Bowl will always be held at the Hart Center in Worcester, MA (Holy Cross)
+	// since it is a neutral site and a known location.
+	toiletBowl.IsNeutralSite = true
+	// Hart Center ArenaID = 24
+	toiletBowl.ArenaID = 24
+	toiletBowl.Arena = "The Hart Center"
+	toiletBowl.City = "Worcester"
+	toiletBowl.State = "MA"
+	toiletBowl.Country = "USA"
+	games = append(games, toiletBowl)
 	repository.CreateCHLGamesRecordsBatch(db, games, 50)
 }
 

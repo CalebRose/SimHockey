@@ -36,7 +36,7 @@ func FindAllArenas(clauses ArenaQuery) []structs.Arena {
 	}
 
 	if len(clauses.Country) > 0 {
-		query = query.Where("id = ?", clauses.Country)
+		query = query.Where("country = ?", clauses.Country)
 	}
 
 	if err := query.Find(&arenas).Error; err != nil {

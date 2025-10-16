@@ -32,6 +32,10 @@ func ShowGames() {
 		// Final PHL games have been ran, prepare playoff structure
 		PreparePHLPostSeasonGamesFormat(db, ts)
 	}
+	// Generate CHL Postseason playoff format
+	if ts.Week == 19 && gameDay == "B" {
+		PrepareCHLPostSeasonGamesFormat(db, ts)
+	}
 	repository.SaveTimestamp(ts, db)
 }
 
@@ -48,7 +52,7 @@ func MoveUpWeek() structs.Timestamp {
 
 	if ts.Week == 20 {
 		// Generate CHL Postseason tournament structure
-		PrepareCHLPostSeasonGamesFormat(db, ts)
+		// PrepareCHLPostSeasonGamesFormat(db, ts)
 	}
 	if ts.Week > 18 {
 		// Generate PHL Playoff Games
