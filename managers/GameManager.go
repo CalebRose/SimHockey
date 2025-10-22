@@ -1092,10 +1092,21 @@ func GenerateProPlayoffGames(db *gorm.DB, ts structs.Timestamp) {
 	seasonID := strconv.Itoa(int(ts.SeasonID))
 	teamMap := GetProTeamMap()
 	professionalGames := repository.FindProfessionalGames(repository.GamesClauses{SeasonID: seasonID, WeekID: weekID})
-	// If game still exist, do not generate new games
-	if len(professionalGames) > 0 {
+
+	// Check if all series have been completed. If it's the middle of the week, then we should check & see if there are still active series.
+	// If every series is complete, we can proceed to the next series.
+	incompleteGames := []structs.ProfessionalGame{}
+	for _, g := range professionalGames {
+		if !g.GameComplete {
+			incompleteGames = append(incompleteGames, g)
+		}
+	}
+	// If game still exist, do NOT generate new games
+	if len(incompleteGames) > 0 {
 		return
 	}
+
+	gameDay := ts.GetGameDay()
 
 	// Get Active Pro Series
 	proSeries := repository.FindProSeriesRecords(strconv.Itoa(int(ts.SeasonID)))
@@ -1175,7 +1186,7 @@ func GenerateProPlayoffGames(db *gorm.DB, ts structs.Timestamp) {
 				City:          city,
 				State:         state,
 				Country:       country,
-				GameDay:       "A",
+				GameDay:       gameDay,
 				SeriesID:      s.ID,
 				IsPlayoffGame: s.IsPlayoffGame,
 			},

@@ -77,7 +77,7 @@ func handleRequests() http.Handler {
 	// apiRouter.HandleFunc("/admin/test/engine/", controllers.TestEngine).Methods("GET")
 	// apiRouter.HandleFunc("/admin/show/results/", controllers.ShowGameResults).Methods("GET")
 	// apiRouter.HandleFunc("/admin/sync/week/", controllers.SyncToNextWeek).Methods("GET")
-	// apiRouter.HandleFunc("/admin/assign/ranks/", controllers.AssignAllRecruitRanks).Methods("GET")
+	// 	// apiRouter.HandleFunc("/admin/assign/ranks/", controllers.AssignAllRecruitRanks).Methods("GET")
 	// apiRouter.HandleFunc("/admin/generate/test/college/teams/", controllers.GenerateCollegeTeams).Methods("GET")
 	// apiRouter.HandleFunc("/admin/generate/init/college/rosters/", controllers.GenerateInitialRosters).Methods("GET")
 	// apiRouter.HandleFunc("/admin/generate/chl/rosters/", controllers.GenerateCHLRosters).Methods("GET")
@@ -86,6 +86,7 @@ func handleRequests() http.Handler {
 	// apiRouter.HandleFunc("/admin/generate/phl/schedule/", controllers.GeneratePHLSchedule).Methods("GET")
 	// apiRouter.HandleFunc("/admin/generate/chl/schedule/", controllers.GenerateCHLSchedule).Methods("GET")
 	// apiRouter.HandleFunc("/admin/generate/chl/tourney/schedule/", controllers.GenerateCHLTourneySchedule).Methods("GET")
+	// apiRouter.HandleFunc("/admin/generate/phl/playoff/games/", controllers.GenerateProPlayoffGames).Methods("GET")
 
 	// apiRouter.HandleFunc("/admin/generate/pre/schedule/", controllers.GeneratePreseasonGames).Methods("GET")
 	// apiRouter.HandleFunc("/admin/generate/test/pro/rosters/", controllers.GenerateProTestData).Methods("GET")

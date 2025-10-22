@@ -155,3 +155,10 @@ func UpdateTeamRankings(w http.ResponseWriter, r *http.Request) {
 	managers.UpdateTeamRanks()
 	json.NewEncoder(w).Encode("Recruiting Sync Complete")
 }
+
+func GenerateProPlayoffGames(w http.ResponseWriter, r *http.Request) {
+	// db := dbprovider.GetInstance().GetDB()
+	// ts := managers.GetTimestamp()
+	// managers.GenerateProPlayoffGames(db, ts)
+	json.NewEncoder(w).Encode("Pro Playoff Games Generated")
+}

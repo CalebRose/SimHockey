@@ -36,6 +36,10 @@ func ShowGames() {
 	if ts.Week == 19 && gameDay == "B" {
 		PrepareCHLPostSeasonGamesFormat(db, ts)
 	}
+
+	if ts.Week > 19 {
+		GenerateProPlayoffGames(db, ts)
+	}
 	repository.SaveTimestamp(ts, db)
 }
 

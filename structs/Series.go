@@ -81,11 +81,11 @@ func (s *BaseSeries) UpdateWinCount(id int) {
 	if s.GameCount < 7 {
 		s.GameCount += 1
 	}
-	if s.HomeTeamWins > 3 {
+	if s.HomeTeamWins > s.BestOfCount/2 {
 		s.HomeTeamSeriesWin = true
 		s.SeriesComplete = true
 	}
-	if s.AwayTeamWins > 3 {
+	if s.AwayTeamWins > s.BestOfCount/2 {
 		s.AwayTeamSeriesWin = true
 		s.SeriesComplete = true
 	}

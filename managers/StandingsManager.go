@@ -531,7 +531,7 @@ func UpdateStandings(ts structs.Timestamp, gameDay string) {
 					if series.BestOfCount == 5 || series.BestOfCount == 7 {
 						switch series.GameCount {
 						case 1, 2, 5, 7:
-							homeTeam := collegeTeamMap[series.HomeTeamID]
+							homeTeam := proTeamMap[series.HomeTeamID]
 							homeTeamID = int(series.HomeTeamID)
 							nextHomeTeam = series.HomeTeam
 							nextHomeTeamCoach = series.HomeTeamCoach
@@ -546,7 +546,7 @@ func UpdateStandings(ts structs.Timestamp, gameDay string) {
 							nextAwayTeamCoach = series.AwayTeamCoach
 							nextAwayRank = int(series.AwayTeamRank)
 						case 3, 4, 6:
-							awayTeam := collegeTeamMap[series.AwayTeamID]
+							awayTeam := proTeamMap[series.AwayTeamID]
 							homeTeamID = int(series.AwayTeamID)
 							nextHomeTeam = series.AwayTeam
 							nextHomeTeamCoach = series.AwayTeamCoach
