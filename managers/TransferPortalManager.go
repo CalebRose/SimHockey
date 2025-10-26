@@ -326,7 +326,7 @@ func AICoachPromisePhase() {
 				benchmarkStr := ""
 				promiseBenchmark := 0
 
-				promiseType = "Minutes"
+				promiseType = "Time on Ice"
 				promiseBenchmark = 10
 
 				if p.Overall > 20 {
@@ -1281,34 +1281,39 @@ func getPromiseWeightByTimeOrWins(category string, benchmark int) string {
 	}
 	weight := "Medium"
 	if category == "Wins" {
+		if benchmark <= 2 {
+			return "Extremely Low"
+		}
 		if benchmark <= 8 {
 			weight = "Very Low"
 		}
-		if benchmark <= 14 {
+		if benchmark <= 18 {
 			weight = "Low"
 		}
-		if benchmark <= 21 {
+		if benchmark <= 24 {
 			weight = "Medium"
 		}
-		if benchmark <= 27 {
+		if benchmark <= 30 {
 			weight = "High"
 		}
-		if benchmark <= 31 {
+		if benchmark <= 33 {
 			weight = "Very High"
 		}
-
+		if benchmark == 34 {
+			weight = "Extremely High"
+		}
 	}
 	if category == "Time On Ice" {
-		if benchmark <= 3 {
+		if benchmark <= 5 {
 			weight = "Very Low"
 		}
-		if benchmark <= 7 {
+		if benchmark <= 10 {
 			weight = "Low"
 		}
-		if benchmark <= 10 {
+		if benchmark <= 14 {
 			weight = "Medium"
 		}
-		if benchmark <= 13 {
+		if benchmark <= 18 {
 			weight = "High"
 		}
 		if benchmark <= 20 {
@@ -1388,6 +1393,10 @@ func getMultiplier(pr structs.CollegePromise) float64 {
 	}
 	weight := pr.PromiseWeight
 	switch weight {
+	case "Why even try?":
+		return 0.5
+	case "Extremely Low":
+		return 1.01
 	case "Very Low":
 		return 1.05
 	case "Low":
@@ -1396,9 +1405,15 @@ func getMultiplier(pr structs.CollegePromise) float64 {
 		return 1.3
 	case "High":
 		return 1.5
+	case "Very High":
+		return 1.75
+	case "Extremely High":
+		return 2
+	case "If you make this promise then you better win it!":
+		return 2.25
 	}
-	// Very High
-	return 1.75
+	// Default
+	return 1
 }
 
 func FilterOutPortalProfile(profiles []structs.TransferPortalProfile, ID uint) []structs.TransferPortalProfile {
