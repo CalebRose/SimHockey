@@ -115,7 +115,7 @@ func RemovePlayerFromTransferPortalBoard(w http.ResponseWriter, r *http.Request)
 
 func SaveTransferBoard(w http.ResponseWriter, r *http.Request) {
 
-	var transferPortalProfile structs.UpdateTransferPortalBoard
+	var transferPortalProfile structs.SaveTransferPortalBoard
 	err := json.NewDecoder(r.Body).Decode(&transferPortalProfile)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)

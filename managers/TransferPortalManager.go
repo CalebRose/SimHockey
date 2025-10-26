@@ -539,7 +539,7 @@ func RemovePlayerFromTransferPortalBoard(dto structs.TransferPortalProfile) stru
 	return profile
 }
 
-func AllocatePointsToTransferPlayer(updateTransferPortalBoardDto structs.UpdateTransferPortalBoard) {
+func AllocatePointsToTransferPlayer(updateTransferPortalBoardDto structs.SaveTransferPortalBoard) {
 	db := dbprovider.GetInstance().GetDB()
 
 	var teamId = strconv.Itoa(updateTransferPortalBoardDto.TeamID)
@@ -1324,8 +1324,8 @@ func getPromiseWeightByTimeOrWins(category string, benchmark int) string {
 	return weight
 }
 
-func GetPlayerFromTransferPortalList(id int, profiles []structs.TransferPortalProfileResponse) structs.TransferPortalProfileResponse {
-	var profile structs.TransferPortalProfileResponse
+func GetPlayerFromTransferPortalList(id int, profiles []structs.TransferPortalProfile) structs.TransferPortalProfile {
+	var profile structs.TransferPortalProfile
 
 	for i := 0; i < len(profiles); i++ {
 		if profiles[i].CollegePlayerID == uint(id) {

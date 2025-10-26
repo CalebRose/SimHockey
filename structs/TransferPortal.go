@@ -325,3 +325,9 @@ type UpdateTransferPortalBoard struct {
 	Players []TransferPortalProfileResponse
 	TeamID  int
 }
+
+type SaveTransferPortalBoard struct {
+	Profile RecruitingTeamProfile
+	Players []TransferPortalProfile
+	TeamID  int
+}
