@@ -26,6 +26,20 @@ func MakeCollegePlayerMapByTeamID(players []structs.CollegePlayer) map[uint][]st
 	return playerMap
 }
 
+func MakeCollegeRecruitMapByTeamID(players []structs.Recruit) map[uint][]structs.Recruit {
+	playerMap := make(map[uint][]structs.Recruit)
+
+	for _, p := range players {
+		if len(playerMap[uint(p.TeamID)]) > 0 {
+			playerMap[uint(p.TeamID)] = append(playerMap[uint(p.TeamID)], p)
+		} else {
+			playerMap[uint(p.TeamID)] = []structs.Recruit{p}
+		}
+	}
+
+	return playerMap
+}
+
 // Pro Players
 func MakeProfessionalPlayerMap(players []structs.ProfessionalPlayer) map[uint]structs.ProfessionalPlayer {
 	playerMap := make(map[uint]structs.ProfessionalPlayer)

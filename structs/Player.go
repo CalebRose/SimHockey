@@ -944,6 +944,13 @@ func (r *Recruit) UpdateTeamID(id uint) {
 	}
 }
 
+func (r *Recruit) AssignWalkon(abbr string, teamID int, id uint) {
+	r.College = abbr
+	r.TeamID = uint16(teamID)
+	r.ID = id
+	r.Stars = 0
+}
+
 func (r *Recruit) AssignRelativeData(rID, rType, teamID uint, team, notes string) {
 	r.RelativeID = rID
 	r.RelativeType = rType

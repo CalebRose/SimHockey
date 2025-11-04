@@ -70,6 +70,12 @@ func GenerateCroots(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode("Data Generated ran!")
 }
 
+func GenerateWalkons(w http.ResponseWriter, r *http.Request) {
+	managers.GenerateWalkonCroots()
+
+	json.NewEncoder(w).Encode("Data Generated ran!")
+}
+
 func ImportProRosters(w http.ResponseWriter, r *http.Request) {
 	managers.ImportProRosters()
 	managers.ImportStandingsForNewSeason()

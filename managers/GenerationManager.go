@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
+	"math/rand"
 	"os"
 	"path/filepath"
 	"strconv"
@@ -409,6 +410,117 @@ func GenerateCustomCroots() {
 	repository.CreateFaceRecordsBatch(db, facesList, 100)
 
 	AssignAllRecruitRanks()
+}
+
+func GenerateWalkonCroots() {
+	db := dbprovider.GetInstance().GetDB()
+	var lastPlayerRecord structs.GlobalPlayer
+	ts := GetTimestamp()
+
+	err := db.Last(&lastPlayerRecord).Error
+	if err != nil {
+		log.Fatalln("Could not grab last player record from players table...")
+	}
+
+	profiles := repository.FindTeamRecruitingProfiles(false)
+	collegePlayers := GetAllCollegePlayers()
+	collegeRosterMap := MakeCollegePlayerMapByTeamID(collegePlayers)
+	recruits := repository.FindAllRecruits(false, true, true, false, false, "")
+	recruitMap := MakeCollegeRecruitMapByTeamID(recruits)
+	generator := CrootGenerator{
+		nameMap:          getInternationalNameMap(),
+		usCrootLocations: getCrootLocations("HS"),
+		cnCrootLocations: getCrootLocations("CanadianHS"),
+		attributeBlob:    getAttributeBlob(),
+		newID:            lastPlayerRecord.ID + 1,
+		faceDataBlob:     getFaceDataBlob(),
+		caser:            cases.Title(language.English),
+	}
+	recruitProfileBatchList := []structs.RecruitPlayerProfile{}
+	faces := []structs.FaceData{}
+	globalPlayerList := []structs.GlobalPlayer{}
+	recruitBatchList := []structs.Recruit{}
+
+	rosterLimit := 34
+	positionList := []string{Center, Forward, Forward, Defender, Defender, Goalie}
+	newID := generator.newID
+
+	for _, team := range profiles {
+		teamID := team.TeamID
+		collegeRoster := collegeRosterMap[teamID]
+		currentRecruits := recruitMap[teamID]
+		neededPlayers := rosterLimit - (len(collegeRoster) + len(currentRecruits))
+		if neededPlayers < 1 {
+			continue
+		}
+
+		rand.Shuffle(len(positionList), func(i, j int) {
+			positionList[i], positionList[j] = positionList[j], positionList[i]
+		})
+
+		count := 0
+		for _, pos := range positionList {
+			if count >= neededPlayers {
+				break
+			}
+			arch := util.GetArchetype(pos)
+			country := team.Country
+			pickedEthnicity := pickLocale(country)
+
+			state := pickWalkonState(team.State)
+			crootLocations := generator.usCrootLocations[state]
+			if team.Country == util.Canada {
+				crootLocations = generator.cnCrootLocations[state]
+			}
+
+			city, hs := getCityAndHighSchool(crootLocations)
+
+			countryNames := generator.nameMap[pickedEthnicity]
+			firstNameList := countryNames["first_names"]
+			lastNameList := countryNames["last_names"]
+			stars := util.GetStarRating(false, false)
+			lastName := util.PickFromStringList(lastNameList)
+			casedLastName := generator.caser.String(strings.ToLower(lastName))
+			recruit := createRecruit(pos, arch, stars, util.PickFromStringList(firstNameList), casedLastName, generator.attributeBlob, country, state, city, hs, crootLocations)
+
+			recruit.AssignWalkon(team.Team, int(team.ID), newID)
+
+			recruitPlayerRecord := structs.RecruitPlayerProfile{
+				ProfileID:   team.ID,
+				RecruitID:   newID,
+				IsSigned:    true,
+				IsLocked:    true,
+				SeasonID:    ts.SeasonID,
+				TotalPoints: 1,
+			}
+
+			playerRecord := structs.GlobalPlayer{
+				RecruitID:            newID,
+				CollegePlayerID:      newID,
+				ProfessionalPlayerID: newID,
+			}
+			playerRecord.AssignID(newID)
+			count++
+			skinColor := getSkinColor(pickedEthnicity)
+
+			face := getFace(newID, int(recruit.Weight), skinColor, generator.faceDataBlob)
+			faces = append(faces, face)
+			globalPlayerList = append(globalPlayerList, playerRecord)
+			recruitBatchList = append(recruitBatchList, recruit)
+			recruitProfileBatchList = append(recruitProfileBatchList, recruitPlayerRecord)
+			newID++
+			team.IncreaseCommitCount()
+
+		}
+		repository.SaveTeamProfileRecord(db, team)
+	}
+	repository.CreateHockeyRecruitRecordsBatch(db, recruitBatchList, 500)
+	repository.CreateGlobalPlayerRecordsBatch(db, globalPlayerList, 500)
+	repository.CreateFaceRecordsBatch(db, faces, 500)
+	repository.CreateRecruitProfileRecordsBatch(db, recruitProfileBatchList, 500)
+	ts.ToggleGeneratedCroots()
+	repository.SaveTimestamp(ts, db)
+	// AssignAllRecruitRanks()
 }
 
 func GenerateInitialRosters() {
@@ -1539,4 +1651,107 @@ func getCollegeGenList(id uint) []structs.CollegeGenObj {
 		{Year: 3, Pos: "C"}, {Year: 3, Pos: "F"}, {Year: 3, Pos: "F"}, {Year: 3, Pos: "D"}, {Year: 3, Pos: "D"}, {Year: 3, Pos: "G"}, {Year: 3, Pos: util.PickFromStringList([]string{"C", "F", "D"})},
 		{Year: 2, Pos: "C"}, {Year: 2, Pos: "F"}, {Year: 2, Pos: "F"}, {Year: 2, Pos: "D"}, {Year: 2, Pos: "D"}, {Year: 2, Pos: "G"}, {Year: 2, Pos: util.PickFromStringList([]string{"C", "F", "D"})},
 		{Year: 1, Pos: "C"}, {Year: 1, Pos: "F"}, {Year: 1, Pos: "F"}, {Year: 1, Pos: "D"}, {Year: 1, Pos: "D"}, {Year: 1, Pos: "G"}, {Year: 1, Pos: util.PickFromStringList([]string{"C", "F", "D"})}}
+}
+
+func pickWalkonState(state string) string {
+	switch state {
+	case "AL":
+		return util.PickFromStringList([]string{"AL", "LA", "MS", "TN", "GA", "FL"})
+	case "AR":
+		return util.PickFromStringList([]string{"AR", "LA", "MO", "TN", "TX"})
+	case "AZ":
+		return util.PickFromStringList([]string{"AZ", "NM", "CA"})
+	case "CA":
+		return util.PickFromStringList([]string{"CA", "AZ", "HI"})
+	case "CO":
+		return util.PickFromStringList([]string{"CO", "KS", "UT", "WY"})
+	case "CT":
+		return util.PickFromStringList([]string{"CT", "NY", "NJ", "RI"})
+	case "DC":
+		return util.PickFromStringList([]string{"DC", "MD", "VA"})
+	case "FL":
+		return util.PickFromStringList([]string{"FL", "GA", "AL"})
+	case "GA":
+		return util.PickFromStringList([]string{"GA", "FL", "SC", "AL"})
+	case "HI":
+		return util.PickFromStringList([]string{"HI"})
+	case "IA":
+		return util.PickFromStringList([]string{"IA", "MN", "WI", "NE"})
+	case "ID":
+		return util.PickFromStringList([]string{"ID", "WA", "UT"})
+	case "IN":
+		return util.PickFromStringList([]string{"IN", "IL", "OH", "MI", "AK"})
+	case "IL":
+		return util.PickFromStringList([]string{"IL", "IN", "WI", "MI"})
+	case "KS":
+		return util.PickFromStringList([]string{"KS", "MO", "NE"})
+	case "KY":
+		return util.PickFromStringList([]string{"KY", "OH", "TN"})
+	case "LA":
+		return util.PickFromStringList([]string{"LA", "TX", "MS"})
+	case "MA":
+		return util.PickFromStringList([]string{"MA", "CT", "RI", "NH", "VT", "ME"})
+	case "MD":
+		return util.PickFromStringList([]string{"DC", "MD", "VA", "DE"})
+	case "MI":
+		return util.PickFromStringList([]string{"MI", "OH", "IN"})
+	case "MN":
+		return util.PickFromStringList([]string{"MN", "WI", "IA"})
+	case "MO":
+		return util.PickFromStringList([]string{"MO", "AR", "KS"})
+	case "MS":
+		return util.PickFromStringList([]string{"MS", "LA", "AL"})
+	case "MT":
+		return util.PickFromStringList([]string{"MT", "ID", "WY"})
+	case "NC":
+		return util.PickFromStringList([]string{"NC", "SC", "VA"})
+	case "ND":
+		return util.PickFromStringList([]string{"ND", "SD", "MN"})
+	case "NE":
+		return util.PickFromStringList([]string{"NE", "KS", "SD", "IA"})
+	case "NH":
+		return util.PickFromStringList([]string{"NH", "VT", "ME", "MA"})
+	case "NJ":
+		return util.PickFromStringList([]string{"NJ", "DE", "NY", "CT", "PA"})
+	case "NM":
+		return util.PickFromStringList([]string{"NM", "AZ", "TX"})
+	case "NV":
+		return util.PickFromStringList([]string{"NV", "UT", "CA"})
+	case "NY":
+		return util.PickFromStringList([]string{"NY", "NJ", "PA", "CT"})
+	case "OH":
+		return util.PickFromStringList([]string{"OH", "KY", "MI", "PA"})
+	case "OK":
+		return util.PickFromStringList([]string{"OK", "TX", "KS", "AR"})
+	case "OR":
+		return util.PickFromStringList([]string{"OR", "WA", "CA"})
+	case "PA":
+		return util.PickFromStringList([]string{"PA", "NJ", "DE", "OH", "WV"})
+	case "RI":
+		return util.PickFromStringList([]string{"RI", "MA", "CT", "NY"})
+	case "SC":
+		return util.PickFromStringList([]string{"SC", "NC", "GA"})
+	case "SD":
+		return util.PickFromStringList([]string{"SD", "ND", "MN", "NE"})
+	case "TN":
+		return util.PickFromStringList([]string{"TN", "KY", "GA", "AL", "AR"})
+	case "TX":
+		return util.PickFromStringList([]string{"TX"})
+	case "UT":
+		return util.PickFromStringList([]string{"UT", "CO", "ID", "AZ"})
+	case "VA":
+		return util.PickFromStringList([]string{"VA", "WV", "DC", "MD"})
+	case "WA":
+		return util.PickFromStringList([]string{"WA", "OR", "ID", "AK"})
+	case "WI":
+		return util.PickFromStringList([]string{"WI", "MN", "IL", "MI"})
+	case "WV":
+		return util.PickFromStringList([]string{"WV", "PA", "VA"})
+	case "WY":
+		return util.PickFromStringList([]string{"WY", "CO", "UT", "MO", "ID"})
+	case "BC":
+		return util.PickFromStringList([]string{"BC", "AB", "YK"})
+	}
+
+	return "AK"
 }
