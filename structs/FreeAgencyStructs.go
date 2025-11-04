@@ -304,7 +304,7 @@ func (f *ExtensionOffer) AssignID(id uint) {
 	f.ID = id
 }
 
-func (f *ExtensionOffer) CalculateOffer(offer FreeAgencyOfferDTO) {
+func (f *ExtensionOffer) CalculateOffer(offer ExtensionOffer) {
 	f.PlayerID = offer.PlayerID
 	f.TeamID = offer.TeamID
 	f.ContractLength = offer.ContractLength

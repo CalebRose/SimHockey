@@ -499,6 +499,10 @@ func ProgressAttribute(attr uint8, additive int) uint8 {
 	return uint8(sum)
 }
 
+func (f *BasePlayer) ToggleHasProgressed() {
+	f.HasProgressed = true
+}
+
 func (b *BasePlayer) GetOverall() {
 	weights := archetypeWeights[b.Position][b.Archetype]
 	totalWeight := 0.0

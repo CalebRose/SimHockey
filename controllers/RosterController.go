@@ -1,10 +1,12 @@
 package controllers
 
 import (
+	"encoding/json"
 	"fmt"
 	"net/http"
 
 	"github.com/CalebRose/SimHockey/managers"
+	"github.com/CalebRose/SimHockey/structs"
 	"github.com/gorilla/mux"
 )
 
@@ -57,5 +59,26 @@ func SendPHLPlayerToTradeBlock(w http.ResponseWriter, r *http.Request) {
 }
 
 func ExtendPHLPlayer(w http.ResponseWriter, r *http.Request) {
-	fmt.Println("FINISH THIS")
+	var extensionOfferDTO structs.ExtensionOffer
+	err := json.NewDecoder(r.Body).Decode(&extensionOfferDTO)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	var offer = managers.CreateExtensionOffer(extensionOfferDTO)
+
+	json.NewEncoder(w).Encode(offer)
+}
+
+func CancelPHLPlayerExtension(w http.ResponseWriter, r *http.Request) {
+	var extensionOfferDTO structs.ExtensionOffer
+	err := json.NewDecoder(r.Body).Decode(&extensionOfferDTO)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+	var offer = managers.CancelExtensionOffer(extensionOfferDTO)
+
+	json.NewEncoder(w).Encode(offer)
 }

@@ -303,3 +303,24 @@ func DeleteWaiverRecord(waiverRecord structs.WaiverOffer, db *gorm.DB) {
 		log.Panicln("Could not delete waiver " + strconv.Itoa(int(waiverRecord.ID)))
 	}
 }
+
+func DeleteExtensionRecord(extensionRecord structs.ExtensionOffer, db *gorm.DB) {
+	err := db.Delete(&extensionRecord).Error
+	if err != nil {
+		log.Panicln("Could not delete extension " + strconv.Itoa(int(extensionRecord.ID)))
+	}
+}
+
+func CreateExtensionRecord(extensionRecord structs.ExtensionOffer, db *gorm.DB) {
+	err := db.Create(&extensionRecord).Error
+	if err != nil {
+		log.Panicln("Could not save extension " + strconv.Itoa(int(extensionRecord.ID)))
+	}
+}
+
+func SaveExtensionRecord(extensionRecord structs.ExtensionOffer, db *gorm.DB) {
+	err := db.Save(&extensionRecord).Error
+	if err != nil {
+		log.Panicln("Could not save extension " + strconv.Itoa(int(extensionRecord.ID)))
+	}
+}

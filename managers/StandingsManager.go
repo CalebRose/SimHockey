@@ -199,7 +199,7 @@ func GetHistoricalProRecordsByTeamID(TeamID string) structs.TeamRecordResponse {
 	return response
 }
 
-func UpdateStandings(ts structs.Timestamp, gameDay string) {
+func UpdateStandings(ts structs.Timestamp, gameDay string) structs.Timestamp {
 	db := dbprovider.GetInstance().GetDB()
 
 	if !ts.IsOffSeason {
@@ -476,7 +476,6 @@ func UpdateStandings(ts structs.Timestamp, gameDay string) {
 
 			if game.IsNationalChampionship {
 				ts.EndTheCollegeSeason()
-				repository.SaveTimestamp(ts, db)
 			}
 		}
 
@@ -669,4 +668,5 @@ func UpdateStandings(ts structs.Timestamp, gameDay string) {
 			}
 		}
 	}
+	return ts
 }

@@ -97,7 +97,110 @@ func CollegeProgressionMain() {
 }
 
 func ProfessionalProgressionMain() {
+	db := dbprovider.GetInstance().GetDB()
+	ts := GetTimestamp()
+	SeasonID := strconv.Itoa(int(ts.SeasonID))
+	proPlayerGameStats := repository.FindProPlayerGameStatsRecords(SeasonID, "", "", "")
+	proPlayerSeasonStats := repository.FindProPlayerSeasonStatsRecords("", "2")
+	seasonStatMap := MakeHistoricProPlayerSeasonStatMap(proPlayerSeasonStats)
+	gameStatMap := MakeProPlayerGameStatsMap(proPlayerGameStats)
+	proTeams := GetAllProfessionalTeams()
+	freeAgents := GetAllFreeAgents()
+	proContracts := repository.FindAllProContracts(true)
+	proContractMap := MakeContractMap(proContracts)
+	extensions := repository.FindAllProExtensions(true)
+	extensionMap := MakeExtensionMap(extensions)
 
+	for _, team := range proTeams {
+		teamID := strconv.Itoa(int(team.ID))
+		roster := GetProPlayersByTeamID(teamID)
+
+		if !team.PlayersProgressed {
+			for _, player := range roster {
+				if player.HasProgressed {
+					continue
+				}
+				stats := gameStatMap[player.ID]
+
+				if player.PrimeAge == 0 {
+					pa := util.GetPrimeAge(player.Position, player.Archetype)
+					player.PrimeAge = uint8(pa)
+				}
+				player = ProgressProPlayer(player, SeasonID, stats)
+				willRetire := DetermineIfRetiring(player, seasonStatMap)
+				// Get Contraact Info
+				contract := proContractMap[player.ID]
+				if contract.ID == 0 && !player.IsFreeAgent {
+					player.ToggleIsFreeAgent()
+				} else {
+					contract.ProgressContract()
+					if contract.ContractLength == 0 || contract.IsComplete {
+						// Check for existing extension
+						extension := extensionMap[player.ID]
+						if extension.ID > 0 && extension.IsAccepted && extension.IsActive {
+							// Apply Extension
+							contract.MapExtension(extension)
+							message := "Breaking News: " + player.Position + " " + player.FirstName + " " + player.LastName + " has official signed his extended offer with " + player.Team + " for $" + strconv.Itoa(int(contract.ContractValue)) + " Million Dollars!"
+							CreateNewsLog("PHL", message, "Free Agency", int(player.TeamID), ts, true)
+							repository.DeleteExtensionRecord(extension, db)
+						} else {
+							// Player becomes a free agent
+							player.ToggleIsFreeAgent()
+						}
+					}
+					if willRetire {
+						contract.ToggleRetirement()
+					}
+					repository.SaveProContractRecord(contract, db)
+				}
+
+				// If Player Retires
+				if !willRetire {
+					player.ToggleHasProgressed()
+					repository.SaveProPlayerRecord(player, db)
+					continue
+				}
+				historicRecord := structs.RetiredPlayer{ProfessionalPlayer: player}
+				repository.CreateRetiredPlayer(historicRecord, db)
+				repository.DeleteProPlayerRecord(player, db)
+				message := "Breaking News: " + player.Position + " " + player.FirstName + " " + player.LastName + " has decided to retire from SimPHL. He was drafted by " + player.DraftedTeam + " and last played with " + player.Team + " and " + player.PreviousTeam + ". We thank him for his wondrous, extensive career and hope he enjoys his retirement!"
+				CreateNewsLog("PHL", message, "Retirement", int(player.TeamID), ts, true)
+			}
+			team.TogglePlayersProgressed()
+		}
+
+		repository.SaveProTeamRecord(db, team)
+	}
+
+	for _, player := range freeAgents {
+		if player.HasProgressed {
+			continue
+		}
+
+		if player.HasProgressed {
+			continue
+		}
+		stats := gameStatMap[player.ID]
+
+		if player.PrimeAge == 0 {
+			pa := util.GetPrimeAge(player.Position, player.Archetype)
+			player.PrimeAge = uint8(pa)
+		}
+		player = ProgressProPlayer(player, SeasonID, stats)
+		willRetire := DetermineIfRetiring(player, seasonStatMap)
+
+		// If Player Retires
+		if !willRetire {
+			player.ToggleHasProgressed()
+			repository.SaveProPlayerRecord(player, db)
+			continue
+		}
+		historicRecord := structs.RetiredPlayer{ProfessionalPlayer: player}
+		repository.CreateRetiredPlayer(historicRecord, db)
+		repository.DeleteProPlayerRecord(player, db)
+		message := "Breaking News: " + player.Position + " " + player.FirstName + " " + player.LastName + " has decided to retire from SimPHL. He was drafted by " + player.DraftedTeam + " and last played with " + player.Team + " and " + player.PreviousTeam + ". We thank him for his wondrous, extensive career and hope he enjoys his retirement!"
+		CreateNewsLog("PHL", message, "Retirement", int(player.TeamID), ts, true)
+	}
 }
 
 func ProgressCollegePlayer(player structs.CollegePlayer, SeasonID string, stats []structs.CollegePlayerGameStats) structs.CollegePlayer {
@@ -284,4 +387,36 @@ func GetPostPrimeGrowth(age, primeage, regression int, decayRate float64) int {
 	yearsPastPrime := age - primeage
 	postRegression := -1.15 * (float64(regression) + (float64(yearsPastPrime) * decayRate))
 	return int(postRegression)
+}
+
+func DetermineIfRetiring(player structs.ProfessionalPlayer, statMap map[uint][]structs.ProfessionalPlayerSeasonStats) bool {
+	if player.IsFreeAgent && player.Year > 1 {
+		lastTwoSeasonStats := statMap[player.ID]
+		totalMinutes := 0
+		for _, stat := range lastTwoSeasonStats {
+			totalMinutes += int(stat.TimeOnIce)
+		}
+		return totalMinutes == 0
+	}
+
+	if player.Age < player.PrimeAge {
+		return false
+	}
+
+	/*
+		Thoughts - we could implement historic injuries into this somewhere, although we are impacting prime age upon injuries.
+	*/
+	benchmark := 0
+	age := int(player.Age)
+	primeAge := int(player.PrimeAge)
+	retirementAge := primeAge + util.GenerateIntFromRange(3, 5)
+	if age > retirementAge {
+		benchmark += 50
+	}
+	if age > primeAge && player.Overall < 20 {
+		benchmark += (10*age - primeAge)
+	}
+	diceRoll := util.GenerateIntFromRange(1, 100)
+	// If the roll is less than the benchmark, player will retire. Otherwise, they are staying.
+	return diceRoll < benchmark
 }

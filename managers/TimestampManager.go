@@ -20,7 +20,7 @@ func ShowGames() {
 	// UpdateStandings
 	// Update Season Stats
 	gameDay := ts.GetGameDay()
-	UpdateStandings(ts, gameDay)
+	ts = UpdateStandings(ts, gameDay)
 	UpdateSeasonStats(ts, gameDay)
 	ts.ToggleGames(gameDay)
 	if ts.Week == 17 && gameDay == "B" {

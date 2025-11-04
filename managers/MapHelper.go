@@ -270,6 +270,19 @@ func MakeProPlayerSeasonStatMap(stats []structs.ProfessionalPlayerSeasonStats) m
 	return seasonStatMap
 }
 
+func MakeHistoricProPlayerSeasonStatMap(stats []structs.ProfessionalPlayerSeasonStats) map[uint][]structs.ProfessionalPlayerSeasonStats {
+	seasonStatMap := make(map[uint][]structs.ProfessionalPlayerSeasonStats)
+
+	for _, stat := range stats {
+		if len(seasonStatMap[stat.PlayerID]) == 0 {
+			seasonStatMap[stat.PlayerID] = []structs.ProfessionalPlayerSeasonStats{}
+		}
+		seasonStatMap[stat.PlayerID] = append(seasonStatMap[stat.PlayerID], stat)
+	}
+
+	return seasonStatMap
+}
+
 func MakeCollegeTeamSeasonStatMap(stats []structs.CollegeTeamSeasonStats) map[uint]structs.CollegeTeamSeasonStats {
 	seasonStatMap := make(map[uint]structs.CollegeTeamSeasonStats)
 	for _, stat := range stats {
@@ -369,6 +382,20 @@ func MakeCollegePlayerGameStatsMap(stats []structs.CollegePlayerGameStats) map[u
 			statsMap[stat.PlayerID] = append(statsMap[uint(stat.PlayerID)], stat)
 		} else {
 			statsMap[stat.PlayerID] = []structs.CollegePlayerGameStats{stat}
+		}
+	}
+
+	return statsMap
+}
+
+func MakeProPlayerGameStatsMap(stats []structs.ProfessionalPlayerGameStats) map[uint][]structs.ProfessionalPlayerGameStats {
+	statsMap := make(map[uint][]structs.ProfessionalPlayerGameStats)
+
+	for _, stat := range stats {
+		if len(statsMap[stat.PlayerID]) > 0 {
+			statsMap[stat.PlayerID] = append(statsMap[uint(stat.PlayerID)], stat)
+		} else {
+			statsMap[stat.PlayerID] = []structs.ProfessionalPlayerGameStats{stat}
 		}
 	}
 

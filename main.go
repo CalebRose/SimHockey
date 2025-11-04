@@ -165,7 +165,8 @@ func handleRequests() http.Handler {
 	apiRouter.HandleFunc("/phl/roster/cut/{playerID}", controllers.CutPHLPlayerFromRoster).Methods("GET")
 	apiRouter.HandleFunc("/phl/roster/affiliate/{playerID}", controllers.SendPHLPlayerToAffiliate).Methods("GET")
 	apiRouter.HandleFunc("/phl/roster/tradeblock/{playerID}", controllers.SendPHLPlayerToTradeBlock).Methods("GET")
-	apiRouter.HandleFunc("/phl/roster/extend/{playerID}", controllers.ExtendPHLPlayer).Methods("POST")
+	apiRouter.HandleFunc("/phl/roster/extend/create/{playerID}", controllers.ExtendPHLPlayer).Methods("POST")
+	apiRouter.HandleFunc("/phl/roster/extend/cancel/{playerID}", controllers.CancelPHLPlayerExtension).Methods("POST")
 
 	// Strategy
 	apiRouter.HandleFunc("/chl/strategy/update", controllers.SaveCHLLineups).Methods("POST")

@@ -206,3 +206,17 @@ func FindAllHistoricProPlayers() []structs.RetiredPlayer {
 
 	return retiredPlayers
 }
+
+func CreateRetiredPlayer(playerRecord structs.RetiredPlayer, db *gorm.DB) {
+	err := db.Create(&playerRecord).Error
+	if err != nil {
+		log.Panicln("Could not create retired player " + strconv.Itoa(int(playerRecord.ID)))
+	}
+}
+
+func DeleteProPlayerRecord(playerRecord structs.ProfessionalPlayer, db *gorm.DB) {
+	err := db.Delete(&playerRecord).Error
+	if err != nil {
+		log.Panicln("Could not delete pro player " + strconv.Itoa(int(playerRecord.ID)))
+	}
+}
