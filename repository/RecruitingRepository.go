@@ -254,3 +254,10 @@ func CreateRecruitProfileRecordsBatch(db *gorm.DB, records []structs.RecruitPlay
 	}
 	return nil
 }
+
+func MassDeleteRecruitRecords(db *gorm.DB, ids []string) error {
+	if err := db.Where("id IN ?", ids).Delete(&structs.Recruit{}).Error; err != nil {
+		return err
+	}
+	return nil
+}

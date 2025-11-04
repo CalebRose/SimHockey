@@ -82,7 +82,6 @@ func handleRequests() http.Handler {
 	// apiRouter.HandleFunc("/admin/generate/init/college/rosters/", controllers.GenerateInitialRosters).Methods("GET")
 	// apiRouter.HandleFunc("/admin/generate/chl/rosters/", controllers.GenerateCHLRosters).Methods("GET")
 	// apiRouter.HandleFunc("/admin/generate/college/recruits/", controllers.GenerateCroots).Methods("GET")
-	// apiRouter.HandleFunc("/admin/generate/college/walkons/", controllers.GenerateWalkons).Methods("GET")
 	// apiRouter.HandleFunc("/admin/generate/custom/recruits/", controllers.GenerateCustomCroots).Methods("GET")
 	// apiRouter.HandleFunc("/admin/generate/phl/schedule/", controllers.GeneratePHLSchedule).Methods("GET")
 	// apiRouter.HandleFunc("/admin/generate/chl/schedule/", controllers.GenerateCHLSchedule).Methods("GET")
@@ -100,6 +99,12 @@ func handleRequests() http.Handler {
 	// apiRouter.HandleFunc("/simhck/sync/recruiting/", controllers.SyncRecruiting).Methods("GET")
 	// apiRouter.HandleFunc("/simhck/update/team/ranks/", controllers.UpdateTeamRankings).Methods("GET")
 	// apiRouter.HandleFunc("/simhck/fix/standings/tables/", controllers.FixStandingsTables).Methods("GET")
+
+	// Postseason
+	// apiRouter.HandleFunc("/admin/postseason/college/walkons/", controllers.GenerateWalkons).Methods("GET")
+	// apiRouter.HandleFunc("/admin/postseason/college/progression/", controllers.ProgressCollegePlayers).Methods("GET")
+	// apiRouter.HandleFunc("/admin/postseason/pro/progression/", controllers.ProgressProPlayers).Methods("GET")
+	// apiRouter.HandleFunc("/admin/postseason/fix/", controllers.FixHistoricCollegePlayerData).Methods("GET")
 
 	// Bootstrap
 	apiRouter.HandleFunc("/bootstrap/{collegeID}/{proID}", controllers.BootstrapHockeyData).Methods("GET")

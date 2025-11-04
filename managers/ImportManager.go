@@ -978,3 +978,47 @@ func FixStandingsTables() {
 		repository.SaveProfessionalStandingsRecord(standing, db)
 	}
 }
+
+func FixMigrationPlayerData() {
+	db := dbprovider.GetInstance().GetDB()
+	draftablePlayers := repository.FindAllDraftablePlayers(repository.PlayerQuery{})
+
+	collegePlayerIDsToDelete := []string{}
+	historicCollegePlayerBatch := []structs.HistoricCollegePlayer{}
+
+	for _, player := range draftablePlayers {
+		id := strconv.Itoa(int(player.ID))
+		collegePlayerIDsToDelete = append(collegePlayerIDsToDelete, id)
+		historicPlayer := structs.HistoricCollegePlayer{
+			CollegePlayer: structs.CollegePlayer{
+				Model:          player.Model,
+				BasePlayer:     player.BasePlayer,
+				BasePotentials: player.BasePotentials,
+				BaseInjuryData: player.BaseInjuryData,
+			},
+		}
+		historicCollegePlayerBatch = append(historicCollegePlayerBatch, historicPlayer)
+	}
+
+	repository.CreateHistoricCollegePlayerRecordsBatch(db, historicCollegePlayerBatch, 200)
+	repository.MassDeleteCollegePlayerRecords(db, collegePlayerIDsToDelete)
+
+	// Migrate unsigned recruits
+	unsignedRecruits := repository.FindAllRecruits(false, false, false, false, false, "")
+	collegePlayerBatch := []structs.CollegePlayer{}
+	for _, croot := range unsignedRecruits {
+		if croot.TeamID > 0 {
+			continue
+		}
+		cp := structs.CollegePlayer{
+			Model:          croot.Model,
+			BasePlayer:     croot.BasePlayer,
+			BasePotentials: croot.BasePotentials,
+			BaseInjuryData: croot.BaseInjuryData,
+			Year:           1,
+		}
+		collegePlayerBatch = append(collegePlayerBatch, cp)
+	}
+
+	repository.CreateCollegeHockeyPlayerRecordsBatch(db, collegePlayerBatch, 100)
+}

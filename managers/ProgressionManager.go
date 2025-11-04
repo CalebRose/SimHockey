@@ -18,9 +18,12 @@ func CollegeProgressionMain() {
 	gameStatMap := MakeCollegePlayerGameStatsMap(collegePlayerGameStats)
 	collegeTeams := GetAllCollegeTeams()
 
+	canadianHockeyTeams := GetAllCanadianCHLTeams()
+
 	graduatingPlayers := []structs.ProfessionalPlayer{}
 	draftablePlayers := []structs.DraftablePlayer{}
 	historicRecords := []structs.HistoricCollegePlayer{}
+	collegePlayerIDs := []string{}
 
 	for _, team := range collegeTeams {
 		teamID := strconv.Itoa(int(team.ID))
@@ -32,6 +35,8 @@ func CollegeProgressionMain() {
 				if player.HasProgressed {
 					continue
 				}
+				id := strconv.Itoa(int(player.ID))
+
 				stats := gameStatMap[player.ID]
 				player = ProgressCollegePlayer(player, SeasonID, stats)
 				willDeclare := (player.Year > 4 && !player.IsRedshirt) || (player.Year > 5 && player.IsRedshirt)
@@ -48,10 +53,14 @@ func CollegeProgressionMain() {
 						BaseInjuryData: player.BaseInjuryData,
 						Year:           0,
 					}
+					collegePlayerIDs = append(collegePlayerIDs, id)
 					// Assign their drafted team ID if they have been drafted
 					professionalPlayer.AssignTeam(player.DraftedTeamID, player.DraftedTeam, 1)
 					graduatingPlayers = append(graduatingPlayers, professionalPlayer)
 				} else if willDeclare && player.DraftedTeamID == 0 {
+					collegePlayerIDs = append(collegePlayerIDs, id)
+					historicRecord := structs.HistoricCollegePlayer{CollegePlayer: player}
+					historicRecords = append(historicRecords, historicRecord)
 					// Graduate players with no draft rights become draftee records before UDFAs
 					draftee := structs.DraftablePlayer{
 						Model:          player.Model,
@@ -61,7 +70,6 @@ func CollegeProgressionMain() {
 						CollegeID:      uint(player.TeamID),
 					}
 					draftablePlayers = append(draftablePlayers, draftee)
-
 				} else {
 					repository.SaveCollegeHockeyPlayerRecord(player, db)
 				}
@@ -91,9 +99,82 @@ func CollegeProgressionMain() {
 		repository.SaveCollegeTeamRecord(db, team)
 	}
 
+	for _, team := range canadianHockeyTeams {
+		teamID := strconv.Itoa(int(team.ID))
+		roster := GetCollegePlayersByTeamID(teamID)
+
+		if !team.PlayersProgressed {
+			for _, player := range roster {
+				if player.HasProgressed {
+					continue
+				}
+				id := strconv.Itoa(int(player.ID))
+
+				stats := gameStatMap[player.ID]
+				player = ProgressCollegePlayer(player, SeasonID, stats)
+				willDeclare := (player.Year > 4 && !player.IsRedshirt) || (player.Year > 5 && player.IsRedshirt)
+				if willDeclare && player.DraftedTeamID > 0 {
+					historicRecord := structs.HistoricCollegePlayer{CollegePlayer: player}
+					historicRecords = append(historicRecords, historicRecord)
+					// Graduating players with draft rights become pro players
+					// Create a new professional player record from the college player data
+					professionalPlayer := structs.ProfessionalPlayer{
+						Model:          player.Model,
+						DraftedTeamID:  uint8(player.DraftedTeamID),
+						BasePlayer:     player.BasePlayer,
+						BasePotentials: player.BasePotentials,
+						BaseInjuryData: player.BaseInjuryData,
+						Year:           0,
+					}
+					collegePlayerIDs = append(collegePlayerIDs, id)
+					// Assign their drafted team ID if they have been drafted
+					professionalPlayer.AssignTeam(player.DraftedTeamID, player.DraftedTeam, 1)
+					graduatingPlayers = append(graduatingPlayers, professionalPlayer)
+				} else if willDeclare && player.DraftedTeamID == 0 {
+					collegePlayerIDs = append(collegePlayerIDs, id)
+					historicRecord := structs.HistoricCollegePlayer{CollegePlayer: player}
+					historicRecords = append(historicRecords, historicRecord)
+					// Graduate players with no draft rights become draftee records before UDFAs
+					draftee := structs.DraftablePlayer{
+						Model:          player.Model,
+						BasePlayer:     player.BasePlayer,
+						BasePotentials: player.BasePotentials,
+						BaseInjuryData: player.BaseInjuryData,
+						CollegeID:      uint(player.TeamID),
+					}
+					draftablePlayers = append(draftablePlayers, draftee)
+				} else {
+					repository.SaveCollegeHockeyPlayerRecord(player, db)
+				}
+			}
+
+			team.TogglePlayersProgressed()
+		}
+
+		repository.SaveCollegeTeamRecord(db, team)
+	}
+
+	unsignedRecruits := repository.FindAllRecruits(false, false, false, false, false, "")
+	collegePlayerBatch := []structs.CollegePlayer{}
+	for _, croot := range unsignedRecruits {
+		if croot.TeamID > 0 {
+			continue
+		}
+		cp := structs.CollegePlayer{
+			Model:          croot.Model,
+			BasePlayer:     croot.BasePlayer,
+			BasePotentials: croot.BasePotentials,
+			BaseInjuryData: croot.BaseInjuryData,
+			Year:           1,
+		}
+		collegePlayerBatch = append(collegePlayerBatch, cp)
+	}
+
+	repository.CreateCollegeHockeyPlayerRecordsBatch(db, collegePlayerBatch, 100)
 	repository.CreateProHockeyPlayerRecordsBatch(db, graduatingPlayers, 200)
 	repository.CreateDraftablePlayerRecordsBatch(db, draftablePlayers, 200)
 	repository.CreateHistoricCollegePlayerRecordsBatch(db, historicRecords, 200)
+	repository.MassDeleteCollegePlayerRecords(db, collegePlayerIDs)
 }
 
 func ProfessionalProgressionMain() {
@@ -220,22 +301,24 @@ func ProgressCollegePlayer(player structs.CollegePlayer, SeasonID string, stats 
 	growth := GetGrowth(int(player.Age), int(player.PrimeAge), int(player.Regression), float64(player.DecayRate), true)
 	metMinutes := averageTimeOnIce >= 12
 
+	redshirtQualification := player.IsRedshirting || player.LeagueID > 1
+
 	// Attributes
-	agility := calculateAttributeGrowth(&player.BasePlayer, &player.BasePotentials, "Agility", growth, metMinutes, player.IsRedshirt)
-	faceoffs := calculateAttributeGrowth(&player.BasePlayer, &player.BasePotentials, "Faceoffs", growth, metMinutes, player.IsRedshirt)
-	CloseShotAccuracy := calculateAttributeGrowth(&player.BasePlayer, &player.BasePotentials, "CloseShotAccuracy", growth, metMinutes, player.IsRedshirt)
-	CloseShotPower := calculateAttributeGrowth(&player.BasePlayer, &player.BasePotentials, "CloseShotPower", growth, metMinutes, player.IsRedshirt)
-	LongShotAccuracy := calculateAttributeGrowth(&player.BasePlayer, &player.BasePotentials, "LongShotAccuracy", growth, metMinutes, player.IsRedshirt)
-	LongShotPower := calculateAttributeGrowth(&player.BasePlayer, &player.BasePotentials, "LongShotPower", growth, metMinutes, player.IsRedshirt)
-	passing := calculateAttributeGrowth(&player.BasePlayer, &player.BasePotentials, "Passing", growth, metMinutes, player.IsRedshirt)
-	puckHandling := calculateAttributeGrowth(&player.BasePlayer, &player.BasePotentials, "PuckHandling", growth, metMinutes, player.IsRedshirt)
-	strength := calculateAttributeGrowth(&player.BasePlayer, &player.BasePotentials, "Strength", growth, metMinutes, player.IsRedshirt)
-	bodyChecking := calculateAttributeGrowth(&player.BasePlayer, &player.BasePotentials, "BodyChecking", growth, metMinutes, player.IsRedshirt)
-	stickChecking := calculateAttributeGrowth(&player.BasePlayer, &player.BasePotentials, "StickChecking", growth, metMinutes, player.IsRedshirt)
-	shotBlocking := calculateAttributeGrowth(&player.BasePlayer, &player.BasePotentials, "ShotBlocking", growth, metMinutes, player.IsRedshirt)
-	goalkeeping := calculateAttributeGrowth(&player.BasePlayer, &player.BasePotentials, "Goalkeeping", growth, metMinutes, player.IsRedshirt)
-	goalieVision := calculateAttributeGrowth(&player.BasePlayer, &player.BasePotentials, "GoalieVision", growth, metMinutes, player.IsRedshirt)
-	goalieRebound := calculateAttributeGrowth(&player.BasePlayer, &player.BasePotentials, "GoalieRebound", growth, metMinutes, player.IsRedshirt)
+	agility := calculateAttributeGrowth(&player.BasePlayer, &player.BasePotentials, "Agility", growth, metMinutes, redshirtQualification)
+	faceoffs := calculateAttributeGrowth(&player.BasePlayer, &player.BasePotentials, "Faceoffs", growth, metMinutes, redshirtQualification)
+	CloseShotAccuracy := calculateAttributeGrowth(&player.BasePlayer, &player.BasePotentials, "CloseShotAccuracy", growth, metMinutes, redshirtQualification)
+	CloseShotPower := calculateAttributeGrowth(&player.BasePlayer, &player.BasePotentials, "CloseShotPower", growth, metMinutes, redshirtQualification)
+	LongShotAccuracy := calculateAttributeGrowth(&player.BasePlayer, &player.BasePotentials, "LongShotAccuracy", growth, metMinutes, redshirtQualification)
+	LongShotPower := calculateAttributeGrowth(&player.BasePlayer, &player.BasePotentials, "LongShotPower", growth, metMinutes, redshirtQualification)
+	passing := calculateAttributeGrowth(&player.BasePlayer, &player.BasePotentials, "Passing", growth, metMinutes, redshirtQualification)
+	puckHandling := calculateAttributeGrowth(&player.BasePlayer, &player.BasePotentials, "PuckHandling", growth, metMinutes, redshirtQualification)
+	strength := calculateAttributeGrowth(&player.BasePlayer, &player.BasePotentials, "Strength", growth, metMinutes, redshirtQualification)
+	bodyChecking := calculateAttributeGrowth(&player.BasePlayer, &player.BasePotentials, "BodyChecking", growth, metMinutes, redshirtQualification)
+	stickChecking := calculateAttributeGrowth(&player.BasePlayer, &player.BasePotentials, "StickChecking", growth, metMinutes, redshirtQualification)
+	shotBlocking := calculateAttributeGrowth(&player.BasePlayer, &player.BasePotentials, "ShotBlocking", growth, metMinutes, redshirtQualification)
+	goalkeeping := calculateAttributeGrowth(&player.BasePlayer, &player.BasePotentials, "Goalkeeping", growth, metMinutes, redshirtQualification)
+	goalieVision := calculateAttributeGrowth(&player.BasePlayer, &player.BasePotentials, "GoalieVision", growth, metMinutes, redshirtQualification)
+	goalieRebound := calculateAttributeGrowth(&player.BasePlayer, &player.BasePotentials, "GoalieRebound", growth, metMinutes, redshirtQualification)
 
 	progressions := structs.BasePlayerProgressions{
 		Agility:              agility,

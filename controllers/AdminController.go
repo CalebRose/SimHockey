@@ -168,3 +168,30 @@ func GenerateProPlayoffGames(w http.ResponseWriter, r *http.Request) {
 	// managers.GenerateProPlayoffGames(db, ts)
 	json.NewEncoder(w).Encode("Pro Playoff Games Generated")
 }
+
+func ProgressCollegePlayers(w http.ResponseWriter, r *http.Request) {
+	managers.CollegeProgressionMain()
+
+	json.NewEncoder(w).Encode("Data Generated ran!")
+}
+
+func ProgressProPlayers(w http.ResponseWriter, r *http.Request) {
+	managers.ProfessionalProgressionMain()
+
+	json.NewEncoder(w).Encode("Data Generated ran!")
+}
+
+func FixHistoricCollegePlayerData(w http.ResponseWriter, r *http.Request) {
+	managers.FixMigrationPlayerData()
+	json.NewEncoder(w).Encode("Data Generated ran!")
+}
+
+func UpdateCHLTeamValues(w http.ResponseWriter, r *http.Request) {
+
+	json.NewEncoder(w).Encode("Data Generated ran!")
+}
+
+func SeasonMigration(w http.ResponseWriter, r *http.Request) {
+
+	json.NewEncoder(w).Encode("Data Generated ran!")
+}

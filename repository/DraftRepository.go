@@ -9,6 +9,48 @@ import (
 	"gorm.io/gorm"
 )
 
+func FindAllDraftablePlayers(clauses PlayerQuery) []structs.DraftablePlayer {
+	db := dbprovider.GetInstance().GetDB()
+
+	var DraftablePlayers []structs.DraftablePlayer
+
+	query := db.Model(&DraftablePlayers)
+
+	if len(clauses.TeamID) > 0 {
+		query = query.Where("team_id = ?", clauses.TeamID)
+	}
+
+	if len(clauses.CollegeID) > 0 {
+		query = query.Where("college_id = ?", clauses.CollegeID)
+	}
+
+	if len(clauses.PlayerIDs) > 0 {
+		query = query.Where("id in (?)", clauses.PlayerIDs)
+	}
+
+	if len(clauses.TransferStatus) > 0 {
+		query = query.Where("transfer_status = ?", clauses.TransferStatus)
+	}
+
+	if len(clauses.LeagueID) > 0 {
+		query = query.Where("league_id = ?", clauses.LeagueID)
+	}
+
+	if len(clauses.IsInjured) > 0 {
+		query = query.Where("is_injured = ?", true)
+	}
+
+	if clauses.OverallDesc {
+		query = query.Order("overall desc")
+	}
+
+	if err := query.Find(&DraftablePlayers).Error; err != nil {
+		return []structs.DraftablePlayer{}
+	}
+
+	return DraftablePlayers
+}
+
 func FindDraftPickRecord(id string) structs.DraftPick {
 	db := dbprovider.GetInstance().GetDB()
 	preferences := structs.DraftPick{}

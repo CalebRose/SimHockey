@@ -12,6 +12,7 @@ import (
 
 type PlayerQuery struct {
 	TeamID         string
+	CollegeID      string
 	PlayerIDs      []string
 	TransferStatus string
 	LeagueID       string
@@ -219,4 +220,12 @@ func DeleteProPlayerRecord(playerRecord structs.ProfessionalPlayer, db *gorm.DB)
 	if err != nil {
 		log.Panicln("Could not delete pro player " + strconv.Itoa(int(playerRecord.ID)))
 	}
+}
+
+// For the graduation process
+func MassDeleteCollegePlayerRecords(db *gorm.DB, ids []string) error {
+	if err := db.Unscoped().Where("id IN ?", ids).Delete(&structs.CollegePlayer{}).Error; err != nil {
+		return err
+	}
+	return nil
 }

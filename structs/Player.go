@@ -941,6 +941,7 @@ func (r *Recruit) UpdateTeamID(id uint) {
 	r.TeamID = uint16(id)
 	if id > 0 {
 		r.IsSigned = true
+		r.LeagueID = 1
 	}
 }
 
