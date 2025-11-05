@@ -10,6 +10,18 @@ import (
 	"github.com/gorilla/mux"
 )
 
+func ProcessTransferIntention(w http.ResponseWriter, r *http.Request) {
+	managers.ProcessTransferIntention(w)
+}
+
+func ProcessPrePortalPromises(w http.ResponseWriter, r *http.Request) {
+	managers.AICoachPromisePhase()
+}
+
+func EnterTheTransferPortal(w http.ResponseWriter, r *http.Request) {
+	managers.EnterTheTransferPortal()
+}
+
 func CreatePromise(w http.ResponseWriter, r *http.Request) {
 
 	var createPromiseDto structs.CollegePromise

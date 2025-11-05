@@ -692,7 +692,9 @@ func (cp *CollegePlayer) AddSeasonStats(seasonStats CollegePlayerSeasonStats) {
 
 func (cp *CollegePlayer) ProgressPlayer(progressions BasePlayerProgressions) {
 	cp.Progress(progressions)
-	cp.Year++
+	if cp.LeagueID == 1 {
+		cp.Year++
+	}
 	if cp.IsRedshirting {
 		cp.CompleteRedshirt()
 	}

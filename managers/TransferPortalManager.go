@@ -79,7 +79,7 @@ func ProcessTransferIntention(w http.ResponseWriter) {
 
 	for _, p := range allCollegePlayers {
 		// Do not include redshirts and all graduating players
-		if p.IsRedshirting || p.TeamID > 194 || p.TeamID == 0 {
+		if p.TeamID > 74 || p.TeamID == 0 {
 			continue
 		}
 		// Weight will be the initial barrier required for a player to consider transferring.
@@ -87,7 +87,7 @@ func ProcessTransferIntention(w http.ResponseWriter) {
 		transferWeight := 0.0
 
 		// Modifiers on reasons why they would transfer
-		snapMod := 0.0
+		timeMod := 0.0
 		ageMod := 1.125
 		starMod := 0.0
 		depthChartCompetitionMod := 0.0
@@ -105,15 +105,15 @@ func ProcessTransferIntention(w http.ResponseWriter) {
 		minutesPerGame := minutesAccurate / regularGamesPerSeason
 
 		if minutesPerGame > 15 {
-			snapMod = bigDrop
+			timeMod = bigDrop
 		} else if minutesPerGame > 12 {
-			snapMod = smallDrop
+			timeMod = smallDrop
 		} else if minutesPerGame > 10 {
-			snapMod = smallGain
+			timeMod = smallGain
 		} else if minutesPerGame > 5 {
-			snapMod = mediumGain
+			timeMod = mediumGain
 		} else {
-			snapMod = bigGain
+			timeMod = bigGain
 		}
 
 		// Check Age
@@ -185,7 +185,7 @@ func ProcessTransferIntention(w http.ResponseWriter) {
 			if youngerPlayerAhead {
 				depthChartCompetitionMod += 33
 			} else {
-				depthChartCompetitionMod = .63 * depthChartCompetitionMod
+				depthChartCompetitionMod = .67 * depthChartCompetitionMod
 			}
 		}
 
@@ -201,7 +201,7 @@ func ProcessTransferIntention(w http.ResponseWriter) {
 		schemeMod = getSchemeMod(teamProfile, p, mediumDrop, mediumGain)
 
 		/// Not playing = 25, low depth chart = 16 or 33, scheme = 10, if you're all 3, that's a ~60% chance of transferring pre- modifiers
-		transferWeight = starMod * ageMod * (snapMod + depthChartCompetitionMod + schemeMod)
+		transferWeight = starMod * ageMod * (timeMod + depthChartCompetitionMod + schemeMod)
 		diceRoll := util.GenerateIntFromRange(1, 100)
 
 		// NOT INTENDING TO TRANSFER

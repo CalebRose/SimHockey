@@ -112,8 +112,8 @@ func CollegeProgressionMain() {
 
 				stats := gameStatMap[player.ID]
 				player = ProgressCollegePlayer(player, SeasonID, stats)
-				willDeclare := (player.Year > 4 && !player.IsRedshirt) || (player.Year > 5 && player.IsRedshirt)
-				if willDeclare && player.DraftedTeamID > 0 {
+				willGraduateFromTeam := (player.Age > 20)
+				if willGraduateFromTeam && player.DraftedTeamID > 0 {
 					historicRecord := structs.HistoricCollegePlayer{CollegePlayer: player}
 					historicRecords = append(historicRecords, historicRecord)
 					// Graduating players with draft rights become pro players
@@ -130,19 +130,10 @@ func CollegeProgressionMain() {
 					// Assign their drafted team ID if they have been drafted
 					professionalPlayer.AssignTeam(player.DraftedTeamID, player.DraftedTeam, 1)
 					graduatingPlayers = append(graduatingPlayers, professionalPlayer)
-				} else if willDeclare && player.DraftedTeamID == 0 {
-					collegePlayerIDs = append(collegePlayerIDs, id)
-					historicRecord := structs.HistoricCollegePlayer{CollegePlayer: player}
-					historicRecords = append(historicRecords, historicRecord)
-					// Graduate players with no draft rights become draftee records before UDFAs
-					draftee := structs.DraftablePlayer{
-						Model:          player.Model,
-						BasePlayer:     player.BasePlayer,
-						BasePotentials: player.BasePotentials,
-						BaseInjuryData: player.BaseInjuryData,
-						CollegeID:      uint(player.TeamID),
-					}
-					draftablePlayers = append(draftablePlayers, draftee)
+				} else if willGraduateFromTeam && player.DraftedTeamID == 0 {
+					// If player is over the age of 20 and players in the Canadian leagues, they must graduate into the portal no matter what
+					player.WillTransfer()
+					repository.SaveCollegeHockeyPlayerRecord(player, db)
 				} else {
 					repository.SaveCollegeHockeyPlayerRecord(player, db)
 				}
@@ -152,6 +143,55 @@ func CollegeProgressionMain() {
 		}
 
 		repository.SaveCollegeTeamRecord(db, team)
+	}
+
+	// Unsigned Players
+	unsignedPlayers := repository.FindAllCollegePlayers(repository.PlayerQuery{TeamID: "0"})
+
+	for _, player := range unsignedPlayers {
+		if player.HasProgressed {
+			continue
+		}
+		id := strconv.Itoa(int(player.ID))
+
+		stats := gameStatMap[player.ID]
+		player = ProgressCollegePlayer(player, SeasonID, stats)
+		willDeclare := (player.Year > 4 && !player.IsRedshirt) || (player.Year > 5 && player.IsRedshirt)
+		isCanadian := player.Country == util.Canada && (willDeclare && player.Age > 24) // Phase out really old Canadian players
+		isOther := player.Country != util.Canada && willDeclare && player.Age > 21
+		if (isCanadian || isOther) && player.DraftedTeamID > 0 {
+			historicRecord := structs.HistoricCollegePlayer{CollegePlayer: player}
+			historicRecords = append(historicRecords, historicRecord)
+			// Graduating players with draft rights become pro players
+			// Create a new professional player record from the college player data
+			professionalPlayer := structs.ProfessionalPlayer{
+				Model:          player.Model,
+				DraftedTeamID:  uint8(player.DraftedTeamID),
+				BasePlayer:     player.BasePlayer,
+				BasePotentials: player.BasePotentials,
+				BaseInjuryData: player.BaseInjuryData,
+				Year:           0,
+			}
+			collegePlayerIDs = append(collegePlayerIDs, id)
+			// Assign their drafted team ID if they have been drafted
+			professionalPlayer.AssignTeam(player.DraftedTeamID, player.DraftedTeam, 1)
+			graduatingPlayers = append(graduatingPlayers, professionalPlayer)
+		} else if (isCanadian || isOther) && player.DraftedTeamID == 0 {
+			collegePlayerIDs = append(collegePlayerIDs, id)
+			historicRecord := structs.HistoricCollegePlayer{CollegePlayer: player}
+			historicRecords = append(historicRecords, historicRecord)
+			// Graduate players with no draft rights become draftee records before UDFAs
+			draftee := structs.DraftablePlayer{
+				Model:          player.Model,
+				BasePlayer:     player.BasePlayer,
+				BasePotentials: player.BasePotentials,
+				BaseInjuryData: player.BaseInjuryData,
+				CollegeID:      uint(player.TeamID),
+			}
+			draftablePlayers = append(draftablePlayers, draftee)
+		} else {
+			repository.SaveCollegeHockeyPlayerRecord(player, db)
+		}
 	}
 
 	unsignedRecruits := repository.FindAllRecruits(false, false, false, false, false, "")
@@ -301,7 +341,7 @@ func ProgressCollegePlayer(player structs.CollegePlayer, SeasonID string, stats 
 	growth := GetGrowth(int(player.Age), int(player.PrimeAge), int(player.Regression), float64(player.DecayRate), true)
 	metMinutes := averageTimeOnIce >= 12
 
-	redshirtQualification := player.IsRedshirting || player.LeagueID > 1
+	redshirtQualification := player.IsRedshirting || player.LeagueID > 1 || player.TeamID == 0
 
 	// Attributes
 	agility := calculateAttributeGrowth(&player.BasePlayer, &player.BasePotentials, "Agility", growth, metMinutes, redshirtQualification)

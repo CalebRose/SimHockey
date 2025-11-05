@@ -199,7 +199,7 @@ func handleRequests() http.Handler {
 	apiRouter.HandleFunc("/trades/admin/cleanup", controllers.CleanUpRejectedTrades).Methods("GET")
 
 	// Transfer Portal
-	// apiRouter.HandleFunc("/portal/transfer/intention", controllers.ProcessTransferIntention).Methods("GET")
+	apiRouter.HandleFunc("/portal/transfer/intention", controllers.ProcessTransferIntention).Methods("GET")
 	// apiRouter.HandleFunc("/portal/transfer/pre/promises", controllers.ProcessPrePortalPromises).Methods("GET")
 	// apiRouter.HandleFunc("/portal/transfer/enter/portal", controllers.EnterTheTransferPortal).Methods("GET")
 	apiRouter.HandleFunc("/portal/transfer/sync", controllers.SyncTransferPortal).Methods("GET")
