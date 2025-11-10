@@ -52,6 +52,20 @@ type ProfileAttributes struct {
 	SeasonMomentum       uint8
 }
 
+func (pa *ProfileAttributes) UpdateRecordRatings(programPrestige, coachRating, seasonMomentum uint8) {
+	pa.ProgramPrestige = programPrestige
+	pa.CoachRating = coachRating
+	pa.SeasonMomentum = seasonMomentum
+}
+
+func (pa *ProfileAttributes) UpdateConferencePrestige(conferencePrestige uint8) {
+	pa.ConferencePrestige = conferencePrestige
+}
+
+func (pa *ProfileAttributes) UpdateProfessionalPrestige(professionalPrestige uint8) {
+	pa.ProfessionalPrestige = professionalPrestige
+}
+
 type CollegeTeam struct {
 	gorm.Model
 	BaseTeam

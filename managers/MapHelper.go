@@ -168,6 +168,18 @@ func MakeCollegeStandingsMap(standings []structs.CollegeStandings) map[uint]stru
 	return standingsMap
 }
 
+func MakeCollegeStandingsMapByCoachName(standings []structs.CollegeStandings) map[string][]structs.CollegeStandings {
+	standingsMap := make(map[string][]structs.CollegeStandings)
+	for _, stat := range standings {
+		if len(standingsMap[stat.Coach]) == 0 {
+			standingsMap[stat.Coach] = []structs.CollegeStandings{}
+		}
+		standingsMap[stat.Coach] = append(standingsMap[stat.Coach], stat)
+	}
+
+	return standingsMap
+}
+
 func MakeProfessionalStandingsMap(standings []structs.ProfessionalStandings) map[uint]structs.ProfessionalStandings {
 	standingsMap := make(map[uint]structs.ProfessionalStandings)
 	for _, stat := range standings {
@@ -245,20 +257,36 @@ func MakeExtensionMap(extensions []structs.ExtensionOffer) map[uint]structs.Exte
 	return contractMap
 }
 
-func MakeCollegeGameMap(players []structs.CollegeGame) map[uint]structs.CollegeGame {
+func MakeCollegeGameMapByTeamID(games []structs.CollegeGame) map[uint][]structs.CollegeGame {
+	gameMap := make(map[uint][]structs.CollegeGame)
+
+	for _, p := range games {
+		if _, exists := gameMap[uint(p.HomeTeamID)]; !exists {
+			gameMap[uint(p.HomeTeamID)] = []structs.CollegeGame{}
+		}
+		gameMap[uint(p.HomeTeamID)] = append(gameMap[uint(p.HomeTeamID)], p)
+		if _, exists := gameMap[uint(p.AwayTeamID)]; !exists {
+			gameMap[uint(p.AwayTeamID)] = []structs.CollegeGame{}
+		}
+		gameMap[uint(p.AwayTeamID)] = append(gameMap[uint(p.AwayTeamID)], p)
+	}
+	return gameMap
+}
+
+func MakeCollegeGameMap(games []structs.CollegeGame) map[uint]structs.CollegeGame {
 	gameMap := make(map[uint]structs.CollegeGame)
 
-	for _, p := range players {
+	for _, p := range games {
 		gameMap[p.ID] = p
 	}
 
 	return gameMap
 }
 
-func MakeProGameMap(players []structs.ProfessionalGame) map[uint]structs.ProfessionalGame {
+func MakeProGameMap(games []structs.ProfessionalGame) map[uint]structs.ProfessionalGame {
 	gameMap := make(map[uint]structs.ProfessionalGame)
 
-	for _, p := range players {
+	for _, p := range games {
 		gameMap[p.ID] = p
 	}
 

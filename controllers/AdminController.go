@@ -78,8 +78,6 @@ func GenerateWalkons(w http.ResponseWriter, r *http.Request) {
 
 func ImportProRosters(w http.ResponseWriter, r *http.Request) {
 	managers.ImportProRosters()
-	managers.ImportStandingsForNewSeason()
-
 	json.NewEncoder(w).Encode("Data Generated ran!")
 }
 

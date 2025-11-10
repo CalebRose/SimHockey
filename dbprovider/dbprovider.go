@@ -7,6 +7,7 @@ import (
 	"net"
 	"sync"
 
+	"github.com/CalebRose/SimHockey/structs"
 	"golang.org/x/crypto/ssh"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
@@ -61,7 +62,7 @@ func (p *Provider) InitDatabase() bool {
 	// db.AutoMigrate(&structs.CollegeTeamGameStats{})
 	// db.AutoMigrate(&structs.CollegeGame{})
 	// db.AutoMigrate(&structs.CollegeSeries{})
-	// db.AutoMigrate(&structs.CollegeStandings{})
+	db.AutoMigrate(&structs.CollegeStandings{})
 	// db.AutoMigrate(&structs.CollegePollOfficial{})
 	// db.AutoMigrate(&structs.CollegePollSubmission{})
 
@@ -85,7 +86,7 @@ func (p *Provider) InitDatabase() bool {
 	// db.AutoMigrate(&structs.ProfessionalLineup{})
 	// db.AutoMigrate(&structs.ProfessionalShootoutLineup{})
 	// db.AutoMigrate(&structs.ProfessionalGame{})
-	// db.AutoMigrate(&structs.ProfessionalStandings{})
+	db.AutoMigrate(&structs.ProfessionalStandings{})
 	// db.AutoMigrate(&structs.PlayoffSeries{})
 	// db.AutoMigrate(&structs.ProSeries{})
 	// db.AutoMigrate(&structs.ProTeamRequest{})
@@ -97,7 +98,7 @@ func (p *Provider) InitDatabase() bool {
 	// Recruiting
 	// db.AutoMigrate(&structs.Recruit{})
 	// db.AutoMigrate(&structs.RecruitPlayerProfile{})
-	// db.AutoMigrate(&structs.RecruitingTeamProfile{})
+	db.AutoMigrate(&structs.RecruitingTeamProfile{})
 	// db.AutoMigrate(&structs.RecruitPointAllocation{})
 
 	// Portal

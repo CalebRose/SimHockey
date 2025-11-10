@@ -137,7 +137,7 @@ func handleRequests() http.Handler {
 	// apiRouter.HandleFunc("/admin/import/chl/team/profiles/", controllers.ImportTeamProfileRecords).Methods("GET")
 
 	// Migrations
-	// apiRouter.HandleFunc("/migrate/faces", controllers.MigrateFaceData).Methods("GET")
+	apiRouter.HandleFunc("/migrate/faces", controllers.MigrateFaceData).Methods("GET")
 	// apiRouter.HandleFunc("/migrate/stats/fix", controllers.FixSeasonStatTables).Methods("GET")
 
 	// Poll Controls

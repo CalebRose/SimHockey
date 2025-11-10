@@ -38,7 +38,7 @@ func CollegeProgressionMain() {
 				id := strconv.Itoa(int(player.ID))
 
 				stats := gameStatMap[player.ID]
-				player = ProgressCollegePlayer(player, SeasonID, stats)
+				player = ProgressCollegePlayer(player, SeasonID, stats, false)
 				willDeclare := (player.Year > 4 && !player.IsRedshirt) || (player.Year > 5 && player.IsRedshirt)
 				if willDeclare && player.DraftedTeamID > 0 {
 					historicRecord := structs.HistoricCollegePlayer{CollegePlayer: player}
@@ -111,7 +111,7 @@ func CollegeProgressionMain() {
 				id := strconv.Itoa(int(player.ID))
 
 				stats := gameStatMap[player.ID]
-				player = ProgressCollegePlayer(player, SeasonID, stats)
+				player = ProgressCollegePlayer(player, SeasonID, stats, false)
 				willGraduateFromTeam := (player.Age > 20)
 				if willGraduateFromTeam && player.DraftedTeamID > 0 {
 					historicRecord := structs.HistoricCollegePlayer{CollegePlayer: player}
@@ -155,7 +155,7 @@ func CollegeProgressionMain() {
 		id := strconv.Itoa(int(player.ID))
 
 		stats := gameStatMap[player.ID]
-		player = ProgressCollegePlayer(player, SeasonID, stats)
+		player = ProgressCollegePlayer(player, SeasonID, stats, false)
 		willDeclare := (player.Year > 4 && !player.IsRedshirt) || (player.Year > 5 && player.IsRedshirt)
 		isCanadian := player.Country == util.Canada && (willDeclare && player.Age > 24) // Phase out really old Canadian players
 		isOther := player.Country != util.Canada && willDeclare && player.Age > 21
@@ -324,7 +324,7 @@ func ProfessionalProgressionMain() {
 	}
 }
 
-func ProgressCollegePlayer(player structs.CollegePlayer, SeasonID string, stats []structs.CollegePlayerGameStats) structs.CollegePlayer {
+func ProgressCollegePlayer(player structs.CollegePlayer, SeasonID string, stats []structs.CollegePlayerGameStats, isInit bool) structs.CollegePlayer {
 	minutes := 0
 
 	for _, stat := range stats {
@@ -341,7 +341,7 @@ func ProgressCollegePlayer(player structs.CollegePlayer, SeasonID string, stats 
 	growth := GetGrowth(int(player.Age), int(player.PrimeAge), int(player.Regression), float64(player.DecayRate), true)
 	metMinutes := averageTimeOnIce >= 12
 
-	redshirtQualification := player.IsRedshirting || player.LeagueID > 1 || player.TeamID == 0
+	redshirtQualification := player.IsRedshirting || player.LeagueID > 1 || player.TeamID == 0 || isInit
 
 	// Attributes
 	agility := calculateAttributeGrowth(&player.BasePlayer, &player.BasePotentials, "Agility", growth, metMinutes, redshirtQualification)

@@ -85,6 +85,7 @@ type BaseStandings struct {
 	HomeWins           uint8
 	AwayWins           uint8
 	PostSeasonStatus   string
+	Coach              string
 	IsRunnerUp         bool
 	IsNationalChampion bool
 }

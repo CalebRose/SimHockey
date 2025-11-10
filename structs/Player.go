@@ -893,6 +893,13 @@ func (cp *ProfessionalPlayer) AssignID(id uint) {
 	cp.ID = id
 }
 
+func (f *ProfessionalPlayer) DeclineOffer(week int) {
+	f.Rejections += 1
+	if week >= 23 {
+		f.Rejections += 2
+	}
+}
+
 type RetiredPlayer struct {
 	ProfessionalPlayer
 }

@@ -662,6 +662,9 @@ func UpdateStandings(ts structs.Timestamp, gameDay string) structs.Timestamp {
 						}
 						nextSeries.AddTeam(nextSeriesHoa == "H", teamID, uint(teamRank), teamLabel, teamCoach)
 						repository.SavePlayoffSeriesRecord(nextSeries, db)
+					} else if series.IsTheFinals && series.NextGameID == 0 {
+
+						ts.EndTheProfessionalSeason()
 					}
 				}
 				repository.SavePlayoffSeriesRecord(series, db)

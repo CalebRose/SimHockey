@@ -442,48 +442,6 @@ func ImportProRosters() {
 	}
 }
 
-func ImportStandingsForNewSeason() {
-	db := dbprovider.GetInstance().GetDB()
-	ts := GetTimestamp()
-
-	collegeTeams := repository.FindAllCollegeTeams(repository.TeamClauses{})
-	// proTeams := repository.FindAllProTeams()
-
-	for _, team := range collegeTeams {
-		if team.ID < 67 {
-			continue
-		}
-		standings := structs.CollegeStandings{
-			BaseStandings: structs.BaseStandings{
-				TeamID:       team.ID,
-				TeamName:     team.TeamName,
-				SeasonID:     ts.SeasonID,
-				Season:       ts.Season,
-				LeagueID:     1,
-				ConferenceID: uint(team.ConferenceID),
-			},
-		}
-
-		db.Create(&standings)
-	}
-
-	// for _, team := range proTeams {
-	// 	standings := structs.ProfessionalStandings{
-	// 		BaseStandings: structs.BaseStandings{
-	// 			TeamID:       team.ID,
-	// 			TeamName:     team.TeamName,
-	// 			SeasonID:     ts.SeasonID,
-	// 			Season:       ts.Season,
-	// 			LeagueID:     1,
-	// 			ConferenceID: uint(team.ConferenceID),
-	// 		},
-	// 		DivisionID: uint(team.DivisionID),
-	// 	}
-
-	// 	db.Create(&standings)
-	// }
-}
-
 func ImportTeamRecruitingProfiles() {
 	db := dbprovider.GetInstance().GetDB()
 

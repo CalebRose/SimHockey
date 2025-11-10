@@ -45,6 +45,11 @@ type RecruitingTeamProfile struct {
 	Recruiter             string
 	OffensiveScheme       string
 	DefensiveScheme       string
+	Y1Rank                uint16
+	Y2Rank                uint16
+	Y3Rank                uint16
+	Y4Rank                uint16
+	Y5Rank                uint16
 	Recruits              []RecruitPlayerProfile `gorm:"foreignKey:ProfileID"`
 }
 
@@ -133,6 +138,14 @@ func (r *RecruitingTeamProfile) AssignESPNRank(score float32) {
 
 func (r *RecruitingTeamProfile) AssignCompositeRank(score float32) {
 	r.CompositeScore = score
+}
+
+func (r *RecruitingTeamProfile) AssignHistoricRank(rank int) {
+	r.Y1Rank = uint16(rank)
+	r.Y2Rank = r.Y1Rank
+	r.Y3Rank = r.Y2Rank
+	r.Y4Rank = r.Y3Rank
+	r.Y5Rank = r.Y4Rank
 }
 
 func (r *RecruitingTeamProfile) UpdateTotalSignedRecruits(num uint8) {

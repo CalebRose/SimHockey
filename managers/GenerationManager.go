@@ -579,7 +579,7 @@ func GenerateInitialRosters() {
 			cp.AssignID(latestID)
 
 			for j := cp.Age; j < uint8(age); j++ {
-				cp = ProgressCollegePlayer(cp, "1", []structs.CollegePlayerGameStats{})
+				cp = ProgressCollegePlayer(cp, "1", []structs.CollegePlayerGameStats{}, true)
 			}
 			cpList = append(cpList, cp)
 
@@ -658,7 +658,7 @@ func GenerateInitialCHLRosters() {
 			cp.AssignID(latestID)
 
 			for j := uint8(18); j < uint8(age); j++ {
-				cp = ProgressCollegePlayer(cp, "1", []structs.CollegePlayerGameStats{})
+				cp = ProgressCollegePlayer(cp, "1", []structs.CollegePlayerGameStats{}, true)
 			}
 			cp.ResetCHLCollegeYear()
 			cpList = append(cpList, cp)
@@ -741,7 +741,7 @@ func GenerateInitialProPool() {
 			cp.AssignTeam(team.ID, team.Abbreviation, 1)
 
 			for range 4 {
-				cp = ProgressCollegePlayer(cp, "1", []structs.CollegePlayerGameStats{})
+				cp = ProgressCollegePlayer(cp, "1", []structs.CollegePlayerGameStats{}, true)
 			}
 			// Age of player is now 22
 			pro := structs.ProfessionalPlayer{
@@ -1302,7 +1302,7 @@ func pickLocale(country string) string {
 func pickCountry() string {
 	countries := []util.Locale{
 		{Name: "USA", Weight: 62},
-		{Name: "Canada", Weight: 50},
+		{Name: "Canada", Weight: 30},
 		{Name: "Sweden", Weight: 20},
 		{Name: "Russia", Weight: 20},
 		{Name: "Finland", Weight: 8},

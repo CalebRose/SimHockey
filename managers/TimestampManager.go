@@ -40,6 +40,8 @@ func ShowGames() {
 	if ts.Week > 19 {
 		GenerateProPlayoffGames(db, ts)
 	}
+
+	// Save Timestamp
 	repository.SaveTimestamp(ts, db)
 }
 
@@ -68,7 +70,7 @@ func MoveUpWeek() structs.Timestamp {
 		ts.TogglePollRan()
 	}
 	if ts.Week > 15 {
-		// SyncExtensionOffers()
+		SyncExtensionOffers()
 	}
 	if ts.CollegeSeasonOver && ts.NHLSeasonOver {
 		ts.MoveUpSeason()

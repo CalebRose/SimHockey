@@ -84,3 +84,7 @@ func ShowResultsViaCron() {
 		managers.ShowGames()
 	}
 }
+
+func RunPostSeasonMigrationViaCron() {
+	managers.HandlePostSeasonMigration()
+}
