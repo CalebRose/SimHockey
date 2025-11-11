@@ -127,6 +127,7 @@ func handleRequests() http.Handler {
 	apiRouter.HandleFunc("/phl/freeagency/cancel/offer", controllers.CancelFreeAgencyOffer).Methods("POST")
 	apiRouter.HandleFunc("/phl/waiverwire/create/offer", controllers.CreateWaiverWireOffer).Methods("POST")
 	apiRouter.HandleFunc("/phl/waiverwire/cancel/offer", controllers.CancelWaiverWireOffer).Methods("POST")
+	// apiRouter.HandleFunc("/phl/extensions/sync", controllers.TestExtensionSyncs).Methods("GET")
 
 	// Games
 	apiRouter.HandleFunc("/games/result/chl/{gameID}", controllers.GetCollegeGameResultsByGameID).Methods("GET")
@@ -137,7 +138,7 @@ func handleRequests() http.Handler {
 	// apiRouter.HandleFunc("/admin/import/chl/team/profiles/", controllers.ImportTeamProfileRecords).Methods("GET")
 
 	// Migrations
-	apiRouter.HandleFunc("/migrate/faces", controllers.MigrateFaceData).Methods("GET")
+	// apiRouter.HandleFunc("/migrate/faces", controllers.MigrateFaceData).Methods("GET")
 	// apiRouter.HandleFunc("/migrate/stats/fix", controllers.FixSeasonStatTables).Methods("GET")
 
 	// Poll Controls

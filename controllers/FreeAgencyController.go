@@ -72,3 +72,9 @@ func TestFAOffers(w http.ResponseWriter, r *http.Request) {
 
 	json.NewEncoder(w).Encode(true)
 }
+
+func TestExtensionSyncs(w http.ResponseWriter, r *http.Request) {
+	managers.SyncExtensionOffers()
+
+	json.NewEncoder(w).Encode(true)
+}

@@ -48,6 +48,9 @@ func SyncFreeAgencyViaCron() {
 		managers.SyncAIOffers()
 		managers.SyncFreeAgencyOffers()
 		managers.AllocateCapsheets()
+		if ts.Week > 17 {
+			managers.SyncExtensionOffers()
+		}
 	}
 }
 

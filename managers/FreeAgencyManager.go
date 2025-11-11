@@ -473,6 +473,8 @@ func SyncExtensionOffers() {
 	proPlayerMap := MakeProfessionalPlayerMapByTeamID(professionalPlayers)
 	phlTeams := GetAllProfessionalTeams()
 	phlTeamMap := MakeProTeamMap(phlTeams)
+	extensions := repository.FindAllProExtensions(true)
+	extensionMap := MakeExtensionMap(extensions)
 
 	for _, team := range phlTeams {
 		roster := proPlayerMap[team.ID]
@@ -480,52 +482,52 @@ func SyncExtensionOffers() {
 		for _, player := range roster {
 			min := player.MinimumValue
 			contract := player.Contract
-			if contract.ContractLength == 1 && len(player.Extensions) > 0 {
-				for _, e := range player.Extensions {
-					if e.IsRejected || !e.IsActive {
-						continue
-					}
-					minimumValueMultiplier := float32(1.0)
-					// validation := validateFreeAgencyPref(player, team, seasonID, e.ContractLength, idx)
-					// validation := false
-					// If the offer is valid and meets the player's free agency bias, reduce the minimum value required by 15%
-					// if validation && player.FreeAgency != "Average" {
-					// 	minimumValueMultiplier = 0.85
-					// 	// If the offer does not meet the player's free agency bias, increase the minimum value required by 15%
-					// } else if !validation && player.FreeAgency != "Average" {
-					// 	minimumValueMultiplier = 1.15
-					// }
-					minValPercentage := ((e.ContractValue / (min * minimumValueMultiplier)) * 100)
-					aavPercentage := ((e.ContractValue / (player.MinimumValue * minimumValueMultiplier)) * 100)
-					percentage := minValPercentage
-					if aavPercentage > minValPercentage {
-						percentage = aavPercentage
-					}
-					odds := getExtensionPercentageOdds(percentage)
-					// Run Check on the Extension
-
-					roll := util.GenerateFloatFromRange(1, 100)
-					message := ""
-					offeringTeam := phlTeamMap[e.TeamID]
-					if odds == 0 || float32(roll) > odds {
-						// Rejects offer
-						e.DeclineOffer(int(ts.Week))
-						player.DeclineOffer(int(ts.Week))
-						if e.IsRejected || player.Rejections > 2 {
-							message = player.Position + " " + player.FirstName + " " + player.LastName + " has rejected an extension offer from " + offeringTeam.Abbreviation + " worth approximately $" + strconv.Itoa(int(e.ContractValue)) + " Million Dollars and will enter Free Agency."
-						} else {
-							message = player.Position + " " + player.FirstName + " " + player.LastName + " has declined an extension offer from " + offeringTeam.Abbreviation + " with an extension worth approximately $" + strconv.Itoa(int(e.ContractValue)) + " Million Dollars, and is still negotiating."
-						}
-						CreateNewsLog("PHL", message, "Free Agency", int(e.TeamID), ts, true)
-						repository.SaveProPlayerRecord(player, db)
-					} else {
-						e.AcceptOffer()
-						message = player.Position + " " + player.FirstName + " " + player.LastName + " has accepted an extension offer from " + offeringTeam.Abbreviation + " worth approximately $" + strconv.Itoa(int(e.ContractValue)) + " Million Dollars."
-						CreateNewsLog("PHL", message, "Free Agency", int(e.TeamID), ts, true)
-						repository.SaveProTeamRecord(db, team)
-					}
-					repository.SaveExtensionRecord(e, db)
+			if contract.ContractLength == 1 {
+				e := extensionMap[player.ID]
+				if e.ID == 0 || e.IsRejected || !e.IsActive {
+					continue
 				}
+				minimumValueMultiplier := float32(1.0)
+				// validation := validateFreeAgencyPref(player, team, seasonID, e.ContractLength, idx)
+				// validation := false
+				// If the offer is valid and meets the player's free agency bias, reduce the minimum value required by 15%
+				// if validation && player.FreeAgency != "Average" {
+				// 	minimumValueMultiplier = 0.85
+				// 	// If the offer does not meet the player's free agency bias, increase the minimum value required by 15%
+				// } else if !validation && player.FreeAgency != "Average" {
+				// 	minimumValueMultiplier = 1.15
+				// }
+				minValPercentage := ((e.ContractValue / (min * minimumValueMultiplier)) * 100)
+				aavPercentage := ((e.ContractValue / (player.MinimumValue * minimumValueMultiplier)) * 100)
+				percentage := minValPercentage
+				if aavPercentage > minValPercentage {
+					percentage = aavPercentage
+				}
+				odds := getExtensionPercentageOdds(percentage)
+				// Run Check on the Extension
+
+				roll := util.GenerateFloatFromRange(1, 100)
+				message := ""
+				offeringTeam := phlTeamMap[e.TeamID]
+				if odds == 0 || float32(roll) > odds {
+					// Rejects offer
+					e.DeclineOffer(int(ts.Week))
+					player.DeclineOffer(int(ts.Week))
+					if e.IsRejected || player.Rejections > 2 {
+						message = player.Position + " " + player.FirstName + " " + player.LastName + " has rejected an extension offer from " + offeringTeam.Abbreviation + " worth approximately $" + strconv.Itoa(int(e.ContractValue)) + " Million Dollars and will enter Free Agency."
+					} else {
+						message = player.Position + " " + player.FirstName + " " + player.LastName + " has declined an extension offer from " + offeringTeam.Abbreviation + " with an extension worth approximately $" + strconv.Itoa(int(e.ContractValue)) + " Million Dollars, and is still negotiating."
+					}
+					CreateNewsLog("PHL", message, "Free Agency", int(e.TeamID), ts, true)
+					repository.SaveProPlayerRecord(player, db)
+				} else {
+					e.AcceptOffer()
+					message = player.Position + " " + player.FirstName + " " + player.LastName + " has accepted an extension offer from " + offeringTeam.Abbreviation + " worth approximately $" + strconv.Itoa(int(e.ContractValue)) + " Million Dollars."
+					CreateNewsLog("PHL", message, "Free Agency", int(e.TeamID), ts, true)
+					repository.SaveProTeamRecord(db, team)
+				}
+				repository.SaveExtensionRecord(e, db)
+
 			}
 		}
 	}
