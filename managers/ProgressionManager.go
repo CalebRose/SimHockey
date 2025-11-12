@@ -220,7 +220,7 @@ func CollegeProgressionMain() {
 func ProfessionalProgressionMain() {
 	db := dbprovider.GetInstance().GetDB()
 	ts := GetTimestamp()
-	SeasonID := strconv.Itoa(int(ts.SeasonID))
+	SeasonID := strconv.Itoa(int(ts.SeasonID - 1))
 	proPlayerGameStats := repository.FindProPlayerGameStatsRecords(SeasonID, "", "", "")
 	proPlayerSeasonStats := repository.FindProPlayerSeasonStatsRecords("", "2")
 	seasonStatMap := MakeHistoricProPlayerSeasonStatMap(proPlayerSeasonStats)

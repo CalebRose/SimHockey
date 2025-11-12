@@ -96,7 +96,7 @@ func FindCollegePromiseRecord(clauses TransferPortalQuery) structs.CollegePromis
 	query := db.Model(&p)
 
 	if len(clauses.CollegePlayerID) > 0 {
-		query = query.Where("college_player_id = ?", clauses.ID)
+		query = query.Where("college_player_id = ?", clauses.CollegePlayerID)
 	}
 
 	if len(clauses.TeamID) > 0 {

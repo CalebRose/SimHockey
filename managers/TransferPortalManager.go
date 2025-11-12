@@ -1223,7 +1223,7 @@ func getTransferFloor(likeliness string) int {
 	case "Medium":
 		min = 45
 		max = 70
-	default:
+	case "High":
 		min = 75
 	}
 
@@ -1232,6 +1232,12 @@ func getTransferFloor(likeliness string) int {
 
 // getPromiseFloor -- Get the modifier towards the floor value above
 func getPromiseFloor(weight string) int {
+	if weight == "Why even try?" {
+		return 0
+	}
+	if weight == "Extremely Low" {
+		return 5
+	}
 	if weight == "Very Low" {
 		return 10
 	}
@@ -1243,6 +1249,15 @@ func getPromiseFloor(weight string) int {
 	}
 	if weight == "High" {
 		return 60
+	}
+	if weight == "Very High" {
+		return 75
+	}
+	if weight == "Extremely High" {
+		return 80
+	}
+	if weight == "If you make this promise then you better win it!" {
+		return 90
 	}
 	return util.GenerateIntFromRange(70, 80)
 }

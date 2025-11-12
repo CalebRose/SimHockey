@@ -103,7 +103,7 @@ func handleRequests() http.Handler {
 	// Postseason
 	// apiRouter.HandleFunc("/admin/postseason/college/walkons/", controllers.GenerateWalkons).Methods("GET")
 	// apiRouter.HandleFunc("/admin/postseason/college/progression/", controllers.ProgressCollegePlayers).Methods("GET")
-	// apiRouter.HandleFunc("/admin/postseason/pro/progression/", controllers.ProgressProPlayers).Methods("GET")
+	apiRouter.HandleFunc("/admin/postseason/pro/progression/", controllers.ProgressProPlayers).Methods("GET")
 	// apiRouter.HandleFunc("/admin/postseason/fix/", controllers.FixHistoricCollegePlayerData).Methods("GET")
 
 	// Bootstrap
@@ -200,9 +200,9 @@ func handleRequests() http.Handler {
 	apiRouter.HandleFunc("/trades/admin/cleanup", controllers.CleanUpRejectedTrades).Methods("GET")
 
 	// Transfer Portal
-	apiRouter.HandleFunc("/portal/transfer/intention", controllers.ProcessTransferIntention).Methods("GET")
+	// apiRouter.HandleFunc("/portal/transfer/intention", controllers.ProcessTransferIntention).Methods("GET")
 	// apiRouter.HandleFunc("/portal/transfer/pre/promises", controllers.ProcessPrePortalPromises).Methods("GET")
-	// apiRouter.HandleFunc("/portal/transfer/enter/portal", controllers.EnterTheTransferPortal).Methods("GET")
+	apiRouter.HandleFunc("/portal/transfer/enter/portal", controllers.EnterTheTransferPortal).Methods("GET")
 	apiRouter.HandleFunc("/portal/transfer/sync", controllers.SyncTransferPortal).Methods("GET")
 	apiRouter.HandleFunc("/portal/ai/generate/profiles", controllers.FillUpTransferBoardsAI).Methods("GET")
 	apiRouter.HandleFunc("/portal/ai/allocate/profiles", controllers.AllocateAndPromisePlayersAI).Methods("GET")

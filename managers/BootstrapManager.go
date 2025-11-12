@@ -184,7 +184,7 @@ func GetBootstrapData(collegeID, proID string) structs.BootstrapData {
 		wg.Add(1)
 		go func() {
 			defer wg.Done()
-			collegePromises = repository.FindCollegePromiseRecords(repository.TransferPortalQuery{TeamID: collegeID, IsActive: "Y"})
+			collegePromises = repository.FindCollegePromiseRecords(repository.TransferPortalQuery{IsActive: "Y"})
 		}()
 
 		wg.Wait()

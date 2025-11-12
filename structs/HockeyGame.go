@@ -138,6 +138,7 @@ type CollegeGame struct {
 	BaseGame
 	IsNationalChampionship bool
 	IsConferenceTournament bool
+	IsInvitational         bool
 }
 
 type ProfessionalGame struct {
