@@ -1,7 +1,6 @@
 package structs
 
 import (
-	"database/sql"
 	"sort"
 
 	util "github.com/CalebRose/SimHockey/_util"
@@ -56,7 +55,7 @@ type TransferPortalProfile struct {
 	SeasonID              uint
 	CollegePlayerID       uint
 	ProfileID             uint
-	PromiseID             sql.NullInt64
+	PromiseID             uint
 	TeamAbbreviation      string
 	TotalPoints           float64
 	CurrentWeeksPoints    int
@@ -90,10 +89,7 @@ func (p *TransferPortalProfile) Reactivate() {
 }
 
 func (p *TransferPortalProfile) RemovePromise() {
-	p.PromiseID = sql.NullInt64{
-		Int64: 0,
-		Valid: false,
-	}
+	p.PromiseID = 0
 }
 
 func (p *TransferPortalProfile) SignPlayer() {
@@ -128,7 +124,7 @@ func (p *TransferPortalProfile) AddPointsToTotal(multiplier float64) {
 }
 
 func (p *TransferPortalProfile) AssignPromise(id uint) {
-	p.PromiseID = sql.NullInt64{Valid: true, Int64: int64(id)}
+	p.PromiseID = id
 }
 func (p *TransferPortalProfile) ToggleRolledOnPromise() {
 	p.RolledOnPromise = true

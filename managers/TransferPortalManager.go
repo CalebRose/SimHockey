@@ -526,7 +526,7 @@ func RemovePlayerFromTransferPortalBoard(dto structs.TransferPortalProfile) stru
 	})
 
 	profile.Deactivate()
-	pid := profile.PromiseID.Int64
+	pid := profile.PromiseID
 	profile.RemovePromise()
 	repository.SaveTransferPortalProfileRecord(profile, db)
 	if pid > 0 && !profile.IsSigned {
@@ -875,7 +875,7 @@ func AICoachAllocateAndPromisePhase() {
 			p := transferPortalPlayerMap[profile.CollegePlayerID]
 
 			// Generate Promise based on coach bias
-			if profile.PromiseID.Int64 == 0 && !profile.RolledOnPromise {
+			if profile.PromiseID == 0 && !profile.RolledOnPromise {
 				promiseOdds := getBasePromiseOdds(team, p.PlayerPreferences)
 				diceRoll := util.GenerateIntFromRange(1, 100)
 
@@ -1002,7 +1002,7 @@ func SyncTransferPortal() {
 			if portalProfiles[i].RemovedFromBoard {
 				continue
 			}
-			promise := collegePromiseMap[uint(portalProfiles[i].PromiseID.Int64)]
+			promise := collegePromiseMap[uint(portalProfiles[i].PromiseID)]
 
 			multiplier := getMultiplier(promise)
 			portalProfiles[i].AddPointsToTotal(multiplier)
