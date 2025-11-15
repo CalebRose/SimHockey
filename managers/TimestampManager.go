@@ -73,7 +73,6 @@ func MoveUpWeek() structs.Timestamp {
 		SyncExtensionOffers()
 	}
 	if ts.CollegeSeasonOver && ts.NHLSeasonOver && ts.ProgressedCollegePlayers && ts.ProgressedProfessionalPlayers {
-		ts.MoveUpSeason()
 		// Run Progressions
 		if !ts.ProgressedCollegePlayers {
 
@@ -81,6 +80,7 @@ func MoveUpWeek() structs.Timestamp {
 		if !ts.ProgressedProfessionalPlayers {
 
 		}
+		ts.MoveUpSeason()
 	}
 	repository.SaveTimestamp(ts, db)
 

@@ -135,6 +135,7 @@ func SaveTransferBoard(w http.ResponseWriter, r *http.Request) {
 	}
 
 	managers.AllocatePointsToTransferPlayer(transferPortalProfile)
+	json.NewEncoder(w).Encode(true)
 }
 
 // func GetScoutingDataByTransfer(w http.ResponseWriter, r *http.Request) {

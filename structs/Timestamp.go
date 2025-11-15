@@ -99,6 +99,9 @@ func (t *Timestamp) MoveUpSeason() {
 	t.Y5Capspace += 5
 	t.IsPreseason = true
 	t.PreseasonPhase = 1
+	t.CrootsGenerated = false
+	t.ProgressedCollegePlayers = false
+	t.ProgressedProfessionalPlayers = false
 }
 
 func (t *Timestamp) ToggleRecruiting() {
