@@ -368,7 +368,7 @@ func AICoachPromisePhase() {
 					BenchmarkStr:    benchmarkStr,
 					IsActive:        true,
 				}
-				repository.CreateCollegePromiseRecord(collegePromise, db)
+				repository.CreateCollegePromiseRecord(&collegePromise, db)
 			}
 		}
 	}
@@ -387,7 +387,7 @@ func CreatePromise(promise structs.CollegePromise) structs.CollegePromise {
 		return existingPromise
 	}
 
-	repository.CreateCollegePromiseRecord(promise, db)
+	repository.CreateCollegePromiseRecord(&promise, db)
 
 	assignPromiseToProfile(db, collegePlayerID, profileID, promise.ID)
 
@@ -925,7 +925,7 @@ func AICoachAllocateAndPromisePhase() {
 							BenchmarkStr:    benchmarkStr,
 							IsActive:        true,
 						}
-						repository.CreateCollegePromiseRecord(collegePromise, db)
+						repository.CreateCollegePromiseRecord(&collegePromise, db)
 					}
 				}
 

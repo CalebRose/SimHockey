@@ -136,9 +136,9 @@ func FindCollegePromiseRecords(clauses TransferPortalQuery) []structs.CollegePro
 }
 
 // Create
-func CreateCollegePromiseRecord(promise structs.CollegePromise, db *gorm.DB) {
+func CreateCollegePromiseRecord(promise *structs.CollegePromise, db *gorm.DB) {
 	// Save College Player Record
-	err := db.Create(&promise).Error
+	err := db.Create(promise).Error
 	if err != nil {
 		log.Panicln("Could not save new college recruit record")
 	}
