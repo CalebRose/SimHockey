@@ -20,6 +20,8 @@ type DraftPick struct {
 	SelectedPlayerID       uint
 	SelectedPlayerName     string
 	SelectedPlayerPosition string
+	SelectedPlayerType     uint8
+	PickupStatus           uint8
 	IsCompensation         bool
 	IsVoid                 bool
 }

@@ -48,7 +48,7 @@ func ShowGames() {
 func MoveUpWeek() structs.Timestamp {
 	db := dbprovider.GetInstance().GetDB()
 	ts := GetTimestamp()
-	if ts.Week < 21 || !ts.IsOffSeason {
+	if ts.Week < 21 && !ts.IsOffSeason {
 		ResetCollegeStandingsRanks()
 	}
 
@@ -72,15 +72,14 @@ func MoveUpWeek() structs.Timestamp {
 	if ts.Week > 15 {
 		SyncExtensionOffers()
 	}
-	if ts.CollegeSeasonOver && ts.NHLSeasonOver && ts.ProgressedCollegePlayers && ts.ProgressedProfessionalPlayers {
+	if ts.CollegeSeasonOver && ts.NHLSeasonOver {
 		// Run Progressions
-		if !ts.ProgressedCollegePlayers {
-
+		if ts.Week > 21 && !ts.ProgressedCollegePlayers {
+			CollegeProgressionMain()
 		}
-		if !ts.ProgressedProfessionalPlayers {
-
+		if ts.Week > 22 && !ts.ProgressedProfessionalPlayers {
+			ProfessionalProgressionMain()
 		}
-		ts.MoveUpSeason()
 	}
 	repository.SaveTimestamp(ts, db)
 

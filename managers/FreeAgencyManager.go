@@ -475,13 +475,15 @@ func SyncExtensionOffers() {
 	phlTeamMap := MakeProTeamMap(phlTeams)
 	extensions := repository.FindAllProExtensions(true)
 	extensionMap := MakeExtensionMap(extensions)
+	proContracts := repository.FindAllProContracts(true)
+	contractMap := MakeContractMap(proContracts)
 
 	for _, team := range phlTeams {
 		roster := proPlayerMap[team.ID]
 
 		for _, player := range roster {
 			min := player.MinimumValue
-			contract := player.Contract
+			contract := contractMap[player.ID]
 			if contract.ContractLength == 1 {
 				e := extensionMap[player.ID]
 				if e.ID == 0 || e.IsRejected || !e.IsActive {

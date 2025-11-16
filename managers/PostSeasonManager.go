@@ -13,7 +13,7 @@ import (
 func HandlePostSeasonMigration() {
 	db := dbprovider.GetInstance().GetDB()
 	ts := GetTimestamp()
-	if ts.Week < 22 || !ts.CollegeSeasonOver || ts.NHLSeasonOver {
+	if ts.Week < 22 || !ts.CollegeSeasonOver || !ts.NHLSeasonOver {
 		return
 	}
 	HandleTeamProfileValues(ts)

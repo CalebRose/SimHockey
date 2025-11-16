@@ -58,6 +58,9 @@ func (t *Timestamp) GetGameDay() string {
 }
 
 func (t *Timestamp) MoveUpWeek() {
+	if t.IsOffSeason {
+		return
+	}
 	if t.IsPreseason {
 		t.PreseasonPhase++
 		if t.PreseasonPhase > 3 {
@@ -83,6 +86,7 @@ func (t *Timestamp) DraftIsOver() {
 	t.IsDraftTime = false
 	t.IsOffSeason = false
 	t.IsFreeAgencyLocked = false
+	t.IsPreseason = true
 }
 
 func (t *Timestamp) MoveUpSeason() {
@@ -102,6 +106,10 @@ func (t *Timestamp) MoveUpSeason() {
 	t.CrootsGenerated = false
 	t.ProgressedCollegePlayers = false
 	t.ProgressedProfessionalPlayers = false
+	t.CollegeSeasonOver = false
+	t.NHLSeasonOver = false
+	t.IsDraftTime = true
+	t.IsOffSeason = true
 }
 
 func (t *Timestamp) ToggleRecruiting() {

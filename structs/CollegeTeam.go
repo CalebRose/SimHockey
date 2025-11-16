@@ -108,7 +108,7 @@ type ProfessionalTeam struct {
 }
 
 func (t *ProfessionalTeam) TogglePlayersProgressed() {
-	t.PlayersProgressed = !t.PlayersProgressed
+	t.PlayersProgressed = true
 }
 
 func (t *ProfessionalTeam) AssignUser(username, role string) {

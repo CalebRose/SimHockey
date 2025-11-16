@@ -103,7 +103,7 @@ func handleRequests() http.Handler {
 	// Postseason
 	// apiRouter.HandleFunc("/admin/postseason/college/walkons/", controllers.GenerateWalkons).Methods("GET")
 	// apiRouter.HandleFunc("/admin/postseason/college/progression/", controllers.ProgressCollegePlayers).Methods("GET")
-	apiRouter.HandleFunc("/admin/postseason/pro/progression/", controllers.ProgressProPlayers).Methods("GET")
+	// apiRouter.HandleFunc("/admin/postseason/pro/progression/", controllers.ProgressProPlayers).Methods("GET")
 	// apiRouter.HandleFunc("/admin/postseason/fix/", controllers.FixHistoricCollegePlayerData).Methods("GET")
 
 	// Bootstrap

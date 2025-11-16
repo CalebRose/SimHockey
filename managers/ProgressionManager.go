@@ -1,6 +1,7 @@
 package managers
 
 import (
+	"fmt"
 	"strconv"
 
 	util "github.com/CalebRose/SimHockey/_util"
@@ -220,7 +221,7 @@ func CollegeProgressionMain() {
 func ProfessionalProgressionMain() {
 	db := dbprovider.GetInstance().GetDB()
 	ts := GetTimestamp()
-	SeasonID := strconv.Itoa(int(ts.SeasonID - 1))
+	SeasonID := strconv.Itoa(int(ts.SeasonID))
 	proPlayerGameStats := repository.FindProPlayerGameStatsRecords(SeasonID, "", "", "")
 	proPlayerSeasonStats := repository.FindProPlayerSeasonStatsRecords("", "2")
 	seasonStatMap := MakeHistoricProPlayerSeasonStatMap(proPlayerSeasonStats)
@@ -238,6 +239,9 @@ func ProfessionalProgressionMain() {
 
 		if !team.PlayersProgressed {
 			for _, player := range roster {
+				if player.ID == 18 {
+					fmt.Println(("Stop here"))
+				}
 				if player.HasProgressed {
 					continue
 				}
@@ -288,6 +292,8 @@ func ProfessionalProgressionMain() {
 				CreateNewsLog("PHL", message, "Retirement", int(player.TeamID), ts, true)
 			}
 			team.TogglePlayersProgressed()
+		} else {
+			continue
 		}
 
 		repository.SaveProTeamRecord(db, team)
@@ -298,9 +304,6 @@ func ProfessionalProgressionMain() {
 			continue
 		}
 
-		if player.HasProgressed {
-			continue
-		}
 		stats := gameStatMap[player.ID]
 
 		if player.PrimeAge == 0 {
@@ -308,8 +311,8 @@ func ProfessionalProgressionMain() {
 			player.PrimeAge = uint8(pa)
 		}
 		player = ProgressProPlayer(player, SeasonID, stats)
-		willRetire := DetermineIfRetiring(player, seasonStatMap)
-
+		// willRetire := DetermineIfRetiring(player, seasonStatMap)
+		willRetire := false // Free agents do not retire automatically for now
 		// If Player Retires
 		if !willRetire {
 			player.ToggleHasProgressed()
@@ -322,6 +325,9 @@ func ProfessionalProgressionMain() {
 		message := "Breaking News: " + player.Position + " " + player.FirstName + " " + player.LastName + " has decided to retire from SimPHL. He was drafted by " + player.DraftedTeam + " and last played with " + player.Team + " and " + player.PreviousTeam + ". We thank him for his wondrous, extensive career and hope he enjoys his retirement!"
 		CreateNewsLog("PHL", message, "Retirement", int(player.TeamID), ts, true)
 	}
+
+	ts.ToggleProfessionalProgression()
+	repository.SaveTimestamp(ts, db)
 }
 
 func ProgressCollegePlayer(player structs.CollegePlayer, SeasonID string, stats []structs.CollegePlayerGameStats, isInit bool) structs.CollegePlayer {
@@ -522,7 +528,7 @@ func DetermineIfRetiring(player structs.ProfessionalPlayer, statMap map[uint][]s
 		return totalMinutes == 0
 	}
 
-	if player.Age < player.PrimeAge {
+	if player.Age <= player.PrimeAge {
 		return false
 	}
 
@@ -537,7 +543,13 @@ func DetermineIfRetiring(player structs.ProfessionalPlayer, statMap map[uint][]s
 		benchmark += 50
 	}
 	if age > primeAge && player.Overall < 20 {
-		benchmark += (10*age - primeAge)
+		benchmark += (15 * (age - primeAge))
+	} else if age > primeAge && player.Overall < 30 {
+		benchmark += (7 * (age - primeAge))
+	} else if age > primeAge && player.Overall < 40 {
+		benchmark += (4 * (age - primeAge))
+	} else if age > primeAge && player.Overall < 50 {
+		benchmark += (2 * (age - primeAge))
 	}
 	diceRoll := util.GenerateIntFromRange(1, 100)
 	// If the roll is less than the benchmark, player will retire. Otherwise, they are staying.

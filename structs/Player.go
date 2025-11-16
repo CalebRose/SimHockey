@@ -806,6 +806,7 @@ func (cp *ProfessionalPlayer) ProgressPlayer(progressions BasePlayerProgressions
 	cp.Progress(progressions)
 	cp.Year++
 	cp.GetOverall()
+	cp.HasProgressed = true
 }
 
 func (np *ProfessionalPlayer) ToggleIsFreeAgent() {
