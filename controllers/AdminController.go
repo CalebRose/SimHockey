@@ -190,6 +190,6 @@ func UpdateCHLTeamValues(w http.ResponseWriter, r *http.Request) {
 }
 
 func SeasonMigration(w http.ResponseWriter, r *http.Request) {
-
+	managers.HandlePostSeasonMigration()
 	json.NewEncoder(w).Encode("Data Generated ran!")
 }

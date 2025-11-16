@@ -1,6 +1,7 @@
 package managers
 
 import (
+	"math"
 	"sort"
 	"strconv"
 	"strings"
@@ -46,7 +47,9 @@ func HandleTeamProfileValues(ts structs.Timestamp) structs.Timestamp {
 
 		// Program Development Rating
 		programDevelopment := t.ProgramPrestige
-		winPct := float64(standings.TotalWins) + float64(standings.TotalOTWins)/float64(standings.TotalWins+standings.TotalLosses+standings.TotalOTWins+standings.TotalOTLosses)
+		totalWins := standings.TotalWins + standings.TotalOTWins
+		totalGamesForStandings := standings.TotalWins + standings.TotalLosses + standings.TotalOTWins + standings.TotalOTLosses
+		var winPct float64 = float64(totalWins) / float64(totalGamesForStandings)
 		programDevelopmentMod := 0
 		if winPct < 0.25 {
 			programDevelopmentMod += -3
@@ -108,11 +111,18 @@ func HandleTeamProfileValues(ts structs.Timestamp) structs.Timestamp {
 				continue
 			}
 			if strings.Contains(g.GameTitle, "Round of 16") {
-				conferencePrestigeMap[uint(t.ConferenceID)] = 1
+				// Get Max value
+				maxValue := math.Max(float64(conferencePrestigeMap[uint(t.ConferenceID)]), 1)
+				conferencePrestigeMap[uint(t.ConferenceID)] = uint(maxValue)
+			} else if strings.Contains(g.GameTitle, "Quarterfinal") {
+				maxValue := math.Max(float64(conferencePrestigeMap[uint(t.ConferenceID)]), 2)
+				conferencePrestigeMap[uint(t.ConferenceID)] = uint(maxValue)
 			} else if strings.Contains(g.GameTitle, "Frozen Four") {
-				conferencePrestigeMap[uint(t.ConferenceID)] = 2
+				maxValue := math.Max(float64(conferencePrestigeMap[uint(t.ConferenceID)]), 3)
+				conferencePrestigeMap[uint(t.ConferenceID)] = uint(maxValue)
 			} else if strings.Contains(g.GameTitle, "National Championship") {
-				conferencePrestigeMap[uint(t.ConferenceID)] = 3
+				maxValue := math.Max(float64(conferencePrestigeMap[uint(t.ConferenceID)]), 4)
+				conferencePrestigeMap[uint(t.ConferenceID)] = uint(maxValue)
 			}
 		}
 
@@ -132,8 +142,10 @@ func HandleTeamProfileValues(ts structs.Timestamp) structs.Timestamp {
 		case 1:
 			conferenceMod -= 1
 		case 2:
-			conferenceMod += 1
+			conferenceMod += 0
 		case 3:
+			conferenceMod += 1
+		case 4:
 			conferenceMod += 2
 		}
 
@@ -157,17 +169,12 @@ func HandleRecruitingTeamProfileReset() {
 
 	for idx, tp := range teamProfiles {
 		tp.AssignHistoricRank(idx + 1)
-	}
-
-	for _, tp := range teamProfiles {
-		tp.ResetWeeklyPoints(0, true)
+		tp.ResetWeeklyPoints(50, true)
 		tp.ResetScholarshipCount()
 		tp.ResetStarCount()
-
-		// Save
+		tp.ResetScores()
 		repository.SaveTeamProfileRecord(db, tp)
 	}
-
 }
 
 func GenerateStandingsForNewSeason(ts structs.Timestamp) structs.Timestamp {

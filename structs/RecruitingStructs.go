@@ -141,11 +141,12 @@ func (r *RecruitingTeamProfile) AssignCompositeRank(score float32) {
 }
 
 func (r *RecruitingTeamProfile) AssignHistoricRank(rank int) {
-	r.Y1Rank = uint16(rank)
-	r.Y2Rank = r.Y1Rank
-	r.Y3Rank = r.Y2Rank
-	r.Y4Rank = r.Y3Rank
 	r.Y5Rank = r.Y4Rank
+	r.Y4Rank = r.Y3Rank
+	r.Y3Rank = r.Y2Rank
+	r.Y2Rank = r.Y1Rank
+	r.Y1Rank = uint16(rank)
+
 }
 
 func (r *RecruitingTeamProfile) UpdateTotalSignedRecruits(num uint8) {
@@ -208,6 +209,13 @@ func (r *RecruitingTeamProfile) ResetStarCount() {
 	r.ThreeStars = 0
 	r.FourStars = 0
 	r.FiveStars = 0
+}
+
+func (r *RecruitingTeamProfile) ResetScores() {
+	r.CompositeScore = 0
+	r.ESPNScore = 0
+	r.Rank247Score = 0
+	r.RivalsScore = 0
 }
 
 func (r *RecruitingTeamProfile) AddStarPlayer(stars uint8) {

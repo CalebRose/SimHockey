@@ -58,7 +58,7 @@ func (t *Timestamp) GetGameDay() string {
 }
 
 func (t *Timestamp) MoveUpWeek() {
-	if t.IsOffSeason {
+	if t.IsOffSeason || t.IsDraftTime {
 		return
 	}
 	if t.IsPreseason {
@@ -92,16 +92,15 @@ func (t *Timestamp) DraftIsOver() {
 func (t *Timestamp) MoveUpSeason() {
 	t.SeasonID++
 	t.Season++
-	t.Week = 1
+	t.Week = 0
 	baseSeason := t.Season - 2000
 	multSeason := baseSeason * 100
-	t.WeekID = multSeason + 1
+	t.WeekID = multSeason
 	t.Y1Capspace = t.Y2Capspace
 	t.Y2Capspace = t.Y3Capspace
 	t.Y3Capspace = t.Y4Capspace
 	t.Y4Capspace = t.Y5Capspace
 	t.Y5Capspace += 5
-	t.IsPreseason = true
 	t.PreseasonPhase = 1
 	t.CrootsGenerated = false
 	t.ProgressedCollegePlayers = false

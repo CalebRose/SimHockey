@@ -105,7 +105,7 @@ func handleRequests() http.Handler {
 	// apiRouter.HandleFunc("/admin/postseason/college/progression/", controllers.ProgressCollegePlayers).Methods("GET")
 	// apiRouter.HandleFunc("/admin/postseason/pro/progression/", controllers.ProgressProPlayers).Methods("GET")
 	// apiRouter.HandleFunc("/admin/postseason/fix/", controllers.FixHistoricCollegePlayerData).Methods("GET")
-
+	apiRouter.HandleFunc("/admin/postseason/migration/", controllers.SeasonMigration).Methods("GET")
 	// Bootstrap
 	apiRouter.HandleFunc("/bootstrap/{collegeID}/{proID}", controllers.BootstrapHockeyData).Methods("GET")
 	apiRouter.HandleFunc("/bootstrap/teams/", controllers.BootstrapTeamData).Methods("GET")
