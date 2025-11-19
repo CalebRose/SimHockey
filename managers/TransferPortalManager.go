@@ -1023,11 +1023,10 @@ func SyncTransferPortal() {
 		})
 
 		for i := range portalProfiles {
-			// roster := rosterMap[portalProfiles[i].ProfileID]
-			// tp := teamProfileMap[strconv.Itoa(int(portalProfiles[i].ProfileID))]
-			// // if (len(roster) > 105 && tp.IsFBS) || (len(roster) > 80 && !tp.IsFBS) {
-			// // 	continue
-			// // }
+			roster := rosterMap[portalProfiles[i].ProfileID]
+			if len(roster) > util.MaxCollegeRosterSize {
+				continue
+			}
 			if eligiblePointThreshold == 0.0 {
 				eligiblePointThreshold = portalProfiles[i].TotalPoints * signingMinimum
 			}
