@@ -38,7 +38,7 @@ func SyncRecruitingViaCron() {
 	if ts.RunCron && !ts.CollegeSeasonOver && !ts.IsPreseason && !ts.IsOffSeason {
 		// Sync Recruiting
 		managers.SyncCollegeRecruiting()
-	} else if ts.RunCron && ts.IsOffSeason && ts.CollegeSeasonOver && ts.Week > 24 && ts.TransferPortalPhase == 3 {
+	} else if ts.RunCron && ts.IsOffSeason && ts.TransferPortalPhase == 3 {
 		// Sync Transfer Portal
 		// managers.SyncTransferPortal()
 	}
