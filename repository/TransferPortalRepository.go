@@ -182,9 +182,24 @@ func SaveTransferPortalProfileRecord(profile structs.TransferPortalProfile, db *
 }
 
 // Delete
-func DeleteCollegePromise(promise structs.CollegePromise, db *gorm.DB) {
-	err := db.Delete(&promise).Error
+// DeleteCollegePromise removes a college promise record from the database
+// hardDelete: if true, permanently removes the record; if false, performs soft delete (sets DeletedAt timestamp)
+func DeleteCollegePromise(promise structs.CollegePromise, db *gorm.DB, hardDelete bool) {
+	var err error
+
+	if hardDelete {
+		// Hard delete - permanently remove from database
+		err = db.Unscoped().Delete(&promise).Error
+	} else {
+		// Soft delete - set DeletedAt timestamp (default GORM behavior)
+		err = db.Delete(&promise).Error
+	}
+
 	if err != nil {
-		log.Panicln("Could not delete old college promise record.")
+		if hardDelete {
+			log.Panicln("Could not permanently delete college promise record.")
+		} else {
+			log.Panicln("Could not soft delete college promise record.")
+		}
 	}
 }

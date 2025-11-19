@@ -467,7 +467,7 @@ func EnterTheTransferPortal() {
 				CreateNewsLog("CHL", message, "Transfer Portal", int(p.PreviousTeamID), ts, true)
 
 				repository.SaveCollegeHockeyPlayerRecord(p, db)
-				repository.DeleteCollegePromise(promise, db)
+				repository.DeleteCollegePromise(promise, db, true)
 				continue
 			}
 
@@ -533,7 +533,7 @@ func RemovePlayerFromTransferPortalBoard(dto structs.TransferPortalProfile) stru
 		promiseID := strconv.Itoa(int(pid))
 		promise := GetCollegePromiseByID(promiseID)
 		promise.Deactivate()
-		repository.DeleteCollegePromise(promise, db)
+		repository.DeleteCollegePromise(promise, db, false)
 	}
 
 	return profile
@@ -958,8 +958,8 @@ func SyncTransferPortal() {
 	// Get Maps for easy access
 	transferPortalProfileMap := MakePortalProfileMapByPlayerID(transferPortalProfiles)
 	rosterMap := GetAllCollegePlayersMapByTeam()
-	collegePromises := GetAllCollegePromises()
-	collegePromiseMap := MakeCollegePromiseMap(collegePromises)
+	// collegePromises := GetAllCollegePromises()
+	// collegePromiseMap := MakeCollegePromiseMap(collegePromises)
 
 	if !ts.IsRecruitingLocked {
 		ts.ToggleLockRecruiting()
@@ -968,8 +968,11 @@ func SyncTransferPortal() {
 
 	for _, portalPlayer := range transferPortalPlayers {
 		// Skip over players that have already transferred
-		if portalPlayer.TransferStatus != 2 || portalPlayer.TeamID > 0 {
+		if portalPlayer.TransferStatus != 2 || portalPlayer.ID < 2245 {
 			continue
+		}
+		if portalPlayer.ID == 2245 || portalPlayer.ID == 3823 || portalPlayer.ID == 3967 || portalPlayer.ID == 4108 {
+			fmt.Println("Debugging Transfer Portal for player ID: ", portalPlayer.ID)
 		}
 
 		portalProfiles := transferPortalProfileMap[portalPlayer.ID]
@@ -1002,7 +1005,10 @@ func SyncTransferPortal() {
 			if portalProfiles[i].RemovedFromBoard {
 				continue
 			}
-			promise := collegePromiseMap[uint(portalProfiles[i].PromiseID)]
+			// promise := collegePromiseMap[uint(portalProfiles[i].PromiseID)]
+			playerID := strconv.Itoa(int(portalProfiles[i].CollegePlayerID))
+			teamID := strconv.Itoa(int(portalProfiles[i].ProfileID))
+			promise := repository.FindCollegePromiseRecord(repository.TransferPortalQuery{CollegePlayerID: playerID, TeamID: teamID})
 
 			multiplier := getMultiplier(promise)
 			portalProfiles[i].AddPointsToTotal(multiplier)
@@ -1108,7 +1114,7 @@ func SyncTransferPortal() {
 			if winningTeamID > 0 && p.ProfileID != winningTeamID {
 				promise := GetCollegePromiseByCollegePlayerID(strconv.Itoa(int(portalPlayer.ID)), strconv.Itoa(int(p.ProfileID)))
 				if promise.ID > 0 {
-					repository.DeleteCollegePromise(promise, db)
+					repository.DeleteCollegePromise(promise, db, false)
 				}
 			}
 		}
