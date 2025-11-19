@@ -1634,16 +1634,16 @@ func GenerateThreeStars(state engine.GameState, seasonID uint) structs.ThreeStar
 func getAttendancePercent(wins, losses int) float64 {
 	totalGames := wins + losses
 	if totalGames < 4 {
-		return 1.0 // 100% for early season
+		return util.GenerateFloatFromRange(0.90, 1.00)
 	}
 
 	winRate := float64(wins) / float64(totalGames)
 
 	switch {
 	case winRate >= 0.75:
-		return 1.0
+		return util.GenerateFloatFromRange(0.95, 1.05)
 	case winRate >= 0.5:
-		return util.GenerateFloatFromRange(0.85, 0.99)
+		return util.GenerateFloatFromRange(0.85, 0.94)
 	case winRate >= 0.35:
 		return util.GenerateFloatFromRange(0.65, 0.84)
 	default:

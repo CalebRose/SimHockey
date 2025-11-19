@@ -469,17 +469,17 @@ func GetSystemAttributeModifier(offSystem OffensiveSystemType, defSystem Defensi
 	// Convert compatibility score to attribute modifier
 	switch {
 	case compatibility >= 8:
-		return 1.15 // +15% to attributes (excellent fit)
+		return 1.10 // +10% to attributes (excellent fit)
 	case compatibility >= 5:
-		return 1.10 // +10% to attributes (good fit)
+		return 1.05 // +5% to attributes (good fit)
 	case compatibility >= 3:
-		return 1.05 // +5% to attributes (decent fit)
+		return 1.03 // +3% to attributes (decent fit)
 	case compatibility <= -8:
-		return 0.85 // -15% to attributes (terrible fit)
+		return 0.90 // -10% to attributes (terrible fit)
 	case compatibility <= -5:
-		return 0.90 // -10% to attributes (poor fit)
+		return 0.95 // -5% to attributes (poor fit)
 	case compatibility <= -3:
-		return 0.95 // -5% to attributes (slight mismatch)
+		return 0.97 // -3% to attributes (slight mismatch)
 	default:
 		return 1.00 // No modifier (neutral fit)
 	}

@@ -443,7 +443,7 @@ func handlePassCheck(gs *GameState, longPass, backPass bool) {
 	playerList := getFullPlayerListByTeamID(uint(pb.TeamID), gs)
 	filteredList := getAvailablePlayers(pb.ID, playerList)
 
-	receivingPlayer := PassPuckToPlayer(filteredList, gs.PuckLocation, gs.HomeTeamID, gs.AwayTeamID)
+	receivingPlayer := PassPuckToPlayer(gs, filteredList, gs.PuckLocation)
 	if receivingPlayer == 0 {
 		fmt.Println("Cannot find open player")
 		// No available player to pass to, hold onto puck
@@ -556,7 +556,7 @@ func HandleFaceoffRetrieval(gs *GameState, homeFaceoffWin bool, faceoffWinID, ho
 	playerList = append(playerList, getAvailablePlayers(gs.GetCenter(false).ID, ags.Forwards[ags.CurrentForwards].Players)...)
 	playerList = append(playerList, getAvailablePlayers(gs.GetCenter(false).ID, ags.Defenders[ags.CurrentDefenders].Players)...)
 
-	faceoffRetrievalCheck := RetrievePuckAfterFaceoffCheck(playerList, puckLocation, gs.HomeTeamID, gs.AwayTeamID, faceoffWinID, homeFaceoffWin)
+	faceoffRetrievalCheck := RetrievePuckAfterFaceoffCheck(playerList, puckLocation, faceoffWinID, homeFaceoffWin)
 	retrievingPlayer, _ := findPlayerByID(playerList, faceoffRetrievalCheck)
 	HandleMissingPlayer(*retrievingPlayer, "REBOUNDING AFTER FACEOFF")
 	gs.SetPuckBearer(retrievingPlayer, false)
@@ -568,25 +568,155 @@ func HandleFaceoffRetrieval(gs *GameState, homeFaceoffWin bool, faceoffWinID, ho
 	// Logger(retrievingPlayer.Team + " gets the puck from the faceoff with " + retrievingPlayer.FirstName + " " + retrievingPlayer.LastName + " in possession!")
 }
 
-func HandleReboundAfterShot(gs *GameState, eventID uint8, outcomeID uint8, puckCarrierID uint, goalieID uint) {
-	puckLocation := GetPuckLocationAfterMiss(1, 1)
+// getSystemAwareReboundPlayers - Build player list based on offensive systems and zone
+func getSystemAwareReboundPlayers(gs *GameState, reboundZone string) []*GamePlayer {
 	reboundPlayerList := []*GamePlayer{}
 	hgs := gs.HomeStrategy
 	ags := gs.AwayStrategy
-	switch puckLocation {
+
+	pc := gs.PuckCarrier
+	isHomePossession := pc.TeamID == uint16(gs.HomeTeamID)
+
+	// Get current offensive system for the team with possession
+	var offensiveSystem uint8
+	var intensity uint8
+	if isHomePossession {
+		offensiveSystem = hgs.Gameplan.OffensiveSystem
+		intensity = hgs.Gameplan.OffensiveIntensity
+	} else {
+		offensiveSystem = ags.Gameplan.OffensiveSystem
+		intensity = ags.Gameplan.OffensiveIntensity
+	}
+
+	switch reboundZone {
 	case HomeGoal:
-		reboundPlayerList = append(reboundPlayerList, hgs.Forwards[hgs.CurrentForwards].Players...)
-		reboundPlayerList = append(reboundPlayerList, ags.Defenders[ags.CurrentDefenders].Players...)
-	case HomeZone, AwayZone:
-		reboundPlayerList = append(reboundPlayerList, hgs.Forwards[hgs.CurrentForwards].Players...)
-		reboundPlayerList = append(reboundPlayerList, ags.Defenders[ags.CurrentDefenders].Players...)
-		reboundPlayerList = append(reboundPlayerList, ags.Forwards[ags.CurrentForwards].Players...)
-		reboundPlayerList = append(reboundPlayerList, hgs.Defenders[hgs.CurrentDefenders].Players...)
+		// Goal area - depends on offensive system philosophy
+		if isHomePossession {
+			// Home team shooting at away goal - they're attacking
+			reboundPlayerList = append(reboundPlayerList, getOffensiveReboundPlayers(hgs, offensiveSystem, intensity, true)...)
+			reboundPlayerList = append(reboundPlayerList, getDefensiveReboundPlayers(ags, false)...)
+		} else {
+			// Away team shooting at home goal - home team defending
+			reboundPlayerList = append(reboundPlayerList, getDefensiveReboundPlayers(hgs, true)...)
+			reboundPlayerList = append(reboundPlayerList, getOffensiveReboundPlayers(ags, offensiveSystem, intensity, false)...)
+		}
+
 	case AwayGoal:
+		// Goal area - depends on offensive system philosophy
+		if isHomePossession {
+			// Home team defending their goal
+			reboundPlayerList = append(reboundPlayerList, getDefensiveReboundPlayers(hgs, true)...)
+			reboundPlayerList = append(reboundPlayerList, getOffensiveReboundPlayers(ags, offensiveSystem, intensity, false)...)
+		} else {
+			// Away team shooting at home goal - they're attacking
+			reboundPlayerList = append(reboundPlayerList, getOffensiveReboundPlayers(ags, offensiveSystem, intensity, false)...)
+			reboundPlayerList = append(reboundPlayerList, getDefensiveReboundPlayers(hgs, true)...)
+		}
+
+	case HomeZone, AwayZone:
+		// Zone play - all players in current lines involved
+		reboundPlayerList = append(reboundPlayerList, hgs.Forwards[hgs.CurrentForwards].Players...)
+		reboundPlayerList = append(reboundPlayerList, ags.Defenders[ags.CurrentDefenders].Players...)
 		reboundPlayerList = append(reboundPlayerList, ags.Forwards[ags.CurrentForwards].Players...)
 		reboundPlayerList = append(reboundPlayerList, hgs.Defenders[hgs.CurrentDefenders].Players...)
 	}
-	reboundCheck := reboundCheck(reboundPlayerList, puckLocation, gs.HomeTeamID, gs.AwayTeamID)
+
+	return reboundPlayerList
+}
+
+// getOffensiveReboundPlayers - Get players positioned for offensive rebounds based on system
+func getOffensiveReboundPlayers(strategy GamePlaybook, system, intensity uint8, isHome bool) []*GamePlayer {
+	players := []*GamePlayer{}
+
+	// Base players - always include current forward line
+	forwards := strategy.Forwards[strategy.CurrentForwards].Players
+	defensemen := strategy.Defenders[strategy.CurrentDefenders].Players
+
+	switch system {
+	case 8: // Crash the Net - maximum net presence
+		// All forwards crash, some defensemen join
+		players = append(players, forwards...)
+		if intensity >= 6 { // High intensity - defensemen also crash
+			players = append(players, defensemen...)
+		} else {
+			// Only add one defenseman for moderate crashing
+			if len(defensemen) > 0 {
+				players = append(players, defensemen[0])
+			}
+		}
+
+	case 4: // Cycle Game - patient possession, spread positioning
+		// Forwards cycle, defensemen stay back unless high intensity
+		players = append(players, forwards...)
+		if intensity >= 7 { // Very high intensity cycling
+			players = append(players, defensemen...)
+		}
+
+	case 6: // Umbrella - structured positioning with D-man quarterback
+		// All forwards, plus the quarterback defenseman
+		players = append(players, forwards...)
+		if len(defensemen) > 0 {
+			players = append(players, defensemen[0]) // Quarterback D
+		}
+
+	case 1, 2, 3: // Forechecking systems - forwards press, D support varies
+		players = append(players, forwards...)
+		if system == 3 && intensity >= 6 { // 1-1-3 with high intensity - more forwards up
+			// Already have all forwards
+		}
+		if system == 2 && intensity >= 7 { // 2-1-2 with very high intensity
+			if len(defensemen) > 0 {
+				players = append(players, defensemen[0]) // One D joins attack
+			}
+		}
+
+	case 5: // Quick Transition - speed over positioning
+		players = append(players, forwards...)
+		// Offensive defensemen more likely to be up ice
+		players = append(players, defensemen...)
+
+	case 7: // East-West Motion - all forwards, selective D involvement
+		players = append(players, forwards...)
+		if intensity >= 6 {
+			if len(defensemen) > 0 {
+				players = append(players, defensemen[0])
+			}
+		}
+
+	default: // Balanced/Unknown system
+		players = append(players, forwards...)
+		if intensity >= 6 {
+			if len(defensemen) > 0 {
+				players = append(players, defensemen[0])
+			}
+		}
+	}
+
+	return players
+}
+
+// getDefensiveReboundPlayers - Get players positioned for defensive rebounds
+func getDefensiveReboundPlayers(strategy GamePlaybook, isHome bool) []*GamePlayer {
+	players := []*GamePlayer{}
+
+	// Defensive positioning - typically defensemen plus some forwards
+	defensemen := strategy.Defenders[strategy.CurrentDefenders].Players
+	forwards := strategy.Forwards[strategy.CurrentForwards].Players
+
+	// Always include defensemen for defensive rebounds
+	players = append(players, defensemen...)
+
+	// Add defensive-minded forwards (typically checking line players)
+	// For simplicity, add the current forward line but they'll be weighted lower
+	players = append(players, forwards...)
+
+	return players
+}
+
+func HandleReboundAfterShot(gs *GameState, eventID uint8, outcomeID uint8, puckCarrierID uint, goalieID uint) {
+	puckLocation := GetPuckLocationAfterMiss(1, 1)
+	reboundPlayerList := getSystemAwareReboundPlayers(gs, puckLocation)
+	reboundCheck := reboundCheck(gs, reboundPlayerList, puckLocation)
 	reboundingPlayer, _ := findPlayerByID(reboundPlayerList, reboundCheck)
 	HandleMissingPlayer(*reboundingPlayer, "REBOUNDING AFTER SHOT")
 	// Record Play after inaccurate shot
