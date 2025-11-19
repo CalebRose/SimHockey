@@ -40,7 +40,7 @@ func SyncRecruitingViaCron() {
 		managers.SyncCollegeRecruiting()
 	} else if ts.RunCron && ts.IsOffSeason && ts.TransferPortalPhase == 3 {
 		// Sync Transfer Portal
-		// managers.SyncTransferPortal()
+		managers.SyncTransferPortal()
 	}
 }
 
