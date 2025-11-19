@@ -36,23 +36,82 @@ Think of tactical systems as your team's DNA - they determine how your players t
 ### How Systems Transform Your Team
 
 **The Ice is Your Chessboard**
-Hockey systems divide the rink into five critical zones, each presenting unique strategic opportunities:
+Hockey systems divide the rink into five critical zones, each with specific SystemModifiers that affect gameplay:
 
-1. **🥅 Attacking Goal Zone** - The scoring area where championships are won
-2. **⚡ Attacking Zone** - Your offensive playground for creating chances
-3. **🔄 Neutral Zone** - The battlefield for puck possession and transitions
-4. **🛡️ Defending Zone** - Your fortress where defensive stands are made
-5. **🚨 Defending Goal Zone** - The last line where goalies become heroes
+1. **🥅 AttackingGoalZone** - The opponent's goal area where you're trying to score
+2. **⚡ AttackingZone** - The opponent's defensive zone where you build offensive pressure
+3. **🔄 NeutralZone** - The center ice battle for puck possession and transitions
+4. **🛡️ DefendingZone** - Your defensive zone where you protect possession
+5. **🚨 DefendingGoalZone** - Your goal area where you make final defensive stands
 
-**Strategic Effects That Matter**
-Every system you choose creates measurable changes to how your team performs:
+**Zone-Specific SystemModifiers**
+Each system provides ZoneModifiers that directly impact game events:
 
-- **🎯 Shot Generation**: How often and how effectively your team creates scoring chances
-- **🎪 Passing Precision**: The accuracy and frequency of your puck movement
-- **⚡ Player Movement**: How quickly and intelligently your players position themselves
-- **🏒 Defensive Pressure**: The effectiveness of your checking and defensive coverage
-- **💥 Physical Impact**: How your team uses body checking and physical play
-- **🔄 Puck Recovery**: Your ability to create and capitalize on turnovers
+- **ShotBonus**: Modifier to shot attempt frequency and quality (-10 to +10)
+- **PassBonus**: Modifier to passing accuracy and opportunities (-10 to +10)
+- **AgilityBonus**: Modifier to player positioning and movement (-10 to +10)
+- **StickCheckBonus**: Modifier to stick checking effectiveness (defensive teams only) (-10 to +10)
+- **BodyCheckBonus**: Modifier to body checking power and frequency (defensive teams only) (-10 to +10)
+- **TurnoverChance**: Modifier to creating turnovers (positive) or vulnerability to turnovers (negative) (-10 to +10)
+
+**Important**: Offensive systems now use all modifiers meaningfully:
+
+- **TurnoverChance**: Vulnerability (negative) or pressure creation (positive)
+- **StickCheckBonus/BodyCheckBonus**: Effectiveness in puck battles and loose puck situations
+
+### 🥊 Revolutionary Puck Battle System
+
+**The Next Evolution in Hockey Simulation**
+
+SimHockey introduces the most realistic puck battle system ever implemented in hockey gaming. Gone are the days of simple puck exchanges - now every loose puck, rebound, and contested situation becomes a dynamic battle involving multiple players.
+
+**Puck States**:
+
+- **Clear**: Normal possession with a defined puck carrier
+- **Contested**: Multiple players actively battling for puck control
+- **Loose**: No clear possession, puck available to be contested
+- **Covered**: Goalie has secured puck, leading to faceoff
+
+**When Battles Occur**:
+
+- **Rebounds** (70% chance in goal areas, 40% in zones)
+- **Close Defensive Checks** (when attacker/defender weights are similar)
+- **Scrambles** after blocked shots or deflections
+- **Board Battles** along the walls
+- **Net-Front Scrums** in high-traffic areas
+
+**Battle Resolution**:
+Players compete using Strength + Agility + Handling, modified by:
+
+- System bonuses (offensive checking now matters!)
+- Zone-specific advantages
+- Player archetype compatibility
+- Positional factors
+
+### 🎯 Understanding Turnover Vulnerability
+
+**The Risk-Reward Balance**
+
+Aggressive offensive systems create scoring chances but also expose your team to counterattacks. This design reflects real hockey - teams that commit heavily to offense leave themselves vulnerable to turnovers and odd-man rushes.
+
+**How It Works**:
+
+- **Positive TurnoverChance**: Your pressure creates turnovers for you (2-1-2 Forecheck)
+- **Negative TurnoverChance**: Your aggression makes you vulnerable to turnovers against you (Crash the Net)
+- **No TurnoverChance**: Neutral systems that don't significantly affect turnover risk
+
+**Strategic Implications**:
+
+- High-intensity offensive systems increase both opportunity and risk
+- Conservative systems minimize vulnerability but sacrifice pressure
+- Smart coaches match system choice to game situation and roster strengths
+
+**Archetype Integration**
+Systems include ArchetypeWeights that determine player compatibility:
+
+- **Positive weights** (+1 to +6): Players who excel in the system
+- **Negative weights** (-1 to -6): Players who struggle with the system
+- **Zero weight**: Neutral fit with no bonus or penalty
 
 ### The Archetype Advantage
 
@@ -82,17 +141,18 @@ _The coach's Swiss Army knife - effective in all situations_
 
 **The Strategy**: Two forwards apply measured pressure while the third provides smart support. Think of it as controlled aggression - you're not gambling everything on one big hit, but you're not playing passively either.
 
-**On-Ice Impact**:
+**SystemModifiers (at intensity 5)**:
 
-- **Attacking Zone**: Enhanced passing lanes (+3) with decent shot creation (+2)
-- **Neutral Zone**: Superior puck battles through improved positioning (+3 agility)
-- **Defensive Coverage**: Balanced checking approach (+4 stick, +2 body)
+- **AttackingZone**: ShotBonus +2, PassBonus +3, TurnoverChance -1 (slight vulnerability)
+- **NeutralZone**: PassBonus +2, AgilityBonus +3
+- **Scales with intensity**: All bonuses multiply by (intensity/5), from 0-2x effectiveness
 
-**Perfect Roster**:
+**ArchetypeWeights**:
 
 - ✅ **TwoWay Forwards** (+4): The backbone of balanced systems
 - ✅ **Grinders** (+3): Provide the work ethic this system demands
 - ✅ **Defensive Defensemen** (+3): Support the structured approach
+- ✅ **Playmakers** (+2): Benefit from enhanced passing opportunities
 - ❌ **Power Forwards** (-2): Too slow for the quick transitions required
 
 **Coaching Tip**: Use this system when building your team's tactical identity. It's forgiving enough for mistakes while teaching proper positioning fundamentals.
@@ -107,17 +167,19 @@ _High-risk, high-reward pressure that can break games open_
 
 **The Strategy**: Send two forwards deep like hunting wolves, forcing quick decisions and capitalizing on mistakes. The single support forward must be intelligent and anticipatory.
 
-**On-Ice Impact**:
+**SystemModifiers (at intensity 5)**:
 
-- **Attacking Zone**: Explosive offensive potential (+4 shots, +5 body checks)
-- **Neutral Zone**: Dominate through superior physicality (+4 agility, +4 body)
-- **Risk Factor**: High turnover creation (+4) but vulnerable to skilled breakouts
+- **AttackingZone**: ShotBonus +4, StickCheckBonus +2 (puck battles), TurnoverChance +5
+- **NeutralZone**: AgilityBonus +4, StickCheckBonus +1 (battle ability), TurnoverChance -2
+- **Scales with intensity**: All bonuses multiply by (intensity/5), from 0-2x effectiveness
 
-**Perfect Roster**:
+**ArchetypeWeights**:
 
 - ✅ **Enforcers** (+5): Built for this aggressive style
 - ✅ **Grinders** (+4): Thrive in the physical chaos
 - ✅ **Playmakers** (+3): Capitalize when the pressure creates chances
+- ✅ **TwoWay Forwards** (+2): Provide balance in aggressive system
+- ✅ **Defensive Defensemen** (+2): Support aggressive forechecking
 - ❌ **Snipers** (-2): Can't handle the defensive responsibilities
 
 **Coaching Tip**: Save this system for crucial moments or when facing passive opponents. It's a momentum-changer but requires disciplined execution.
@@ -132,13 +194,13 @@ _All-out attack that sacrifices defense for overwhelming offensive pressure_
 
 **The Strategy**: Commit three forwards to offensive zone pressure while one forward and the defense handle everything else. It's hockey's equivalent of an all-out blitz.
 
-**On-Ice Impact**:
+**SystemModifiers (at intensity 5)**:
 
-- **Attacking Zone**: Devastating shot volume (+6) with physical net presence
-- **Neutral Zone**: Vulnerable to counterattacks (-2 agility due to limited coverage)
-- **Scoring Opportunity**: Maximum offensive pressure when it matters most
+- **AttackingZone**: ShotBonus +6, PassBonus +3, TurnoverChance +3
+- **NeutralZone**: AgilityBonus -2 (vulnerable due to limited coverage)
+- **Scales with intensity**: All bonuses multiply by (intensity/5), from 0-2x effectiveness
 
-**Perfect Roster**:
+**ArchetypeWeights**:
 
 - ✅ **Snipers** (+5): Excel in the chaotic offensive environment
 - ✅ **Playmakers** (+4): Create magic with extra offensive support
@@ -160,17 +222,17 @@ _Methodical possession that slowly strangles the opponent's will to defend_
 
 **The Strategy**: Like a chess master, you move the puck methodically, forcing defenders to chase while maintaining perfect control. Each pass serves a purpose - wearing down the defense while creating the perfect scoring opportunity.
 
-**On-Ice Impact**:
+**SystemModifiers (at intensity 5)**:
 
-- **Attacking Goal Zone**: Devastating shot quality (+5) with surgical passing (+4)
-- **Attacking Zone**: Superior puck movement (+5 pass) creates quality chances (+3 shot)
-- **Tempo Control**: Dictate the game's rhythm while opponents exhaust themselves chasing
+- **AttackingGoalZone**: ShotBonus +5, PassBonus +4
+- **AttackingZone**: PassBonus +5, ShotBonus +3
+- **Scales with intensity**: All bonuses multiply by (intensity/5), from 0-2x effectiveness
 
-**Perfect Roster**:
+**ArchetypeWeights**:
 
 - ✅ **Playmakers** (+5): The conductors of this tactical symphony
 - ✅ **Power Forwards** (+4): Excellent in the corners maintaining possession
-- ✅ **Snikers** (+4): Capitalize when the perfect shot opens up
+- ✅ **Snipers** (+4): Capitalize when the perfect shot opens up
 - ❌ **Grinders** (-3): Lack the vision for complex possession plays
 - ❌ **Enforcers** (-2): Built for different style entirely
 
@@ -184,13 +246,13 @@ _Speed kills - turn defense into offense in the blink of an eye_
 
 **The Strategy**: The moment you gain possession, you're already thinking offense. Quick, decisive passes that turn defensive stops into scoring chances before the opponent can react.
 
-**On-Ice Impact**:
+**SystemModifiers (at intensity 5)**:
 
-- **Neutral Zone**: Elite zone transitions (+5 agility, +5 pass) - your highway to offense
-- **Defending Zone**: Rapid breakout execution (+4 pass, +3 agility)
-- **Tempo Control**: Force opponents to play at your pace or get burned
+- **NeutralZone**: PassBonus +5, AgilityBonus +5 - your highway to offense
+- **DefendingZone**: PassBonus +4, AgilityBonus +3 - rapid breakout execution
+- **Scales with intensity**: All bonuses multiply by (intensity/5), from 0-2x effectiveness
 
-**Perfect Roster**:
+**ArchetypeWeights**:
 
 - ✅ **Offensive Defensemen** (+5): The engine of quick breakouts
 - ✅ **Snipers** (+4): Capitalize on the rush chances created
@@ -212,13 +274,13 @@ _Precision passing with your defenseman orchestrating like a field general_
 
 **The Strategy**: Your defenseman becomes the quarterback, directing traffic while three forwards create options across the offensive zone. It's like running plays in football - every movement has a purpose.
 
-**On-Ice Impact**:
+**SystemModifiers (at intensity 5)**:
 
-- **Attacking Goal Zone**: Quality shots (+4) with perfect pass setups (+5)
-- **Attacking Zone**: Unmatched puck distribution (+6 pass) - the heart of the system
-- **Structure Advantage**: Organized attack that's hard to defend when executed properly
+- **AttackingGoalZone**: ShotBonus +4, PassBonus +5 - quality shots with perfect setups
+- **AttackingZone**: PassBonus +6 - unmatched puck distribution, the heart of the system
+- **Scales with intensity**: All bonuses multiply by (intensity/5), from 0-2x effectiveness
 
-**Perfect Roster**:
+**ArchetypeWeights**:
 
 - ✅ **Playmakers** (+6): The perfect complementary pieces to your quarterback
 - ✅ **Offensive Defensemen** (+5): The system's cornerstone - your field general
@@ -237,20 +299,20 @@ _Lateral movement that mesmerizes defenders and creates seams out of nothing_
 
 **The Strategy**: Constant lateral movement forces defenders to make choices - do they follow the puck or stay in position? Either choice creates opportunities for the offense to exploit.
 
-**On-Ice Impact**:
+**SystemModifiers (at intensity 5)**:
 
-- **Attacking Goal Zone**: Surgical passing through seams (+5) with fluid positioning (+4)
-- **Attacking Zone**: Mesmerizing puck movement (+6 pass) with constant motion (+5 agility)
-- **Defensive Disruption**: Force defenders out of their comfort zones through lateral pressure
+- **AttackingGoalZone**: PassBonus +5, AgilityBonus +4 - surgical passing through seams
+- **AttackingZone**: PassBonus +6, AgilityBonus +5 - mesmerizing puck movement with constant motion
+- **Scales with intensity**: All bonuses multiply by (intensity/5), from 0-2x effectiveness
 
-**Perfect Roster**:
+**ArchetypeWeights**:
 
 - ✅ **Playmakers** (+6): Masters of threading passes through moving traffic
 - ✅ **Snipers** (+4): Capitalize when shooting lanes open
 - ✅ **TwoWay Forwards** (+3): Provide the hockey IQ needed for complex motion
 - ✅ **Offensive Defensemen** (+3): Join the rush and add another dimension
-- ❌ **Enforcers** (-4): Too one-dimensional for this cerebral system
 - ❌ **Power Forwards** (-3): Lack the agility for constant motion
+- ❌ **Enforcers** (-4): Too one-dimensional for this cerebral system
 
 **Coaching Tip**: This system requires exceptional hockey IQ and chemistry between linemates. Practice it extensively before using in games - when poorly executed, it just looks like organized confusion.
 
@@ -266,13 +328,13 @@ _Raw power and intimidation - sometimes the simple approach is the most effectiv
 
 **The Strategy**: Forget the fancy plays - get bodies in front of the net, create chaos, and capitalize on rebounds and scrambles. Make the goaltender's life miserable through screens and physical presence.
 
-**On-Ice Impact**:
+**SystemModifiers (at intensity 5)**:
 
-- **Attacking Goal Zone**: Maximum shot volume (+6) with punishing physical presence (+4)
-- **Attacking Zone**: Quality shot attempts (+4) backed by intimidating physicality (+3)
-- **Psychological Warfare**: Wear down opposing defenders and goalies through relentless pressure
+- **AttackingGoalZone**: ShotBonus +6, BodyCheckBonus +3 (net battles), TurnoverChance -2
+- **AttackingZone**: ShotBonus +4, BodyCheckBonus +2 (physical presence), TurnoverChance -1
+- **Scales with intensity**: All bonuses multiply by (intensity/5), from 0-2x effectiveness
 
-**Perfect Roster**:
+**ArchetypeWeights**:
 
 - ✅ **Power Forwards** (+6): Built exactly for this bruising style
 - ✅ **Enforcers** (+4): Provide the intimidation factor

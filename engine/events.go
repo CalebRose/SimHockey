@@ -10,7 +10,28 @@ import (
 )
 
 func HandleBaseEvents(gs *GameState) {
+	// Check puck state first
+	switch gs.PuckState {
+	case PuckStateContested:
+		// Puck battle is ongoing, resolve it
+		handlePuckBattle(gs, gs.ContestedPlayers)
+		return
+	case PuckStateCovered:
+		// Goalie has covered puck, handle faceoff setup
+		gs.ClearPuckBattleState()
+		return
+	case PuckStateLoose:
+		// Loose puck, try to establish possession
+		// This should have been resolved by previous battle, continue normal flow
+		gs.PuckState = PuckStateClear
+	}
+
 	pc := gs.PuckCarrier
+	if pc == nil || pc.ID == 0 {
+		// No clear puck carrier, this shouldn't happen but handle gracefully
+		return
+	}
+
 	homePossession := pc.TeamID == uint16(gs.HomeTeamID)
 	switch gs.PuckLocation {
 	case HomeGoal:
@@ -323,6 +344,23 @@ func handleDefenseCheck(gs *GameState, isStickCheck bool) {
 		}
 
 		puckHandling = math.Max(puckHandling, 1.0)
+
+		// Check if this should trigger a puck battle
+		attackWeight := pc.HandlingMod + pc.StrengthMod
+		defenseWeight := defender.StickCheckMod + defender.BodyCheckMod
+		if !isStickCheck {
+			defenseWeight = defender.BodyCheckMod + defender.StrengthMod
+		}
+
+		shouldBattle := shouldTriggerPuckBattle(gs, attackWeight, defenseWeight)
+
+		if shouldBattle && diceRoll > 5 && diceRoll < 15 {
+			// Trigger puck battle instead of clean turnover
+			triggerPuckBattle(gs, pc, defender)
+			return
+		}
+
+		// Normal resolution
 		if float64(diceRoll) >= puckHandling {
 			defender.AddDefensiveHit(!isStickCheck)
 			outcomeID = DefenseTakesPuckID
@@ -716,6 +754,30 @@ func getDefensiveReboundPlayers(strategy GamePlaybook, isHome bool) []*GamePlaye
 func HandleReboundAfterShot(gs *GameState, eventID uint8, outcomeID uint8, puckCarrierID uint, goalieID uint) {
 	puckLocation := GetPuckLocationAfterMiss(1, 1)
 	reboundPlayerList := getSystemAwareReboundPlayers(gs, puckLocation)
+
+	// Check if this should be a puck battle scenario
+	// Rebounds are prime candidates for battles, especially in goal areas
+	shouldBeBattle := false
+
+	switch gs.PuckLocation {
+	case HomeGoal, AwayGoal:
+		// High chance of battle in goal areas
+		shouldBeBattle = util.GenerateIntFromRange(1, 100) <= 70 // 70% chance
+	case HomeZone, AwayZone:
+		// Medium chance in regular zones
+		shouldBeBattle = util.GenerateIntFromRange(1, 100) <= 40 // 40% chance
+	}
+
+	if shouldBeBattle && len(reboundPlayerList) >= 2 {
+		// Multiple players converge on loose puck - trigger battle
+		gs.PuckState = PuckStateLoose
+		handlePuckBattle(gs, reboundPlayerList)
+		// Record the rebound event but note it became contested
+		RecordPlay(gs, eventID, PuckScrambleID, 0, 0, 0, 0, 0, 0, false, puckCarrierID, gs.PuckCarrier.ID, 0, 0, goalieID, false)
+		return
+	}
+
+	// Normal rebound resolution
 	reboundCheck := reboundCheck(gs, reboundPlayerList, puckLocation)
 	reboundingPlayer, _ := findPlayerByID(reboundPlayerList, reboundCheck)
 	HandleMissingPlayer(*reboundingPlayer, "REBOUNDING AFTER SHOT")
@@ -1027,4 +1089,283 @@ func RecordPlay(gs *GameState, eventID, outcomeID, nextZoneID, injuryID, injuryT
 	}
 
 	gs.RecordPlay(play)
+}
+
+// ============================================================================
+// PUCK BATTLE SYSTEM
+// ============================================================================
+
+// handlePuckBattle manages contested puck scenarios between multiple players
+func handlePuckBattle(gs *GameState, contestedPlayers []*GamePlayer) {
+	if len(contestedPlayers) < 2 {
+		// Not enough players for a battle, default to first player
+		if len(contestedPlayers) == 1 {
+			gs.SetPuckBearer(contestedPlayers[0], false)
+		}
+		return
+	}
+
+	// Set game state to contested
+	gs.PuckState = PuckStateContested
+	gs.ContestedPlayers = contestedPlayers
+
+	// Calculate weights for each player based on system modifiers and attributes
+	playerWeights := []PlayerWeight{}
+
+	for _, player := range contestedPlayers {
+		weight := calculatePuckBattleWeight(gs, player)
+		playerWeights = append(playerWeights, PlayerWeight{
+			PlayerID: player.ID,
+			Weight:   weight,
+		})
+	}
+
+	// Select winner based on weights
+	totalWeight := 0.0
+	for _, pw := range playerWeights {
+		totalWeight += pw.Weight
+	}
+	winnerID := selectPlayerIDByWeights(totalWeight, playerWeights)
+
+	// Find the winning player
+	var winner *GamePlayer
+	for _, player := range contestedPlayers {
+		if player.ID == winnerID {
+			winner = player
+			break
+		}
+	}
+	if winner == nil {
+		winner = contestedPlayers[0] // Fallback
+	}
+
+	// Determine battle outcome
+	secondsConsumed := util.GenerateIntFromRange(2, 5) // Battles take time
+	gs.SetSecondsConsumed(uint16(secondsConsumed))
+
+	// Record the puck battle event
+	eventID := PuckBattleID
+	outcomeID := PuckBattleWinID
+
+	RecordPlay(gs, eventID, outcomeID, 0, 0, 0, 0, 0, 0, false, winner.ID, 0, 0, 0, 0, false)
+
+	// Winner takes possession
+	gs.SetPuckBearer(winner, false)
+}
+
+// calculatePuckBattleWeight determines a player's effectiveness in puck battles
+func calculatePuckBattleWeight(gs *GameState, player *GamePlayer) float64 {
+	baseWeight := 1.0
+
+	// Core attributes for puck battles
+	strength := player.StrengthMod
+	agility := player.AgilityMod
+	handling := player.HandlingMod
+
+	// Base calculation: strength for physical battles, agility for positioning, handling for puck control
+	weight := baseWeight + (strength * 0.4) + (agility * 0.3) + (handling * 0.3)
+
+	// Apply system modifiers based on team and zone
+	isHome := player.TeamID == uint16(gs.HomeTeamID)
+	homePossession := gs.PuckCarrier != nil && gs.PuckCarrier.TeamID == uint16(gs.HomeTeamID)
+
+	// Get system modifiers
+	homeModifiers, awayModifiers := GetSystemModifiersForZone(gs, homePossession, gs.PuckLocation)
+
+	var systemModifiers structs.SystemModifiers
+	if isHome {
+		systemModifiers = homeModifiers
+	} else {
+		systemModifiers = awayModifiers
+	}
+
+	// Apply system-specific puck battle weight
+	systemWeight := GetSystemPlayerWeight(player, systemModifiers, weight)
+
+	// Zone-specific modifiers for puck battles
+	zoneModifiers := GetZoneModifiersForEvent(systemModifiers, gs.PuckLocation, isHome)
+
+	// Use offensive checking bonuses for puck battles (now they have a purpose!)
+	battleBonus := 0.0
+	if player.TeamID == gs.PuckCarrier.TeamID {
+		// Offensive player in puck battle - use any offensive system checking bonuses
+		battleBonus += float64(zoneModifiers.StickCheckBonus) * 0.1
+		battleBonus += float64(zoneModifiers.BodyCheckBonus) * 0.1
+	} else {
+		// Defensive player in puck battle - use defensive checking bonuses
+		battleBonus += float64(zoneModifiers.StickCheckBonus) * 0.15
+		battleBonus += float64(zoneModifiers.BodyCheckBonus) * 0.15
+	}
+
+	return math.Max(systemWeight+battleBonus, 0.1) // Minimum weight
+}
+
+// triggerPuckBattle initiates a contested puck scenario
+func triggerPuckBattle(gs *GameState, offensivePlayer, defensivePlayer *GamePlayer) {
+	// Gather nearby players for the battle
+	contestedPlayers := []*GamePlayer{offensivePlayer, defensivePlayer}
+
+	// Add additional players based on zone and situation
+	additionalPlayers := getNearbyPlayersForBattle(gs, gs.PuckLocation)
+	contestedPlayers = append(contestedPlayers, additionalPlayers...)
+
+	// Remove duplicates
+	contestedPlayers = removeDuplicatePlayers(contestedPlayers)
+
+	// Handle the battle
+	handlePuckBattle(gs, contestedPlayers)
+}
+
+// getNearbyPlayersForBattle gets additional players who might join the battle
+func getNearbyPlayersForBattle(gs *GameState, zone string) []*GamePlayer {
+	nearbyPlayers := []*GamePlayer{}
+
+	// In goal zones, more players get involved
+	switch zone {
+	case HomeGoal, AwayGoal:
+		// More chaotic battles near the net - up to 2 additional players
+		if util.GenerateIntFromRange(1, 100) <= 60 { // 60% chance
+			// Add a forward from each team
+			homeForward := getRandomPlayerByPosition(gs, true, []string{Center, Forward})
+			if homeForward != nil {
+				nearbyPlayers = append(nearbyPlayers, homeForward)
+			}
+
+			awayForward := getRandomPlayerByPosition(gs, false, []string{Center, Forward})
+			if awayForward != nil {
+				nearbyPlayers = append(nearbyPlayers, awayForward)
+			}
+		}
+	case HomeZone, AwayZone:
+		// Medium chance of additional player in regular zones
+		if util.GenerateIntFromRange(1, 100) <= 40 { // 40% chance
+			// Add one additional player
+			isHome := util.GenerateIntFromRange(1, 2) == 1
+			player := getRandomPlayerByPosition(gs, isHome, []string{Center, Forward, Defender})
+			if player != nil {
+				nearbyPlayers = append(nearbyPlayers, player)
+			}
+		}
+	case NeutralZone:
+		// Lower chance in neutral zone
+		if util.GenerateIntFromRange(1, 100) <= 25 { // 25% chance
+			isHome := util.GenerateIntFromRange(1, 2) == 1
+			player := getRandomPlayerByPosition(gs, isHome, []string{Center, Forward})
+			if player != nil {
+				nearbyPlayers = append(nearbyPlayers, player)
+			}
+		}
+	}
+
+	return nearbyPlayers
+}
+
+// getRandomPlayerByPosition selects a random player from current lineup by position
+func getRandomPlayerByPosition(gs *GameState, isHome bool, positions []string) *GamePlayer {
+	var lineup []*GamePlayer
+
+	if isHome {
+		// Combine forwards and defenders for home team
+		hgs := &gs.HomeStrategy
+		lineup = append(lineup, hgs.Forwards[hgs.CurrentForwards].Players...)
+		lineup = append(lineup, hgs.Defenders[hgs.CurrentDefenders].Players...)
+	} else {
+		// Combine forwards and defenders for away team
+		ags := &gs.AwayStrategy
+		lineup = append(lineup, ags.Forwards[ags.CurrentForwards].Players...)
+		lineup = append(lineup, ags.Defenders[ags.CurrentDefenders].Players...)
+	}
+
+	// Filter by positions
+	validPlayers := []*GamePlayer{}
+	for _, player := range lineup {
+		for _, pos := range positions {
+			if player.Position == pos && !player.IsOut {
+				validPlayers = append(validPlayers, player)
+				break
+			}
+		}
+	}
+
+	if len(validPlayers) == 0 {
+		return nil
+	}
+
+	// Return random valid player
+	idx := util.GenerateIntFromRange(0, len(validPlayers)-1)
+	return validPlayers[idx]
+}
+
+// removeDuplicatePlayers removes duplicate players from the list
+func removeDuplicatePlayers(players []*GamePlayer) []*GamePlayer {
+	seen := make(map[uint]bool)
+	unique := []*GamePlayer{}
+
+	for _, player := range players {
+		if !seen[player.ID] && player != nil {
+			seen[player.ID] = true
+			unique = append(unique, player)
+		}
+	}
+
+	return unique
+}
+
+// modifyDefenseCheckForPuckBattles updates defense check to sometimes trigger battles
+func shouldTriggerPuckBattle(gs *GameState, attackWeight, defenseWeight float64) bool {
+	// Close battles (within 20% of each other) can become contested
+	diff := math.Abs(attackWeight - defenseWeight)
+	maxWeight := math.Max(attackWeight, defenseWeight)
+
+	if maxWeight == 0 {
+		return false
+	}
+
+	ratio := diff / maxWeight
+
+	// If weights are close (less than 30% difference), chance of puck battle
+	if ratio <= 0.3 {
+		battleChance := util.GenerateIntFromRange(1, 100)
+
+		// Zone-dependent battle chances
+		switch gs.PuckLocation {
+		case HomeGoal, AwayGoal:
+			return battleChance <= 45 // 45% chance in goal zones
+		case HomeZone, AwayZone:
+			return battleChance <= 30 // 30% chance in regular zones
+		case NeutralZone:
+			return battleChance <= 20 // 20% chance in neutral zone
+		}
+	}
+
+	return false
+}
+
+// handleCoveredPuck manages scenarios where goalie covers the puck
+func handleCoveredPuck(gs *GameState, goalie *GamePlayer) {
+	gs.PuckState = PuckStateCovered
+	gs.ContestedPlayers = []*GamePlayer{}
+
+	// Covered puck leads to faceoff
+	secondsConsumed := util.GenerateIntFromRange(3, 6)
+	gs.SetSecondsConsumed(uint16(secondsConsumed))
+
+	// Record the covered puck event
+	RecordPlay(gs, PenaltyCheckID, 0, 0, 0, 0, 0, 0, 0, false, 0, 0, 0, 0, goalie.ID, false)
+
+	// Set up faceoff
+	gs.SetFaceoffOnCenterIce(false)        // Faceoff in zone where puck was covered
+	gs.SetPuckBearer(&GamePlayer{}, false) // Clear puck carrier for faceoff
+}
+
+// updateGameStateWithPuckBattle manages game state during puck battles
+func (gs *GameState) UpdatePuckBattleState(contested []*GamePlayer) {
+	gs.PuckState = PuckStateContested
+	gs.ContestedPlayers = contested
+}
+
+// clearPuckBattleState resets game state after puck battle resolution
+func (gs *GameState) ClearPuckBattleState() {
+	gs.PuckState = PuckStateClear
+	gs.ContestedPlayers = []*GamePlayer{}
 }

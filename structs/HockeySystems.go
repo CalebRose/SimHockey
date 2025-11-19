@@ -64,15 +64,13 @@ func GetOffensiveSystemModifiers(system OffensiveSystemType, intensity uint8) Sy
 	case Offensive122Forecheck:
 		return SystemModifiers{
 			AttackingZone: ZoneModifiers{
-				ShotBonus:       int8(2 * baseIntensity),
-				PassBonus:       int8(3 * baseIntensity),
-				StickCheckBonus: int8(4 * baseIntensity),
-				BodyCheckBonus:  int8(2 * baseIntensity),
+				ShotBonus:      int8(2 * baseIntensity),
+				PassBonus:      int8(3 * baseIntensity),
+				TurnoverChance: int8(-1 * baseIntensity), // Slight vulnerability due to balanced approach
 			},
 			NeutralZone: ZoneModifiers{
-				PassBonus:       int8(2 * baseIntensity),
-				AgilityBonus:    int8(3 * baseIntensity),
-				StickCheckBonus: int8(3 * baseIntensity),
+				PassBonus:    int8(2 * baseIntensity),
+				AgilityBonus: int8(3 * baseIntensity),
 			},
 			ArchetypeWeights: map[string]int8{
 				util.Grinder:   int8(3 * baseIntensity),
@@ -87,12 +85,13 @@ func GetOffensiveSystemModifiers(system OffensiveSystemType, intensity uint8) Sy
 		return SystemModifiers{
 			AttackingZone: ZoneModifiers{
 				ShotBonus:       int8(4 * baseIntensity),
-				StickCheckBonus: int8(3 * baseIntensity),
+				StickCheckBonus: int8(2 * baseIntensity), // Aggressive forechecking includes puck battles
 				TurnoverChance:  int8(5 * baseIntensity),
 			},
 			NeutralZone: ZoneModifiers{
 				AgilityBonus:    int8(4 * baseIntensity),
-				StickCheckBonus: int8(4 * baseIntensity),
+				StickCheckBonus: int8(1 * baseIntensity),  // Some battle ability in neutral zone
+				TurnoverChance:  int8(-2 * baseIntensity), // Vulnerable in transition due to aggressive forechecking
 			},
 			ArchetypeWeights: map[string]int8{
 				util.Grinder:   int8(4 * baseIntensity),
@@ -146,11 +145,13 @@ func GetOffensiveSystemModifiers(system OffensiveSystemType, intensity uint8) Sy
 		return SystemModifiers{
 			AttackingGoalZone: ZoneModifiers{
 				ShotBonus:      int8(6 * baseIntensity),
-				BodyCheckBonus: int8(4 * baseIntensity),
+				BodyCheckBonus: int8(3 * baseIntensity),  // Physical battles around the net
+				TurnoverChance: int8(-2 * baseIntensity), // Vulnerable when focused on crashing net
 			},
 			AttackingZone: ZoneModifiers{
 				ShotBonus:      int8(4 * baseIntensity),
-				BodyCheckBonus: int8(3 * baseIntensity),
+				BodyCheckBonus: int8(2 * baseIntensity),  // Physical presence in attacking zone
+				TurnoverChance: int8(-1 * baseIntensity), // Slight vulnerability due to aggressive approach
 			},
 			ArchetypeWeights: map[string]int8{
 				util.Power:     int8(6 * baseIntensity), // Power forwards perfect for crashing net - close shot power + strength

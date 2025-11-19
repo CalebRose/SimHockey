@@ -43,6 +43,12 @@ const (
 	GoalieStaminaThreshold  uint8   = 30
 	ForwardShiftLimit       int     = 40
 	DefenderShiftLimit      int     = 25
+
+	// Puck State Constants
+	PuckStateClear     = "Clear"     // Normal possession
+	PuckStateContested = "Contested" // Multiple players battling
+	PuckStateLoose     = "Loose"     // No clear possession
+	PuckStateCovered   = "Covered"   // Goalie has covered the puck
 )
 
 // Event Constants
@@ -55,7 +61,13 @@ const (
 	AgilityCheckID     uint8 = 5
 	WristshotCheckID   uint8 = 6
 	SlapshotCheckID    uint8 = 7
-	PenaltyCheckID     uint8 = 8
+	// Event Type IDs
+	SlapShotID       uint8 = 1
+	PuckBattleID     uint8 = 20 // New: Puck battle events
+	PuckBattleWinID  uint8 = 21 // Outcome: Win puck battle
+	PuckBattleLoseID uint8 = 22 // Outcome: Lose puck battle
+	PuckScrambleID   uint8 = 23 // Multiple player scramble
+	PenaltyCheckID   uint8 = 8
 
 	// Zone IDs
 	HomeGoalZoneID uint8 = 9

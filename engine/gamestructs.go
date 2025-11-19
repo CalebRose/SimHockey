@@ -39,8 +39,10 @@ type GameState struct {
 	ActivePowerPlays      []PowerPlayState
 	Zones                 []string // Home Goal, Home Zone, Neutral Zone, Away Zone, Away Goal
 	PuckLocation          string
+	PuckState             string // Clear, Contested, Loose, Covered
 	PuckCarrier           *GamePlayer
 	AssistingPlayer       *GamePlayer
+	ContestedPlayers      []*GamePlayer // Players involved in puck battle
 	Momentum              float64
 	PossessingTeam        uint // Use the ID of the team
 	IsCollegeGame         bool
@@ -191,6 +193,15 @@ func (gs *GameState) SetFaceoffOnCenterIce(check bool) {
 }
 
 func (gs *GameState) SetPuckBearer(player *GamePlayer, isLongerPass bool) {
+	// Set puck state based on context
+	if player.ID == 0 {
+		gs.PuckState = PuckStateLoose
+		gs.ContestedPlayers = []*GamePlayer{}
+	} else {
+		gs.PuckState = PuckStateClear
+		gs.ContestedPlayers = []*GamePlayer{}
+	}
+
 	if gs.PuckCarrier != nil {
 		if gs.PuckCarrier.ID > 0 && gs.PuckCarrier.TeamID != player.TeamID {
 			gs.ResetMomentum()
