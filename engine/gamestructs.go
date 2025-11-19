@@ -371,6 +371,9 @@ type GamePlaybook struct {
 	DefenderShiftLimit          int
 	ShootoutLineUp              structs.ShootoutPlayerIDs
 	RosterMap                   map[uint]*GamePlayer
+
+	// System Information
+	Gameplan structs.BaseGameplan
 }
 
 func (gp *GamePlaybook) ActivatePowerPlayer(playerID uint, position string) {

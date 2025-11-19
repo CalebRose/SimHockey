@@ -538,7 +538,7 @@ func DetermineIfRetiring(player structs.ProfessionalPlayer, statMap map[uint][]s
 	benchmark := 0
 	age := int(player.Age)
 	primeAge := int(player.PrimeAge)
-	retirementAge := primeAge + util.GenerateIntFromRange(3, 5)
+	retirementAge := primeAge + util.GenerateIntFromRange(4, 7)
 	if age > retirementAge {
 		benchmark += 50
 	}

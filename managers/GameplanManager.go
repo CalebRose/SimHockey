@@ -1101,3 +1101,354 @@ func GetGoalieSortExpression(preference uint8, i structs.BasePlayer, j structs.B
 	}
 	return iVal > jVal
 }
+
+// selectOptimalSystemsForRoster analyzes a college roster and returns the best offensive/defensive systems plus intensity
+func selectOptimalSystemsForRoster(roster []structs.CollegePlayer) (structs.OffensiveSystemType, structs.DefensiveSystemType, uint8) {
+	// Convert to BasePlayer for analysis
+	baseRoster := make([]structs.BasePlayer, len(roster))
+	for i, p := range roster {
+		baseRoster[i] = p.BasePlayer
+	}
+	return analyzeRosterForSystems(baseRoster)
+}
+
+// selectOptimalSystemsForProRoster analyzes a pro roster and returns the best offensive/defensive systems plus intensity
+func selectOptimalSystemsForProRoster(roster []structs.ProfessionalPlayer) (structs.OffensiveSystemType, structs.DefensiveSystemType, uint8) {
+	// Convert to BasePlayer for analysis
+	baseRoster := make([]structs.BasePlayer, len(roster))
+	for i, p := range roster {
+		baseRoster[i] = p.BasePlayer
+	}
+	return analyzeRosterForSystems(baseRoster)
+}
+
+// analyzeRosterForSystems performs the core system selection logic
+func analyzeRosterForSystems(roster []structs.BasePlayer) (structs.OffensiveSystemType, structs.DefensiveSystemType, uint8) {
+	// Analyze roster composition
+	archCounts := analyzeArchetypeComposition(roster)
+	avgOverall := calculateAverageOverall(roster)
+
+	// Determine intensity based on roster quality and cohesion
+	intensity := determineOptimalIntensity(archCounts, avgOverall)
+
+	// Test all system combinations and find the best
+	bestOffensive, bestOffensiveScore := findBestOffensiveSystem(archCounts, intensity)
+	bestDefensive, bestDefensiveScore := findBestDefensiveSystem(archCounts, intensity)
+
+	// Adjust intensity based on system compatibility
+	intensity = adjustIntensityForSystemCompatibility(intensity, bestOffensiveScore, bestDefensiveScore)
+
+	return bestOffensive, bestDefensive, intensity
+}
+
+// analyzeArchetypeComposition counts archetypes by position
+func analyzeArchetypeComposition(roster []structs.BasePlayer) map[string]map[string]int {
+	archCounts := map[string]map[string]int{
+		"F": make(map[string]int), // Forwards (C + F)
+		"D": make(map[string]int), // Defensemen
+		"G": make(map[string]int), // Goalies
+	}
+
+	for _, player := range roster {
+		var posCategory string
+		switch player.Position {
+		case "C", "F":
+			posCategory = "F"
+		case "D":
+			posCategory = "D"
+		case "G":
+			posCategory = "G"
+		default:
+			continue
+		}
+
+		archCounts[posCategory][player.Archetype]++
+	}
+
+	return archCounts
+}
+
+// calculateAverageOverall determines roster quality
+func calculateAverageOverall(roster []structs.BasePlayer) float64 {
+	if len(roster) == 0 {
+		return 50.0
+	}
+
+	total := 0
+	count := 0
+	for _, player := range roster {
+		if player.Position != "G" { // Exclude goalies from overall calculation
+			total += int(player.Overall)
+			count++
+		}
+	}
+
+	if count == 0 {
+		return 50.0
+	}
+
+	return float64(total) / float64(count)
+}
+
+// determineOptimalIntensity calculates ideal intensity based on roster factors
+func determineOptimalIntensity(archCounts map[string]map[string]int, avgOverall float64) uint8 {
+	baseIntensity := 5 // Start at medium intensity
+
+	// Higher overall = can handle higher intensity
+	if avgOverall >= 80 {
+		baseIntensity = 7
+	} else if avgOverall >= 70 {
+		baseIntensity = 6
+	} else if avgOverall <= 55 {
+		baseIntensity = 4
+	} else if avgOverall <= 50 {
+		baseIntensity = 3
+	}
+
+	// Check archetype diversity - more diverse = lower intensity to avoid penalties
+	totalPlayers := 0
+	uniqueArchetypes := 0
+
+	for _, posArchs := range archCounts {
+		for _, count := range posArchs {
+			if count > 0 {
+				totalPlayers += count
+				uniqueArchetypes++
+			}
+		}
+	}
+
+	if totalPlayers > 0 {
+		diversity := float64(uniqueArchetypes) / float64(totalPlayers)
+		if diversity > 0.8 { // Very diverse roster
+			baseIntensity-- // Lower intensity for mixed archetypes
+		} else if diversity < 0.4 { // Specialized roster
+			baseIntensity++ // Can handle higher intensity
+		}
+	}
+
+	// Clamp to valid range
+	if baseIntensity < 1 {
+		baseIntensity = 1
+	} else if baseIntensity > 10 {
+		baseIntensity = 10
+	}
+
+	return uint8(baseIntensity)
+}
+
+// findBestOffensiveSystem tests all offensive systems and returns the best match
+func findBestOffensiveSystem(archCounts map[string]map[string]int, intensity uint8) (structs.OffensiveSystemType, int) {
+	systems := []structs.OffensiveSystemType{
+		structs.Offensive122Forecheck,
+		structs.Offensive212Forecheck,
+		structs.Offensive113Forecheck,
+		structs.OffensiveCycleGame,
+		structs.OffensiveQuickTransition,
+		structs.OffensiveUmbrella,
+		structs.OffensiveEastWestMotion,
+		structs.OffensiveCrashNet,
+	}
+
+	bestSystem := structs.Offensive122Forecheck
+	bestScore := -1000
+
+	for _, system := range systems {
+		score := calculateSystemCompatibilityScore(system, 0, archCounts, intensity, true)
+		if score > bestScore {
+			bestScore = score
+			bestSystem = system
+		}
+	}
+
+	return bestSystem, bestScore
+}
+
+// findBestDefensiveSystem tests all defensive systems and returns the best match
+func findBestDefensiveSystem(archCounts map[string]map[string]int, intensity uint8) (structs.DefensiveSystemType, int) {
+	systems := []structs.DefensiveSystemType{
+		structs.DefensiveBalanced,
+		structs.DefensiveManToMan,
+		structs.DefensiveZone,
+		structs.DefensiveNeutralTrap,
+		structs.DefensiveLeftWingLock,
+		structs.DefensiveAggressiveForecheck,
+		structs.DefensiveCollapsing,
+		structs.DefensiveBox,
+	}
+
+	bestSystem := structs.DefensiveBalanced
+	bestScore := -1000
+
+	for _, system := range systems {
+		score := calculateSystemCompatibilityScore(0, system, archCounts, intensity, false)
+		if score > bestScore {
+			bestScore = score
+			bestSystem = system
+		}
+	}
+
+	return bestSystem, bestScore
+}
+
+// calculateSystemCompatibilityScore evaluates how well a system matches the roster
+func calculateSystemCompatibilityScore(offSystem structs.OffensiveSystemType, defSystem structs.DefensiveSystemType, archCounts map[string]map[string]int, intensity uint8, isOffensive bool) int {
+	var mods structs.SystemModifiers
+
+	if isOffensive {
+		mods = structs.GetOffensiveSystemModifiers(offSystem, intensity)
+	} else {
+		mods = structs.GetDefensiveSystemModifiers(defSystem, intensity)
+	}
+
+	totalScore := 0
+
+	// Calculate weighted score based on archetype fit and roster composition
+	for archetype, weight := range mods.ArchetypeWeights {
+		// Count players with this archetype across relevant positions
+		playerCount := 0
+
+		// Forwards and centers
+		if fCount, exists := archCounts["F"][archetype]; exists {
+			playerCount += fCount
+		}
+
+		// Defensemen
+		if dCount, exists := archCounts["D"][archetype]; exists {
+			playerCount += dCount
+		}
+
+		// Score = (archetype weight) * (number of players) * (intensity factor)
+		score := int(weight) * playerCount
+		totalScore += score
+	}
+
+	return totalScore
+}
+
+// adjustIntensityForSystemCompatibility fine-tunes intensity based on system synergy
+func adjustIntensityForSystemCompatibility(baseIntensity uint8, offensiveScore, defensiveScore int) uint8 {
+	// If both systems have high compatibility, can increase intensity
+	if offensiveScore > 50 && defensiveScore > 50 {
+		if baseIntensity < 10 {
+			baseIntensity++
+		}
+	}
+
+	// If either system has poor compatibility, decrease intensity
+	if offensiveScore < -20 || defensiveScore < -20 {
+		if baseIntensity > 1 {
+			baseIntensity--
+		}
+	}
+
+	return baseIntensity
+}
+
+// getDetailedSystemAnalysis provides comprehensive analysis for a team's optimal systems
+func getDetailedSystemAnalysis(roster []structs.BasePlayer) string {
+	archCounts := analyzeArchetypeComposition(roster)
+	avgOverall := calculateAverageOverall(roster)
+	intensity := determineOptimalIntensity(archCounts, avgOverall)
+
+	analysis := "Roster Analysis:\n"
+	analysis += fmt.Sprintf("  Average Overall: %.1f\n", avgOverall)
+	analysis += fmt.Sprintf("  Recommended Intensity: %d\n", intensity)
+	analysis += "  Archetype Composition:\n"
+
+	for pos, archs := range archCounts {
+		analysis += fmt.Sprintf("    %s: ", pos)
+		for arch, count := range archs {
+			if count > 0 {
+				analysis += fmt.Sprintf("%s(%d) ", arch, count)
+			}
+		}
+		analysis += "\n"
+	}
+
+	// Test all system combinations
+	bestOffensive, bestOffensiveScore := findBestOffensiveSystem(archCounts, intensity)
+	bestDefensive, bestDefensiveScore := findBestDefensiveSystem(archCounts, intensity)
+
+	analysis += fmt.Sprintf("  Best Offensive System: %s (Score: %d)\n",
+		structs.GetOffensiveSystemName(bestOffensive), bestOffensiveScore)
+	analysis += fmt.Sprintf("  Best Defensive System: %s (Score: %d)\n",
+		structs.GetDefensiveSystemName(bestDefensive), bestDefensiveScore)
+
+	return analysis
+}
+
+func SelectOffensiveAndDefensiveSystemsForAllTeams_Offseason() {
+	db := dbprovider.GetInstance().GetDB()
+
+	// Get all teams that need system selection
+	collegeTeams := repository.FindAllCollegeTeams(repository.TeamClauses{LeagueID: "1"})
+	proTeams := repository.FindAllProTeams(repository.TeamClauses{LeagueID: "1"})
+
+	// Process college teams
+	collegeGameplans := repository.FindCollegeGameplanRecords()
+	collegeGameplanMap := MakeCollegeGameplanMap(collegeGameplans)
+
+	for _, team := range collegeTeams {
+		gameplan := collegeGameplanMap[team.ID]
+		if gameplan.ID == 0 || !gameplan.IsAI {
+			continue // Skip user-controlled teams
+		}
+
+		fmt.Printf("Selecting systems for college team: %s\n", team.Abbreviation)
+
+		// Get roster and analyze
+		teamID := strconv.Itoa(int(team.ID))
+		roster := GetCollegePlayersByTeamID(teamID)
+
+		// Select optimal systems
+		bestOffensive, bestDefensive, intensity := selectOptimalSystemsForRoster(roster)
+
+		// Update gameplan
+		gameplan.OffensiveSystem = uint8(bestOffensive)
+		gameplan.DefensiveSystem = uint8(bestDefensive)
+		gameplan.OffensiveIntensity = intensity
+		gameplan.DefensiveIntensity = intensity
+
+		repository.SaveCollegeGameplanRecord(gameplan, db)
+
+		fmt.Printf("%s  Selected: %s (O) + %s (D) at intensity %d\n",
+			team.TeamName,
+			structs.GetOffensiveSystemName(structs.OffensiveSystemType(bestOffensive)),
+			structs.GetDefensiveSystemName(structs.DefensiveSystemType(bestDefensive)),
+			intensity)
+	}
+
+	// Process professional teams
+	proGameplans := repository.FindProfessionalGameplanRecords()
+	proGameplanMap := MakeProGameplanMap(proGameplans)
+
+	for _, team := range proTeams {
+		gameplan := proGameplanMap[team.ID]
+		if gameplan.ID == 0 || !gameplan.IsAI {
+			continue // Skip user-controlled teams
+		}
+
+		fmt.Printf("Selecting systems for pro team: %s\n", team.Abbreviation)
+
+		// Get roster and analyze
+		teamID := strconv.Itoa(int(team.ID))
+		roster := GetProPlayersByTeamID(teamID)
+
+		// Select optimal systems
+		bestOffensive, bestDefensive, intensity := selectOptimalSystemsForProRoster(roster)
+
+		// Update gameplan
+		gameplan.OffensiveSystem = uint8(bestOffensive)
+		gameplan.DefensiveSystem = uint8(bestDefensive)
+		gameplan.OffensiveIntensity = intensity
+		gameplan.DefensiveIntensity = intensity
+
+		repository.SaveProfessionalGameplanRecord(gameplan, db)
+
+		fmt.Printf("  Selected: %s (O) + %s (D) at intensity %d\n",
+			structs.GetOffensiveSystemName(structs.OffensiveSystemType(bestOffensive)),
+			structs.GetDefensiveSystemName(structs.DefensiveSystemType(bestDefensive)),
+			intensity)
+	}
+}

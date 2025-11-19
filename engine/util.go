@@ -139,6 +139,54 @@ func getPlayerWeights(isFaceoff, homeTeamFaceoffWin bool, players []*GamePlayer,
 	return playerWeights, totalWeight
 }
 
+// getPlayerWeightsWithSystems - Enhanced version that considers offensive/defensive systems
+func getPlayerWeightsWithSystems(gs *GameState, isFaceoff, homeTeamFaceoffWin bool, players []*GamePlayer, zoneID, faceoffWinID uint, CurrentZone, event string) ([]PlayerWeight, float64) {
+	playerWeights := []PlayerWeight{}
+	totalWeight := 0.0
+
+	// Get system modifiers for current game state
+	pc := gs.PuckCarrier
+	isHomePossession := pc.TeamID == uint16(gs.HomeTeamID)
+	homeModifiers, awayModifiers := GetSystemModifiersForZone(gs, isHomePossession, CurrentZone)
+
+	for _, p := range players {
+		if p.IsOut {
+			continue
+		}
+
+		mod := getAttributeModifier(event, p)
+		weight := 0.0
+
+		if isFaceoff {
+			weight = getFaceoffWeight(uint(p.TeamID), faceoffWinID, mod, CurrentZone, homeTeamFaceoffWin)
+		} else {
+			weight = getPlayerWeight(uint(p.TeamID), zoneID, mod, p.Position, CurrentZone)
+		}
+
+		// Apply system modifiers based on player's team
+		isHomePlayer := uint(p.TeamID) == gs.HomeTeamID
+		if isHomePlayer {
+			weight = GetSystemPlayerWeight(p, homeModifiers, weight)
+		} else {
+			weight = GetSystemPlayerWeight(p, awayModifiers, weight)
+		}
+
+		rw := PlayerWeight{
+			PlayerID: p.ID,
+			Weight:   weight,
+		}
+		playerWeights = append(playerWeights, rw)
+		totalWeight += weight
+	}
+
+	// Sort weights
+	sort.Slice(playerWeights, func(i, j int) bool {
+		return playerWeights[i].Weight > playerWeights[j].Weight
+	})
+
+	return playerWeights, totalWeight
+}
+
 func getAttributeModifier(event string, p *GamePlayer) float64 {
 	mod := 0.0
 	switch event {

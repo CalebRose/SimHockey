@@ -3,23 +3,40 @@ package structs
 import "gorm.io/gorm"
 
 type BaseGameplan struct {
-	TeamID                  uint
-	IsAI                    bool  // True == AI active gameplan, False == Not active
+	TeamID uint
+	IsAI   bool // True == AI active gameplan, False == Not active
+
+	// System Selection
+	OffensiveSystem uint8 // 1=1-2-2 Forecheck, 2=2-1-2 Forecheck, 3=1-1-3 Forecheck, 4=Cycle Game, 5=Quick Transition, 6=Umbrella, 7=East-West Motion, 8=Crash Net
+	DefensiveSystem uint8 // 1=Balanced, 2=Man-to-Man, 3=Zone, 4=Neutral Zone Trap, 5=Left-Wing Lock, 6=Aggressive Forecheck, 7=Collapsing Defense, 8=Box Defense
+
+	// System Intensity (1-10 scale)
+	OffensiveIntensity uint8 // How aggressively to apply the offensive system
+	DefensiveIntensity uint8 // How aggressively to apply the defensive system
+
+	// Traditional Preferences
 	ForwardShotPreference   uint8 // 1 == Close, 2 == Balanced, 3 == Long Shot
 	DefenderShotPreference  uint8 // 1 == Close, 2 == Balanced, 3 == Long Shot
 	ForwardCheckPreference  uint8 // 1 == Body, 2 == Balanced, 3 == Stick
 	DefenderCheckPreference uint8 // 1 == Body, 2 == Balanced, 3 == Stick
+
+	// Line Sorting Preferences
 	CenterSortPreference1   uint8 // 1 == Overall, 2 == Close Shot Accuracy, 3 == Long Shot Accuracy, 4 == Agility, 5 == Puck Handling, 6 == Strength, 7 == BodyCheck, 8 == StickCheck, 9 == Faceoff
-	CenterSortPreference2   uint8 // 1 == Overall, 2 == Close Shot Accuracy, 3 == Long Shot Accuracy, 4 == Agility, 5 == Puck Handling, 6 == Strength, 7 == BodyCheck, 8 == StickCheck, 9 == Faceoff
-	CenterSortPreference3   uint8 // 1 == Overall, 2 == Close Shot Accuracy, 3 == Long Shot Accuracy, 4 == Agility, 5 == Puck Handling, 6 == Strength, 7 == BodyCheck, 8 == StickCheck, 9 == Faceoff
-	ForwardSortPreference1  uint8 // 1 == Overall, 2 == Close Shot Accuracy, 3 == Long Shot Accuracy, 4 == Agility, 5 == Puck Handling, 6 == Strength, 7 == BodyCheck, 8 == StickCheck, 9 == Faceoff
-	ForwardSortPreference2  uint8 // 1 == Overall, 2 == Close Shot Accuracy, 3 == Long Shot Accuracy, 4 == Agility, 5 == Puck Handling, 6 == Strength, 7 == BodyCheck, 8 == StickCheck, 9 == Faceoff
-	ForwardSortPreference3  uint8 // 1 == Overall, 2 == Close Shot Accuracy, 3 == Long Shot Accuracy, 4 == Agility, 5 == Puck Handling, 6 == Strength, 7 == BodyCheck, 8 == StickCheck, 9 == Faceoff
-	DefenderSortPreference1 uint8 // 1 == Overall, 2 == Close Shot Accuracy, 3 == Long Shot Accuracy, 4 == Agility, 5 == Puck Handling, 6 == Strength, 7 == BodyCheck, 8 == StickCheck, 9 == Faceoff
-	DefenderSortPreference2 uint8 // 1 == Overall, 2 == Close Shot Accuracy, 3 == Long Shot Accuracy, 4 == Agility, 5 == Puck Handling, 6 == Strength, 7 == BodyCheck, 8 == StickCheck, 9 == Faceoff
-	DefenderSortPreference3 uint8 // 1 == Overall, 2 == Close Shot Accuracy, 3 == Long Shot Accuracy, 4 == Agility, 5 == Puck Handling, 6 == Strength, 7 == BodyCheck, 8 == StickCheck, 9 == Faceoff
+	CenterSortPreference2   uint8
+	CenterSortPreference3   uint8
+	ForwardSortPreference1  uint8
+	ForwardSortPreference2  uint8
+	ForwardSortPreference3  uint8
+	DefenderSortPreference1 uint8
+	DefenderSortPreference2 uint8
+	DefenderSortPreference3 uint8
 	GoalieSortPreference    uint8 // 1 == Overall, 2 == Goalkeeping, 3 == Goalievision
-	LongerPassesEnabled     bool
+
+	// Advanced Options
+	LongerPassesEnabled    bool
+	ForeCheckTrigger       uint8 // When to trigger forecheck: 1=Always, 2=When Leading, 3=When Trailing, 4=Close Games Only
+	SystemAdaptation       bool  // Whether to adapt system based on game state
+	SpecialSituationSystem uint8 // Different system for power play/penalty kill situations
 }
 
 type CollegeGameplan struct {

@@ -49,23 +49,19 @@ func handleZoneEvents(gs *GameState, homePossession bool, isHomeZone bool) {
 }
 
 func handleOffensiveGoalZoneEvents(gs *GameState) {
-	// Passing, close shots, defensive checks
-	pb := gs.PuckCarrier
-	isHome := pb.TeamID == uint16(gs.HomeTeamID)
-	attackStrategy := gs.GetLineStrategy(isHome, 1)
-	defendStrategy := gs.GetLineStrategy(!isHome, 2)
-	slapshot := 0
-	pass := 0
-	passBack := 0
-	stickCheck := 0
-	bodyCheck := 0
+	// Calculate base event weights
+	eventWeights := CalculateEventWeights(gs)
+
+	// Apply system modifiers
+	ApplySystemModifiersToEventWeights(gs, &eventWeights)
+
+	slapshot := eventWeights.ShotWeight
+	pass := eventWeights.PassWeight
+	passBack := eventWeights.PassBackWeight
+	stickCheck := eventWeights.StickCheckWeight
+	bodyCheck := eventWeights.BodyCheckWeight
 	penalty := 1
-	slapshot = int(attackStrategy.AGZShot) + int(pb.AGZShot) + int(gs.Momentum)
-	pass = int(attackStrategy.AGZPass) + int(pb.AGZPass)
-	passBack = int(attackStrategy.AGZPassBack) + int(pb.AGZPassBack)
-	stickCheck = int(defendStrategy.DGZStickCheck)
-	bodyCheck = int(defendStrategy.DGZBodyCheck)
-	totalSkill := slapshot + stickCheck + bodyCheck + pass + penalty
+	totalSkill := slapshot + stickCheck + bodyCheck + pass + passBack + penalty
 	stickCheckCutoff := float64(stickCheck)
 	bodyCheckCutoff := float64(stickCheckCutoff) + float64(bodyCheck)
 	passCheckCutoff := bodyCheckCutoff + float64(pass)
@@ -95,19 +91,20 @@ func handleOffensiveGoalZoneEvents(gs *GameState) {
 }
 
 func handleOffensiveZoneEvents(gs *GameState) {
-	// Movement, passing, defense, and long range shots
-	pb := gs.PuckCarrier
-	isHome := pb.TeamID == uint16(gs.HomeTeamID)
-	attackStrategy := gs.GetLineStrategy(isHome, 1)
-	defendStrategy := gs.GetLineStrategy(!isHome, 2)
+	// Calculate base event weights
+	eventWeights := CalculateEventWeights(gs)
+
+	// Apply system modifiers
+	ApplySystemModifiersToEventWeights(gs, &eventWeights)
+
+	wristshot := eventWeights.ShotWeight
+	agility := eventWeights.AgilityWeight
+	pass := eventWeights.PassWeight
+	longPass := eventWeights.LongPassWeight
+	stickCheck := eventWeights.StickCheckWeight
+	bodyCheck := eventWeights.BodyCheckWeight
 	penalty := 1
-	wristshot := int(attackStrategy.AZShot) + int(pb.AZShot) + int(gs.Momentum)
-	agility := int(attackStrategy.AZAgility) + int(pb.AZAgility)
-	pass := int(attackStrategy.AZPass) + int(pb.AZPass)
-	longPass := int(attackStrategy.AZLongPass) + int(pb.AZLongPass)
-	stickCheck := int(defendStrategy.DZStickCheck)
-	bodyCheck := int(defendStrategy.DZBodyCheck)
-	totalSkill := wristshot + stickCheck + bodyCheck + pass + penalty + int(agility)
+	totalSkill := wristshot + stickCheck + bodyCheck + pass + penalty + agility
 	stickCheckCutoff := float64(stickCheck)
 	bodyCheckCutoff := stickCheckCutoff + float64(bodyCheck)
 	passCheckCutoff := bodyCheckCutoff + float64(pass)
@@ -141,17 +138,20 @@ func handleOffensiveZoneEvents(gs *GameState) {
 }
 
 func handleDefensiveGoalZoneEvents(gs *GameState) {
-	// Movement, pass, defensive checks
+	// Calculate base event weights
+	eventWeights := CalculateEventWeights(gs)
+
+	// Apply system modifiers
+	ApplySystemModifiersToEventWeights(gs, &eventWeights)
+
 	pc := gs.PuckCarrier
 	isHome := pc.TeamID == uint16(gs.HomeTeamID)
-	attackStrategy := gs.GetLineStrategy(isHome, 1)
-	defendStrategy := gs.GetLineStrategy(!isHome, 2)
 	penalty := 1
-	agility := int(attackStrategy.DGZAgility) + int(pc.DGZAgility)
-	pass := int(attackStrategy.DGZPass) + int(pc.DGZPass)
-	longPass := int(attackStrategy.DGZLongPass) + int(pc.DGZLongPass)
-	stickCheck := int(defendStrategy.AGZStickCheck)
-	bodyCheck := int(defendStrategy.AGZBodyCheck)
+	agility := eventWeights.AgilityWeight
+	pass := eventWeights.PassWeight
+	longPass := eventWeights.LongPassWeight
+	stickCheck := eventWeights.StickCheckWeight
+	bodyCheck := eventWeights.BodyCheckWeight
 	faceOffCheck := 0
 	if pc.Position == Goalie {
 		agility = 0
@@ -159,7 +159,7 @@ func handleDefensiveGoalZoneEvents(gs *GameState) {
 		bodyCheck = 0
 		faceOffCheck = 20
 	}
-	totalSkill := stickCheck + bodyCheck + pass + penalty + int(agility) + faceOffCheck
+	totalSkill := stickCheck + bodyCheck + pass + penalty + agility + faceOffCheck
 	faceoffCutoff := float64(faceOffCheck)
 	stickCheckCutoff := faceoffCutoff + float64(stickCheck)
 	bodyCheckCutoff := stickCheckCutoff + float64(bodyCheck)
@@ -200,18 +200,19 @@ func handleDefensiveGoalZoneEvents(gs *GameState) {
 }
 
 func handleDefensiveZoneEvents(gs *GameState) {
-	// Movement, passing, defensive checks made by opposing offensive forwards
-	pb := gs.PuckCarrier
-	isHome := pb.TeamID == uint16(gs.HomeTeamID)
-	attackStrategy := gs.GetLineStrategy(isHome, 1)
-	defendStrategy := gs.GetLineStrategy(!isHome, 2)
+	// Calculate base event weights
+	eventWeights := CalculateEventWeights(gs)
+
+	// Apply system modifiers
+	ApplySystemModifiersToEventWeights(gs, &eventWeights)
+
 	penalty := 1
-	agility := int(attackStrategy.DZAgility) + int(pb.DZAgility)
-	pass := int(attackStrategy.DZPass) + int(pb.DZPass)
-	passBack := int(attackStrategy.DZPassBack) + int(pb.DZPassBack)
-	stickCheck := int(defendStrategy.AZStickCheck)
-	bodyCheck := int(defendStrategy.AZBodyCheck)
-	totalSkill := stickCheck + bodyCheck + pass + penalty + int(agility)
+	agility := eventWeights.AgilityWeight
+	pass := eventWeights.PassWeight
+	passBack := eventWeights.PassBackWeight
+	stickCheck := eventWeights.StickCheckWeight
+	bodyCheck := eventWeights.BodyCheckWeight
+	totalSkill := stickCheck + bodyCheck + pass + penalty + agility
 	stickCheckCutoff := float64(stickCheck)
 	bodyCheckCutoff := stickCheckCutoff + float64(bodyCheck)
 	passCheckCutoff := bodyCheckCutoff + float64(pass)
@@ -241,17 +242,18 @@ func handleDefensiveZoneEvents(gs *GameState) {
 }
 
 func handleNeutralZoneEvents(gs *GameState) {
-	// Movement, passing, defensive checks
-	pb := gs.PuckCarrier
-	isHome := pb.TeamID == uint16(gs.HomeTeamID)
-	attackStrategy := gs.GetLineStrategy(isHome, 1)
-	defendStrategy := gs.GetLineStrategy(!isHome, 2)
+	// Calculate base event weights
+	eventWeights := CalculateEventWeights(gs)
+
+	// Apply system modifiers
+	ApplySystemModifiersToEventWeights(gs, &eventWeights)
+
+	agility := eventWeights.AgilityWeight
+	pass := eventWeights.PassWeight
+	stickCheck := eventWeights.StickCheckWeight
+	bodyCheck := eventWeights.BodyCheckWeight
 	penalty := 1
-	agility := int(attackStrategy.NAgility) + int(pb.NAgility)
-	pass := int(attackStrategy.NPass) + int(pb.NPass)
-	stickCheck := int(defendStrategy.NStickCheck)
-	bodyCheck := int(defendStrategy.NBodyCheck)
-	totalSkill := stickCheck + bodyCheck + pass + penalty + int(agility)
+	totalSkill := stickCheck + bodyCheck + pass + penalty + agility
 	stickCheckCutoff := float64(stickCheck)
 	bodyCheckCutoff := stickCheckCutoff + float64(bodyCheck)
 	passCheckCutoff := bodyCheckCutoff + float64(pass)

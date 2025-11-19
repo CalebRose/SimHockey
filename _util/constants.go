@@ -107,4 +107,6 @@ const (
 	FinalPortalRound     int     = 10
 	MaxCollegeRosterSize int     = 34
 	PortalSigningMinimum float64 = 0.66
+
+	// Systems
 )
