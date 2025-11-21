@@ -209,7 +209,7 @@ func (gs *GameState) SetPuckBearer(player *GamePlayer, isLongerPass bool) {
 		} else {
 			gs.Momentum += 0.175
 			if isLongerPass {
-				gs.Momentum += .025
+				gs.Momentum += .05
 			}
 			gs.AssistingPlayer = gs.PuckCarrier
 		}

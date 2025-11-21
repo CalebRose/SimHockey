@@ -63,10 +63,11 @@ const (
 	SlapshotCheckID    uint8 = 7
 	// Event Type IDs
 	SlapShotID       uint8 = 1
-	PuckBattleID     uint8 = 20 // New: Puck battle events
-	PuckBattleWinID  uint8 = 21 // Outcome: Win puck battle
-	PuckBattleLoseID uint8 = 22 // Outcome: Lose puck battle
-	PuckScrambleID   uint8 = 23 // Multiple player scramble
+	PuckBattleID     uint8 = 37 // New: Puck battle events
+	PuckBattleWinID  uint8 = 38 // Outcome: Win puck battle
+	PuckBattleLoseID uint8 = 39 // Outcome: Lose puck battle
+	PuckScrambleID   uint8 = 40 // Multiple player scramble
+	PuckCoveredID    uint8 = 41
 	PenaltyCheckID   uint8 = 8
 
 	// Zone IDs
