@@ -1,6 +1,7 @@
 package managers
 
 import (
+	"log"
 	"strconv"
 	"sync"
 
@@ -8,6 +9,11 @@ import (
 	"github.com/CalebRose/SimHockey/repository"
 	"github.com/CalebRose/SimHockey/structs"
 )
+
+type BootstrapDataNews struct {
+	CollegeNews []structs.NewsLog
+	ProNews     []structs.NewsLog
+}
 
 func GetAllTeamsData() structs.BootstrapData {
 	var wg sync.WaitGroup
@@ -135,14 +141,10 @@ func GetBootstrapData(collegeID, proID string) structs.BootstrapData {
 			transferPortalProfiles = repository.FindTransferPortalProfileRecords(repository.TransferPortalQuery{RemovedFromBoard: "N"})
 		}()
 		wg.Wait()
-		wg.Add(5)
+		wg.Add(4)
 		go func() {
 			defer wg.Done()
 			collegeGames = GetCollegeGamesBySeasonID("", ts.IsPreseason)
-		}()
-		go func() {
-			defer wg.Done()
-			collegeNews = GetAllCHLNewsLogs()
 		}()
 
 		go func() {
@@ -193,7 +195,7 @@ func GetBootstrapData(collegeID, proID string) structs.BootstrapData {
 
 	// Pros
 	if len(proID) > 0 && proID != "0" {
-		wg.Add(5)
+		wg.Add(4)
 		go func() {
 			defer wg.Done()
 			mu.Lock()
@@ -219,10 +221,6 @@ func GetBootstrapData(collegeID, proID string) structs.BootstrapData {
 		go func() {
 			defer wg.Done()
 			proGames = GetProfessionalGamesBySeasonID("", ts.IsPreseason)
-		}()
-		go func() {
-			defer wg.Done()
-			proNews = GetAllPHLNewsLogs()
 		}()
 		go func() {
 			defer wg.Done()
@@ -338,5 +336,41 @@ func GetBootstrapData(collegeID, proID string) structs.BootstrapData {
 		DraftPicks:                draftPicks,
 		CollegePoll:               poll,
 		OfficialPolls:             officialPolls,
+	}
+}
+
+func GetNewsBootstrap(collegeID, proID string) BootstrapDataNews {
+	var wg sync.WaitGroup
+
+	var (
+		collegeNews []structs.NewsLog
+		proNews     []structs.NewsLog
+	)
+
+	if len(collegeID) > 0 && collegeID != "0" {
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			log.Println("Fetching College News Logs...")
+			collegeNews = GetAllCHLNewsLogs()
+			log.Println("Fetched College News Logs, count:", len(collegeNews))
+		}()
+		log.Println("Initiated all College data queries.")
+	}
+
+	if len(proID) > 0 && proID != "0" {
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			proNews = GetAllPHLNewsLogs()
+		}()
+
+	}
+
+	wg.Wait()
+
+	return BootstrapDataNews{
+		CollegeNews: collegeNews,
+		ProNews:     proNews,
 	}
 }
