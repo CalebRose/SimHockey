@@ -64,3 +64,8 @@ func CreateGameplans(w http.ResponseWriter, r *http.Request) {
 	managers.CreateGameplans()
 	json.NewEncoder(w).Encode("Gameplans Created")
 }
+
+func RunAISelectOptimalSystems(w http.ResponseWriter, r *http.Request) {
+	managers.SelectOffensiveAndDefensiveSystemsForAllTeams_Offseason()
+	json.NewEncoder(w).Encode("Gameplans Created")
+}

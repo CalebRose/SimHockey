@@ -622,6 +622,9 @@ type LineStrategy struct {
 
 func (ls *LineStrategy) ReturnPlayerFromPowerPlay(playerID uint) {
 	for _, p := range ls.Players {
+		if p == nil {
+			continue // Skip nil players
+		}
 		if p.ID == playerID {
 			p.ReturnToPlay()
 		}
@@ -639,17 +642,36 @@ func (ls *LineStrategy) InitializeBoostedStamina(isGoalie bool) {
 	}
 	ls.TotalStamina = 0
 	mode := 0.0
+	validPlayerCount := 0
+
 	if isGoalie {
-		ls.CurrentStamina = int(float64(ls.Players[0].CurrentStamina) * staminaBoostFactor)
+		if len(ls.Players) > 0 && ls.Players[0] != nil {
+			ls.CurrentStamina = int(float64(ls.Players[0].CurrentStamina) * staminaBoostFactor)
+		} else {
+			ls.CurrentStamina = int(100.0 * staminaBoostFactor) // Default goalie stamina
+		}
 		return
 	}
+
 	for i := range ls.Players {
+		if ls.Players[i] == nil {
+			continue // Skip nil players
+		}
 		initialStamina := int(float64(ls.Players[i].CurrentStamina) * staminaBoostFactor)
 		mode += float64(initialStamina)
+		validPlayerCount++
 	}
-	avg := mode / float64(len(ls.Players))
-	ls.CurrentStamina = int(avg)
-	ls.TotalStamina = int(avg)
+
+	// Prevent division by zero if all players are nil
+	if validPlayerCount > 0 {
+		avg := mode / float64(validPlayerCount)
+		ls.CurrentStamina = int(avg)
+		ls.TotalStamina = int(avg)
+	} else {
+		// Fallback if no valid players
+		ls.CurrentStamina = int(100.0 * staminaBoostFactor)
+		ls.TotalStamina = int(100.0 * staminaBoostFactor)
+	}
 }
 
 func (ls *LineStrategy) RecoverStaminaOffRink() {
@@ -665,12 +687,18 @@ func (ls *LineStrategy) DecrementStamina() {
 
 func (ls *LineStrategy) HandleTimeOnIce(secondsConsumed int) {
 	for _, p := range ls.Players {
+		if p == nil {
+			continue // Skip nil players (incomplete lineups)
+		}
 		p.Stats.AddTimeOnIce(secondsConsumed, p.IsOut)
 	}
 }
 
 func (ls *LineStrategy) EnableStartedGameStat() {
 	for _, p := range ls.Players {
+		if p == nil {
+			continue // Skip nil players (incomplete lineups)
+		}
 		p.Stats.EnableStartedGame()
 	}
 }

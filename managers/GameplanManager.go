@@ -4,10 +4,12 @@ import (
 	"fmt"
 	"sort"
 	"strconv"
+	"strings"
 
 	"github.com/CalebRose/SimHockey/dbprovider"
 	"github.com/CalebRose/SimHockey/repository"
 	"github.com/CalebRose/SimHockey/structs"
+	"gorm.io/gorm"
 )
 
 func GetCollegeLineupsByTeamID(TeamID string) []structs.CollegeLineup {
@@ -315,14 +317,27 @@ func RunLineupsForAICollegeTeams() {
 
 	for _, t := range teams {
 		gameplan := collegeGameplanMap[t.ID]
-		if gameplan.ID == 0 || !gameplan.IsAI {
-			continue
-		}
+		// if gameplan.ID == 0 || !gameplan.IsAI {
+		// 	continue
+		// }
 		fmt.Println("Iterating over Team: " + t.Abbreviation)
 
 		teamID := strconv.Itoa(int(t.ID))
 
 		roster := GetCollegePlayersByTeamID(teamID)
+
+		// VALIDATE ROSTER BEFORE LINEUP GENERATION (warnings only)
+		rosterComplete := validateCollegeRoster(t, roster)
+
+		// VALIDATE AND FIX LINEUPS (only if roster is reasonably complete)
+		if rosterComplete {
+			if !validateAndFixCollegeLineups(t, roster, db) {
+				fmt.Printf("WARNING: Team %s still has incomplete lineups after attempted fix\n", t.Abbreviation)
+			}
+		} else {
+			fmt.Printf("SKIPPING lineup generation for %s due to incomplete roster\n", t.Abbreviation)
+		}
+
 		lineups := GetCollegeLineupsByTeamID(teamID)
 		// rosterMap := MakeCollegePlayerMap(roster)
 		lineUpCheckMap := make(map[uint]bool)
@@ -352,17 +367,17 @@ func RunLineupsForAICollegeTeams() {
 			}
 		}
 
-		// Sort
+		// Sort with system compatibility weighting
 		sort.Slice(cPlayers, func(i, j int) bool {
-			return GetNonGoalieSortExpression(gameplan.CenterSortPreference1, gameplan.CenterSortPreference2, gameplan.CenterSortPreference3, cPlayers[i].BasePlayer, cPlayers[j].BasePlayer)
+			return GetSystemWeightedSortExpression(gameplan.CenterSortPreference1, gameplan.CenterSortPreference2, gameplan.CenterSortPreference3, cPlayers[i].BasePlayer, cPlayers[j].BasePlayer, gameplan.OffensiveSystem, gameplan.DefensiveSystem, gameplan.OffensiveIntensity, gameplan.DefensiveIntensity, false)
 		})
 
 		sort.Slice(fPlayers, func(i, j int) bool {
-			return GetNonGoalieSortExpression(gameplan.ForwardSortPreference1, gameplan.ForwardSortPreference2, gameplan.ForwardSortPreference3, fPlayers[i].BasePlayer, fPlayers[j].BasePlayer)
+			return GetSystemWeightedSortExpression(gameplan.ForwardSortPreference1, gameplan.ForwardSortPreference2, gameplan.ForwardSortPreference3, fPlayers[i].BasePlayer, fPlayers[j].BasePlayer, gameplan.OffensiveSystem, gameplan.DefensiveSystem, gameplan.OffensiveIntensity, gameplan.DefensiveIntensity, false)
 		})
 
 		sort.Slice(dPlayers, func(i, j int) bool {
-			return GetNonGoalieSortExpression(gameplan.DefenderSortPreference1, gameplan.DefenderSortPreference2, gameplan.DefenderSortPreference3, dPlayers[i].BasePlayer, dPlayers[j].BasePlayer)
+			return GetSystemWeightedSortExpression(gameplan.DefenderSortPreference1, gameplan.DefenderSortPreference2, gameplan.DefenderSortPreference3, dPlayers[i].BasePlayer, dPlayers[j].BasePlayer, gameplan.OffensiveSystem, gameplan.DefensiveSystem, gameplan.OffensiveIntensity, gameplan.DefensiveIntensity, false)
 		})
 
 		sort.Slice(gPlayers, func(i, j int) bool {
@@ -619,6 +634,16 @@ func RunLineupsForAIProTeams() {
 		teamID := strconv.Itoa(int(t.ID))
 
 		roster := GetProPlayersByTeamID(teamID)
+
+		// VALIDATE ROSTER BEFORE LINEUP GENERATION (warnings only)
+		rosterComplete := validateProRoster(t, roster)
+
+		// Note: Pro lineup validation would be similar to college - implement if needed
+		if !rosterComplete {
+			fmt.Printf("SKIPPING lineup generation for %s due to incomplete roster\n", t.Abbreviation)
+			continue // Skip this team if roster is incomplete
+		}
+
 		lineups := GetProLineupsByTeamID(teamID)
 		// rosterMap := MakeCollegePlayerMap(roster)
 		lineUpCheckMap := make(map[uint]bool)
@@ -648,17 +673,17 @@ func RunLineupsForAIProTeams() {
 			}
 		}
 
-		// Sort
+		// Sort with system compatibility weighting
 		sort.Slice(cPlayers, func(i, j int) bool {
-			return GetNonGoalieSortExpression(gameplan.CenterSortPreference1, gameplan.CenterSortPreference2, gameplan.CenterSortPreference3, cPlayers[i].BasePlayer, cPlayers[j].BasePlayer)
+			return GetSystemWeightedSortExpression(gameplan.CenterSortPreference1, gameplan.CenterSortPreference2, gameplan.CenterSortPreference3, cPlayers[i].BasePlayer, cPlayers[j].BasePlayer, gameplan.OffensiveSystem, gameplan.DefensiveSystem, gameplan.OffensiveIntensity, gameplan.DefensiveIntensity, false)
 		})
 
 		sort.Slice(fPlayers, func(i, j int) bool {
-			return GetNonGoalieSortExpression(gameplan.ForwardSortPreference1, gameplan.ForwardSortPreference2, gameplan.ForwardSortPreference3, fPlayers[i].BasePlayer, fPlayers[j].BasePlayer)
+			return GetSystemWeightedSortExpression(gameplan.ForwardSortPreference1, gameplan.ForwardSortPreference2, gameplan.ForwardSortPreference3, fPlayers[i].BasePlayer, fPlayers[j].BasePlayer, gameplan.OffensiveSystem, gameplan.DefensiveSystem, gameplan.OffensiveIntensity, gameplan.DefensiveIntensity, false)
 		})
 
 		sort.Slice(dPlayers, func(i, j int) bool {
-			return GetNonGoalieSortExpression(gameplan.DefenderSortPreference1, gameplan.DefenderSortPreference2, gameplan.DefenderSortPreference3, dPlayers[i].BasePlayer, dPlayers[j].BasePlayer)
+			return GetSystemWeightedSortExpression(gameplan.DefenderSortPreference1, gameplan.DefenderSortPreference2, gameplan.DefenderSortPreference3, dPlayers[i].BasePlayer, dPlayers[j].BasePlayer, gameplan.OffensiveSystem, gameplan.DefensiveSystem, gameplan.OffensiveIntensity, gameplan.DefensiveIntensity, false)
 		})
 
 		sort.Slice(gPlayers, func(i, j int) bool {
@@ -913,10 +938,13 @@ func CreateGameplans() {
 	proGamePlans := []structs.ProGameplan{}
 	collegeGameplans := []structs.CollegeGameplan{}
 
-	chlTeams := repository.FindAllCollegeTeams(repository.TeamClauses{LeagueID: "1"})
-	proTeams := repository.FindAllProTeams(repository.TeamClauses{LeagueID: "1"})
+	chlTeams := repository.FindAllCollegeTeams(repository.TeamClauses{})
+	proTeams := repository.FindAllProTeams(repository.TeamClauses{})
 
 	for _, team := range chlTeams {
+		if team.ID < 73 {
+			continue
+		}
 		gameplan := structs.CollegeGameplan{
 			BaseGameplan: structs.BaseGameplan{
 				TeamID:                  team.ID,
@@ -956,7 +984,7 @@ func CreateGameplans() {
 	}
 
 	repository.CreateCollegeGameplanRecordsBatch(db, collegeGameplans, 50)
-	repository.CreateProfessionalGameplanRecordsBatch(db, proGamePlans, 20)
+	// repository.CreateProfessionalGameplanRecordsBatch(db, proGamePlans, 20)
 }
 
 func SaveCollegeGameplanSettings(updatedGameplan structs.CollegeGameplan) structs.CollegeGameplan {
@@ -1382,8 +1410,8 @@ func SelectOffensiveAndDefensiveSystemsForAllTeams_Offseason() {
 	db := dbprovider.GetInstance().GetDB()
 
 	// Get all teams that need system selection
-	collegeTeams := repository.FindAllCollegeTeams(repository.TeamClauses{LeagueID: "1"})
-	proTeams := repository.FindAllProTeams(repository.TeamClauses{LeagueID: "1"})
+	collegeTeams := repository.FindAllCollegeTeams(repository.TeamClauses{})
+	proTeams := repository.FindAllProTeams(repository.TeamClauses{})
 
 	// Process college teams
 	collegeGameplans := repository.FindCollegeGameplanRecords()
@@ -1451,4 +1479,456 @@ func SelectOffensiveAndDefensiveSystemsForAllTeams_Offseason() {
 			structs.GetDefensiveSystemName(structs.DefensiveSystemType(bestDefensive)),
 			intensity)
 	}
+}
+
+// GetSystemWeightedSortExpression combines traditional sorting with system compatibility weighting
+func GetSystemWeightedSortExpression(pref1, pref2, pref3 uint8, i structs.BasePlayer, j structs.BasePlayer, offensiveSystem, defensiveSystem, offensiveIntensity, defensiveIntensity uint8, isGoalie bool) bool {
+	// Get base sorting scores
+	iBaseScore := calculatePlayerSortScore(pref1, pref2, pref3, i)
+	jBaseScore := calculatePlayerSortScore(pref1, pref2, pref3, j)
+
+	// Calculate system compatibility scores (10% weight)
+	iSystemScore := calculatePlayerSystemCompatibility(i, offensiveSystem, defensiveSystem, offensiveIntensity, defensiveIntensity)
+	jSystemScore := calculatePlayerSystemCompatibility(j, offensiveSystem, defensiveSystem, offensiveIntensity, defensiveIntensity)
+
+	// Apply 10% system weighting to base scores
+	iTotalScore := float64(iBaseScore)*0.9 + float64(iSystemScore)*0.1
+	jTotalScore := float64(jBaseScore)*0.9 + float64(jSystemScore)*0.1
+
+	return iTotalScore > jTotalScore
+}
+
+// calculatePlayerSortScore returns a numeric score based on sorting preferences
+func calculatePlayerSortScore(pref1, pref2, pref3 uint8, player structs.BasePlayer) int {
+	if pref1 == 1 {
+		return int(player.Overall)
+	}
+
+	score1 := getPlayerAttributeByPreference(pref1, player)
+	score2 := getPlayerAttributeByPreference(pref2, player)
+	score3 := getPlayerAttributeByPreference(pref3, player)
+
+	return int(score1 + score2 + score3)
+}
+
+// getPlayerAttributeByPreference returns the attribute value based on preference number
+func getPlayerAttributeByPreference(pref uint8, player structs.BasePlayer) uint8 {
+	switch pref {
+	case 2:
+		return player.CloseShotAccuracy
+	case 3:
+		return player.LongShotAccuracy
+	case 4:
+		return player.Agility
+	case 5:
+		return player.PuckHandling
+	case 6:
+		return player.Strength
+	case 7:
+		return player.BodyChecking
+	case 8:
+		return player.StickChecking
+	case 9:
+		return player.Faceoffs
+	case 10:
+		return player.Passing
+	default:
+		return player.Overall
+	}
+}
+
+// validateCollegeRoster checks if a team has the minimum required players by position
+// Required: 4 centers, 8 forwards, 6 defenders, 2 goalies
+// Returns true if roster is complete, false if missing players
+func validateCollegeRoster(team structs.CollegeTeam, roster []structs.CollegePlayer) bool {
+	// Count current players by position
+	centers := 0
+	forwards := 0
+	defenders := 0
+	goalies := 0
+
+	for _, p := range roster {
+		if p.IsRedshirt || p.IsInjured {
+			continue // Skip unavailable players
+		}
+		switch p.Position {
+		case "C":
+			centers++
+		case "F":
+			forwards++
+		case "D":
+			defenders++
+		case "G":
+			goalies++
+		}
+	}
+
+	fmt.Printf("Team %s current roster: C:%d F:%d D:%d G:%d\n", team.Abbreviation, centers, forwards, defenders, goalies)
+
+	// Check if roster is complete
+	isComplete := centers >= 4 && forwards >= 8 && defenders >= 6 && goalies >= 2
+
+	if isComplete {
+		fmt.Printf("Team %s has complete roster ✓\n", team.Abbreviation)
+		return true
+	}
+
+	// Report what's missing without generating players
+	fmt.Printf("⚠️  Team %s INCOMPLETE ROSTER - Missing: ", team.Abbreviation)
+	missingPieces := []string{}
+	if centers < 4 {
+		missingPieces = append(missingPieces, fmt.Sprintf("%d centers", 4-centers))
+	}
+	if forwards < 8 {
+		missingPieces = append(missingPieces, fmt.Sprintf("%d forwards", 8-forwards))
+	}
+	if defenders < 6 {
+		missingPieces = append(missingPieces, fmt.Sprintf("%d defenders", 6-defenders))
+	}
+	if goalies < 2 {
+		missingPieces = append(missingPieces, fmt.Sprintf("%d goalies", 2-goalies))
+	}
+	fmt.Printf("%s\n", strings.Join(missingPieces, ", "))
+	fmt.Printf("   → Use recruiting/transfer portal to complete roster or generate walk-ons\n")
+	notificationMessage := fmt.Sprintf("⚠️  Team %s INCOMPLETE ROSTER - Missing: ", team.Abbreviation)
+	notificationMessage += strings.Join(missingPieces, ", ")
+	notificationMessage += " → Use recruiting/transfer portal to complete roster or generate walk-ons"
+	CreateNotification("CHL", notificationMessage, "Roster", team.ID)
+	return false
+} // validateProRoster checks if a pro team has the minimum required players by position
+// Required: 4 centers, 8 forwards, 6 defenders, 2 goalies
+// Returns true if roster is complete, false if missing players
+func validateProRoster(team structs.ProfessionalTeam, roster []structs.ProfessionalPlayer) bool {
+	// Count current players by position
+	centers := 0
+	forwards := 0
+	defenders := 0
+	goalies := 0
+
+	for _, p := range roster {
+		if p.IsInjured {
+			continue // Skip unavailable players
+		}
+		switch p.Position {
+		case "C":
+			centers++
+		case "F":
+			forwards++
+		case "D":
+			defenders++
+		case "G":
+			goalies++
+		}
+	}
+
+	fmt.Printf("Team %s current roster: C:%d F:%d D:%d G:%d\n", team.Abbreviation, centers, forwards, defenders, goalies)
+
+	// Check if roster is complete
+	isComplete := centers >= 4 && forwards >= 8 && defenders >= 6 && goalies >= 2
+
+	if isComplete {
+		fmt.Printf("Team %s has complete roster ✓\n", team.Abbreviation)
+		return true
+	}
+
+	// Report what's missing without generating players
+	fmt.Printf("⚠️  Team %s INCOMPLETE ROSTER - Missing: ", team.Abbreviation)
+	missingPieces := []string{}
+	if centers < 4 {
+		missingPieces = append(missingPieces, fmt.Sprintf("%d centers", 4-centers))
+	}
+	if forwards < 8 {
+		missingPieces = append(missingPieces, fmt.Sprintf("%d forwards", 8-forwards))
+	}
+	if defenders < 6 {
+		missingPieces = append(missingPieces, fmt.Sprintf("%d defenders", 6-defenders))
+	}
+	if goalies < 2 {
+		missingPieces = append(missingPieces, fmt.Sprintf("%d goalies", 2-goalies))
+	}
+	fmt.Printf("%s\n", strings.Join(missingPieces, ", "))
+	fmt.Printf("   → Use free agency/trades to complete roster or generate walk-ons\n")
+	notificationMessage := fmt.Sprintf("⚠️  Team %s INCOMPLETE ROSTER - Missing: ", team.Abbreviation)
+	notificationMessage += strings.Join(missingPieces, ", ")
+	notificationMessage += " → Use recruiting/transfer portal to complete roster."
+	CreateNotification("PHL", notificationMessage, "Roster", team.ID)
+	return false
+}
+
+// validateAndFixLineups ensures a team has complete lineups (4 forward lines, 3 defender lines, 2 goalie lines)
+func validateAndFixCollegeLineups(team structs.CollegeTeam, roster []structs.CollegePlayer, db *gorm.DB) bool {
+	teamID := strconv.Itoa(int(team.ID))
+	existingLineups := GetCollegeLineupsByTeamID(teamID)
+
+	// Count existing lineups by type
+	forwardLines := 0
+	defenderLines := 0
+	goalieLines := 0
+
+	for _, lineup := range existingLineups {
+		switch lineup.LineType {
+		case 1: // Forward lines
+			forwardLines++
+		case 2: // Defender lines
+			defenderLines++
+		case 3: // Goalie lines
+			goalieLines++
+		}
+	}
+
+	fmt.Printf("Team %s existing lineups: Forward:%d/4 Defender:%d/3 Goalie:%d/2\n",
+		team.Abbreviation, forwardLines, defenderLines, goalieLines)
+
+	// Check if lineups are complete
+	lineupsComplete := forwardLines >= 4 && defenderLines >= 3 && goalieLines >= 2
+
+	if lineupsComplete {
+		fmt.Printf("Team %s has complete lineups ✓\n", team.Abbreviation)
+		return true
+	}
+
+	// Regenerating complete lineups (existing ones will be overwritten)
+	fmt.Printf("Regenerating complete lineups for team %s\n", team.Abbreviation)
+
+	// Sort players by position for lineup creation
+	centers := []structs.CollegePlayer{}
+	forwards := []structs.CollegePlayer{}
+	defenders := []structs.CollegePlayer{}
+	goalies := []structs.CollegePlayer{}
+
+	for _, p := range roster {
+		if p.IsRedshirt || p.IsInjured {
+			continue
+		}
+		switch p.Position {
+		case "C":
+			centers = append(centers, p)
+		case "F":
+			forwards = append(forwards, p)
+		case "D":
+			defenders = append(defenders, p)
+		case "G":
+			goalies = append(goalies, p)
+		}
+	}
+
+	// Sort by overall rating (best players first)
+	sort.Slice(centers, func(i, j int) bool { return centers[i].Overall > centers[j].Overall })
+	sort.Slice(forwards, func(i, j int) bool { return forwards[i].Overall > forwards[j].Overall })
+	sort.Slice(defenders, func(i, j int) bool { return defenders[i].Overall > defenders[j].Overall })
+	sort.Slice(goalies, func(i, j int) bool { return goalies[i].Overall > goalies[j].Overall })
+
+	// Create 4 forward lines (C + 2F each)
+	for line := 0; line < 4 && line < len(centers); line++ {
+		f1Idx := min(line*2, len(forwards)-1)
+		f2Idx := min(line*2+1, len(forwards)-1)
+
+		if f1Idx < len(forwards) && f2Idx < len(forwards) {
+			lineup := createCollegeForwardLineup(team.ID, line+1, centers[line], forwards[f1Idx], forwards[f2Idx])
+			repository.SaveCollegeLineupRecord(lineup, db)
+		}
+	}
+
+	// Create 3 defender lines (2D each)
+	for line := 0; line < 3 && line*2+1 < len(defenders); line++ {
+		d1Idx := line * 2
+		d2Idx := line*2 + 1
+
+		if d1Idx < len(defenders) && d2Idx < len(defenders) {
+			lineup := createCollegeDefenderLineup(team.ID, line+1, defenders[d1Idx], defenders[d2Idx])
+			repository.SaveCollegeLineupRecord(lineup, db)
+		}
+	}
+
+	// Create 2 goalie lines
+	for line := 0; line < 2 && line < len(goalies); line++ {
+		lineup := createCollegeGoalieLineup(team.ID, line+1, goalies[line])
+		repository.SaveCollegeLineupRecord(lineup, db)
+	}
+
+	return true
+}
+
+// Helper functions to create lineup structs
+func createCollegeForwardLineup(teamID uint, lineNum int, center, f1, f2 structs.CollegePlayer) structs.CollegeLineup {
+	return structs.CollegeLineup{
+		BaseLineup: structs.BaseLineup{
+			TeamID:   teamID,
+			Line:     uint8(lineNum),
+			LineType: 1, // Forward line
+			LineupPlayerIDs: structs.LineupPlayerIDs{
+				CenterID:   center.ID,
+				Forward1ID: f1.ID,
+				Forward2ID: f2.ID,
+			},
+			Allocations: getDefaultForwardAllocations(),
+		},
+	}
+}
+
+func createCollegeDefenderLineup(teamID uint, lineNum int, d1, d2 structs.CollegePlayer) structs.CollegeLineup {
+	return structs.CollegeLineup{
+		BaseLineup: structs.BaseLineup{
+			TeamID:   teamID,
+			Line:     uint8(lineNum),
+			LineType: 2, // Defender line
+			LineupPlayerIDs: structs.LineupPlayerIDs{
+				Defender1ID: d1.ID,
+				Defender2ID: d2.ID,
+			},
+			Allocations: getDefaultDefenderAllocations(),
+		},
+	}
+}
+
+func createCollegeGoalieLineup(teamID uint, lineNum int, goalie structs.CollegePlayer) structs.CollegeLineup {
+	return structs.CollegeLineup{
+		BaseLineup: structs.BaseLineup{
+			TeamID:   teamID,
+			Line:     uint8(lineNum),
+			LineType: 3, // Goalie line
+			LineupPlayerIDs: structs.LineupPlayerIDs{
+				GoalieID: goalie.ID,
+			},
+			Allocations: getDefaultGoalieAllocations(),
+		},
+	}
+}
+
+// Default allocation functions
+func getDefaultForwardAllocations() structs.Allocations {
+	return structs.Allocations{
+		AGZShot:       15,
+		AGZPass:       15,
+		AGZPassBack:   5,
+		AGZAgility:    15,
+		AGZStickCheck: 10,
+		AGZBodyCheck:  10,
+		AZShot:        15,
+		AZPass:        15,
+		AZLongPass:    10,
+		AZAgility:     15,
+		AZStickCheck:  10,
+		AZBodyCheck:   10,
+		NPass:         15,
+		NAgility:      15,
+		NStickCheck:   10,
+		NBodyCheck:    10,
+		DZPass:        15,
+		DZPassBack:    5,
+		DZAgility:     15,
+		DZStickCheck:  10,
+		DZBodyCheck:   10,
+		DGZPass:       15,
+		DGZLongPass:   10,
+		DGZAgility:    15,
+		DGZStickCheck: 10,
+		DGZBodyCheck:  10,
+	}
+}
+
+func getDefaultDefenderAllocations() structs.Allocations {
+	return structs.Allocations{
+		AGZShot:       5,
+		AGZPass:       15,
+		AGZPassBack:   10,
+		AGZAgility:    15,
+		AGZStickCheck: 15,
+		AGZBodyCheck:  15,
+		AZShot:        10,
+		AZPass:        15,
+		AZLongPass:    15,
+		AZAgility:     10,
+		AZStickCheck:  15,
+		AZBodyCheck:   15,
+		NPass:         15,
+		NAgility:      15,
+		NStickCheck:   15,
+		NBodyCheck:    15,
+		DZPass:        15,
+		DZPassBack:    10,
+		DZAgility:     15,
+		DZStickCheck:  15,
+		DZBodyCheck:   15,
+		DGZPass:       15,
+		DGZLongPass:   15,
+		DGZAgility:    15,
+		DGZStickCheck: 15,
+		DGZBodyCheck:  15,
+	}
+}
+
+func getDefaultGoalieAllocations() structs.Allocations {
+	// Goalies use different allocations focused on positioning and saves
+	return structs.Allocations{
+		AGZShot:       0,
+		AGZPass:       5,
+		AGZPassBack:   10,
+		AGZAgility:    20,
+		AGZStickCheck: 5,
+		AGZBodyCheck:  0,
+		AZShot:        0,
+		AZPass:        10,
+		AZLongPass:    15,
+		AZAgility:     15,
+		AZStickCheck:  5,
+		AZBodyCheck:   0,
+		NPass:         10,
+		NAgility:      20,
+		NStickCheck:   5,
+		NBodyCheck:    0,
+		DZPass:        15,
+		DZPassBack:    15,
+		DZAgility:     20,
+		DZStickCheck:  10,
+		DZBodyCheck:   5,
+		DGZPass:       20,
+		DGZLongPass:   20,
+		DGZAgility:    25,
+		DGZStickCheck: 15,
+		DGZBodyCheck:  10,
+	}
+}
+
+// min helper function for integer comparison
+func min(a, b int) int {
+	if a < b {
+		return a
+	}
+	return b
+}
+
+// calculatePlayerSystemCompatibility evaluates how well a player fits the team's systems
+func calculatePlayerSystemCompatibility(player structs.BasePlayer, offensiveSystem, defensiveSystem, offensiveIntensity, defensiveIntensity uint8) int {
+	// Get system modifiers for both offensive and defensive systems
+	offensiveMods := structs.GetOffensiveSystemModifiers(structs.OffensiveSystemType(offensiveSystem), offensiveIntensity)
+	defensiveMods := structs.GetDefensiveSystemModifiers(structs.DefensiveSystemType(defensiveSystem), defensiveIntensity)
+
+	offensiveScore := 0
+	defensiveScore := 0
+
+	// Calculate offensive system fit
+	if weight, exists := offensiveMods.ArchetypeWeights[player.Archetype]; exists {
+		offensiveScore = int(weight)
+	}
+
+	// Calculate defensive system fit
+	if weight, exists := defensiveMods.ArchetypeWeights[player.Archetype]; exists {
+		defensiveScore = int(weight)
+	}
+
+	// Combine scores (average of offensive and defensive fit)
+	totalScore := (offensiveScore + defensiveScore) / 2
+
+	// Scale the score to be comparable to player attributes (0-100 range)
+	// System weights are typically in range of -20 to +20, so we normalize and scale
+	normalizedScore := (totalScore + 20) * 2 // Converts -20,+20 range to 0,80 range
+
+	if normalizedScore < 0 {
+		normalizedScore = 0
+	} else if normalizedScore > 100 {
+		normalizedScore = 100
+	}
+
+	return normalizedScore
 }

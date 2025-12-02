@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"log"
 	"math/rand"
+	"os"
+	"runtime"
 	"sort"
 	"strconv"
 	"sync"
@@ -32,9 +34,12 @@ func RunGames() {
 	weekID := strconv.Itoa(int(ts.WeekID))
 	seasonID := strconv.Itoa(int(ts.SeasonID))
 	gameDay := ts.GetGameDay()
+	if ts.IsTesting {
+		// Generate and run random college games for testing without database operations
+		generateAndRunTestGames(ts)
+		return
+	}
 	collegeGames := GetCollegeGamesForCurrentMatchup(weekID, seasonID, gameDay, ts.IsPreseason)
-	// collegeGames := []structs.CollegeGame{}
-	// proGames := []structs.ProfessionalGame{}
 	proGames := GetProfessionalGamesForCurrentMatchup(weekID, seasonID, gameDay, ts.IsPreseason)
 
 	collegeStandingsMap := GetCollegeStandingsMap(seasonID)
@@ -85,7 +90,11 @@ func RunGames() {
 			repository.SaveProfessionalGameRecord(game, db)
 		}
 	}
-	upload.Flush(db)
+	if !ts.IsTesting {
+		upload.Flush(db)
+	} else {
+
+	}
 }
 
 func NewStatsUpload() *StatsUpload {
@@ -391,19 +400,130 @@ func PrepareGames(collegeGames []structs.CollegeGame, proGames []structs.Profess
 		go func(c structs.CollegeGame) {
 			defer func() { <-sem }()
 			defer collegeGamesWg.Done()
+
+			// Enhanced panic recovery with detailed error reporting
+			defer func() {
+				if r := recover(); r != nil {
+					fmt.Printf("PANIC in PrepareGames goroutine for game %s vs %s (IDs: %d vs %d):\n",
+						c.HomeTeam, c.AwayTeam, c.HomeTeamID, c.AwayTeamID)
+					fmt.Printf("Error: %v\n", r)
+
+					// Check what data exists for debugging
+					fmt.Printf("Debug info:\n")
+					fmt.Printf("  - Home team roster exists: %t (length: %d)\n",
+						collegeTeamRosterMap[c.HomeTeamID] != nil, len(collegeTeamRosterMap[c.HomeTeamID]))
+					fmt.Printf("  - Away team roster exists: %t (length: %d)\n",
+						collegeTeamRosterMap[c.AwayTeamID] != nil, len(collegeTeamRosterMap[c.AwayTeamID]))
+					fmt.Printf("  - Home team lineups exist: %t (length: %d)\n",
+						collegeLineupMap[c.HomeTeamID] != nil, len(collegeLineupMap[c.HomeTeamID]))
+					fmt.Printf("  - Away team lineups exist: %t (length: %d)\n",
+						collegeLineupMap[c.AwayTeamID] != nil, len(collegeLineupMap[c.AwayTeamID]))
+					fmt.Printf("  - Home shootout lineup exists: %t\n",
+						collegeShootoutLineupMap[c.HomeTeamID].TeamID != 0)
+					fmt.Printf("  - Away shootout lineup exists: %t\n",
+						collegeShootoutLineupMap[c.AwayTeamID].TeamID != 0)
+					fmt.Printf("  - Arena exists: %t (ArenaID: %d)\n",
+						arenaMap[c.ArenaID].ID != 0, c.ArenaID)
+					fmt.Printf("  - Home team standings exist: %t\n",
+						collegeStandingsMap[c.HomeTeamID].TeamID != 0)
+				}
+			}()
+
 			if c.GameComplete {
 				return
 			}
+
 			mutex.Lock()
+
+			// Step-by-step data retrieval with nil checks and detailed logging
+			fmt.Printf("Processing game: %s vs %s\n", c.HomeTeam, c.AwayTeam)
+
+			// Check home team roster
 			htr := collegeTeamRosterMap[c.HomeTeamID]
+			if htr == nil {
+				fmt.Printf("ERROR: No roster found for home team %s (ID: %d)\n", c.HomeTeam, c.HomeTeamID)
+				mutex.Unlock()
+				return
+			}
+
+			// Check away team roster
 			atr := collegeTeamRosterMap[c.AwayTeamID]
+			if atr == nil {
+				fmt.Printf("ERROR: No roster found for away team %s (ID: %d)\n", c.AwayTeam, c.AwayTeamID)
+				mutex.Unlock()
+				return
+			}
+
+			// Check home team lineups
 			htl := collegeLineupMap[c.HomeTeamID]
+			if htl == nil {
+				fmt.Printf("ERROR: No lineups found for home team %s (ID: %d)\n", c.HomeTeam, c.HomeTeamID)
+				mutex.Unlock()
+				return
+			}
+
+			// Check away team lineups
 			atl := collegeLineupMap[c.AwayTeamID]
+			if atl == nil {
+				fmt.Printf("ERROR: No lineups found for away team %s (ID: %d)\n", c.AwayTeam, c.AwayTeamID)
+				mutex.Unlock()
+				return
+			}
+
+			// Check shootout lineups
 			htsl := collegeShootoutLineupMap[c.HomeTeamID]
+			if htsl.TeamID == 0 {
+				fmt.Printf("ERROR: No shootout lineup found for home team %s (ID: %d)\n", c.HomeTeam, c.HomeTeamID)
+				mutex.Unlock()
+				return
+			}
+
 			atsl := collegeShootoutLineupMap[c.AwayTeamID]
-			hp := getCollegePlaybookDTO(htl, htr, htsl)
-			ap := getCollegePlaybookDTO(atl, atr, atsl)
+			if atsl.TeamID == 0 {
+				fmt.Printf("ERROR: No shootout lineup found for away team %s (ID: %d)\n", c.AwayTeam, c.AwayTeamID)
+				mutex.Unlock()
+				return
+			}
+
+			// Check arena
 			arena := arenaMap[c.ArenaID]
+			if arena.ID == 0 {
+				fmt.Printf("ERROR: No arena found for ArenaID: %d\n", c.ArenaID)
+				mutex.Unlock()
+				return
+			}
+
+			// Generate playbooks with error checking
+			fmt.Printf("Generating playbooks for %s vs %s...\n", c.HomeTeam, c.AwayTeam)
+
+			var hp, ap structs.PlayBookDTO
+
+			// Generate home playbook with error handling
+			func() {
+				defer func() {
+					if r := recover(); r != nil {
+						fmt.Printf("PANIC generating home playbook for %s: %v\n", c.HomeTeam, r)
+						fmt.Printf("  Home lineups count: %d\n", len(htl))
+						fmt.Printf("  Home roster count: %d\n", len(htr))
+						panic(r) // Re-panic to be caught by outer handler
+					}
+				}()
+				hp = getCollegePlaybookDTO(htl, htr, htsl)
+			}()
+
+			// Generate away playbook with error handling
+			func() {
+				defer func() {
+					if r := recover(); r != nil {
+						fmt.Printf("PANIC generating away playbook for %s: %v\n", c.AwayTeam, r)
+						fmt.Printf("  Away lineups count: %d\n", len(atl))
+						fmt.Printf("  Away roster count: %d\n", len(atr))
+						panic(r) // Re-panic to be caught by outer handler
+					}
+				}()
+				ap = getCollegePlaybookDTO(atl, atr, atsl)
+			}()
+
 			capacity := arena.Capacity
 			currentStandings := collegeStandingsMap[c.HomeTeamID]
 			attendancePercent := getAttendancePercent(int(currentStandings.TotalWins)+int(currentStandings.TotalOTWins), int(currentStandings.TotalLosses))
@@ -1652,6 +1772,268 @@ func getAttendancePercent(wins, losses int) float64 {
 }
 
 // TopN returns the top n standings (or fewer if not enough teams).
+func CreateTestResultsDirectory() error {
+	// Create test_results directory if it doesn't exist
+	if _, err := os.Stat("test_results"); os.IsNotExist(err) {
+		err := os.Mkdir("test_results", 0755)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func generateAndRunTestGames(ts structs.Timestamp) {
+	fmt.Println("Generating random test games...")
+
+	// Get all college teams for random matchups
+	allTeams := GetAllCollegeTeams()
+	if len(allTeams) < 2 {
+		fmt.Println("Not enough teams to generate test games")
+		return
+	}
+
+	teamMap := GetCollegeTeamMap()
+
+	// Generate random games (between 5-15 games)
+	numGames := 5 + rand.Intn(11) // Random number between 5-15
+	testGames := make([]structs.CollegeGame, 0, numGames)
+
+	for i := 0; i < numGames; i++ {
+		// Pick two random teams
+		homeIdx := rand.Intn(len(allTeams))
+		awayIdx := rand.Intn(len(allTeams))
+
+		// Ensure home and away teams are different
+		for awayIdx == homeIdx {
+			awayIdx = rand.Intn(len(allTeams))
+		}
+
+		homeTeam := allTeams[homeIdx]
+		awayTeam := allTeams[awayIdx]
+
+		// Generate a test game
+		game := generateCollegeGame(
+			ts.SeasonID,
+			ts.WeekID,
+			ts.Week,
+			homeTeam.ID,
+			awayTeam.ID,
+			ts.GetGameDay(),
+			fmt.Sprintf("Test Game %d", i+1),
+			teamMap,
+			ts.IsPreseason,
+		)
+
+		testGames = append(testGames, game)
+	}
+
+	fmt.Printf("Generated %d test games\n", len(testGames))
+
+	// Run the games without database operations
+	runTestGamesOnly(testGames, ts)
+}
+
+// runTestGamesOnly runs games in testing mode with comprehensive error handling and debugging.
+// Features enhanced crash debugging to identify nil pointer dereference locations:
+//   - Detailed panic recovery in PrepareGames goroutines with step-by-step validation
+//   - Comprehensive data validation for rosters, lineups, and arena data
+//   - Stack trace capture for critical errors
+//   - Safe game execution with isolated error handling
+//   - CSV export only (no database operations)
+//
+// This function helps identify "where the invalid memory address occurred" by:
+//  1. Adding panic recovery at every critical function call
+//  2. Validating data availability before use
+//  3. Providing detailed error messages with context
+//  4. Capturing full stack traces for crashes
+func runTestGamesOnly(collegeGames []structs.CollegeGame, ts structs.Timestamp) {
+	fmt.Println("Running test games (CSV export only)...")
+
+	// Ensure test_results directory exists
+	err := CreateTestResultsDirectory()
+	if err != nil {
+		fmt.Printf("Warning: Could not create test_results directory: %v\n", err)
+	}
+
+	// For testing mode, we need to check if we have the required data or create minimal fallbacks
+	if !hasRequiredTestData() {
+		fmt.Println("Warning: Missing required game data for testing. Creating minimal test games...")
+		gameDTOs := createMinimalTestGameDTOs(collegeGames, ts)
+		runMinimalTestGames(gameDTOs, ts)
+		return
+	}
+
+	// Create empty standings maps for testing
+	collegeStandingsMap := make(map[uint]structs.CollegeStandings)
+	proStandingsMap := make(map[uint]structs.ProfessionalStandings)
+
+	// Add default standings for all teams in the games to prevent nil pointer issues
+	for _, game := range collegeGames {
+		if _, exists := collegeStandingsMap[game.HomeTeamID]; !exists {
+			collegeStandingsMap[game.HomeTeamID] = structs.CollegeStandings{
+				BaseStandings: structs.BaseStandings{
+					TeamID:      game.HomeTeamID,
+					TotalWins:   5, // Default values for attendance calculation
+					TotalOTWins: 2,
+					TotalLosses: 3,
+				},
+			}
+		}
+		if _, exists := collegeStandingsMap[game.AwayTeamID]; !exists {
+			collegeStandingsMap[game.AwayTeamID] = structs.CollegeStandings{
+				BaseStandings: structs.BaseStandings{
+					TeamID:      game.AwayTeamID,
+					TotalWins:   5,
+					TotalOTWins: 2,
+					TotalLosses: 3,
+				},
+			}
+		}
+	}
+
+	// Prepare games (no pro games for testing)
+	proGames := []structs.ProfessionalGame{}
+
+	// Try to prepare games with enhanced error handling
+	var gameDTOs []structs.GameDTO
+
+	func() {
+		defer func() {
+			if r := recover(); r != nil {
+				fmt.Printf("FATAL ERROR preparing test games: %v\n", r)
+				fmt.Println("This indicates critical missing data. Check:")
+				fmt.Println("  1. All teams in the games have players in the database")
+				fmt.Println("  2. All teams have lineups configured (forward, defender, goalie lines)")
+				fmt.Println("  3. All teams have shootout lineups set")
+				fmt.Println("  4. All games reference valid arena IDs")
+				fmt.Println("")
+				fmt.Println("Game preparation failed. No games will be run.")
+				gameDTOs = []structs.GameDTO{} // Return empty slice on error
+			}
+		}()
+
+		fmt.Printf("Preparing %d games for testing...\n", len(collegeGames))
+		gameDTOs = PrepareGames(collegeGames, proGames, collegeStandingsMap, proStandingsMap)
+		fmt.Printf("Successfully prepared %d games.\n", len(gameDTOs))
+	}()
+
+	// Exit early if game preparation failed
+	if len(gameDTOs) == 0 {
+		fmt.Println("No games to run due to preparation errors.")
+		return
+	} // RUN THE GAMES with enhanced error handling!
+	var results []engine.GameState
+
+	func() {
+		defer func() {
+			if r := recover(); r != nil {
+				fmt.Printf("CRITICAL ERROR during game execution: %v\n", r)
+				fmt.Println("This indicates a fundamental problem with the game engine or data.")
+				fmt.Printf("Successfully prepared %d games, but execution failed.\n", len(gameDTOs))
+				fmt.Println("\nStack trace:")
+				fmt.Println(getStackTrace())
+
+				// Show which games were prepared successfully
+				fmt.Println("\nPrepared games:")
+				for i, game := range gameDTOs {
+					homeValid := game.HomeStrategy.CollegeRoster != nil && len(game.HomeStrategy.Forwards) > 0
+					awayValid := game.AwayStrategy.CollegeRoster != nil && len(game.AwayStrategy.Forwards) > 0
+					fmt.Printf("  %d. %s vs %s (Home valid: %t, Away valid: %t)\n",
+						i+1,
+						game.GameInfo.HomeTeam,
+						game.GameInfo.AwayTeam,
+						homeValid,
+						awayValid)
+				}
+				results = []engine.GameState{} // Ensure empty results on crash
+			}
+		}()
+
+		fmt.Printf("Executing %d prepared games...\n", len(gameDTOs))
+		results = engine.RunGames(gameDTOs)
+		fmt.Printf("Successfully completed %d games.\n", len(results))
+	}()
+
+	// Exit if no results (due to crash or other error)
+	if len(results) == 0 {
+		fmt.Println("No game results to export.")
+		return
+	}
+
+	// Export results to CSV only (no database operations)
+	allPlayers := GetAllCollegePlayers()
+	collegePlayerMap := MakeCollegePlayerMap(allPlayers)
+	collegeTeamMap := GetCollegeTeamMap()
+
+	for i, r := range results {
+		// Generate unique filenames for each game
+		filename := fmt.Sprintf("test_results/game_%d_%s_vs_%s", i+1, r.HomeTeam, r.AwayTeam)
+
+		// Write box score CSV
+		boxScoreFilename := filename + "_box_score.csv"
+		err := WriteBoxScoreFile(r, boxScoreFilename)
+		if err != nil {
+			fmt.Printf("Error writing box score file: %v\n", err)
+		}
+
+		// Write play-by-play CSV
+		pbpFilename := filename + "_play_by_play.csv"
+		err = WritePlayByPlayCSVFile(r.Collector.PlayByPlays, pbpFilename, collegePlayerMap, collegeTeamMap)
+		if err != nil {
+			fmt.Printf("Error writing play-by-play file: %v\n", err)
+		}
+	}
+
+	fmt.Printf("Completed %d test games and exported to CSV files\n", len(results))
+}
+
+// hasRequiredTestData checks if the necessary data exists for full game testing
+func hasRequiredTestData() bool {
+	// Check if we have college players and lineups in the system
+	allPlayers := GetAllCollegePlayers()
+	if len(allPlayers) == 0 {
+		return false
+	}
+
+	lineupMap := GetCollegeLineupsMap()
+	if len(lineupMap) == 0 {
+		return false
+	}
+
+	return true
+}
+
+// createMinimalTestGameDTOs provides a fallback when full data isn't available
+func createMinimalTestGameDTOs(collegeGames []structs.CollegeGame, ts structs.Timestamp) []structs.GameDTO {
+	fmt.Println("ERROR: Cannot run test games without database setup.")
+	fmt.Println("Testing mode requires:")
+	fmt.Println("  1. College teams with players in the database")
+	fmt.Println("  2. Team lineups configured")
+	fmt.Println("  3. Shootout lineups set up")
+	fmt.Println("")
+	fmt.Println("To set up testing environment:")
+	fmt.Println("  1. Initialize the database with teams and players")
+	fmt.Println("  2. Run lineup generation: RunLineupsForAICollegeTeams()")
+	fmt.Println("  3. Ensure all teams have complete rosters and lineups")
+	fmt.Println("")
+	fmt.Println("Alternatively, use IsTesting=false to test with existing game data.")
+	return []structs.GameDTO{}
+}
+
+// runMinimalTestGames provides error information when testing can't proceed
+func runMinimalTestGames(gameDTOs []structs.GameDTO, ts structs.Timestamp) {
+	fmt.Println("Test games cannot be run due to missing database setup.")
+	fmt.Println("Please initialize the application with proper team and player data first.")
+}
+
+// getStackTrace captures and formats the current stack trace for debugging
+func getStackTrace() string {
+	buf := make([]byte, 1<<16)
+	stackSize := runtime.Stack(buf, false)
+	return string(buf[:stackSize])
+}
+
 func TopN(ss []*structs.CollegeStandings, n int) []*structs.CollegeStandings {
 	if len(ss) < n {
 		n = len(ss)

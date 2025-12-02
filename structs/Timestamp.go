@@ -42,6 +42,7 @@ type Timestamp struct {
 	PreseasonPhase                uint
 	IsPreseason                   bool
 	SeasonPhase                   uint
+	IsTesting                     bool
 }
 
 func (t *Timestamp) GetGameDay() string {
