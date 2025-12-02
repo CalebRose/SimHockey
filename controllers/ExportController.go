@@ -88,3 +88,8 @@ func ExportPortalPlayersToCSV(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "text/csv")
 	managers.ExportTransferPortalToCSV(w)
 }
+
+func ExportDraftablePlayersToCSV(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "text/csv")
+	managers.ExportDraftablePlayersToCSV(w)
+}
