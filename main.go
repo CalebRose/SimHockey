@@ -117,6 +117,7 @@ func handleRequests() http.Handler {
 	apiRouter.HandleFunc("/export/college/players/all", controllers.ExportAllCollegePlayers).Methods("GET")
 	apiRouter.HandleFunc("/export/college/recruits/all", controllers.ExportCHLRecruits).Methods("GET")
 	apiRouter.HandleFunc("/export/college/roster/{teamID}", controllers.ExportCollegeRoster).Methods("GET")
+	apiRouter.HandleFunc("/export/draftable/players", controllers.ExportDraftablePlayersToCSV).Methods("GET")
 	apiRouter.HandleFunc("/export/pro/roster/{teamID}", controllers.ExportProRoster).Methods("GET")
 	apiRouter.HandleFunc("/export/stats/chl/{seasonID}/{weekID}/{viewType}/{gameType}", controllers.ExportCHLStatsPageContentForSeason).Methods("GET")
 	apiRouter.HandleFunc("/export/stats/phl/{seasonID}/{weekID}/{viewType}/{gameType}", controllers.ExportProStatsPageContent).Methods("GET")

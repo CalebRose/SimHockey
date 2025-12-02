@@ -127,11 +127,19 @@ func CreateFAOffer(offer structs.FreeAgencyOfferDTO) structs.FreeAgencyOffer {
 		fmt.Println("Creating offer!")
 	}
 
-	if player.IsAffiliatePlayer && int(player.TeamID) != int(offer.TeamID) {
+	if int(player.TeamID) != int(offer.TeamID) {
+		proTeam := repository.FindProTeamRecord(strconv.Itoa(int(offer.TeamID)))
 		// Notify team
-		notificationMessage := offer.Team + " have placed an offer on " + player.Position + " " + player.FirstName + " " + player.LastName + " to pick up from the practice squad."
-		CreateNotification("PHL", notificationMessage, "Affiliate Player Offer", uint(player.TeamID))
-		message := offer.Team + " have placed an offer on " + player.Team + " " + player.Position + " " + player.FirstName + " " + player.LastName + " to pick up from the practice squad."
+		if player.IsAffiliatePlayer {
+			notificationMessage := proTeam.TeamName + " have placed an offer on " + player.Position + " " + player.FirstName + " " + player.LastName + " to pick up from the practice squad."
+			CreateNotification("PHL", notificationMessage, "Affiliate Player Offer", uint(player.TeamID))
+		}
+		message := proTeam.TeamName + " have placed an offer on " + player.Team + " " + player.Position + " " + player.FirstName + " " + player.LastName
+		if player.IsAffiliatePlayer {
+			message += " to pick up from the practice squad."
+		} else {
+			message += "."
+		}
 		CreateNewsLog("PHL", message, "Free Agency", int(player.TeamID), ts, true)
 	}
 

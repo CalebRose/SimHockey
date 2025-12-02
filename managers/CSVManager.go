@@ -1627,3 +1627,86 @@ func ExportTransferPortalToCSV(w http.ResponseWriter) {
 		}
 	}
 }
+
+func ExportDraftablePlayersToCSV(w http.ResponseWriter) {
+	// Get Team Data
+	w.Header().Set("Content-Disposition", "attachment;filename=Official_Draft_List.csv")
+	w.Header().Set("Transfer-Encoding", "chunked")
+	// Initialize writer
+	writer := csv.NewWriter(w)
+	ts := GetTimestamp()
+	previousSeasonID := strconv.Itoa(int(ts.SeasonID) - 1)
+	stats := SearchCollegeStats(previousSeasonID, "", "SEASON", "2")
+	statMap := MakeCollegePlayerSeasonStatMap(stats.CHLPlayerSeasonStats)
+
+	// Get Players
+	players := repository.FindAllCollegePlayers(repository.PlayerQuery{})
+	graduatedPlayers := repository.FindAllDraftablePlayers(repository.PlayerQuery{})
+	draftablePlayers := []structs.DraftablePlayer{}
+
+	eligibleCollegePlayers := MakeDraftablePlayerList(players)
+	graduatedPlayersWithLetterGrades := MakeDraftablePlayerListWithGrades(graduatedPlayers)
+
+	draftablePlayers = append(draftablePlayers, eligibleCollegePlayers...)
+	draftablePlayers = append(draftablePlayers, graduatedPlayersWithLetterGrades...)
+
+	HeaderRow := []string{
+		"College", "ID", "First Name", "Last Name", "Position",
+		"Archetype", "Height", "Weight",
+		"City", "Region", "Country", "Stars", "Age",
+		"Overall", util.Agility, util.Faceoffs, util.LongShotAccuracy, util.LongShotPower, util.CloseShotAccuracy,
+		util.CloseShotPower, util.Passing, util.PuckHandling, util.Strength, util.BodyChecking, util.StickChecking,
+		util.ShotBlocking, util.Goalkeeping, util.GoalieVision, "Stamina", "Injury Rating",
+		"Goals", "Assists", "Points", "+/-",
+		"Penalty Minutes", "Even Strength Goals", "Even Strength Points", "Power Play Goals",
+		"Power Play Points", "Shorthanded Goals", "Shorthanded Points", "Overtime Goals",
+		"Game Winning Goals", "Shots", "Shooting Percentage", "Time One Ice",
+		"Faceoff Win Percentage", "Faceoffs Won", "Faceoffs", "Goalie Wins",
+		"Goalie Losses", "Goalie Ties", "OT Losses", "Shots Against",
+		"Saves", "Goals Against", "Save Percentage", "Shutouts",
+		"Shots Blocked", "Body Checks", "Stick Checks",
+	}
+
+	err := writer.Write(HeaderRow)
+	if err != nil {
+		log.Fatal("Cannot write header row", err)
+	}
+
+	for _, p := range draftablePlayers {
+		idStr := strconv.Itoa(int(p.ID))
+		stat := statMap[p.ID]
+		timeOnIce := FormatTimeToClock(uint16(stat.TimeOnIce))
+		team := p.Team
+		if team == "" {
+			team = "PORTAL"
+		}
+		playerRow := []string{
+			team, idStr, p.FirstName, p.LastName, p.Position,
+			p.Archetype, strconv.Itoa(int(p.Height)), strconv.Itoa(int(p.Weight)), p.City, p.State, p.Country,
+			strconv.Itoa(int(p.Stars)), strconv.Itoa(int(p.Age)), util.GetLetterGrade(int(p.Overall), 3),
+			p.AgilityGrade, p.FaceoffsGrade, p.LongShotAccuracyGrade,
+			p.LongShotPowerGrade, p.CloseShotAccuracyGrade, p.CloseShotPowerGrade, p.PassingGrade, p.PuckHandlingGrade, p.StrengthGrade,
+			p.BodyCheckingGrade, p.StickCheckingGrade, p.ShotBlockingGrade, p.GoalkeepingGrade, p.GoalieVisionGrade, util.GetPotentialGrade(int(p.Stamina)),
+			util.GetPotentialGrade(int(p.InjuryRating)),
+			strconv.Itoa(int(stat.Goals)), strconv.Itoa(int(stat.Assists)), strconv.Itoa(int(stat.Points)), strconv.Itoa(int(stat.PlusMinus)),
+			strconv.Itoa(int(stat.PenaltyMinutes)), strconv.Itoa(int(stat.EvenStrengthGoals)), strconv.Itoa(int(stat.EvenStrengthPoints)), strconv.Itoa(int(stat.PowerPlayGoals)),
+			strconv.Itoa(int(stat.PowerPlayPoints)), strconv.Itoa(int(stat.ShorthandedGoals)), strconv.Itoa(int(stat.ShorthandedPoints)), strconv.Itoa(int(stat.OvertimeGoals)),
+			strconv.Itoa(int(stat.GameWinningGoals)), strconv.Itoa(int(stat.Shots)), strconv.Itoa(int(stat.ShootingPercentage)), timeOnIce,
+			strconv.Itoa(int(stat.FaceOffWinPercentage)), strconv.Itoa(int(stat.FaceOffsWon)), strconv.Itoa(int(stat.FaceOffs)), strconv.Itoa(int(stat.GoalieWins)),
+			strconv.Itoa(int(stat.GoalieLosses)), strconv.Itoa(int(stat.GoalieTies)), strconv.Itoa(int(stat.OvertimeLosses)), strconv.Itoa(int(stat.ShotsAgainst)),
+			strconv.Itoa(int(stat.Saves)), strconv.Itoa(int(stat.GoalsAgainst)), strconv.Itoa(int(stat.SavePercentage)), strconv.Itoa(int(stat.Shutouts)),
+			strconv.Itoa(int(stat.ShotsBlocked)), strconv.Itoa(int(stat.BodyChecks)), strconv.Itoa(int(stat.StickChecks)),
+		}
+
+		err = writer.Write(playerRow)
+		if err != nil {
+			log.Fatal("Cannot write player row to CSV", err)
+		}
+
+		writer.Flush()
+		err = writer.Error()
+		if err != nil {
+			log.Fatal("Error while writing to file ::", err)
+		}
+	}
+}

@@ -3,6 +3,7 @@ package managers
 import (
 	"sort"
 
+	util "github.com/CalebRose/SimHockey/_util"
 	"github.com/CalebRose/SimHockey/structs"
 )
 
@@ -92,6 +93,78 @@ func GetCollegeOrderedListByStatType(statType string, teamID uint, CollegeStats 
 		}
 	}
 	return resultList
+}
+
+func MakeDraftablePlayerList(players []structs.CollegePlayer) []structs.DraftablePlayer {
+	draftableList := []structs.DraftablePlayer{}
+
+	for _, p := range players {
+		if p.DraftedTeamID > 0 {
+			continue
+		}
+		if p.Age < 18 {
+			continue
+		}
+		draftable := structs.DraftablePlayer{
+			Model:          p.Model,
+			BasePlayer:     p.BasePlayer,
+			BasePotentials: p.BasePotentials,
+			BaseInjuryData: p.BaseInjuryData,
+			BaseLetterGrades: structs.BaseLetterGrades{
+				AgilityGrade:           util.GetLetterGrade(int(p.Agility), p.Year),
+				FaceoffsGrade:          util.GetLetterGrade(int(p.Faceoffs), p.Year),
+				LongShotAccuracyGrade:  util.GetLetterGrade(int(p.LongShotAccuracy), p.Year),
+				LongShotPowerGrade:     util.GetLetterGrade(int(p.LongShotPower), p.Year),
+				CloseShotAccuracyGrade: util.GetLetterGrade(int(p.CloseShotAccuracy), p.Year),
+				CloseShotPowerGrade:    util.GetLetterGrade(int(p.CloseShotPower), p.Year),
+				OneTimerGrade:          util.GetLetterGrade(int(p.OneTimer), p.Year),
+				PassingGrade:           util.GetLetterGrade(int(p.Passing), p.Year),
+				PuckHandlingGrade:      util.GetLetterGrade(int(p.PuckHandling), p.Year),
+				StrengthGrade:          util.GetLetterGrade(int(p.Strength), p.Year),
+				BodyCheckingGrade:      util.GetLetterGrade(int(p.BodyChecking), p.Year),
+				StickCheckingGrade:     util.GetLetterGrade(int(p.StickChecking), p.Year),
+				ShotBlockingGrade:      util.GetLetterGrade(int(p.ShotBlocking), p.Year),
+				GoalkeepingGrade:       util.GetLetterGrade(int(p.Goalkeeping), p.Year),
+				GoalieVisionGrade:      util.GetLetterGrade(int(p.GoalieVision), p.Year),
+			},
+		}
+
+		draftableList = append(draftableList, draftable)
+	}
+	return draftableList
+}
+
+func MakeDraftablePlayerListWithGrades(players []structs.DraftablePlayer) []structs.DraftablePlayer {
+	draftableList := []structs.DraftablePlayer{}
+
+	for _, p := range players {
+		draftable := structs.DraftablePlayer{
+			Model:          p.Model,
+			BasePlayer:     p.BasePlayer,
+			BasePotentials: p.BasePotentials,
+			BaseInjuryData: p.BaseInjuryData,
+			BaseLetterGrades: structs.BaseLetterGrades{
+				AgilityGrade:           util.GetLetterGrade(int(p.Agility), 3),
+				FaceoffsGrade:          util.GetLetterGrade(int(p.Faceoffs), 3),
+				LongShotAccuracyGrade:  util.GetLetterGrade(int(p.LongShotAccuracy), 3),
+				LongShotPowerGrade:     util.GetLetterGrade(int(p.LongShotPower), 3),
+				CloseShotAccuracyGrade: util.GetLetterGrade(int(p.CloseShotAccuracy), 3),
+				CloseShotPowerGrade:    util.GetLetterGrade(int(p.CloseShotPower), 3),
+				OneTimerGrade:          util.GetLetterGrade(int(p.OneTimer), 3),
+				PassingGrade:           util.GetLetterGrade(int(p.Passing), 3),
+				PuckHandlingGrade:      util.GetLetterGrade(int(p.PuckHandling), 3),
+				StrengthGrade:          util.GetLetterGrade(int(p.Strength), 3),
+				BodyCheckingGrade:      util.GetLetterGrade(int(p.BodyChecking), 3),
+				StickCheckingGrade:     util.GetLetterGrade(int(p.StickChecking), 3),
+				ShotBlockingGrade:      util.GetLetterGrade(int(p.ShotBlocking), 3),
+				GoalkeepingGrade:       util.GetLetterGrade(int(p.Goalkeeping), 3),
+				GoalieVisionGrade:      util.GetLetterGrade(int(p.GoalieVision), 3),
+			},
+		}
+
+		draftableList = append(draftableList, draftable)
+	}
+	return draftableList
 }
 
 func GetProOrderedListByStatType(statType string, teamID uint, CollegeStats []structs.ProfessionalPlayerSeasonStats, proPlayerMap map[uint]structs.ProfessionalPlayer) []structs.ProfessionalPlayer {
