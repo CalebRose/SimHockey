@@ -755,6 +755,9 @@ func (cp *CollegePlayer) SignWithNewTeam(teamID int, teamAbbr string, leagueID u
 	cp.Team = teamAbbr
 	cp.TeamID = uint16(teamID)
 	cp.TransferLikeliness = ""
+	if cp.LeagueID == 2 {
+		cp.Year = 1
+	}
 	cp.LeagueID = leagueID
 }
 
