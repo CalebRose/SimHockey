@@ -112,6 +112,14 @@ func handleRequests() http.Handler {
 	apiRouter.HandleFunc("/bootstrap/teams/", controllers.BootstrapTeamData).Methods("GET")
 	apiRouter.HandleFunc("/bootstrap/news/{collegeID}/{proID}", controllers.BootstrapNewsData).Methods("GET")
 
+	// Draft
+	apiRouter.HandleFunc("/phl/draft/export/picks", controllers.ExportDraftedPicks).Methods("POST")
+	apiRouter.HandleFunc("/phl/draft/page/{teamID}", controllers.GetDraftPageData).Methods("GET")
+	apiRouter.HandleFunc("/phl/draft/create/scoutprofile", controllers.AddPlayerToScoutBoard).Methods("POST")
+	apiRouter.HandleFunc("/phl/draft/reveal/attribute", controllers.RevealScoutingAttribute).Methods("POST")
+	apiRouter.HandleFunc("/phl/draft/remove/{id}", controllers.RemovePlayerFromScoutBoard).Methods("GET")
+	apiRouter.HandleFunc("/phl/draft/scout/{id}", controllers.GetScoutingDataByDraftee).Methods("GET")
+
 	// Exports
 	apiRouter.HandleFunc("/export/pro/players/all", controllers.ExportAllProPlayers).Methods("GET")
 	apiRouter.HandleFunc("/export/college/players/all", controllers.ExportAllCollegePlayers).Methods("GET")
@@ -177,6 +185,7 @@ func handleRequests() http.Handler {
 	apiRouter.HandleFunc("/phl/roster/tradeblock/{playerID}", controllers.SendPHLPlayerToTradeBlock).Methods("GET")
 	apiRouter.HandleFunc("/phl/roster/extend/create/{playerID}", controllers.ExtendPHLPlayer).Methods("POST")
 	apiRouter.HandleFunc("/phl/roster/extend/cancel/{playerID}", controllers.CancelPHLPlayerExtension).Methods("POST")
+	apiRouter.HandleFunc("/phl/roster/bringup/college/player/{draftPickID}", controllers.BringUpCollegePlayerToPros).Methods("GET")
 
 	// Strategy
 	apiRouter.HandleFunc("/chl/strategy/update", controllers.SaveCHLLineups).Methods("POST")

@@ -524,6 +524,21 @@ func MakePortalProfileMapByPlayerIDAndTeamID(profiles []structs.TransferPortalPr
 		}
 		playerMap[p.CollegePlayerID] = p
 	}
+	return playerMap
+}
 
+func MakeProWarRoomMapByTeamID(warRooms []structs.ProWarRoom) map[uint]structs.ProWarRoom {
+	warRoomMap := make(map[uint]structs.ProWarRoom)
+	for _, w := range warRooms {
+		warRoomMap[w.TeamID] = w
+	}
+	return warRoomMap
+}
+
+func MakeDraftablePlayerMapByID(draftablePlayers []structs.DraftablePlayer) map[uint]structs.DraftablePlayer {
+	playerMap := make(map[uint]structs.DraftablePlayer)
+	for _, p := range draftablePlayers {
+		playerMap[p.ID] = p
+	}
 	return playerMap
 }

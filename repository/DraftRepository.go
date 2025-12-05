@@ -9,6 +9,34 @@ import (
 	"gorm.io/gorm"
 )
 
+type ScoutProfileQuery struct {
+	ID       string
+	PlayerID string
+	TeamID   string
+}
+
+func FindDraftablePlayerRecord(clauses ScoutProfileQuery) structs.DraftablePlayer {
+	db := dbprovider.GetInstance().GetDB()
+
+	var draftablePlayer structs.DraftablePlayer
+
+	query := db.Model(&draftablePlayer)
+
+	if len(clauses.TeamID) > 0 {
+		query = query.Where("team_id = ?", clauses.TeamID)
+	}
+
+	if len(clauses.PlayerID) > 0 {
+		query = query.Where("id = ?", clauses.PlayerID)
+	}
+
+	if err := query.Find(&draftablePlayer).Error; err != nil {
+		return structs.DraftablePlayer{}
+	}
+
+	return draftablePlayer
+}
+
 func FindAllDraftablePlayers(clauses PlayerQuery) []structs.DraftablePlayer {
 	db := dbprovider.GetInstance().GetDB()
 
@@ -49,6 +77,13 @@ func FindAllDraftablePlayers(clauses PlayerQuery) []structs.DraftablePlayer {
 	}
 
 	return DraftablePlayers
+}
+
+func SaveDraftablePlayerRecord(player structs.DraftablePlayer, db *gorm.DB) {
+	err := db.Save(&player).Error
+	if err != nil {
+		log.Panicln("Could not save draftable player " + strconv.Itoa(int(player.ID)))
+	}
 }
 
 func FindDraftPickRecord(id string) structs.DraftPick {
@@ -93,5 +128,97 @@ func SaveDraftPickRecord(pickRecord structs.DraftPick, db *gorm.DB) {
 	err := db.Save(&pickRecord).Error
 	if err != nil {
 		log.Panicln("Could not save college player " + strconv.Itoa(int(pickRecord.ID)))
+	}
+}
+
+func FindProWarRoomRecord(clause ScoutProfileQuery) structs.ProWarRoom {
+	db := dbprovider.GetInstance().GetDB()
+	warRooms := structs.ProWarRoom{}
+
+	query := db.Model(&warRooms)
+
+	if len(clause.TeamID) > 0 {
+		query = query.Where("team_id = ?", clause.TeamID)
+	}
+
+	if err := query.Find(&warRooms).Error; err != nil {
+		return structs.ProWarRoom{}
+	}
+	return warRooms
+}
+
+func FindProWarRooms() []structs.ProWarRoom {
+	db := dbprovider.GetInstance().GetDB()
+	warRooms := []structs.ProWarRoom{}
+
+	if err := db.Find(&warRooms).Error; err != nil {
+		return []structs.ProWarRoom{}
+	}
+	return warRooms
+}
+
+func SaveProWarRoomRecord(warRoom structs.ProWarRoom, db *gorm.DB) {
+	err := db.Save(&warRoom).Error
+	if err != nil {
+		log.Panicln("Could not save pro war room " + strconv.Itoa(int(warRoom.ID)))
+	}
+}
+
+func FindScoutingProfiles(clauses ScoutProfileQuery) []structs.ScoutingProfile {
+	db := dbprovider.GetInstance().GetDB()
+	var scoutingProfiles []structs.ScoutingProfile
+
+	query := db.Model(&scoutingProfiles)
+	if len(clauses.PlayerID) > 0 {
+		query = query.Where("player_id = ?", clauses.PlayerID)
+	}
+	if len(clauses.TeamID) > 0 {
+		query = query.Where("team_id = ?", clauses.TeamID)
+	}
+	if err := query.Find(&scoutingProfiles).Error; err != nil {
+		return []structs.ScoutingProfile{}
+	}
+	return scoutingProfiles
+}
+
+func FindScoutingProfile(clauses ScoutProfileQuery) structs.ScoutingProfile {
+	db := dbprovider.GetInstance().GetDB()
+	var scoutingProfiles structs.ScoutingProfile
+
+	query := db.Model(&scoutingProfiles)
+	if len(clauses.ID) > 0 {
+		query = query.Where("id = ?", clauses.ID)
+	}
+
+	if len(clauses.PlayerID) > 0 {
+		query = query.Where("player_id = ?", clauses.PlayerID)
+	}
+	if len(clauses.TeamID) > 0 {
+		query = query.Where("team_id = ?", clauses.TeamID)
+	}
+	if err := query.Find(&scoutingProfiles).Error; err != nil {
+		return structs.ScoutingProfile{}
+	}
+	return scoutingProfiles
+}
+
+func CreateScoutingProfileRecord(profile structs.ScoutingProfile, db *gorm.DB) {
+	err := db.Create(&profile).Error
+	if err != nil {
+		log.Panicln("Could not create scouting profile record")
+	}
+}
+
+func SaveScoutingProfileRecord(profile structs.ScoutingProfile, db *gorm.DB) {
+	err := db.Save(&profile).Error
+	if err != nil {
+		log.Panicln("Could not save scouting profile record")
+	}
+}
+
+func DeleteScoutingProfileRecord(id string, db *gorm.DB) {
+	err := db.Delete(&structs.ScoutingProfile{}, id).Error
+	if err != nil {
+		log.Panicln("Could not delete scouting profile record with id " + id)
 	}
 }

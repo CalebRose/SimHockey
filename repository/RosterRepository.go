@@ -11,6 +11,7 @@ import (
 )
 
 type PlayerQuery struct {
+	ID             string
 	TeamID         string
 	CollegeID      string
 	PlayerIDs      []string
@@ -21,12 +22,19 @@ type PlayerQuery struct {
 	OverallDesc    bool
 }
 
-func FindCollegePlayer(id string) structs.CollegePlayer {
+func FindCollegePlayer(clauses PlayerQuery) structs.CollegePlayer {
 	db := dbprovider.GetInstance().GetDB()
 
 	var CollegePlayer structs.CollegePlayer
 
-	db.Where("id = ?", id).Find(&CollegePlayer)
+	query := db.Model(&CollegePlayer)
+
+	if len(clauses.ID) > 0 {
+		query = query.Where("id = ?", clauses.ID)
+	}
+	if err := query.Find(&CollegePlayer).Error; err != nil {
+		log.Printf("Error querying for college player: %v", err)
+	}
 
 	return CollegePlayer
 }
@@ -225,6 +233,13 @@ func DeleteProPlayerRecord(playerRecord structs.ProfessionalPlayer, db *gorm.DB)
 // For the graduation process
 func MassDeleteCollegePlayerRecords(db *gorm.DB, ids []string) error {
 	if err := db.Unscoped().Where("id IN ?", ids).Delete(&structs.CollegePlayer{}).Error; err != nil {
+		return err
+	}
+	return nil
+}
+
+func DeleteCollegeHockeyPlayerRecord(db *gorm.DB, record structs.CollegePlayer) error {
+	if err := db.Unscoped().Delete(&record).Error; err != nil {
 		return err
 	}
 	return nil

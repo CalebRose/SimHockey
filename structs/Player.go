@@ -681,6 +681,7 @@ type CollegePlayer struct {
 	DraftedRound       uint
 	DraftPickID        uint
 	DraftedPick        uint
+	DraftedYearID      uint
 	Stats              []CollegePlayerGameStats `gorm:"foreignKey:PlayerID;references:ID"`
 	SeasonStats        CollegePlayerSeasonStats `gorm:"foreignKey:PlayerID;references:ID"`
 	Profiles           []TransferPortalProfile  `gorm:"foreignKey:CollegePlayerID"`
@@ -755,7 +756,19 @@ func (cp *CollegePlayer) SignWithNewTeam(teamID int, teamAbbr string, leagueID u
 	cp.Team = teamAbbr
 	cp.TeamID = uint16(teamID)
 	cp.TransferLikeliness = ""
+	if cp.LeagueID == 2 {
+		cp.Year = 1
+	}
 	cp.LeagueID = leagueID
+}
+
+func (cp *CollegePlayer) AssignDraftedTeamData(pick DraftPick) {
+	cp.DraftedTeamID = pick.TeamID
+	cp.DraftedTeam = pick.Team
+	cp.DraftedRound = pick.DraftRound
+	cp.DraftPickID = pick.ID
+	cp.DraftedPick = pick.DraftNumber
+	cp.DraftedYearID = pick.SeasonID
 }
 
 type HistoricCollegePlayer struct {
@@ -780,6 +793,7 @@ type ProfessionalPlayer struct {
 	DraftedRound          uint8
 	DraftPickID           uint
 	DraftedPick           uint16
+	DraftedYearID         uint
 	MinimumValue          float32
 	HasProgressed         bool
 	Rejections            int8
@@ -899,6 +913,14 @@ func (f *ProfessionalPlayer) DeclineOffer(week int) {
 	if week >= 23 {
 		f.Rejections += 2
 	}
+}
+
+func (cp *ProfessionalPlayer) AssignDraftedTeam(teamID uint, team string, leagueID uint8) {
+	cp.TeamID = uint16(teamID)
+	cp.Team = team
+	cp.LeagueID = leagueID
+	cp.OriginalTeamID = uint(teamID)
+	cp.OriginalTeam = team
 }
 
 type RetiredPlayer struct {
@@ -1038,10 +1060,18 @@ type DraftablePlayer struct {
 	BaseLetterGrades
 	BasePotentials
 	BaseInjuryData
-	CollegeID     uint
-	DraftedTeamID uint8
-	DraftedTeam   string
-	DraftedRound  uint8
-	DraftPickID   uint
-	DraftedPick   uint16
+	CollegeID           uint
+	DraftedTeamID       uint8
+	DraftedTeam         string
+	DraftedRound        uint8
+	DraftPickID         uint
+	DraftedPick         uint16
+	DraftablePlayerType uint8 // 0 = College, 1 = Graduate, 2 = International, 3 = Junior
+}
+
+func (n *DraftablePlayer) AssignDraftedTeam(num uint, pickID uint, teamID uint, team string) {
+	n.DraftedPick = uint16(num)
+	n.DraftPickID = pickID
+	n.DraftedTeamID = uint8(teamID)
+	n.DraftedTeam = team
 }
