@@ -97,6 +97,16 @@ func MassDeleteCollegePlayByPlaysExceptShotsOnGoal(db *gorm.DB) error {
 	return err
 }
 
+func FindCollegePlayerSeasonStatRecord(playerID, SeasonID, gameType string) structs.CollegePlayerSeasonStats {
+	db := dbprovider.GetInstance().GetDB()
+
+	var playerStats structs.CollegePlayerSeasonStats
+
+	db.Order("points desc").Where("player_id = ? AND season_id = ? AND game_type = ?", playerID, SeasonID, gameType).Find(&playerStats)
+
+	return playerStats
+}
+
 func FindCollegePlayerSeasonStatsRecords(SeasonID, gameType string) []structs.CollegePlayerSeasonStats {
 	db := dbprovider.GetInstance().GetDB()
 

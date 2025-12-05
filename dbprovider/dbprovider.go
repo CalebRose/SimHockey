@@ -94,6 +94,10 @@ func (p *Provider) InitDatabase() bool {
 	// db.AutoMigrate(&structs.TradePreferences{})
 	// db.AutoMigrate(&structs.WaiverOffer{})
 
+	// Draft
+	// db.AutoMigrate(&structs.ScoutingProfile{})
+	// db.AutoMigrate(&structs.ProWarRoom{})
+
 	// Recruiting
 	// db.AutoMigrate(&structs.Recruit{})
 	// db.AutoMigrate(&structs.RecruitPlayerProfile{})

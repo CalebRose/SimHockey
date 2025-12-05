@@ -14,6 +14,9 @@ func CreateTSModelsFile(w http.ResponseWriter, r *http.Request) {
 		Add(structs.CollegeGameplan{}).
 		Add(structs.ProGameplan{}).
 		Add(structs.DraftPick{}).
+		Add(structs.ScoutingProfile{}).
+		Add(structs.ProWarRoom{}).
+		Add(structs.ProDraftPageResponse{}).
 		Add(structs.TradePreferences{}).
 		Add(structs.TradeProposal{}).
 		Add(structs.TradeOption{}).

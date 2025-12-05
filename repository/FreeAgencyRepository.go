@@ -255,6 +255,18 @@ func CreateProContractRecord(db *gorm.DB, contract structs.ProContract) error {
 	return nil
 }
 
+func CreateProContractRecordsBatch(db *gorm.DB, contracts []structs.ProContract, batchSize int) error {
+	total := len(contracts)
+	for i := 0; i < total; i += batchSize {
+		end := min(i+batchSize, total)
+		if err := db.CreateInBatches(contracts[i:end], batchSize).Error; err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
 func FindLatestFreeAgentOfferID(db *gorm.DB) uint {
 	var latestOffer structs.FreeAgencyOffer
 
