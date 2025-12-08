@@ -232,3 +232,29 @@ func MakeProPlayerGameStatsListByTeamID(list []structs.ProfessionalPlayerGameSta
 	}
 	return stats
 }
+
+func MakeCollegePlayerListFromHistorics(list []structs.HistoricCollegePlayer) []structs.CollegePlayer {
+	players := []structs.CollegePlayer{}
+	for _, player := range list {
+		players = append(players, structs.CollegePlayer{
+			Model:          player.Model,
+			BasePlayer:     player.BasePlayer,
+			BasePotentials: player.BasePotentials,
+			BaseInjuryData: player.BaseInjuryData,
+		})
+	}
+	return players
+}
+
+func MakeProfessionalPlayerListFromHistorics(list []structs.RetiredPlayer) []structs.ProfessionalPlayer {
+	players := []structs.ProfessionalPlayer{}
+	for _, player := range list {
+		players = append(players, structs.ProfessionalPlayer{
+			Model:          player.Model,
+			BasePlayer:     player.BasePlayer,
+			BasePotentials: player.BasePotentials,
+			BaseInjuryData: player.BaseInjuryData,
+		})
+	}
+	return players
+}
