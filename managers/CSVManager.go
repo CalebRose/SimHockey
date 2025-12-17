@@ -16,7 +16,11 @@ import (
 )
 
 func HandleCollegePlayByPlayExport(w http.ResponseWriter, gameID string) {
-	collegePlayerMap := GetCollegePlayersMap()
+	collegePlayers := repository.FindAllCollegePlayers(repository.PlayerQuery{})
+	historicCollegePlayers := repository.FindAllHistoricCollegePlayers()
+	convertedHistoricData := MakeCollegePlayerListFromHistorics(historicCollegePlayers)
+	collegePlayers = append(collegePlayers, convertedHistoricData...)
+	collegePlayerMap := MakeCollegePlayerMap(collegePlayers)
 	collegeTeamMap := GetCollegeTeamMap()
 	collegePlayByPlays := GetCHLPlayByPlaysByGameID(gameID)
 	game := repository.FindCollegeGameRecord(gameID)
@@ -172,7 +176,11 @@ func HandleCollegePlayByPlayExport(w http.ResponseWriter, gameID string) {
 }
 
 func HandleProPlayByPlayExport(w http.ResponseWriter, gameID string) {
-	proPlayerMap := GetProPlayersMap()
+	proPlayers := repository.FindAllProPlayers(repository.PlayerQuery{})
+	historicProPlayers := repository.FindAllHistoricProPlayers()
+	convertedHistoricData := MakeProfessionalPlayerListFromHistorics(historicProPlayers)
+	proPlayers = append(proPlayers, convertedHistoricData...)
+	proPlayerMap := MakeProfessionalPlayerMap(proPlayers)
 	proTeamMap := GetProTeamMap()
 	proPlayByPlays := GetPHLPlayByPlaysByGameID(gameID)
 	game := repository.FindProfessionalGameRecord(gameID)
@@ -989,7 +997,11 @@ func ExportCollegeStats(seasonID, weekID, viewType, gameType string, w http.Resp
 	fileName := "chl_player_stats_" + seasonStr + weekStr + ".csv"
 	teamFileName := "chl_team_stats_" + seasonStr + weekStr + ".csv"
 
-	collegePlayerMap := GetCollegePlayersMap()
+	collegePlayers := repository.FindAllCollegePlayers(repository.PlayerQuery{})
+	historicCollegePlayers := repository.FindAllHistoricCollegePlayers()
+	convertedHistoricData := MakeCollegePlayerListFromHistorics(historicCollegePlayers)
+	collegePlayers = append(collegePlayers, convertedHistoricData...)
+	collegePlayerMap := MakeCollegePlayerMap(collegePlayers)
 	chlTeamMap := GetCollegeTeamMap()
 
 	writeCSVIntoZip(zipWriter, fileName, func(csvW *csv.Writer) error {
@@ -1192,7 +1204,11 @@ func ExportProStats(seasonID, weekID, viewType, gameType string, w http.Response
 	fileName := "phl_player_stats_" + seasonStr + "_" + weekStr + ".csv"
 	teamFileName := "phl_team_stats_" + seasonStr + "_" + weekStr + ".csv"
 
-	proPlayerMap := GetProPlayersMap()
+	proPlayers := repository.FindAllProPlayers(repository.PlayerQuery{})
+	historicProPlayers := repository.FindAllHistoricProPlayers()
+	convertedHistoricData := MakeProfessionalPlayerListFromHistorics(historicProPlayers)
+	proPlayers = append(proPlayers, convertedHistoricData...)
+	proPlayerMap := MakeProfessionalPlayerMap(proPlayers)
 	phlTeamMap := GetProTeamMap()
 
 	writeCSVIntoZip(zipWriter, fileName, func(csvW *csv.Writer) error {
