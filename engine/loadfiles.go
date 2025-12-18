@@ -51,11 +51,18 @@ func LoadLineStrategies(lines []structs.BaseLineup, rosterMap map[uint]*GamePlay
 				players = append(players, forward2)
 				activeIDs = append(activeIDs, l.Forward2ID)
 			}
-
+			team := ""
+			if center != nil {
+				team = center.Team
+			} else if forward1 != nil {
+				team = forward1.Team
+			} else if forward2 != nil {
+				team = forward2.Team
+			}
 			// Log warning if lineup is incomplete
 			if len(players) < 3 {
-				fmt.Printf("WARNING: Forward line incomplete - only %d/3 players available (C:%t F1:%t F2:%t)\n",
-					len(players), center != nil, forward1 != nil, forward2 != nil)
+				fmt.Printf("WARNING: %s Forward line incomplete - only %d/3 players available (C:%t F1:%t F2:%t)\n",
+					team, len(players), center != nil, forward1 != nil, forward2 != nil)
 			}
 		case 2:
 			// Defender line - check for nil players before adding
@@ -70,11 +77,16 @@ func LoadLineStrategies(lines []structs.BaseLineup, rosterMap map[uint]*GamePlay
 				players = append(players, defender2)
 				activeIDs = append(activeIDs, l.Defender2ID)
 			}
-
+			team := ""
+			if defender1 != nil {
+				team = defender1.Team
+			} else if defender2 != nil {
+				team = defender2.Team
+			}
 			// Log warning if lineup is incomplete
 			if len(players) < 2 {
-				fmt.Printf("WARNING: Defender line incomplete - only %d/2 players available (D1:%t D2:%t)\n",
-					len(players), defender1 != nil, defender2 != nil)
+				fmt.Printf("WARNING: %s Defender line incomplete - only %d/2 players available (D1:%t D2:%t)\n",
+					team, len(players), defender1 != nil, defender2 != nil)
 			}
 		default:
 			// Goalie line

@@ -43,6 +43,7 @@ type Timestamp struct {
 	IsPreseason                   bool
 	SeasonPhase                   uint
 	IsTesting                     bool
+	TestRunNum                    uint16
 }
 
 func (t *Timestamp) GetGameDay() string {
@@ -241,4 +242,8 @@ func (t *Timestamp) GetCurrentGameType(isCollege bool) (int, string) {
 		return 3, "3"
 	}
 	return 2, "2"
+}
+
+func (t *Timestamp) IncrementTestNumber() {
+	t.TestRunNum++
 }

@@ -36,7 +36,7 @@ func RunGames() {
 	gameDay := ts.GetGameDay()
 	if ts.IsTesting {
 		// Generate and run random college games for testing without database operations
-		generateAndRunTestGames(ts)
+		generateAndRunTestGames(ts, db)
 		return
 	}
 	collegeGames := GetCollegeGamesForCurrentMatchup(weekID, seasonID, gameDay, ts.IsPreseason)
@@ -1783,7 +1783,7 @@ func CreateTestResultsDirectory() error {
 	return nil
 }
 
-func generateAndRunTestGames(ts structs.Timestamp) {
+func generateAndRunTestGames(ts structs.Timestamp, db *gorm.DB) {
 	fmt.Println("Generating random test games...")
 
 	// Get all college teams for random matchups
@@ -1831,7 +1831,7 @@ func generateAndRunTestGames(ts structs.Timestamp) {
 	fmt.Printf("Generated %d test games\n", len(testGames))
 
 	// Run the games without database operations
-	runTestGamesOnly(testGames, ts)
+	runTestGamesOnly(testGames, ts, db)
 }
 
 // runTestGamesOnly runs games in testing mode with comprehensive error handling and debugging.
@@ -1847,7 +1847,7 @@ func generateAndRunTestGames(ts structs.Timestamp) {
 //  2. Validating data availability before use
 //  3. Providing detailed error messages with context
 //  4. Capturing full stack traces for crashes
-func runTestGamesOnly(collegeGames []structs.CollegeGame, ts structs.Timestamp) {
+func runTestGamesOnly(collegeGames []structs.CollegeGame, ts structs.Timestamp, db *gorm.DB) {
 	fmt.Println("Running test games (CSV export only)...")
 
 	// Ensure test_results directory exists
@@ -1966,9 +1966,22 @@ func runTestGamesOnly(collegeGames []structs.CollegeGame, ts structs.Timestamp) 
 	collegePlayerMap := MakeCollegePlayerMap(allPlayers)
 	collegeTeamMap := GetCollegeTeamMap()
 
+	testNumString := strconv.Itoa(int(ts.TestRunNum))
+
+	testFilePath := fmt.Sprintf("test_results/test_run_%s", testNumString)
+
+	// Create the test run directory
+	osErr := os.MkdirAll(testFilePath, 0755)
+	if osErr != nil {
+		fmt.Printf("Error creating test run directory: %v\n", osErr)
+		return
+	}
+
+	fmt.Printf("Created test run directory: %s\n", testFilePath)
+
 	for i, r := range results {
-		// Generate unique filenames for each game
-		filename := fmt.Sprintf("test_results/game_%d_%s_vs_%s", i+1, r.HomeTeam, r.AwayTeam)
+		// Generate unique filenames for each game within the test run directory
+		filename := fmt.Sprintf("%s/game_%d_%s_vs_%s", testFilePath, i+1, r.HomeTeam, r.AwayTeam)
 
 		// Write box score CSV
 		boxScoreFilename := filename + "_box_score.csv"
@@ -1984,6 +1997,9 @@ func runTestGamesOnly(collegeGames []structs.CollegeGame, ts structs.Timestamp) 
 			fmt.Printf("Error writing play-by-play file: %v\n", err)
 		}
 	}
+
+	ts.IncrementTestNumber()
+	repository.SaveTimestamp(ts, db)
 
 	fmt.Printf("Completed %d test games and exported to CSV files\n", len(results))
 }
