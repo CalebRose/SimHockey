@@ -968,11 +968,8 @@ func SyncTransferPortal() {
 
 	for _, portalPlayer := range transferPortalPlayers {
 		// Skip over players that have already transferred
-		if portalPlayer.TransferStatus != 2 || portalPlayer.ID < 2245 {
+		if portalPlayer.TransferStatus != 2 {
 			continue
-		}
-		if portalPlayer.ID == 2245 || portalPlayer.ID == 3823 || portalPlayer.ID == 3967 || portalPlayer.ID == 4108 {
-			fmt.Println("Debugging Transfer Portal for player ID: ", portalPlayer.ID)
 		}
 
 		portalProfiles := transferPortalProfileMap[portalPlayer.ID]
