@@ -301,8 +301,6 @@ func getFullPlayerListByTeamID(teamID uint, gs *GameState) []*GamePlayer {
 		playerList = append(playerList, p)
 	}
 
-	playerList = append(playerList, currentDefenders...)
-
 	return playerList
 }
 

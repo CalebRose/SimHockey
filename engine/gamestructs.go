@@ -48,6 +48,7 @@ type GameState struct {
 	IsCollegeGame         bool
 	IsPlayoffGame         bool
 	Collector             structs.PbPCollector
+	InjuryLog             []Injury
 }
 
 type PowerPlayState struct {
@@ -241,10 +242,10 @@ func (gs *GameState) GetCenter(isHome bool) *GamePlayer {
 	}
 
 	player := GetGamePlayerByPosition(currentLineup, "C")
-	if player.ID == 0 || player.IsOut {
+	if player.ID == 0 || player.IsOut || player.IsInjured {
 		player = GetGamePlayerByPosition(currentLineup, "F")
 	}
-	if player.ID == 0 || player.IsOut {
+	if player.ID == 0 || player.IsOut || player.IsInjured {
 		player = GetGamePlayerByPosition(currentLineup, "D")
 	}
 	return player
@@ -361,6 +362,10 @@ func (gs *GameState) RemovePlayerFromLine(isHome bool, playerID uint) {
 	}
 }
 
+func (gs *GameState) LogInjury(inj Injury) {
+	gs.InjuryLog = append(gs.InjuryLog, inj)
+}
+
 type GamePlaybook struct {
 	Forwards                    []LineStrategy
 	Defenders                   []LineStrategy
@@ -371,6 +376,7 @@ type GamePlaybook struct {
 	MinForwardStaminaThreshold  int
 	MinDefenderStaminaThreshold int
 	BenchPlayers                []*GamePlayer
+	InjuredPlayers              []*GamePlayer
 	CenterOut                   bool
 	Forward1Out                 bool
 	Forward2Out                 bool
@@ -385,6 +391,10 @@ type GamePlaybook struct {
 
 	// System Information
 	Gameplan structs.BaseGameplan
+}
+
+func (gp *GamePlaybook) AddPlayerToInjuredPlayerList(player *GamePlayer) {
+	gp.InjuredPlayers = append(gp.InjuredPlayers, player)
 }
 
 func (gp *GamePlaybook) ActivatePowerPlayer(playerID uint, position string) {
@@ -467,11 +477,26 @@ func (gp *GamePlaybook) filterOutPlayer(playerID uint) {
 		return
 	}
 
+	isDefender := false
+
 	// Handle Defender Replacement
 	defenderIdx := gp.CurrentDefenders
 	if playerIDInLineup(playerID, gp.Defenders[defenderIdx].Players) {
+		isDefender = true
 		gp.Defenders[defenderIdx].Players = gp.handleLineReplacement(
 			gp.Defenders[defenderIdx].Players, playerID, 2, 2, Defender)
+	}
+
+	if isDefender {
+		return
+	}
+
+	// Handle Goalie Replacement in case of injury
+	goalieIdx := gp.CurrentGoalie
+	if playerIDInLineup(playerID, gp.Goalies[goalieIdx].Players) {
+		// Goalie Replacement
+		gp.Goalies[goalieIdx].Players = gp.handleLineReplacement(
+			gp.Goalies[goalieIdx].Players, playerID, 1, 3, Goalie)
 	}
 }
 
@@ -813,6 +838,11 @@ func (p *GamePlayer) AddGoalieStat(scoreType int, isOvertimeLoss bool) {
 	p.Stats.AddGoalieStat(scoreType, isOvertimeLoss)
 }
 
+func (p *GamePlayer) RecordInjury(injuryID, injuryType, duration uint8) {
+	p.IsInjured = true
+	p.Stats.RecordInjury(injuryID, injuryType, duration)
+}
+
 // Util Structs
 // PlayerWeight -- For event checks
 type PlayerWeight struct {
@@ -1073,6 +1103,10 @@ type PlayerStatsDTO struct {
 	ShotsBlocked         uint16
 	BodyChecks           uint16
 	StickChecks          uint16
+	IsInjured            bool
+	DaysOfRecovery       uint8
+	InjuryName           uint8
+	InjuryType           uint8
 }
 
 func (p *PlayerStatsDTO) EnableStartedGame() {
@@ -1195,4 +1229,11 @@ func (p *PlayerStatsDTO) AddGoalieStat(scoreType int, isOvertimeLoss bool) {
 	if scoreType == 3 {
 		p.GoalieTies++
 	}
+}
+
+func (p *PlayerStatsDTO) RecordInjury(injuryID, injuryType, duration uint8) {
+	p.InjuryName = injuryID
+	p.InjuryType = injuryType
+	p.DaysOfRecovery = duration
+	p.IsInjured = true
 }

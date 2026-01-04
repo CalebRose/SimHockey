@@ -411,6 +411,7 @@ type BasePlayer struct {
 	PlayerPreferences
 	// Individual weight modifiers (-10 to 10)
 	Allocations
+	BaseInjuryData
 }
 
 type PlayerPreferences struct {
@@ -650,6 +651,12 @@ type BaseInjuryData struct {
 	DecayRate      float32
 }
 
+func (cp *BaseInjuryData) ApplyInjury(injuryName string, injuryType string, daysOfRecovery int8) {
+	cp.InjuryName = injuryName
+	cp.InjuryType = injuryType
+	cp.IsInjured = true
+	cp.DaysOfRecovery = daysOfRecovery
+}
 func (cp *BaseInjuryData) RecoveryCheck() {
 	// Resolves Data Type issues
 	var roof uint = 100000000
@@ -670,7 +677,6 @@ type CollegePlayer struct {
 	gorm.Model
 	BasePlayer
 	BasePotentials
-	BaseInjuryData
 	Year               int
 	IsRedshirt         bool
 	IsRedshirting      bool
@@ -779,7 +785,6 @@ type ProfessionalPlayer struct {
 	gorm.Model
 	BasePlayer
 	BasePotentials
-	BaseInjuryData
 	CollegeID             uint
 	Year                  int
 	IsAffiliatePlayer     bool
@@ -931,7 +936,6 @@ type Recruit struct {
 	gorm.Model
 	BasePlayer
 	BasePotentials
-	BaseInjuryData
 	IsSigned              bool
 	College               string
 	IsCustomCroot         bool
@@ -1059,7 +1063,6 @@ type DraftablePlayer struct {
 	BasePlayer
 	BaseLetterGrades
 	BasePotentials
-	BaseInjuryData
 	CollegeID           uint
 	DraftedTeamID       uint8
 	DraftedTeam         string

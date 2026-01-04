@@ -1,3 +1,5 @@
 .env
 .env/
 /test_results/
+/test_analysis/
+.vscode/

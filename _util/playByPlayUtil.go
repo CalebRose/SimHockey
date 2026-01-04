@@ -10,6 +10,18 @@ var eventIDMap = map[uint8]string{
 	WristshotCheckID:   "Wrist Shot Check",
 	SlapshotCheckID:    "Slap Shot Check",
 	PenaltyCheckID:     "Penalty Check",
+	PuckBattleID:       "Puck Battle",
+	PuckBattleWinID:    "Puck Battle Win",
+	PuckBattleLoseID:   "Puck Battle Lose",
+	PuckScrambleID:     "Puck Scramble",
+	PuckCoveredID:      "Puck Covered",
+	LongPassCheckID:    "Long Pass Check",
+	PassBackCheckID:    "Pass Back Check",
+	InjuryCheckID:      "Injury Check",
+	MinorInjuryID:      "Minor Injury",
+	ModerateInjuryID:   "Moderate Injury",
+	SevereInjuryID:     "Severe Injury",
+	CriticalInjuryID:   "Critical Injury",
 
 	// Zones
 	HomeGoalZoneID: "Home Goal Zone",

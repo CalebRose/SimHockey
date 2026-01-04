@@ -109,7 +109,6 @@ func MakeDraftablePlayerList(players []structs.CollegePlayer) []structs.Draftabl
 			Model:          p.Model,
 			BasePlayer:     p.BasePlayer,
 			BasePotentials: p.BasePotentials,
-			BaseInjuryData: p.BaseInjuryData,
 			BaseLetterGrades: structs.BaseLetterGrades{
 				AgilityGrade:           util.GetLetterGrade(int(p.Agility), p.Year),
 				FaceoffsGrade:          util.GetLetterGrade(int(p.Faceoffs), p.Year),
@@ -142,7 +141,6 @@ func MakeDraftablePlayerListWithGrades(players []structs.DraftablePlayer) []stru
 			Model:          p.Model,
 			BasePlayer:     p.BasePlayer,
 			BasePotentials: p.BasePotentials,
-			BaseInjuryData: p.BaseInjuryData,
 			BaseLetterGrades: structs.BaseLetterGrades{
 				AgilityGrade:           util.GetLetterGrade(int(p.Agility), 3),
 				FaceoffsGrade:          util.GetLetterGrade(int(p.Faceoffs), 3),
@@ -240,7 +238,6 @@ func MakeCollegePlayerListFromHistorics(list []structs.HistoricCollegePlayer) []
 			Model:          player.Model,
 			BasePlayer:     player.BasePlayer,
 			BasePotentials: player.BasePotentials,
-			BaseInjuryData: player.BaseInjuryData,
 		})
 	}
 	return players
@@ -253,7 +250,6 @@ func MakeProfessionalPlayerListFromHistorics(list []structs.RetiredPlayer) []str
 			Model:          player.Model,
 			BasePlayer:     player.BasePlayer,
 			BasePotentials: player.BasePotentials,
-			BaseInjuryData: player.BaseInjuryData,
 		})
 	}
 	return players

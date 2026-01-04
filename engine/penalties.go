@@ -49,8 +49,10 @@ func RemovePlayerFromGame(gs *GameState, player *GamePlayer) {
 	benchPlayers := 0
 	// Check for benchable players
 	if isHome {
+		gs.HomeStrategy.AddPlayerToInjuredPlayerList(player)
 		benchPlayers = len(gs.HomeStrategy.BenchPlayers)
 	} else {
+		gs.AwayStrategy.AddPlayerToInjuredPlayerList(player)
 		benchPlayers = len(gs.AwayStrategy.BenchPlayers)
 	}
 	hasSubstitutablePlayers = benchPlayers > 0

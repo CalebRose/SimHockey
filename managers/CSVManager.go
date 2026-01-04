@@ -345,7 +345,7 @@ func WritePlayByPlayCSVFile(playByPlays []structs.PbP, filename string, collegeP
 	writer := csv.NewWriter(file)
 	defer writer.Flush()
 
-	writer.Write([]string{"Period", "TimeOnClock", "Time Consumed", "Zone", "Event", "Outcome", "Penalty Called", "Severity", "Fight?", "HTS", "ATS", "PossessingTeam", "Notes"})
+	writer.Write([]string{"Period", "TimeOnClock", "Time Consumed", "Zone", "Event", "Outcome", "Penalty Called", "Severity", "Fight?", "HTS", "ATS", "PossessingTeam", "Notes", "HomeOffensiveSystem", "HomeDefensiveSystem", "AwayOffensiveSystem", "AwayDefensiveSystem"})
 	// Iterate through play by play data to generate []string
 
 	for _, play := range playByPlays {
@@ -365,6 +365,10 @@ func WritePlayByPlayCSVFile(playByPlays []structs.PbP, filename string, collegeP
 		if play.IsFight {
 			isFight = "Yes"
 		}
+		hos := util.GetOffensiveSystemString(play.HOS)
+		hds := util.GetDefensiveSystemString(play.HDS)
+		aos := util.GetOffensiveSystemString(play.AOS)
+		ads := util.GetDefensiveSystemString(play.ADS)
 
 		result := generateCollegeResultsString(play, event, outcome, collegePlayerMap, possessingTeam)
 		writer.Write([]string{
@@ -381,6 +385,10 @@ func WritePlayByPlayCSVFile(playByPlays []structs.PbP, filename string, collegeP
 			ats,
 			abbr,
 			result,
+			hos,
+			hds,
+			aos,
+			ads,
 		})
 	}
 	return err
@@ -447,11 +455,19 @@ func WriteBoxScoreFile(r engine.GameState, filename string) error {
 	writer := csv.NewWriter(file)
 	defer writer.Flush()
 
-	writer.Write([]string{"Team", "1", "2", "3", "OT", "T"})
+	writer.Write([]string{"Team", "1", "2", "3", "OT", "T", "Offensive System", "Defensive System"})
 	hts := r.HomeTeamStats
-	writer.Write([]string{r.HomeTeam, strconv.Itoa(int(hts.Period1Score)), strconv.Itoa(int(hts.Period2Score)), strconv.Itoa(int(hts.Period3Score)), strconv.Itoa(int(hts.OTScore)), strconv.Itoa(int(hts.Points))})
+	hg := r.HomeStrategy.Gameplan
+	hos := hg.OffensiveSystem
+	dds := hg.DefensiveSystem
+	homeOffensiveSystem := util.GetOffensiveSystemString(hos)
+	homeDefensiveSystem := util.GetDefensiveSystemString(dds)
+	writer.Write([]string{r.HomeTeam, strconv.Itoa(int(hts.Period1Score)), strconv.Itoa(int(hts.Period2Score)), strconv.Itoa(int(hts.Period3Score)), strconv.Itoa(int(hts.OTScore)), strconv.Itoa(int(hts.Points)), homeOffensiveSystem, homeDefensiveSystem})
 	ats := r.AwayTeamStats
-	writer.Write([]string{r.AwayTeam, strconv.Itoa(int(ats.Period1Score)), strconv.Itoa(int(ats.Period2Score)), strconv.Itoa(int(ats.Period3Score)), strconv.Itoa(int(ats.OTScore)), strconv.Itoa(int(ats.Points))})
+	ag := r.AwayStrategy.Gameplan
+	awayOffensiveSystem := util.GetOffensiveSystemString(ag.OffensiveSystem)
+	awayDefensiveSystem := util.GetDefensiveSystemString(ag.DefensiveSystem)
+	writer.Write([]string{r.AwayTeam, strconv.Itoa(int(ats.Period1Score)), strconv.Itoa(int(ats.Period2Score)), strconv.Itoa(int(ats.Period3Score)), strconv.Itoa(int(ats.OTScore)), strconv.Itoa(int(ats.Points)), awayOffensiveSystem, awayDefensiveSystem})
 	writer.Write([]string{})
 	writer.Write([]string{"Home Team"})
 	writer.Write([]string{"Position", "Name", "G", "A", "P", "+/-", "PIM", "TOI", "PPG", "S", "BLK", "BCHK", "STCHK", "FO"})
@@ -505,6 +521,41 @@ func WriteBoxScoreFile(r engine.GameState, filename string) error {
 			writer.Write([]string{p.Position, p.FirstName + " " + p.LastName, strconv.Itoa(int(s.ShotsAgainst)), strconv.Itoa(int(s.Saves)), strconv.Itoa(int(s.GoalsAgainst)), strconv.Itoa(int(s.SavePercentage)), FormatTimeToClock(uint16(s.TimeOnIce))})
 		}
 	}
+	writer.Write([]string{"Injury Report"})
+	writer.Write([]string{"Position", "Name", "Team", "Injury", "Severity", "Games Missed"})
+
+	// Helper function to find player and write injury data
+	writePlayerInjury := func(playerID uint, injuryName, injuryType string, recoveryDays int) {
+		// Search for player in home team
+		for _, p := range hpb.InjuredPlayers {
+			if p.ID == playerID {
+				writer.Write([]string{p.Position, p.FirstName + " " + p.LastName, p.Team, injuryName, injuryType, strconv.Itoa(recoveryDays)})
+				return
+			}
+		}
+		for _, p := range apb.InjuredPlayers {
+			if p.ID == playerID {
+				writer.Write([]string{p.Position, p.FirstName + " " + p.LastName, p.Team, injuryName, injuryType, strconv.Itoa(recoveryDays)})
+				return
+			}
+		}
+	}
+
+	// First add injuries that occurred during this game (from InjuryLog)
+	for _, injury := range r.InjuryLog {
+		injuryType := "Unknown"
+		switch injury.Severity {
+		case 0:
+			injuryType = "Minor"
+		case 1:
+			injuryType = "Moderate"
+		case 2:
+			injuryType = "Severe"
+		case 3:
+			injuryType = "Critical"
+		}
+		writePlayerInjury(injury.PlayerID, injury.InjuryName, injuryType, injury.RecoveryDays)
+	}
 	return err
 }
 
@@ -513,337 +564,6 @@ func FormatTimeToClock(timeInSeconds uint16) string {
 	seconds := timeInSeconds % 60
 	formatted := fmt.Sprintf("%02d:%02d", minutes, seconds)
 	return formatted
-}
-
-func generateCollegeResultsString(play structs.PbP, event, outcome string, playerMap map[uint]structs.CollegePlayer, possessingTeam structs.CollegeTeam) string {
-	puckCarrier := playerMap[play.PuckCarrierID]
-	puckCarrierLabel := getPlayerLabel(puckCarrier.BasePlayer)
-	receivingPlayer := playerMap[play.PassedPlayerID]
-	receivingPlayerLabel := getPlayerLabel(receivingPlayer.BasePlayer)
-	assistingPlayer := playerMap[play.AssistingPlayerID]
-	assistingPlayerLabel := getPlayerLabel(assistingPlayer.BasePlayer)
-	defendingPlayer := playerMap[play.DefenderID]
-	defendingPlayerLabel := getPlayerLabel(defendingPlayer.BasePlayer)
-	goalie := playerMap[play.GoalieID]
-	goalieLabel := getPlayerLabel(goalie.BasePlayer)
-	statement := ""
-	nextZoneLabel := getZoneLabel(play.NextZoneID)
-	teamLabel := possessingTeam.TeamName
-	// First Segment
-	switch event {
-	case Faceoff:
-		switch outcome {
-		case "Home Faceoff Win":
-			statement = puckCarrierLabel + " wins the faceoff! "
-		case util.GoalieHold:
-			statement = puckCarrierLabel + " holds onto the puck, and it's going to a faceoff."
-		default:
-			statement = receivingPlayerLabel + " wins the faceoff! "
-		}
-		// Mention receiving player
-		if outcome != util.GoalieHold {
-			statement += assistingPlayerLabel + " receives the puck on the faceoff."
-		}
-	case PhysDefenseCheck:
-		switch outcome {
-		case DefenseTakesPuck:
-			statement = defendingPlayerLabel + " bodies " + puckCarrierLabel + " right into the boards and snatches the puck away!"
-		case CarrierKeepsPuck:
-			statement = defendingPlayerLabel + " attempts to body right into " + puckCarrierLabel + ", but " + puckCarrierLabel + " maneuvers effortlessly within the zone!"
-		}
-	case DexDefenseCheck:
-		switch outcome {
-		case DefenseTakesPuck:
-			statement = defendingPlayerLabel + " with a bit of stick-play swipes the puck right from under " + puckCarrierLabel + "!"
-		case CarrierKeepsPuck:
-			statement = defendingPlayerLabel + " attempts to swipe the puck from " + puckCarrierLabel + ", but his stick is batted away!"
-		}
-	case PassCheck:
-		switch outcome {
-		case InterceptedPass:
-			statement = defendingPlayerLabel + " intercepts the pass right from " + puckCarrierLabel + "!"
-		case ReceivedPass:
-			statement = puckCarrierLabel + " finds " + receivingPlayerLabel + " and makes the pass!"
-		case ReceivedLongPass, ReceivedBackPass:
-			statement = puckCarrierLabel + " finds " + receivingPlayerLabel + " in the " + nextZoneLabel + " and makes the pass!"
-		}
-	case AgilityCheck:
-		switch outcome {
-		case DefenseStopAgility:
-			statement = defendingPlayerLabel + " with a bit of stick-play swipes the puck right from under " + puckCarrierLabel + "!"
-		case OffenseMovesUp:
-			statement = puckCarrierLabel + " moves the puck up to the " + nextZoneLabel + "."
-		}
-	case WristshotCheck:
-		statement = puckCarrierLabel + " attempts a long shot on goal..."
-		switch outcome {
-		case ShotBlocked:
-			statement += " and the shot is blocked by " + defendingPlayerLabel + "!"
-		case GoalieSave:
-			statement += " and the shot is SAVED by " + goalieLabel + "!"
-		case InAccurateShot:
-			statement += " and he misses the goal! It's a loose puck! Picked up by " + receivingPlayerLabel + "!"
-		case ShotOnGoal:
-			statement += " and he scores! That's a point for " + teamLabel + "!"
-		}
-	case SlapshotCheck:
-		statement = puckCarrierLabel + " attempts a slapshot on goal..."
-		switch outcome {
-		case ShotBlocked:
-			statement += " and the shot is blocked by " + defendingPlayerLabel + "!"
-		case GoalieSave:
-			statement += " and the shot is SAVED by " + goalieLabel + "!"
-		case InAccurateShot:
-			if !play.IsShootout {
-				statement += " and he misses the goal! It's a loose puck! Picked up by " + receivingPlayerLabel + "!"
-			} else {
-				statement += " and he misses the net!"
-			}
-		case ShotOnGoal:
-			statement += " and he scores! That's a point for " + teamLabel + "!"
-		case PenaltyCheck:
-			penalty := getPenaltyByID(uint(play.PenaltyID))
-			severity := getSeverityByID(play.Severity)
-			penaltyMinutes := "two"
-			if play.Severity > 1 {
-				penaltyMinutes = "five"
-			}
-			statement += " and a penalty is called! " + defendingPlayerLabel + " has been called for a " + severity + " " + penalty + " on " + puckCarrierLabel + ". This will lead into a faceoff. Power play for " + penaltyMinutes + " minutes."
-		}
-	case PenaltyCheck:
-		penalty := getPenaltyByID(uint(play.PenaltyID))
-		severity := getSeverityByID(play.Severity)
-		penaltyMinutes := "two"
-		if play.Severity > 1 {
-			penaltyMinutes = "five"
-		}
-		if play.IsFight {
-			statement = "There's a fight on center ice! " + defendingPlayerLabel + " and " + goalieLabel + " are right at with the fisticuffs. Refs are breaking up the fight. Both players are out for " + penaltyMinutes + " minutes. Resetting play with a faceoff. "
-		} else {
-			statement = "Penalty called! " + defendingPlayerLabel + " has been called for " + severity + " " + penalty + " on " + puckCarrierLabel + ". Power play for " + penaltyMinutes + " minutes."
-		}
-	case EnteringShootout:
-		statement = "END OF OVERTIME, STARTING SHOOTOUT"
-	case Shootout:
-		statement = puckCarrierLabel + " faces " + goalieLabel + " in the shootout..."
-		switch outcome {
-		case GoalieSave:
-			statement += " and the shot is SAVED by " + goalieLabel + "! The next player is up!"
-		case ShotOnGoal:
-			statement += " and he scores! That's a point for " + teamLabel + "!"
-		case InAccurateShot:
-			statement += " and he misses the net! What an inaccurate shot!"
-		}
-	}
-
-	return statement
-}
-
-func generateProResultsString(play structs.PbP, event, outcome string, playerMap map[uint]structs.ProfessionalPlayer, possessingTeam structs.ProfessionalTeam) string {
-	puckCarrier := playerMap[play.PuckCarrierID]
-	puckCarrierLabel := getPlayerLabel(puckCarrier.BasePlayer)
-	receivingPlayer := playerMap[play.PassedPlayerID]
-	receivingPlayerLabel := getPlayerLabel(receivingPlayer.BasePlayer)
-	assistingPlayer := playerMap[play.AssistingPlayerID]
-	assistingPlayerLabel := getPlayerLabel(assistingPlayer.BasePlayer)
-	defendingPlayer := playerMap[play.DefenderID]
-	defendingPlayerLabel := getPlayerLabel(defendingPlayer.BasePlayer)
-	goalie := playerMap[play.GoalieID]
-	goalieLabel := getPlayerLabel(goalie.BasePlayer)
-	statement := ""
-	nextZoneLabel := getZoneLabel(play.NextZoneID)
-	teamLabel := possessingTeam.TeamName
-	// First Segment
-	switch event {
-	case Faceoff:
-		switch outcome {
-		case "Home Faceoff Win":
-			statement = puckCarrierLabel + " wins the faceoff! "
-		case util.GoalieHold:
-			statement = puckCarrierLabel + " holds onto the puck, and it's going to a faceoff."
-		default:
-			statement = receivingPlayerLabel + " wins the faceoff! "
-		}
-		// Mention receiving player
-		if outcome != util.GoalieHold {
-			statement += assistingPlayerLabel + " receives the puck on the faceoff."
-		}
-	case PhysDefenseCheck:
-		switch outcome {
-		case DefenseTakesPuck:
-			statement = defendingPlayerLabel + " bodies " + puckCarrierLabel + " right into the boards and snatches the puck away!"
-		case CarrierKeepsPuck:
-			statement = defendingPlayerLabel + " attempts to body right into " + puckCarrierLabel + ", but " + puckCarrierLabel + " maneuvers effortlessly within the zone!"
-		}
-	case DexDefenseCheck:
-		switch outcome {
-		case DefenseTakesPuck:
-			statement = defendingPlayerLabel + " with a bit of stick-play swipes the puck right from under " + puckCarrierLabel + "!"
-		case CarrierKeepsPuck:
-			statement = defendingPlayerLabel + " attempts to swipe the puck from " + puckCarrierLabel + ", but his stick is batted away!"
-		}
-	case PassCheck:
-		switch outcome {
-		case InterceptedPass:
-			statement = defendingPlayerLabel + " intercepts the pass right from " + puckCarrierLabel + "!"
-		case ReceivedPass:
-			statement = puckCarrierLabel + " finds " + receivingPlayerLabel + " and makes the pass!"
-		case ReceivedLongPass, ReceivedBackPass:
-			statement = puckCarrierLabel + " finds " + receivingPlayerLabel + " in the " + nextZoneLabel + " and makes the pass!"
-		}
-	case AgilityCheck:
-		switch outcome {
-		case DefenseStopAgility:
-			statement = defendingPlayerLabel + " with a bit of stick-play swipes the puck right from under " + puckCarrierLabel + "!"
-		case OffenseMovesUp:
-			statement = puckCarrierLabel + " moves the puck up to the " + nextZoneLabel + "."
-		}
-	case WristshotCheck:
-		statement = puckCarrierLabel + " attempts a long shot on goal..."
-		switch outcome {
-		case ShotBlocked:
-			statement += " and the shot is blocked by " + defendingPlayerLabel + "!"
-		case GoalieSave:
-			statement += " and the shot is SAVED by " + goalieLabel + "!"
-		case InAccurateShot:
-			statement += " and he misses the goal! It's a loose puck! Picked up by " + receivingPlayerLabel + "!"
-		case ShotOnGoal:
-			statement += " and he scores! That's a point for " + teamLabel + "!"
-		}
-	case SlapshotCheck:
-		statement = puckCarrierLabel + " attempts a slapshot on goal..."
-		switch outcome {
-		case ShotBlocked:
-			statement += " and the shot is blocked by " + defendingPlayerLabel + "!"
-		case GoalieSave:
-			statement += " and the shot is SAVED by " + goalieLabel + "!"
-		case InAccurateShot:
-			statement += " and he misses the goal! It's a loose puck! Picked up by " + receivingPlayerLabel + "!"
-		case ShotOnGoal:
-			statement += " and he scores! That's a point for " + teamLabel + "!"
-		case PenaltyCheck:
-			penalty := getPenaltyByID(uint(play.PenaltyID))
-			severity := getSeverityByID(play.Severity)
-			penaltyMinutes := "two"
-			if play.Severity > 1 {
-				penaltyMinutes = "five"
-			}
-			statement += " and a penalty is called! " + defendingPlayerLabel + " has been called for a " + severity + " " + penalty + " on " + puckCarrierLabel + ". This will lead into a faceoff. Power play for " + penaltyMinutes + " minutes."
-		}
-	case PenaltyCheck:
-		penalty := getPenaltyByID(uint(play.PenaltyID))
-		severity := getSeverityByID(play.Severity)
-		penaltyMinutes := "two"
-		if play.Severity > 1 {
-			penaltyMinutes = "five"
-		}
-		if play.IsFight {
-			statement = "There's a fight on center ice! " + defendingPlayerLabel + " and " + goalieLabel + " are right at with the fisticuffs. Refs are breaking up the fight. Both players are out for " + penaltyMinutes + " minutes. Resetting play with a faceoff. "
-		} else {
-			statement = "Penalty called! " + defendingPlayerLabel + " has been called for " + severity + " " + penalty + " on " + puckCarrierLabel + ". Power play for " + penaltyMinutes + " minutes."
-		}
-	case EnteringShootout:
-		statement = "END OF OVERTIME, STARTING SHOOTOUT"
-	case Shootout:
-		statement = puckCarrierLabel + " faces " + goalieLabel + " in the shootout..."
-		switch outcome {
-		case GoalieSave:
-			statement += " and the shot is SAVED by " + goalieLabel + "! The next player is up!"
-		case ShotOnGoal:
-			statement += " and he scores! That's a point for " + teamLabel + "!"
-		case InAccurateShot:
-			statement += " and he misses the net! What an inaccurate shot!"
-		}
-	}
-
-	return statement
-}
-
-func getPlayerLabel(player structs.BasePlayer) string {
-	if len(player.FirstName) == 0 {
-		return ""
-	}
-	return player.Team + " " + player.Position + " " + player.FirstName + " " + player.LastName
-}
-
-func getZoneLabel(zoneID uint8) string {
-	if zoneID == 0 {
-		return ""
-	}
-	if zoneID == HomeGoalZoneID {
-		return HomeGoal
-	}
-	if zoneID == HomeZoneID {
-		return HomeZone
-	}
-	if zoneID == NeutralZoneID {
-		return NeutralZone
-	}
-	if zoneID == AwayZoneID {
-		return AwayZone
-	}
-	if zoneID == AwayGoalZoneID {
-		return AwayGoal
-	}
-	return ""
-}
-
-func getPenaltyByID(penaltyType uint) string {
-	var penaltyMap = map[uint]string{
-		1:  "Aggressor Penalty",
-		2:  "Attempt to Injure",
-		3:  "Biting",
-		4:  "Boarding",
-		5:  "Boarding",
-		6:  "Stabbing",
-		7:  "Charging",
-		8:  "Charging",
-		9:  "Checking from Behind",
-		10: "Checking from Behind",
-		11: "Clipping",
-		12: "Clipping",
-		13: "Cross Checking",
-		14: "Cross Checking",
-		15: "Delay of Game",
-		16: "Diving",
-		17: "Elbowing",
-		18: "Elbowing",
-		19: "Eye-Gouging",
-		20: "Fighting",
-		21: "Goaltender Interference",
-		22: "Headbutting",
-		23: "High-sticking",
-		24: "High-sticking",
-		25: "Holding",
-		26: "Hooking",
-		27: "Hooking",
-		28: "Kicking",
-		29: "Kicking",
-		30: "Kneeing",
-		31: "Kneeing",
-		32: "Roughing",
-		33: "Roughing",
-		34: "Slashing",
-		35: "Slashing",
-		36: "Slew footing",
-		37: "Slew footing",
-		38: "Throwing the stick",
-		39: "Too many men on the ice",
-		40: "Tripping",
-		41: "Tripping",
-		42: "Unsportsmanlike conduct",
-	}
-	return penaltyMap[penaltyType]
-}
-
-func getSeverityByID(sevId uint8) string {
-	var severityMap = map[uint8]string{
-		1: "Minor Penalty",
-		2: "Major Penalty",
-		3: "Game Misconduct",
-		4: "Match Penalty",
-	}
-	return severityMap[sevId]
 }
 
 func WriteProPlayersExport(w http.ResponseWriter, players []structs.ProfessionalPlayer, filename string) {

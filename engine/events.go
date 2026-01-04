@@ -305,6 +305,10 @@ func handleDefenseCheck(gs *GameState, isStickCheck bool) {
 	// Select player on defense
 	defendingTeamID := getDefendingTeamID(uint(pc.TeamID), gs.HomeTeamID, gs.AwayTeamID)
 	defender := selectDefendingPlayer(gs, defendingTeamID)
+	if defender == nil {
+		fmt.Println("ERROR: Could not find defending player for defense check")
+		return
+	}
 	eventID := DexDefenseCheckID
 	if !isStickCheck {
 		eventID = PhysDefenseCheckID
@@ -337,10 +341,38 @@ func handleDefenseCheck(gs *GameState, isStickCheck bool) {
 	default:
 		// Determine if physical check or non-physical check
 		puckHandling := DiffReq + pc.HandlingMod
+		eventType := StickCheckEvent
+
 		if isStickCheck {
 			puckHandling -= defender.StickCheckMod
 		} else {
+			eventType = BodyCheckEvent
 			puckHandling -= defender.BodyCheckMod
+		}
+
+		// Check puck carrier (receiver) for injury - higher risk
+		pcInjuryChance := CalculateInjuryRisk(eventType, int(pc.InjuryRating), util.PCDefenderIntensity) // 20% higher risk for receiver
+		pcInjuryOccurs := IsPlayerInjured(pcInjuryChance)
+		if pcInjuryOccurs {
+			HandleInjuryEvent(gs, eventType, pc)
+		}
+
+		// Check defender (deliverer) for injury - lower risk
+		defenderInjuryChance := CalculateInjuryRisk(eventType, int(defender.InjuryRating), util.DefenderIntensity) // 40% lower risk for deliverer
+		defenderInjuryOccurs := IsPlayerInjured(defenderInjuryChance)
+		if defenderInjuryOccurs {
+			HandleInjuryEvent(gs, eventType, defender)
+		}
+
+		if pc.IsInjured || defender.IsInjured {
+			switch gs.PuckLocation {
+			case HomeGoal:
+				gs.SetNewZone(HomeZone)
+			case AwayGoal:
+				gs.SetNewZone(AwayZone)
+			}
+			HandleFaceoff(gs)
+			return
 		}
 
 		puckHandling = math.Max(puckHandling, 1.0)
@@ -374,8 +406,8 @@ func handleAgilityCheck(gs *GameState) {
 	// Get Current Zone
 	nextZone := getNextZone(gs)
 
-	pb := gs.PuckCarrier
-	agilityMod := pb.AgilityMod
+	pc := gs.PuckCarrier
+	agilityMod := pc.AgilityMod
 	momentumMod := gs.Momentum
 	critCheck := util.GenerateIntFromRange(1, 20)
 	secondsConsumed := util.GenerateIntFromRange(1, 4)
@@ -394,46 +426,76 @@ func handleAgilityCheck(gs *GameState) {
 	eventId := AgilityCheckID
 	_, nextZoneEnum := getZoneID(nextZone, gs.HomeTeamID, gs.AwayTeamID)
 	if defenseCheck {
-		defendingTeamID := getDefendingTeamID(uint(pb.TeamID), gs.HomeTeamID, gs.AwayTeamID)
+		defendingTeamID := getDefendingTeamID(uint(pc.TeamID), gs.HomeTeamID, gs.AwayTeamID)
 		defender := selectDefendingPlayer(gs, defendingTeamID)
-		diceRoll := util.GenerateIntFromRange(1, 20)
-		puckHandling := ToughReq + 1 + pb.HandlingMod
-		// if !gs.IsCollegeGame {
-		// 	puckHandling = ToughReq + pb.HandlingMod
-		// }
-		coinFlip := util.CoinFlip()
-		if coinFlip == Heads {
-			puckHandling -= defender.BodyCheckMod
+		if defender == nil {
+			fmt.Println("ERROR: Could not find defending player for agility check")
+			// Continue with the agility check without defense interference
 		} else {
-			puckHandling -= defender.StickCheckMod
-		}
+			diceRoll := util.GenerateIntFromRange(1, 20)
+			puckHandling := ToughReq + 1 + pc.HandlingMod
+			// if !gs.IsCollegeGame {
+			// 	puckHandling = ToughReq + pb.HandlingMod
+			// }
+			coinFlip := util.CoinFlip()
+			eventType := StickCheckEvent
+			if coinFlip == Heads {
+				puckHandling -= defender.BodyCheckMod
+				eventType = BodyCheckEvent
+			} else {
+				puckHandling -= defender.StickCheckMod
+			}
 
-		chance := CalculatePenaltyChance()
-		if chance {
-			shouldReturn := handlePenalty(gs, coinFlip == Heads, defender, eventId, pb.ID)
-			if shouldReturn {
+			chance := CalculatePenaltyChance()
+			if chance {
+				shouldReturn := handlePenalty(gs, coinFlip == Heads, defender, eventId, pc.ID)
+				if shouldReturn {
+					return
+				}
+			}
+
+			pcInjuryChance := CalculateInjuryRisk(eventType, int(pc.InjuryRating), util.PCDefenderIntensity) // 20% higher risk for receiver
+			if IsPlayerInjured(pcInjuryChance) {
+				HandleInjuryEvent(gs, eventType, pc)
+			}
+
+			// Check defender (deliverer) for injury - lower risk
+			defenderInjuryChance := CalculateInjuryRisk(eventType, int(defender.InjuryRating), util.DefenderIntensity) // 40% lower risk for deliverer
+			if IsPlayerInjured(defenderInjuryChance) {
+				HandleInjuryEvent(gs, eventType, defender)
+			}
+
+			if pc.IsInjured || defender.IsInjured {
+				switch gs.PuckLocation {
+				case HomeGoal:
+					gs.SetNewZone(HomeZone)
+				case AwayGoal:
+					gs.SetNewZone(AwayZone)
+				}
+				HandleFaceoff(gs)
+				return
+			}
+
+			puckHandling = math.Max(puckHandling, 1.0)
+
+			if float64(diceRoll) < puckHandling {
+				RecordPlay(gs, eventId, OffenseMovesUpID, nextZoneEnum, 0, 0, 0, 0, 0, false, pc.ID, 0, 0, defender.ID, 0, isBreakaway)
+				gs.SetNewZone(nextZone)
+				return
+			} else {
+				RecordPlay(gs, eventId, DefenseStopAgilityID, 0, 0, 0, 0, 0, 0, false, pc.ID, 0, 0, defender.ID, 0, false)
+				defender.AddDefensiveHit(coinFlip == Heads)
+				gs.SetPuckBearer(defender, false)
+				// Logger(defender.FirstName + " GETS THE PUCK FOR " + defender.Team + "!")
 				return
 			}
 		}
 
-		puckHandling = math.Max(puckHandling, 1.0)
-
-		if float64(diceRoll) < puckHandling {
-			RecordPlay(gs, eventId, OffenseMovesUpID, nextZoneEnum, 0, 0, 0, 0, 0, false, pb.ID, 0, 0, defender.ID, 0, isBreakaway)
-			gs.SetNewZone(nextZone)
-			return
-		} else {
-			RecordPlay(gs, eventId, DefenseStopAgilityID, 0, 0, 0, 0, 0, 0, false, pb.ID, 0, 0, defender.ID, 0, false)
-			defender.AddDefensiveHit(coinFlip == Heads)
-			gs.SetPuckBearer(defender, false)
-			// Logger(defender.FirstName + " GETS THE PUCK FOR " + defender.Team + "!")
-			return
-		}
 	}
 
 	// Logger(pb.FirstName + " " + pb.LastName + " moves up to " + nextZone + "!")
 	// Move up zone
-	RecordPlay(gs, eventId, OffenseMovesUpID, uint8(nextZoneEnum), 0, 0, 0, 0, 0, false, pb.ID, 0, 0, 0, 0, isBreakaway)
+	RecordPlay(gs, eventId, OffenseMovesUpID, uint8(nextZoneEnum), 0, 0, 0, 0, 0, false, pc.ID, 0, 0, 0, 0, isBreakaway)
 	gs.SetNewZone(nextZone)
 }
 
@@ -468,11 +530,59 @@ func handlePassCheck(gs *GameState, longPass, backPass bool) {
 	defendingTeamID := getDefendingTeamID(uint(pb.TeamID), gs.HomeTeamID, gs.AwayTeamID)
 	defender := selectDefendingPlayer(gs, defendingTeamID)
 
+	// If cannot find a defending player
+	if defender == nil {
+		fmt.Println("ERROR: Could not find defending player")
+		// Fall back to no interception attempt
+		playerList := getFullPlayerListByTeamID(uint(pb.TeamID), gs)
+		filteredList := getAvailablePlayers(pb.ID, playerList)
+		receivingPlayer := PassPuckToPlayer(gs, filteredList, gs.PuckLocation)
+		if receivingPlayer == 0 {
+			// No available player, keep puck
+			secondsConsumed := util.GenerateIntFromRange(1, 3)
+			gs.SetSecondsConsumed(uint16(secondsConsumed))
+			return
+		}
+		retrievingPlayer, _ := findPlayerByID(playerList, receivingPlayer)
+		if retrievingPlayer == nil {
+			// Still can't find player, keep puck
+			secondsConsumed := util.GenerateIntFromRange(1, 3)
+			gs.SetSecondsConsumed(uint16(secondsConsumed))
+			return
+		}
+		gs.SetPuckBearer(retrievingPlayer, longPass || backPass)
+		secondsConsumed := util.GenerateIntFromRange(1, 3)
+		gs.SetSecondsConsumed(uint16(secondsConsumed))
+		return
+	}
+	passID := PassCheckID
+	if longPass {
+		passID = LongPassCheckID
+	} else if backPass {
+		passID = PassBackCheckID
+	}
 	safePass := CalculateSafePass(pb.PassMod, defender.StickCheckMod, longPass || backPass)
 
 	if !safePass {
+
+		defenderInjuryChance := CalculateInjuryRisk(MissedPassInterception, int(defender.InjuryRating), util.DefenderIntensity) // 40% lower risk for deliverer
+		if IsPlayerInjured(defenderInjuryChance) {
+			HandleInjuryEvent(gs, MissedPassInterception, defender)
+		}
+
+		if defender.IsInjured {
+			switch gs.PuckLocation {
+			case HomeGoal:
+				gs.SetNewZone(HomeZone)
+			case AwayGoal:
+				gs.SetNewZone(AwayZone)
+			}
+			HandleFaceoff(gs)
+			return
+		}
+
 		gs.SetPuckBearer(defender, false)
-		RecordPlay(gs, PassCheckID, InterceptedPassID, 0, 0, 0, 0, 0, 0, false, pb.ID, 0, 0, defender.ID, 0, false)
+		RecordPlay(gs, passID, InterceptedPassID, 0, 0, 0, 0, 0, 0, false, pb.ID, 0, 0, defender.ID, 0, false)
 		// Logger(defender.FirstName + " INTERCEPTS THE PASS FOR " + defender.Team + "!")
 		return
 	}
@@ -487,21 +597,26 @@ func handlePassCheck(gs *GameState, longPass, backPass bool) {
 		// No available player to pass to, hold onto puck
 		secondsConsumed := util.GenerateIntFromRange(1, 3)
 		gs.SetSecondsConsumed(uint16(secondsConsumed))
-		RecordPlay(gs, PassCheckID, NoOneOpenID, 0, 0, 0, 0, 0, 0, false, pb.ID, receivingPlayer, 0, defender.ID, 0, false)
+		RecordPlay(gs, passID, NoOneOpenID, 0, 0, 0, 0, 0, 0, false, pb.ID, receivingPlayer, 0, defender.ID, 0, false)
 		return
 	}
 	retrievingPlayer, _ := findPlayerByID(playerList, receivingPlayer)
+	if retrievingPlayer == nil {
+		fmt.Printf("ERROR: Could not find receiving player with ID %d\n", receivingPlayer)
+		// Fall back to keeping current puck carrier
+		secondsConsumed := util.GenerateIntFromRange(1, 3)
+		gs.SetSecondsConsumed(uint16(secondsConsumed))
+		RecordPlay(gs, passID, NoOneOpenID, 0, 0, 0, 0, 0, 0, false, pb.ID, 0, 0, defender.ID, 0, false)
+		return
+	}
 	HandleMissingPlayer(*retrievingPlayer, "PASSING PUCK")
 	enum := uint8(0)
-	outcomeID := ReceivedPassID
 	zone := ""
 	if longPass {
-		outcomeID = ReceivedLongPassID
 		zone = getNextZone(gs)
 		_, nextZoneEnum := getZoneID(zone, gs.HomeTeamID, gs.AwayTeamID)
 		enum = nextZoneEnum
 	} else if backPass {
-		outcomeID = ReceivedBackPassID
 		zone = getPreviousZone(gs)
 		_, nextZoneEnum := getZoneID(zone, gs.HomeTeamID, gs.AwayTeamID)
 		enum = nextZoneEnum
@@ -512,15 +627,15 @@ func handlePassCheck(gs *GameState, longPass, backPass bool) {
 	}
 	secondsConsumed := util.GenerateIntFromRange(1, 3)
 	gs.SetSecondsConsumed(uint16(secondsConsumed))
-	RecordPlay(gs, PassCheckID, outcomeID, enum, 0, 0, 0, 0, 0, false, pb.ID, receivingPlayer, 0, defender.ID, 0, false)
+	RecordPlay(gs, passID, ReceivedPassID, enum, 0, 0, 0, 0, 0, false, pb.ID, receivingPlayer, 0, defender.ID, 0, false)
 	gs.SetPuckBearer(retrievingPlayer, longPass || backPass)
 }
 
 func handlePenalties(gs *GameState) {
 	// Determine penalty type
 	// Minor, major, misconduct, game misconduct, match
-	pb := gs.PuckCarrier
-	defendingTeamID := getDefendingTeamID(uint(pb.TeamID), gs.HomeTeamID, gs.AwayTeamID)
+	pc := gs.PuckCarrier
+	defendingTeamID := getDefendingTeamID(uint(pc.TeamID), gs.HomeTeamID, gs.AwayTeamID)
 	zoneID := 0
 	switch gs.PuckLocation {
 	case HomeGoal, AwayGoal:
@@ -530,6 +645,10 @@ func handlePenalties(gs *GameState) {
 	}
 
 	player := selectDefendingPlayer(gs, defendingTeamID)
+	if player == nil {
+		fmt.Println("ERROR: Could not find player for penalty")
+		return
+	}
 	secondPlayer := &GamePlayer{}
 	penaltyTypeID := GeneralPenaltyID
 	penaltyType := General
@@ -538,7 +657,13 @@ func handlePenalties(gs *GameState) {
 		penaltyTypeID = FightPenaltyID
 		penaltyType = Fight
 		// If a fight occurs, then two players should probably get placed in the penalty box.
-		secondPlayer = selectDefendingPlayer(gs, uint(pb.TeamID))
+		secondPlayer = selectDefendingPlayer(gs, uint(pc.TeamID))
+		if secondPlayer == nil {
+			// If we can't find a second player, treat it as a regular penalty
+			secondPlayer = &GamePlayer{}
+			penaltyTypeID = GeneralPenaltyID
+			penaltyType = General
+		}
 	}
 
 	penalty := SelectPenalty(player, uint(zoneID), penaltyType)
@@ -546,7 +671,19 @@ func handlePenalties(gs *GameState) {
 		return
 	}
 	sevId := GetSeverityID(penalty.Severity)
-	RecordPlay(gs, PenaltyCheckID, penaltyTypeID, 0, 0, 0, 0, uint8(penalty.PenaltyID), sevId, penalty.IsFight, pb.ID, 0, 0, player.ID, secondPlayer.ID, false)
+	RecordPlay(gs, PenaltyCheckID, penaltyTypeID, 0, 0, 0, 0, uint8(penalty.PenaltyID), sevId, penalty.IsFight, pc.ID, 0, 0, player.ID, secondPlayer.ID, false)
+
+	// Roll for injury if major
+	if penalty.Severity == MajorPenalty || penalty.Severity == MatchPenalty {
+		intensity := util.SevereInjuryIntensity
+		if penalty.Severity == MatchPenalty {
+			intensity = util.CriticalInjuryIntensity
+		}
+		injuryChance := CalculateInjuryRisk(PenaltyEvent, int(pc.InjuryRating), intensity)
+		if IsPlayerInjured(injuryChance) {
+			HandleInjuryEvent(gs, PenaltyEvent, pc)
+		}
+	}
 
 	// Apply Penalty to Player
 	ApplyPenalty(gs, penalty, player)
@@ -559,6 +696,10 @@ func HandleFaceoff(gs *GameState) {
 	// Get Centers from current lineups
 	homeCenter := gs.GetCenter(true)
 	awayCenter := gs.GetCenter(false)
+	if homeCenter == nil || awayCenter == nil {
+		fmt.Printf("ERROR: Missing centers for faceoff - Home: %v, Away: %v\n", homeCenter != nil, awayCenter != nil)
+		return
+	}
 	HandleMissingPlayer(*homeCenter, "HandleFaceoff Home Center")
 	HandleMissingPlayer(*awayCenter, "HandleFaceoff Away Center")
 	homeFaceoffWin := CalculateFaceoff(homeCenter.FaceoffMod, awayCenter.FaceoffMod)
@@ -596,6 +737,10 @@ func HandleFaceoffRetrieval(gs *GameState, homeFaceoffWin bool, faceoffWinID, ho
 
 	faceoffRetrievalCheck := RetrievePuckAfterFaceoffCheck(playerList, puckLocation, faceoffWinID, homeFaceoffWin)
 	retrievingPlayer, _ := findPlayerByID(playerList, faceoffRetrievalCheck)
+	if retrievingPlayer == nil {
+		fmt.Printf("ERROR: Could not find retrieving player after faceoff with ID %d\n", faceoffRetrievalCheck)
+		return
+	}
 	HandleMissingPlayer(*retrievingPlayer, "REBOUNDING AFTER FACEOFF")
 	gs.SetPuckBearer(retrievingPlayer, false)
 	outcomeID := HomeFaceoffWinID
@@ -773,13 +918,21 @@ func HandleReboundAfterShot(gs *GameState, eventID uint8, outcomeID uint8, puckC
 		gs.PuckState = PuckStateLoose
 		handlePuckBattle(gs, reboundPlayerList)
 		// Record the rebound event but note it became contested
-		RecordPlay(gs, eventID, PuckScrambleID, 0, 0, 0, 0, 0, 0, false, puckCarrierID, gs.PuckCarrier.ID, 0, 0, goalieID, false)
+		puckCarrierIDForRecord := uint(0)
+		if gs.PuckCarrier != nil {
+			puckCarrierIDForRecord = gs.PuckCarrier.ID
+		}
+		RecordPlay(gs, eventID, PuckScrambleID, 0, 0, 0, 0, 0, 0, false, puckCarrierID, puckCarrierIDForRecord, 0, 0, goalieID, false)
 		return
 	}
 
 	// Normal rebound resolution
 	reboundCheck := reboundCheck(gs, reboundPlayerList, puckLocation)
 	reboundingPlayer, _ := findPlayerByID(reboundPlayerList, reboundCheck)
+	if reboundingPlayer == nil {
+		fmt.Printf("ERROR: Could not find rebounding player with ID %d\n", reboundCheck)
+		return
+	}
 	HandleMissingPlayer(*reboundingPlayer, "REBOUNDING AFTER SHOT")
 	// Record Play after inaccurate shot
 	RecordPlay(gs, eventID, outcomeID, 0, 0, 0, 0, 0, 0, false, puckCarrierID, reboundingPlayer.ID, 0, 0, goalieID, false)
@@ -789,6 +942,10 @@ func HandleReboundAfterShot(gs *GameState, eventID uint8, outcomeID uint8, puckC
 
 func HandleShot(gs *GameState, isCloseShot bool) {
 	pb := gs.PuckCarrier
+	if pb == nil {
+		fmt.Println("ERROR: No puck carrier for shot attempt")
+		return
+	}
 	isHome := pb.TeamID == uint16(gs.HomeTeamID)
 	goalie := &GamePlayer{}
 	goalieStrategy := gs.GetLineStrategy(!isHome, 3)
@@ -818,16 +975,35 @@ func HandleShot(gs *GameState, isCloseShot bool) {
 	// Detect shotblocking
 	defendingTeamID := getDefendingTeamID(uint(pb.TeamID), gs.HomeTeamID, gs.AwayTeamID)
 	defender := selectBlockingPlayer(gs, defendingTeamID)
-	if defender.ID == 0 {
-		fmt.Println("PING!")
-	}
-	shotBlocked := CalculateShotBlock(defender.ShotblockingMod)
-	if shotBlocked {
-		pb.AddShot(false, false, false, false, gs.Period > 3)
-		defender.AddShotBlocked()
-		RecordPlay(gs, eventTypeID, ShotBlockedID, 0, 0, 0, 0, 0, 0, false, pb.ID, 0, 0, defender.ID, goalie.ID, false)
-		gs.SetPuckBearer(defender, false)
-		return
+	if defender == nil {
+		fmt.Println("ERROR: Could not find blocking player")
+		// Continue with shot attempt without blocking
+	} else {
+		shotBlocked := CalculateShotBlock(defender.ShotblockingMod)
+		if shotBlocked {
+			// Check defender (deliverer) for injury - lower risk
+			defenderInjuryChance := CalculateInjuryRisk(MissedShotBlocked, int(defender.InjuryRating), util.SevereInjuryIntensity) // 40% lower risk for deliverer
+			if IsPlayerInjured(defenderInjuryChance) {
+				HandleInjuryEvent(gs, MissedShotBlocked, defender)
+			}
+
+			if defender.IsInjured {
+				switch gs.PuckLocation {
+				case HomeGoal:
+					gs.SetNewZone(HomeZone)
+				case AwayGoal:
+					gs.SetNewZone(AwayZone)
+				}
+				HandleFaceoff(gs)
+				return
+			}
+
+			pb.AddShot(false, false, false, false, gs.Period > 3)
+			defender.AddShotBlocked()
+			RecordPlay(gs, eventTypeID, ShotBlockedID, 0, 0, 0, 0, 0, 0, false, pb.ID, 0, 0, defender.ID, goalie.ID, false)
+			gs.SetPuckBearer(defender, false)
+			return
+		}
 	}
 	accuracyCheck := CalculateAccuracy(float64(accuracy), isCloseShot)
 	if !accuracyCheck {
@@ -861,6 +1037,23 @@ func HandleShot(gs *GameState, isCloseShot bool) {
 		gs.AddShots(isHome)
 		goalie.AddShotAgainst(false)
 		pb.AddShot(false, false, false, false, false)
+
+		goalieInjuryChance := CalculateInjuryRisk(PuckContact, int(goalie.InjuryRating), util.BaseInjuryIntensity) // 40% lower risk for deliverer
+		if IsPlayerInjured(goalieInjuryChance) {
+			HandleInjuryEvent(gs, PuckContact, goalie)
+		}
+
+		if defender.IsInjured {
+			switch gs.PuckLocation {
+			case HomeGoal:
+				gs.SetNewZone(HomeZone)
+			case AwayGoal:
+				gs.SetNewZone(AwayZone)
+			}
+			HandleFaceoff(gs)
+			return
+		}
+
 		switch gs.PuckLocation {
 		case HomeZone:
 			gs.SetNewZone(HomeGoal)
@@ -874,6 +1067,10 @@ func HandleShot(gs *GameState, isCloseShot bool) {
 
 func HandleShootoutAttempt(gs *GameState) {
 	pb := gs.PuckCarrier
+	if pb == nil {
+		fmt.Println("ERROR: No puck carrier for shootout attempt")
+		return
+	}
 	isHome := pb.TeamID == uint16(gs.HomeTeamID)
 	goalie := &GamePlayer{}
 	goalieStrategy := gs.GetLineStrategy(!isHome, 3)
@@ -950,8 +1147,16 @@ func formShootoutQueue(homeGP, awayGP GamePlaybook) []*GamePlayer {
 	// Loop through the same 6 shooters
 	for i := 0; i < len(homeLineup); i++ {
 		homePlayer := homeLineup[i]
+		if homePlayer == nil {
+			fmt.Printf("ERROR: Missing home player in shootout lineup at index %d\n", i)
+			continue
+		}
 		HandleMissingPlayer(*homePlayer, "SHOOTOUT QUEUE, INDEX "+strconv.Itoa(i)+" TeamID:"+strconv.Itoa(int(homeGP.ShootoutLineUp.TeamID)))
 		awayPlayer := awayLineup[i]
+		if awayPlayer == nil {
+			fmt.Printf("ERROR: Missing away player in shootout lineup at index %d\n", i)
+			continue
+		}
 		HandleMissingPlayer(*awayPlayer, "SHOOTOUT QUEUE, INDEX "+strconv.Itoa(i)+" TeamID:"+strconv.Itoa(int(awayGP.ShootoutLineUp.TeamID)))
 		queue = append(queue, homePlayer)
 		queue = append(queue, awayPlayer)
@@ -1086,6 +1291,10 @@ func RecordPlay(gs *GameState, eventID, outcomeID, nextZoneID, injuryID, injuryT
 		Severity:              severity,
 		IsBreakaway:           isBreakaway,
 		IsShootout:            gs.IsOvertimeShootout,
+		HOS:                   gs.HomeStrategy.Gameplan.OffensiveSystem,
+		AOS:                   gs.AwayStrategy.Gameplan.OffensiveSystem,
+		HDS:                   gs.HomeStrategy.Gameplan.DefensiveSystem,
+		ADS:                   gs.AwayStrategy.Gameplan.DefensiveSystem,
 	}
 
 	gs.RecordPlay(play)
@@ -1143,11 +1352,67 @@ func handlePuckBattle(gs *GameState, contestedPlayers []*GamePlayer) {
 	secondsConsumed := util.GenerateIntFromRange(2, 5) // Battles take time
 	gs.SetSecondsConsumed(uint16(secondsConsumed))
 
-	// Record the puck battle event
+	// Separate players by team to track participants from both sides
+	var homeTeamPlayers, awayTeamPlayers []*GamePlayer
+	for _, player := range contestedPlayers {
+		if player.TeamID == uint16(gs.HomeTeamID) {
+			homeTeamPlayers = append(homeTeamPlayers, player)
+		} else {
+			awayTeamPlayers = append(awayTeamPlayers, player)
+		}
+	}
+
+	// Find opposing team player and additional participant to track
+	var opposingPlayer *GamePlayer
+	var additionalPlayer *GamePlayer
+
+	// Get a player from the opposing team (not the winner)
+	if winner.TeamID == uint16(gs.HomeTeamID) {
+		// Winner is home team, get away team player
+		for _, player := range awayTeamPlayers {
+			opposingPlayer = player
+			break
+		}
+		// Get additional home team participant if available
+		for _, player := range homeTeamPlayers {
+			if player.ID != winner.ID {
+				additionalPlayer = player
+				break
+			}
+		}
+	} else {
+		// Winner is away team, get home team player
+		for _, player := range homeTeamPlayers {
+			opposingPlayer = player
+			break
+		}
+		// Get additional away team participant if available
+		for _, player := range awayTeamPlayers {
+			if player.ID != winner.ID {
+				additionalPlayer = player
+				break
+			}
+		}
+	}
+
+	// Record the puck battle event with participant tracking
 	eventID := PuckBattleID
 	outcomeID := PuckBattleWinID
+	if gs.PuckCarrier != nil && gs.PuckCarrier.TeamID != winner.TeamID {
+		outcomeID = PuckBattleLoseID
+	}
 
-	RecordPlay(gs, eventID, outcomeID, 0, 0, 0, 0, 0, 0, false, winner.ID, 0, 0, 0, 0, false)
+	// Track participants: winner as pcID, opposing team as dpID, additional as ppID
+	opposingPlayerID := uint(0)
+	if opposingPlayer != nil {
+		opposingPlayerID = opposingPlayer.ID
+	}
+	additionalPlayerID := uint(0)
+	if additionalPlayer != nil {
+		additionalPlayerID = additionalPlayer.ID
+	}
+
+	RecordPlay(gs, eventID, outcomeID, 0, 0, 0, 0, 0, 0, false, winner.ID, additionalPlayerID, 0, opposingPlayerID, 0, false)
 
 	// Winner takes possession
 	gs.SetPuckBearer(winner, false)

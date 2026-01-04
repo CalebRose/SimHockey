@@ -388,6 +388,8 @@ func PrepareGames(collegeGames []structs.CollegeGame, proGames []structs.Profess
 	collegeTeamRosterMap := GetAllCollegePlayersMapByTeam()
 	collegeLineupMap := GetCollegeLineupsMap()
 	collegeShootoutLineupMap := GetCollegeShootoutLineups()
+	collegeGameplans := repository.FindCollegeGameplanRecords()
+	collegeGameplanMap := MakeCollegeGameplanMap(collegeGameplans)
 	arenaMap := GetArenaMap()
 	// collegeGames := GetCollegeGamesForTesting(collegeTeamMap)
 	collegeGamesWg.Add(len(collegeGames))
@@ -485,6 +487,20 @@ func PrepareGames(collegeGames []structs.CollegeGame, proGames []structs.Profess
 				return
 			}
 
+			hgp := collegeGameplanMap[c.HomeTeamID]
+			if hgp.ID == 0 {
+				fmt.Printf("ERROR: No gameplan found for home team %s (ID: %d)\n", c.HomeTeam, c.HomeTeamID)
+				mutex.Unlock()
+				return
+			}
+
+			agp := collegeGameplanMap[c.AwayTeamID]
+			if agp.ID == 0 {
+				fmt.Printf("ERROR: No gameplan found for away team %s (ID: %d)\n", c.AwayTeam, c.AwayTeamID)
+				mutex.Unlock()
+				return
+			}
+
 			// Check arena
 			arena := arenaMap[c.ArenaID]
 			if arena.ID == 0 {
@@ -508,7 +524,7 @@ func PrepareGames(collegeGames []structs.CollegeGame, proGames []structs.Profess
 						panic(r) // Re-panic to be caught by outer handler
 					}
 				}()
-				hp = getCollegePlaybookDTO(htl, htr, htsl)
+				hp = getCollegePlaybookDTO(htl, htr, htsl, hgp)
 			}()
 
 			// Generate away playbook with error handling
@@ -521,7 +537,7 @@ func PrepareGames(collegeGames []structs.CollegeGame, proGames []structs.Profess
 						panic(r) // Re-panic to be caught by outer handler
 					}
 				}()
-				ap = getCollegePlaybookDTO(atl, atr, atsl)
+				ap = getCollegePlaybookDTO(atl, atr, atsl, agp)
 			}()
 
 			capacity := arena.Capacity
@@ -559,6 +575,8 @@ func PrepareGames(collegeGames []structs.CollegeGame, proGames []structs.Profess
 	proTeamRosterMap := GetAllProPlayersMapByTeam()
 	proLineupMap := GetProLineupsMap()
 	proShootoutLineupMap := GetProShootoutLineups()
+	proGameplans := repository.FindProfessionalGameplanRecords()
+	proGameplanMap := MakeProGameplanMap(proGameplans)
 	proGamesWg.Add(len(proGames))
 	proSem := make(chan struct{}, 20)
 	for _, g := range proGames {
@@ -577,8 +595,10 @@ func PrepareGames(collegeGames []structs.CollegeGame, proGames []structs.Profess
 			atl := proLineupMap[g.AwayTeamID]
 			htsl := proShootoutLineupMap[g.HomeTeamID]
 			atsl := proShootoutLineupMap[g.AwayTeamID]
-			hp := getProfessionalPlaybookDTO(htl, htr, htsl)
-			ap := getProfessionalPlaybookDTO(atl, atr, atsl)
+			hgp := proGameplanMap[g.HomeTeamID]
+			agp := proGameplanMap[g.AwayTeamID]
+			hp := getProfessionalPlaybookDTO(htl, htr, htsl, hgp)
+			ap := getProfessionalPlaybookDTO(atl, atr, atsl, agp)
 			arena := arenaMap[g.ArenaID]
 			capacity := arena.Capacity
 			currentStandings := proStandingsMap[g.HomeTeamID]
@@ -1587,7 +1607,7 @@ func GetArenaMap() map[uint]structs.Arena {
 	return MakeArenaMap(arenas)
 }
 
-func getCollegePlaybookDTO(lineups []structs.CollegeLineup, roster []structs.CollegePlayer, shootoutLineup structs.CollegeShootoutLineup) structs.PlayBookDTO {
+func getCollegePlaybookDTO(lineups []structs.CollegeLineup, roster []structs.CollegePlayer, shootoutLineup structs.CollegeShootoutLineup, gp structs.CollegeGameplan) structs.PlayBookDTO {
 	forwards, defenders, goalies := getCollegeForwardDefenderGoalieLineups(lineups)
 	return structs.PlayBookDTO{
 		Forwards:       forwards,
@@ -1595,10 +1615,11 @@ func getCollegePlaybookDTO(lineups []structs.CollegeLineup, roster []structs.Col
 		Goalies:        goalies,
 		CollegeRoster:  roster,
 		ShootoutLineup: shootoutLineup.ShootoutPlayerIDs,
+		Gameplan:       gp.BaseGameplan,
 	}
 }
 
-func getProfessionalPlaybookDTO(lineups []structs.ProfessionalLineup, roster []structs.ProfessionalPlayer, shootoutLineup structs.ProfessionalShootoutLineup) structs.PlayBookDTO {
+func getProfessionalPlaybookDTO(lineups []structs.ProfessionalLineup, roster []structs.ProfessionalPlayer, shootoutLineup structs.ProfessionalShootoutLineup, gp structs.ProGameplan) structs.PlayBookDTO {
 	forwards, defenders, goalies := getProfessionalForwardDefenderGoalieLineups(lineups)
 	return structs.PlayBookDTO{
 		Forwards:           forwards,
@@ -1606,6 +1627,7 @@ func getProfessionalPlaybookDTO(lineups []structs.ProfessionalLineup, roster []s
 		Goalies:            goalies,
 		ProfessionalRoster: roster,
 		ShootoutLineup:     shootoutLineup.ShootoutPlayerIDs,
+		Gameplan:           gp.BaseGameplan,
 	}
 }
 
@@ -1771,6 +1793,53 @@ func getAttendancePercent(wins, losses int) float64 {
 	}
 }
 
+// TeamPairing represents a matched pair of teams for a game
+type TeamPairing struct {
+	HomeTeamID uint
+	AwayTeamID uint
+}
+
+// createTeamPairings creates optimal pairings for all teams, ensuring each team plays
+func createTeamPairings(allTeams []structs.CollegeTeam) []TeamPairing {
+	if len(allTeams) == 0 {
+		return []TeamPairing{}
+	}
+
+	// Shuffle teams for random pairings
+	shuffledTeams := make([]structs.CollegeTeam, len(allTeams))
+	copy(shuffledTeams, allTeams)
+	rand.Shuffle(len(shuffledTeams), func(i, j int) {
+		shuffledTeams[i], shuffledTeams[j] = shuffledTeams[j], shuffledTeams[i]
+	})
+
+	var pairings []TeamPairing
+
+	// Create pairs from shuffled teams
+	for i := 0; i < len(shuffledTeams)-1; i += 2 {
+		pairing := TeamPairing{
+			HomeTeamID: shuffledTeams[i].ID,
+			AwayTeamID: shuffledTeams[i+1].ID,
+		}
+		pairings = append(pairings, pairing)
+	}
+
+	// If odd number of teams, add the last team with a random opponent
+	if len(shuffledTeams)%2 == 1 {
+		lastTeam := shuffledTeams[len(shuffledTeams)-1]
+		// Pair with a random team that's already been paired
+		if len(pairings) > 0 {
+			randomIdx := rand.Intn(len(shuffledTeams) - 1)
+			pairing := TeamPairing{
+				HomeTeamID: lastTeam.ID,
+				AwayTeamID: shuffledTeams[randomIdx].ID,
+			}
+			pairings = append(pairings, pairing)
+		}
+	}
+
+	return pairings
+}
+
 // TopN returns the top n standings (or fewer if not enough teams).
 func CreateTestResultsDirectory() error {
 	// Create test_results directory if it doesn't exist
@@ -1784,9 +1853,9 @@ func CreateTestResultsDirectory() error {
 }
 
 func generateAndRunTestGames(ts structs.Timestamp, db *gorm.DB) {
-	fmt.Println("Generating random test games...")
+	fmt.Println("Generating test games with proper team pairings...")
 
-	// Get all college teams for random matchups
+	// Get all college teams for matchups
 	allTeams := GetAllCollegeTeams()
 	if len(allTeams) < 2 {
 		fmt.Println("Not enough teams to generate test games")
@@ -1795,30 +1864,21 @@ func generateAndRunTestGames(ts structs.Timestamp, db *gorm.DB) {
 
 	teamMap := GetCollegeTeamMap()
 
-	// Generate random games (between 5-15 games)
-	numGames := 5 + rand.Intn(11) // Random number between 5-15
-	testGames := make([]structs.CollegeGame, 0, numGames)
+	// Create team pairings to ensure each team plays
+	teamPairings := createTeamPairings(allTeams)
+	fmt.Printf("Created %d team pairings\n", len(teamPairings))
 
-	for i := 0; i < numGames; i++ {
-		// Pick two random teams
-		homeIdx := rand.Intn(len(allTeams))
-		awayIdx := rand.Intn(len(allTeams))
+	// Generate games based on pairings
+	testGames := make([]structs.CollegeGame, 0, len(teamPairings))
 
-		// Ensure home and away teams are different
-		for awayIdx == homeIdx {
-			awayIdx = rand.Intn(len(allTeams))
-		}
-
-		homeTeam := allTeams[homeIdx]
-		awayTeam := allTeams[awayIdx]
-
-		// Generate a test game
+	for i, pairing := range teamPairings {
+		// Generate a test game for this pairing
 		game := generateCollegeGame(
 			ts.SeasonID,
 			ts.WeekID,
 			ts.Week,
-			homeTeam.ID,
-			awayTeam.ID,
+			pairing.HomeTeamID,
+			pairing.AwayTeamID,
 			ts.GetGameDay(),
 			fmt.Sprintf("Test Game %d", i+1),
 			teamMap,
@@ -1828,7 +1888,7 @@ func generateAndRunTestGames(ts structs.Timestamp, db *gorm.DB) {
 		testGames = append(testGames, game)
 	}
 
-	fmt.Printf("Generated %d test games\n", len(testGames))
+	fmt.Printf("Generated %d test games from pairings\n", len(testGames))
 
 	// Run the games without database operations
 	runTestGamesOnly(testGames, ts, db)

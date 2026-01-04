@@ -37,6 +37,10 @@ type PbP struct {
 	IsFight               bool
 	IsBreakaway           bool
 	IsShootout            bool
+	HOS                   uint8 // HomeOffensiveSystem
+	HDS                   uint8 // HomeDefensiveSystem
+	AOS                   uint8 // AwayOffensiveSystem
+	ADS                   uint8 // AwayDefensiveSystem
 }
 
 type CollegePlayByPlay struct {

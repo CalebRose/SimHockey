@@ -451,8 +451,8 @@ func RunLineupsForAICollegeTeams() {
 				GoalieID:    uint(goalieID),
 			}
 			pass := 20
-			longPass := 0
-			backPass := 0
+			longPass := 5
+			backPass := 5
 			closeShot := 20
 			longShot := 20
 			bodyCheck := 10

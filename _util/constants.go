@@ -32,6 +32,9 @@ const (
 	GoalieVision      string = "GoalieVision"
 	GoalieRebound     string = "GoalieRebound"
 	GoalieHold        string = "Goalie Hold"
+	LongPassCheck     string = "Long Pass Check"
+	PassBackCheck     string = "Pass Back Check"
+	InjuryCheck       string = "Injury Check"
 
 	// Event IDs
 	FaceoffID          uint8 = 1
@@ -73,6 +76,18 @@ const (
 	EnteringShootout     uint8 = 34
 	WSShootoutID         uint8 = 35
 	CSShootoutID         uint8 = 36
+	PuckBattleID         uint8 = 37 // New: Puck battle events
+	PuckBattleWinID      uint8 = 38 // Outcome: Win puck battle
+	PuckBattleLoseID     uint8 = 39 // Outcome: Lose puck battle
+	PuckScrambleID       uint8 = 40 // Multiple player scramble
+	PuckCoveredID        uint8 = 41 // Puck covered event
+	LongPassCheckID      uint8 = 42
+	PassBackCheckID      uint8 = 43
+	InjuryCheckID        uint8 = 44
+	MinorInjuryID        uint8 = 45
+	ModerateInjuryID     uint8 = 46
+	SevereInjuryID       uint8 = 47
+	CriticalInjuryID     uint8 = 48
 
 	// Free Agency Preferences
 	Average                  uint8 = 1
@@ -108,5 +123,30 @@ const (
 	MaxCollegeRosterSize int     = 34
 	PortalSigningMinimum float64 = 0.66
 
-	// Systems
+	// Injury Intensifiers
+	BaseInjuryIntensity     float64 = 1.0
+	SevereInjuryIntensity   float64 = 1.5
+	CriticalInjuryIntensity float64 = 2.0
+	DefenderIntensity       float64 = 0.6
+	PCDefenderIntensity     float64 = 1.2
+
+	// Injury Type
+	Concussion         uint8 = 0
+	ShoulderSeparation uint8 = 1
+	BrokenWrist        uint8 = 2
+	BrokenHand         uint8 = 3
+	ElbowInjury        uint8 = 4
+	RibInjury          uint8 = 5
+	BackStrain         uint8 = 6
+	Cut                uint8 = 7
+	Bruise             uint8 = 8
+	// Lower Body
+	GroinStrain     uint8 = 9
+	KneeSprain      uint8 = 10
+	AnkleSprain     uint8 = 11
+	HipPointer      uint8 = 12
+	HamstringStrain uint8 = 13
+
+	// Other
+	GeneralSoreness uint8 = 14
 )
