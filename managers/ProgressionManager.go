@@ -51,7 +51,6 @@ func CollegeProgressionMain() {
 						DraftedTeamID:  uint8(player.DraftedTeamID),
 						BasePlayer:     player.BasePlayer,
 						BasePotentials: player.BasePotentials,
-						BaseInjuryData: player.BaseInjuryData,
 						Year:           0,
 					}
 					collegePlayerIDs = append(collegePlayerIDs, id)
@@ -67,7 +66,6 @@ func CollegeProgressionMain() {
 						Model:          player.Model,
 						BasePlayer:     player.BasePlayer,
 						BasePotentials: player.BasePotentials,
-						BaseInjuryData: player.BaseInjuryData,
 						CollegeID:      uint(player.TeamID),
 					}
 					draftablePlayers = append(draftablePlayers, draftee)
@@ -87,7 +85,6 @@ func CollegeProgressionMain() {
 					Model:          croot.Model,
 					BasePlayer:     croot.BasePlayer,
 					BasePotentials: croot.BasePotentials,
-					BaseInjuryData: croot.BaseInjuryData,
 					Year:           1,
 				}
 				playersToAdd = append(playersToAdd, cp)
@@ -124,7 +121,6 @@ func CollegeProgressionMain() {
 						DraftedTeamID:  uint8(player.DraftedTeamID),
 						BasePlayer:     player.BasePlayer,
 						BasePotentials: player.BasePotentials,
-						BaseInjuryData: player.BaseInjuryData,
 						Year:           0,
 					}
 					collegePlayerIDs = append(collegePlayerIDs, id)
@@ -170,8 +166,8 @@ func CollegeProgressionMain() {
 				DraftedTeamID:  uint8(player.DraftedTeamID),
 				BasePlayer:     player.BasePlayer,
 				BasePotentials: player.BasePotentials,
-				BaseInjuryData: player.BaseInjuryData,
-				Year:           0,
+
+				Year: 0,
 			}
 			collegePlayerIDs = append(collegePlayerIDs, id)
 			// Assign their drafted team ID if they have been drafted
@@ -186,8 +182,8 @@ func CollegeProgressionMain() {
 				Model:          player.Model,
 				BasePlayer:     player.BasePlayer,
 				BasePotentials: player.BasePotentials,
-				BaseInjuryData: player.BaseInjuryData,
-				CollegeID:      uint(player.TeamID),
+
+				CollegeID: uint(player.TeamID),
 			}
 			draftablePlayers = append(draftablePlayers, draftee)
 		} else {
@@ -205,8 +201,8 @@ func CollegeProgressionMain() {
 			Model:          croot.Model,
 			BasePlayer:     croot.BasePlayer,
 			BasePotentials: croot.BasePotentials,
-			BaseInjuryData: croot.BaseInjuryData,
-			Year:           1,
+
+			Year: 1,
 		}
 		collegePlayerBatch = append(collegePlayerBatch, cp)
 	}
@@ -538,7 +534,7 @@ func DetermineIfRetiring(player structs.ProfessionalPlayer, statMap map[uint][]s
 	benchmark := 0
 	age := int(player.Age)
 	primeAge := int(player.PrimeAge)
-	retirementAge := primeAge + util.GenerateIntFromRange(3, 5)
+	retirementAge := primeAge + util.GenerateIntFromRange(4, 7)
 	if age > retirementAge {
 		benchmark += 50
 	}

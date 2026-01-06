@@ -73,21 +73,32 @@ func GetPuckLocationAfterMiss(possessingTeam, homeTeam uint) string {
 	return util.PickFromStringList(list)
 }
 
-func RetrievePuckAfterFaceoffCheck(players []*GamePlayer, CurrentZone string, HomeTeamID, AwayTeamID, FaceoffWinID uint, homeFaceoffWin bool) uint {
-	zoneID, _ := getZoneID(CurrentZone, HomeTeamID, AwayTeamID)
-	faceoffWeights, totalWeight := getPlayerWeights(true, homeFaceoffWin, players, zoneID, FaceoffWinID, CurrentZone, Faceoff)
+func RetrievePuckAfterFaceoffCheck(players []*GamePlayer, CurrentZone string, FaceoffWinID uint, homeFaceoffWin bool) uint {
+	faceoffWeights, totalWeight := getPlayerWeights(homeFaceoffWin, players, FaceoffWinID, Faceoff)
 	return selectPlayerIDByWeights(totalWeight, faceoffWeights)
 }
 
-func PassPuckToPlayer(players []*GamePlayer, CurrentZone string, HomeTeamID, AwayTeamID uint) uint {
-	zoneID, _ := getZoneID(CurrentZone, HomeTeamID, AwayTeamID)
-	faceoffWeights, totalWeight := getPlayerWeights(false, false, players, zoneID, 0, CurrentZone, Pass)
+func PassPuckToPlayer(gs *GameState, players []*GamePlayer, CurrentZone string) uint {
+	faceoffWeights, totalWeight := getPlayerWeightsWithSystems(gs, false, players, 0, CurrentZone, Pass)
 	return selectPlayerIDByWeights(totalWeight, faceoffWeights)
 }
 
-func reboundCheck(players []*GamePlayer, CurrentZone string, HomeTeamID, AwayTeamID uint) uint {
-	zoneID, _ := getZoneID(CurrentZone, HomeTeamID, AwayTeamID)
-	reboundWeights, totalWeight := getPlayerWeights(false, false, players, zoneID, 0, CurrentZone, Rebound)
+func reboundCheck(gs *GameState, players []*GamePlayer, CurrentZone string) uint {
+	// Apply temporary home ice advantage during weight calculation
+	for _, p := range players {
+		if uint(p.TeamID) == gs.HomeTeamID {
+			p.AgilityMod += 0.025 // Temporary home ice advantage
+		}
+	}
+
+	reboundWeights, totalWeight := getPlayerWeightsWithSystems(gs, false, players, 0, CurrentZone, Rebound)
+
+	// Restore original values
+	for _, p := range players {
+		if uint(p.TeamID) == gs.HomeTeamID {
+			p.AgilityMod -= 0.025 // Restore original value
+		}
+	}
 
 	// Select
 	return selectPlayerIDByWeights(totalWeight, reboundWeights)
@@ -108,7 +119,7 @@ func selectPlayerIDByWeights(totalWeight float64, playerWeights []PlayerWeight) 
 	return lastID
 }
 
-func getPlayerWeights(isFaceoff, homeTeamFaceoffWin bool, players []*GamePlayer, zoneID, faceoffWinID uint, CurrentZone, event string) ([]PlayerWeight, float64) {
+func getPlayerWeights(isFaceoff bool, players []*GamePlayer, faceoffWinID uint, event string) ([]PlayerWeight, float64) {
 	playerWeights := []PlayerWeight{}
 	totalWeight := 0.0
 	for _, p := range players {
@@ -118,9 +129,57 @@ func getPlayerWeights(isFaceoff, homeTeamFaceoffWin bool, players []*GamePlayer,
 		mod := getAttributeModifier(event, p)
 		weight := 0.0
 		if isFaceoff {
-			weight = getFaceoffWeight(uint(p.TeamID), faceoffWinID, mod, CurrentZone, homeTeamFaceoffWin)
+			weight = getFaceoffWeight(uint(p.TeamID), faceoffWinID, mod)
 		} else {
-			weight = getPlayerWeight(uint(p.TeamID), zoneID, mod, p.Position, CurrentZone)
+			weight = getPlayerWeight(mod)
+		}
+
+		rw := PlayerWeight{
+			PlayerID: p.ID,
+			Weight:   weight,
+		}
+		playerWeights = append(playerWeights, rw)
+		totalWeight += weight
+	}
+
+	// Sort weights
+	sort.Slice(playerWeights, func(i, j int) bool {
+		return playerWeights[i].Weight > playerWeights[j].Weight
+	})
+
+	return playerWeights, totalWeight
+}
+
+// getPlayerWeightsWithSystems - Enhanced version that considers offensive/defensive systems
+func getPlayerWeightsWithSystems(gs *GameState, isFaceoff bool, players []*GamePlayer, faceoffWinID uint, CurrentZone, event string) ([]PlayerWeight, float64) {
+	playerWeights := []PlayerWeight{}
+	totalWeight := 0.0
+
+	// Get system modifiers for current game state
+	pc := gs.PuckCarrier
+	isHomePossession := pc.TeamID == uint16(gs.HomeTeamID)
+	homeModifiers, awayModifiers := GetSystemModifiersForZone(gs, isHomePossession, CurrentZone)
+
+	for _, p := range players {
+		if p.IsOut {
+			continue
+		}
+
+		mod := getAttributeModifier(event, p)
+		weight := 0.0
+
+		if isFaceoff {
+			weight = getFaceoffWeight(uint(p.TeamID), faceoffWinID, mod)
+		} else {
+			weight = getPlayerWeight(mod)
+		}
+
+		// Apply system modifiers based on player's team
+		isHomePlayer := uint(p.TeamID) == gs.HomeTeamID
+		if isHomePlayer {
+			weight = GetSystemPlayerWeight(p, homeModifiers, weight)
+		} else {
+			weight = GetSystemPlayerWeight(p, awayModifiers, weight)
 		}
 
 		rw := PlayerWeight{
@@ -174,25 +233,18 @@ func getZoneID(currentZone string, homeTeamID, awayTeamID uint) (uint, uint8) {
 	return zoneID, zoneIDEnum
 }
 
-func getFaceoffWeight(playerTeamID, faceoffWinID uint, mod float64, CurrentZone string, homeTeamFaceoffWin bool) float64 {
+func getFaceoffWeight(playerTeamID, faceoffWinID uint, mod float64) float64 {
 	weight := mod
-	defendingPlayer := faceoffWinID == playerTeamID && homeTeamFaceoffWin
-	if (CurrentZone == HomeGoal || CurrentZone == HomeZone) && defendingPlayer {
-		weight += 0.075
-	} else if (CurrentZone == AwayGoal || CurrentZone == AwayZone) && defendingPlayer {
-		weight += 0.075
+	// Players on the faceoff-winning team get a significant advantage in puck retrieval
+	isOnWinningTeam := faceoffWinID == playerTeamID
+	if isOnWinningTeam {
+		weight += 2.5 // Substantial bonus for faceoff-winning team
 	}
 	return weight
 }
 
-func getPlayerWeight(playerTeamID, ZoneID uint, mod float64, Position, CurrentZone string) float64 {
+func getPlayerWeight(mod float64) float64 {
 	weight := mod
-	// defendingPlayer := playerTeamID == ZoneID
-	// if (CurrentZone == HomeGoal || CurrentZone == HomeZone) && Position == Defender && defendingPlayer {
-	// 	weight += 0.015
-	// } else if (CurrentZone == AwayGoal || CurrentZone == AwayZone) && Position == Defender && defendingPlayer {
-	// 	weight += 0.015
-	// }
 	return weight
 }
 
@@ -209,9 +261,7 @@ func findPlayerByID(people []*GamePlayer, id uint) (*GamePlayer, bool) {
 func selectDefendingPlayer(gs *GameState, defendingTeamID uint) *GamePlayer {
 	playerList := getFullPlayerListByTeamID(defendingTeamID, gs)
 	playerMap := getGameplayerMap(playerList)
-	zoneID, _ := getZoneID(gs.PuckLocation, gs.HomeTeamID, gs.AwayTeamID)
-
-	playerWeights, totalWeight := getPlayerWeights(false, false, playerList, zoneID, 0, gs.PuckLocation, Defense)
+	playerWeights, totalWeight := getPlayerWeightsWithSystems(gs, false, playerList, 0, gs.PuckLocation, Defense)
 	playerID := selectPlayerIDByWeights(totalWeight, playerWeights)
 	player := playerMap[playerID]
 	return player
@@ -220,9 +270,7 @@ func selectDefendingPlayer(gs *GameState, defendingTeamID uint) *GamePlayer {
 func selectBlockingPlayer(gs *GameState, defendingTeamID uint) *GamePlayer {
 	playerList := getFullPlayerListByTeamID(defendingTeamID, gs)
 	playerMap := getGameplayerMap(playerList)
-	zoneID, _ := getZoneID(gs.PuckLocation, gs.HomeTeamID, gs.AwayTeamID)
-
-	playerWeights, totalWeight := getPlayerWeights(false, false, playerList, zoneID, 0, gs.PuckLocation, ShotBlock)
+	playerWeights, totalWeight := getPlayerWeightsWithSystems(gs, false, playerList, 0, gs.PuckLocation, ShotBlock)
 	playerID := selectPlayerIDByWeights(totalWeight, playerWeights)
 	player := playerMap[playerID]
 	return player
@@ -252,8 +300,6 @@ func getFullPlayerListByTeamID(teamID uint, gs *GameState) []*GamePlayer {
 		}
 		playerList = append(playerList, p)
 	}
-
-	playerList = append(playerList, currentDefenders...)
 
 	return playerList
 }

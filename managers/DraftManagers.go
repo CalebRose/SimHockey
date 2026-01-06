@@ -237,7 +237,6 @@ func ExportDraftedPlayers(picks []structs.DraftPick) bool {
 				Model:          draftee.Model,
 				BasePlayer:     draftee.BasePlayer, // Assuming BasePlayer fields are common
 				BasePotentials: draftee.BasePotentials,
-				BaseInjuryData: draftee.BaseInjuryData,
 				DraftedTeamID:  uint8(pick.TeamID),
 				DraftedTeam:    pick.Team,
 				DraftedRound:   uint8(pick.DraftRound),
@@ -286,7 +285,6 @@ func ExportDraftedPlayers(picks []structs.DraftPick) bool {
 			Model:          draftee.Model,
 			BasePlayer:     draftee.BasePlayer, // Assuming BasePlayer fields are common
 			BasePotentials: draftee.BasePotentials,
-			BaseInjuryData: draftee.BaseInjuryData,
 			CollegeID:      draftee.CollegeID,
 			Year:           1,
 		}
@@ -322,7 +320,6 @@ func BringUpCollegePlayerToPros(pickID string) bool {
 		Model:          collegePlayer.Model,
 		BasePlayer:     collegePlayer.BasePlayer, // Assuming BasePlayer fields are common
 		BasePotentials: collegePlayer.BasePotentials,
-		BaseInjuryData: collegePlayer.BaseInjuryData,
 		DraftedTeamID:  uint8(draftPick.TeamID),
 		DraftedTeam:    draftPick.Team,
 		DraftedRound:   uint8(draftPick.DraftRound),

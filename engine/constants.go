@@ -15,6 +15,7 @@ const (
 	ShotBlock               string  = "ShotBlock"
 	Faceoff                 string  = "Faceoff"
 	Pass                    string  = "Pass"
+	ExtremelyEasyReq        float64 = 4
 	VeryEasyReq             float64 = 6
 	EasyReq                 float64 = 8
 	BaseReq                 float64 = 10
@@ -43,6 +44,12 @@ const (
 	GoalieStaminaThreshold  uint8   = 30
 	ForwardShiftLimit       int     = 40
 	DefenderShiftLimit      int     = 25
+
+	// Puck State Constants
+	PuckStateClear     = "Clear"     // Normal possession
+	PuckStateContested = "Contested" // Multiple players battling
+	PuckStateLoose     = "Loose"     // No clear possession
+	PuckStateCovered   = "Covered"   // Goalie has covered the puck
 )
 
 // Event Constants
@@ -52,10 +59,20 @@ const (
 	PhysDefenseCheckID uint8 = 2
 	DexDefenseCheckID  uint8 = 3
 	PassCheckID        uint8 = 4
+	LongPassCheckID    uint8 = 42
+	PassBackCheckID    uint8 = 43
 	AgilityCheckID     uint8 = 5
 	WristshotCheckID   uint8 = 6
 	SlapshotCheckID    uint8 = 7
-	PenaltyCheckID     uint8 = 8
+	// Event Type IDs
+	SlapShotID       uint8 = 1
+	PuckBattleID     uint8 = 37 // New: Puck battle events
+	PuckBattleWinID  uint8 = 38 // Outcome: Win puck battle
+	PuckBattleLoseID uint8 = 39 // Outcome: Lose puck battle
+	PuckScrambleID   uint8 = 40 // Multiple player scramble
+	PuckCoveredID    uint8 = 41
+	PenaltyCheckID   uint8 = 8
+	InjuryCheckID    uint8 = 44
 
 	// Zone IDs
 	HomeGoalZoneID uint8 = 9
@@ -87,6 +104,12 @@ const (
 	EnteringShootout     uint8 = 34
 	WSShootoutID         uint8 = 35
 	CSShootoutID         uint8 = 36
+
+	// Injury Outcome IDs
+	MinorInjuryID    uint8 = 45
+	ModerateInjuryID uint8 = 46
+	SevereInjuryID   uint8 = 47
+	CriticalInjuryID uint8 = 48
 )
 
 // Magic Numbers

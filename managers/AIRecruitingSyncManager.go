@@ -199,7 +199,7 @@ func AllocatePointsToAIBoards() {
 					leadingTeamVal := IsAITeamContendingForCroot(profiles)
 
 					if croot.PreviousWeekPoints+croot.TotalPoints >= leadingTeamVal*0.66 || leadingTeamVal < 15 {
-						num = min(croot.PreviousWeekPoints, pointsRemaining)
+						num = float32(min(int(croot.PreviousWeekPoints), int(pointsRemaining)))
 					} else {
 						removeCrootFromBoard = true
 					}

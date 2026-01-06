@@ -434,6 +434,9 @@ func EnterTheTransferPortal() {
 			if p.TransferStatus != 1 {
 				continue
 			}
+			if p.Age < 18 {
+				continue
+			}
 
 			playerID := strconv.Itoa(int(p.ID))
 
@@ -586,9 +589,7 @@ func AICoachFillBoardsPhase() {
 	rand.Shuffle(len(AITeams), func(i, j int) {
 		AITeams[i], AITeams[j] = AITeams[j], AITeams[i]
 	})
-	transferPortalPlayers := repository.FindAllCollegePlayers(repository.PlayerQuery{
-		TransferStatus: "2",
-	})
+	transferPortalPlayers := repository.FindAllCollegePlayers(repository.PlayerQuery{})
 	teamMap := GetCollegeTeamMap()
 	standingsMap := GetCollegeStandingsMap(seasonID)
 	profiles := []structs.TransferPortalProfile{}
@@ -608,10 +609,11 @@ func AICoachFillBoardsPhase() {
 		team := teamMap[teamProfile.ID]
 		teamStandings := standingsMap[uint(teamProfile.TeamID)]
 		teamID := strconv.Itoa(int(teamProfile.ID))
-		portalProfileMap := portalProfileMap[teamProfile.ID]
-		if len(portalProfileMap) > 100 {
+		teamPortalProfiles := portalProfileMap[teamProfile.ID]
+		if len(teamPortalProfiles) > 100 {
 			continue
 		}
+		playerProfileMap := MakePortalProfileMapByPlayerIDAndTeamID(teamPortalProfiles)
 		roster := collegeRosterMap[teamProfile.ID]
 		rosterSize := len(roster)
 		teamCap := 34
@@ -622,18 +624,22 @@ func AICoachFillBoardsPhase() {
 		majorNeedsMap := getMajorNeedsMap()
 
 		for _, r := range roster {
-			if r.Overall > 18 && majorNeedsMap[r.Position] {
+			if r.Overall > 20 && majorNeedsMap[r.Position] {
 				majorNeedsMap[r.Position] = false
 			}
 		}
-		profileCount := len(portalProfileMap)
+		profileCount := len(teamPortalProfiles)
 
 		for _, tp := range transferPortalPlayers {
 			if profileCount >= 100 {
 				break
 			}
 			isBadFit := IsBadSchemeFit(teamProfile.OffensiveScheme, teamProfile.DefensiveScheme, tp.Archetype, tp.Position)
-			if isBadFit || !majorNeedsMap[tp.Position] || tp.PreviousTeamID == uint8(team.ID) || portalProfileMap[tp.ID].CollegePlayerID == tp.ID || portalProfileMap[tp.ID].ID > 0 {
+			if isBadFit || !majorNeedsMap[tp.Position] || tp.PreviousTeamID == uint8(team.ID) || playerProfileMap[tp.ID].CollegePlayerID == tp.ID || playerProfileMap[tp.ID].ID > 0 {
+				continue
+			}
+			isEligible := tp.TransferStatus == 2 || (tp.LeagueID == 2 && tp.Age > 17)
+			if !isEligible {
 				continue
 			}
 
@@ -787,7 +793,7 @@ func AICoachAllocateAndPromisePhase() {
 		majorNeedsMap := getMajorNeedsMap()
 
 		for _, r := range roster {
-			if r.Overall > 18 && majorNeedsMap[r.Position] {
+			if r.Overall > 20 && majorNeedsMap[r.Position] {
 				majorNeedsMap[r.Position] = false
 			}
 		}
@@ -814,6 +820,10 @@ func AICoachAllocateAndPromisePhase() {
 			pointsRemaining := teamProfile.WeeklyPoints - teamProfile.SpentPoints
 			if teamProfile.SpentPoints >= teamProfile.WeeklyPoints || pointsRemaining <= 0 || (pointsRemaining < 1 && pointsRemaining > 0) {
 				break
+			}
+			isEligible := tp.TransferStatus == 2 || tp.LeagueID == 2
+			if !isEligible {
+				continue
 			}
 
 			removePlayerFromBoard := false
@@ -1016,11 +1026,10 @@ func SyncTransferPortal() {
 		})
 
 		for i := range portalProfiles {
-			// roster := rosterMap[portalProfiles[i].ProfileID]
-			// tp := teamProfileMap[strconv.Itoa(int(portalProfiles[i].ProfileID))]
-			// // if (len(roster) > 105 && tp.IsFBS) || (len(roster) > 80 && !tp.IsFBS) {
-			// // 	continue
-			// // }
+			roster := rosterMap[portalProfiles[i].ProfileID]
+			if len(roster) > util.MaxCollegeRosterSize {
+				continue
+			}
 			if eligiblePointThreshold == 0.0 {
 				eligiblePointThreshold = portalProfiles[i].TotalPoints * signingMinimum
 			}

@@ -572,7 +572,6 @@ func GenerateInitialRosters() {
 			cp := structs.CollegePlayer{
 				BasePlayer:     p.BasePlayer,
 				BasePotentials: p.BasePotentials,
-				BaseInjuryData: p.BaseInjuryData,
 				Year:           1,
 			}
 			cp.AssignTeam(team.ID, team.Abbreviation, 1)
@@ -651,7 +650,6 @@ func GenerateInitialCHLRosters() {
 			cp := structs.CollegePlayer{
 				BasePlayer:     p.BasePlayer,
 				BasePotentials: p.BasePotentials,
-				BaseInjuryData: p.BaseInjuryData,
 				Year:           1,
 			}
 			cp.AssignTeam(team.ID, team.Abbreviation, 1)
@@ -733,7 +731,6 @@ func GenerateInitialProPool() {
 			cp := structs.CollegePlayer{
 				BasePlayer:     p.BasePlayer,
 				BasePotentials: p.BasePotentials,
-				BaseInjuryData: p.BaseInjuryData,
 				Year:           1,
 			}
 			teamIdx := util.GenerateIntFromRange(0, len(collegeTeams)-1)
@@ -747,7 +744,6 @@ func GenerateInitialProPool() {
 			pro := structs.ProfessionalPlayer{
 				BasePlayer:     cp.BasePlayer,
 				BasePotentials: cp.BasePotentials,
-				BaseInjuryData: cp.BaseInjuryData,
 				Year:           1,
 				CollegeID:      uint(cp.TeamID),
 			}
@@ -949,6 +945,7 @@ func createRecruit(position, arch string, stars int, firstName, lastName string,
 		PrimeAge:            uint8(util.GetPrimeAge(position, archetype)),
 		PlayerMorale:        100,
 		HasProgressed:       false,
+		BaseInjuryData:      injuryData,
 	}
 
 	basePlayer.GetOverall()
@@ -957,7 +954,6 @@ func createRecruit(position, arch string, stars int, firstName, lastName string,
 		BasePlayer:     basePlayer,
 		BasePotentials: potentials,
 		IsSigned:       false,
-		BaseInjuryData: injuryData,
 	}
 }
 

@@ -1,6 +1,7 @@
 package engine
 
 import (
+	"fmt"
 	"sort"
 
 	"github.com/CalebRose/SimHockey/structs"
@@ -33,18 +34,72 @@ func LoadLineStrategies(lines []structs.BaseLineup, rosterMap map[uint]*GamePlay
 		players := []*GamePlayer{}
 		switch l.LineType {
 		case 1:
-			players = append(players, rosterMap[l.CenterID], rosterMap[l.Forward1ID], rosterMap[l.Forward2ID])
-			activeIDs = append(activeIDs, l.CenterID, l.Forward1ID, l.Forward2ID)
-		case 2:
-			players = append(players, rosterMap[l.Defender1ID], rosterMap[l.Defender2ID])
-			activeIDs = append(activeIDs, l.Defender1ID, l.Defender2ID)
-		default:
-			goalie := rosterMap[l.GoalieID]
-			if goalie.GoalieStamina < GoalieStaminaThreshold {
-				triggerGoalieReSort = true
+			// Forward line - check for nil players before adding
+			center := rosterMap[l.CenterID]
+			forward1 := rosterMap[l.Forward1ID]
+			forward2 := rosterMap[l.Forward2ID]
+
+			if center != nil {
+				players = append(players, center)
+				activeIDs = append(activeIDs, l.CenterID)
 			}
-			players = append(players, rosterMap[l.GoalieID])
-			activeIDs = append(activeIDs, l.GoalieID)
+			if forward1 != nil {
+				players = append(players, forward1)
+				activeIDs = append(activeIDs, l.Forward1ID)
+			}
+			if forward2 != nil {
+				players = append(players, forward2)
+				activeIDs = append(activeIDs, l.Forward2ID)
+			}
+			team := ""
+			if center != nil {
+				team = center.Team
+			} else if forward1 != nil {
+				team = forward1.Team
+			} else if forward2 != nil {
+				team = forward2.Team
+			}
+			// Log warning if lineup is incomplete
+			if len(players) < 3 {
+				fmt.Printf("WARNING: %s Forward line incomplete - only %d/3 players available (C:%t F1:%t F2:%t)\n",
+					team, len(players), center != nil, forward1 != nil, forward2 != nil)
+			}
+		case 2:
+			// Defender line - check for nil players before adding
+			defender1 := rosterMap[l.Defender1ID]
+			defender2 := rosterMap[l.Defender2ID]
+
+			if defender1 != nil {
+				players = append(players, defender1)
+				activeIDs = append(activeIDs, l.Defender1ID)
+			}
+			if defender2 != nil {
+				players = append(players, defender2)
+				activeIDs = append(activeIDs, l.Defender2ID)
+			}
+			team := ""
+			if defender1 != nil {
+				team = defender1.Team
+			} else if defender2 != nil {
+				team = defender2.Team
+			}
+			// Log warning if lineup is incomplete
+			if len(players) < 2 {
+				fmt.Printf("WARNING: %s Defender line incomplete - only %d/2 players available (D1:%t D2:%t)\n",
+					team, len(players), defender1 != nil, defender2 != nil)
+			}
+		default:
+			// Goalie line
+			goalie := rosterMap[l.GoalieID]
+			if goalie != nil {
+				if goalie.GoalieStamina < GoalieStaminaThreshold {
+					triggerGoalieReSort = true
+				}
+				players = append(players, goalie)
+				activeIDs = append(activeIDs, l.GoalieID)
+			} else {
+				fmt.Printf("WARNING: Goalie position empty - no goalie available for lineup\n")
+			}
 		}
 
 		ls := LineStrategy{

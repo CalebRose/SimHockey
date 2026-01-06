@@ -327,3 +327,49 @@ func GetWeekID(seasonID uint, week uint) uint {
 	// Season 1 == 2025
 	return (seasonID+2024-2000)*100 + week
 }
+
+func GetOffensiveSystemString(code uint8) string {
+	switch code {
+	case 1:
+		return "Offensive 1-2-2 Forecheck"
+	case 2:
+		return "Offensive 2-1-2 Forecheck"
+	case 3:
+		return "Offensive 1-3-1 Forecheck"
+	case 4:
+		return "Cycle Game"
+	case 5:
+		return "Quick Transition"
+	case 6:
+		return "Umbrella"
+	case 7:
+		return "East West Motion"
+	case 8:
+		return "Crash the Net"
+	default:
+		return "Unknown"
+	}
+}
+
+func GetDefensiveSystemString(code uint8) string {
+	switch code {
+	case 1:
+		return "Balanced"
+	case 2:
+		return "Man to Man"
+	case 4:
+		return "Neutral Trap"
+	case 5:
+		return "Left Wing Lock"
+	case 6:
+		return "Aggressive Forecheck"
+	case 7:
+		return "Collapsing"
+	case 8:
+		return "Box"
+	case 3:
+		return "Zone"
+	default:
+		return "Unknown"
+	}
+}

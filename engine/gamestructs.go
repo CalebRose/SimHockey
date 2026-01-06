@@ -39,13 +39,16 @@ type GameState struct {
 	ActivePowerPlays      []PowerPlayState
 	Zones                 []string // Home Goal, Home Zone, Neutral Zone, Away Zone, Away Goal
 	PuckLocation          string
+	PuckState             string // Clear, Contested, Loose, Covered
 	PuckCarrier           *GamePlayer
 	AssistingPlayer       *GamePlayer
+	ContestedPlayers      []*GamePlayer // Players involved in puck battle
 	Momentum              float64
 	PossessingTeam        uint // Use the ID of the team
 	IsCollegeGame         bool
 	IsPlayoffGame         bool
 	Collector             structs.PbPCollector
+	InjuryLog             []Injury
 }
 
 type PowerPlayState struct {
@@ -191,6 +194,15 @@ func (gs *GameState) SetFaceoffOnCenterIce(check bool) {
 }
 
 func (gs *GameState) SetPuckBearer(player *GamePlayer, isLongerPass bool) {
+	// Set puck state based on context
+	if player.ID == 0 {
+		gs.PuckState = PuckStateLoose
+		gs.ContestedPlayers = []*GamePlayer{}
+	} else {
+		gs.PuckState = PuckStateClear
+		gs.ContestedPlayers = []*GamePlayer{}
+	}
+
 	if gs.PuckCarrier != nil {
 		if gs.PuckCarrier.ID > 0 && gs.PuckCarrier.TeamID != player.TeamID {
 			gs.ResetMomentum()
@@ -198,7 +210,7 @@ func (gs *GameState) SetPuckBearer(player *GamePlayer, isLongerPass bool) {
 		} else {
 			gs.Momentum += 0.175
 			if isLongerPass {
-				gs.Momentum += .025
+				gs.Momentum += .05
 			}
 			gs.AssistingPlayer = gs.PuckCarrier
 		}
@@ -230,10 +242,10 @@ func (gs *GameState) GetCenter(isHome bool) *GamePlayer {
 	}
 
 	player := GetGamePlayerByPosition(currentLineup, "C")
-	if player.ID == 0 || player.IsOut {
+	if player.ID == 0 || player.IsOut || player.IsInjured {
 		player = GetGamePlayerByPosition(currentLineup, "F")
 	}
-	if player.ID == 0 || player.IsOut {
+	if player.ID == 0 || player.IsOut || player.IsInjured {
 		player = GetGamePlayerByPosition(currentLineup, "D")
 	}
 	return player
@@ -350,6 +362,10 @@ func (gs *GameState) RemovePlayerFromLine(isHome bool, playerID uint) {
 	}
 }
 
+func (gs *GameState) LogInjury(inj Injury) {
+	gs.InjuryLog = append(gs.InjuryLog, inj)
+}
+
 type GamePlaybook struct {
 	Forwards                    []LineStrategy
 	Defenders                   []LineStrategy
@@ -360,6 +376,7 @@ type GamePlaybook struct {
 	MinForwardStaminaThreshold  int
 	MinDefenderStaminaThreshold int
 	BenchPlayers                []*GamePlayer
+	InjuredPlayers              []*GamePlayer
 	CenterOut                   bool
 	Forward1Out                 bool
 	Forward2Out                 bool
@@ -371,6 +388,13 @@ type GamePlaybook struct {
 	DefenderShiftLimit          int
 	ShootoutLineUp              structs.ShootoutPlayerIDs
 	RosterMap                   map[uint]*GamePlayer
+
+	// System Information
+	Gameplan structs.BaseGameplan
+}
+
+func (gp *GamePlaybook) AddPlayerToInjuredPlayerList(player *GamePlayer) {
+	gp.InjuredPlayers = append(gp.InjuredPlayers, player)
 }
 
 func (gp *GamePlaybook) ActivatePowerPlayer(playerID uint, position string) {
@@ -453,11 +477,26 @@ func (gp *GamePlaybook) filterOutPlayer(playerID uint) {
 		return
 	}
 
+	isDefender := false
+
 	// Handle Defender Replacement
 	defenderIdx := gp.CurrentDefenders
 	if playerIDInLineup(playerID, gp.Defenders[defenderIdx].Players) {
+		isDefender = true
 		gp.Defenders[defenderIdx].Players = gp.handleLineReplacement(
 			gp.Defenders[defenderIdx].Players, playerID, 2, 2, Defender)
+	}
+
+	if isDefender {
+		return
+	}
+
+	// Handle Goalie Replacement in case of injury
+	goalieIdx := gp.CurrentGoalie
+	if playerIDInLineup(playerID, gp.Goalies[goalieIdx].Players) {
+		// Goalie Replacement
+		gp.Goalies[goalieIdx].Players = gp.handleLineReplacement(
+			gp.Goalies[goalieIdx].Players, playerID, 1, 3, Goalie)
 	}
 }
 
@@ -608,6 +647,9 @@ type LineStrategy struct {
 
 func (ls *LineStrategy) ReturnPlayerFromPowerPlay(playerID uint) {
 	for _, p := range ls.Players {
+		if p == nil {
+			continue // Skip nil players
+		}
 		if p.ID == playerID {
 			p.ReturnToPlay()
 		}
@@ -625,17 +667,36 @@ func (ls *LineStrategy) InitializeBoostedStamina(isGoalie bool) {
 	}
 	ls.TotalStamina = 0
 	mode := 0.0
+	validPlayerCount := 0
+
 	if isGoalie {
-		ls.CurrentStamina = int(float64(ls.Players[0].CurrentStamina) * staminaBoostFactor)
+		if len(ls.Players) > 0 && ls.Players[0] != nil {
+			ls.CurrentStamina = int(float64(ls.Players[0].CurrentStamina) * staminaBoostFactor)
+		} else {
+			ls.CurrentStamina = int(100.0 * staminaBoostFactor) // Default goalie stamina
+		}
 		return
 	}
+
 	for i := range ls.Players {
+		if ls.Players[i] == nil {
+			continue // Skip nil players
+		}
 		initialStamina := int(float64(ls.Players[i].CurrentStamina) * staminaBoostFactor)
 		mode += float64(initialStamina)
+		validPlayerCount++
 	}
-	avg := mode / float64(len(ls.Players))
-	ls.CurrentStamina = int(avg)
-	ls.TotalStamina = int(avg)
+
+	// Prevent division by zero if all players are nil
+	if validPlayerCount > 0 {
+		avg := mode / float64(validPlayerCount)
+		ls.CurrentStamina = int(avg)
+		ls.TotalStamina = int(avg)
+	} else {
+		// Fallback if no valid players
+		ls.CurrentStamina = int(100.0 * staminaBoostFactor)
+		ls.TotalStamina = int(100.0 * staminaBoostFactor)
+	}
 }
 
 func (ls *LineStrategy) RecoverStaminaOffRink() {
@@ -651,12 +712,18 @@ func (ls *LineStrategy) DecrementStamina() {
 
 func (ls *LineStrategy) HandleTimeOnIce(secondsConsumed int) {
 	for _, p := range ls.Players {
+		if p == nil {
+			continue // Skip nil players (incomplete lineups)
+		}
 		p.Stats.AddTimeOnIce(secondsConsumed, p.IsOut)
 	}
 }
 
 func (ls *LineStrategy) EnableStartedGameStat() {
 	for _, p := range ls.Players {
+		if p == nil {
+			continue // Skip nil players (incomplete lineups)
+		}
 		p.Stats.EnableStartedGame()
 	}
 }
@@ -769,6 +836,11 @@ func (p *GamePlayer) AddShutout() {
 
 func (p *GamePlayer) AddGoalieStat(scoreType int, isOvertimeLoss bool) {
 	p.Stats.AddGoalieStat(scoreType, isOvertimeLoss)
+}
+
+func (p *GamePlayer) RecordInjury(injuryID, injuryType, duration uint8) {
+	p.IsInjured = true
+	p.Stats.RecordInjury(injuryID, injuryType, duration)
 }
 
 // Util Structs
@@ -1031,6 +1103,10 @@ type PlayerStatsDTO struct {
 	ShotsBlocked         uint16
 	BodyChecks           uint16
 	StickChecks          uint16
+	IsInjured            bool
+	DaysOfRecovery       uint8
+	InjuryName           uint8
+	InjuryType           uint8
 }
 
 func (p *PlayerStatsDTO) EnableStartedGame() {
@@ -1153,4 +1229,11 @@ func (p *PlayerStatsDTO) AddGoalieStat(scoreType int, isOvertimeLoss bool) {
 	if scoreType == 3 {
 		p.GoalieTies++
 	}
+}
+
+func (p *PlayerStatsDTO) RecordInjury(injuryID, injuryType, duration uint8) {
+	p.InjuryName = injuryID
+	p.InjuryType = injuryType
+	p.DaysOfRecovery = duration
+	p.IsInjured = true
 }

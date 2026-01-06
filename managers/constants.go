@@ -35,6 +35,8 @@ const (
 	PhysDefenseCheck     string = "Physical Defense Check"
 	DexDefenseCheck      string = "Dexterity Defense Check"
 	PassCheck            string = "Pass Check"
+	LongPassCheck        string = "Long Pass Check"
+	PassBackCheck        string = "Pass Back Check"
 	AgilityCheck         string = "Agility Check"
 	WristshotCheck       string = "Wrist Shot Check"
 	SlapshotCheck        string = "Slap Shot Check"
@@ -68,4 +70,9 @@ const (
 	AwayGoal             string = "Away Goal"
 	EnteringShootout     string = "Entering Shootout"
 	Shootout             string = "Shootout"
+	PuckBattle           string = "Puck Battle"
+	PuckBattleWin        string = "Puck Battle Win"
+	PuckBattleLose       string = "Puck Battle Lose"
+	PuckScramble         string = "Puck Scramble"
+	PuckCovered          string = "Puck Covered"
 )

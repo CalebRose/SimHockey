@@ -161,5 +161,6 @@ func loadGamePlaybook(isCollegeGame, isHome bool, pb structs.PlayBookDTO, season
 		DefenderShiftTimer: 0,
 		ForwardShiftLimit:  ForwardShiftLimit,
 		DefenderShiftLimit: DefenderShiftLimit,
+		Gameplan:           pb.Gameplan,
 	}
 }

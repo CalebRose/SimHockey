@@ -952,7 +952,6 @@ func FixMigrationPlayerData() {
 				Model:          player.Model,
 				BasePlayer:     player.BasePlayer,
 				BasePotentials: player.BasePotentials,
-				BaseInjuryData: player.BaseInjuryData,
 			},
 		}
 		historicCollegePlayerBatch = append(historicCollegePlayerBatch, historicPlayer)
@@ -972,7 +971,6 @@ func FixMigrationPlayerData() {
 			Model:          croot.Model,
 			BasePlayer:     croot.BasePlayer,
 			BasePotentials: croot.BasePotentials,
-			BaseInjuryData: croot.BaseInjuryData,
 			Year:           1,
 		}
 		collegePlayerBatch = append(collegePlayerBatch, cp)

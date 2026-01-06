@@ -17,6 +17,7 @@ type PlayBookDTO struct {
 	CollegeRoster      []CollegePlayer
 	ProfessionalRoster []ProfessionalPlayer
 	ShootoutLineup     ShootoutPlayerIDs
+	Gameplan           BaseGameplan
 }
 
 type GameResultDTO struct {
