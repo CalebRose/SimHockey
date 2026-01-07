@@ -43,8 +43,8 @@ type RecruitingTeamProfile struct {
 	AIStarMin             uint8
 	AIStarMax             uint8
 	Recruiter             string
-	OffensiveScheme       string
-	DefensiveScheme       string
+	OffensiveSystem       uint8
+	DefensiveSystem       uint8
 	Y1Rank                uint16
 	Y2Rank                uint16
 	Y3Rank                uint16
@@ -175,12 +175,14 @@ func (r *RecruitingTeamProfile) ToggleAIBehavior() {
 	r.IsAI = !r.IsAI
 }
 
-func (r *RecruitingTeamProfile) UpdateAIBehavior(isAi bool, starMax, starMin, min, max uint8) {
+func (r *RecruitingTeamProfile) UpdateAIBehavior(isAi bool, starMax, starMin, min, max, off, def uint8) {
 	r.IsAI = isAi
 	r.AIStarMax = starMax
 	r.AIStarMin = starMin
 	r.AIMinThreshold = min
 	r.AIMaxThreshold = max
+	r.OffensiveSystem = off
+	r.DefensiveSystem = def
 }
 
 func (r *RecruitingTeamProfile) SetRecruitingClassSize(val uint8) {

@@ -75,6 +75,12 @@ func FillAIRecruitingBoards() {
 				continue
 			}
 
+			badOffenseFit := IsBadOffenseFit(team.OffensiveSystem, croot.Archetype)
+			badDefenseFit := IsBadDefenseSchemeFit(team.DefensiveSystem, croot.Archetype)
+			if (croot.Position != Defender && badOffenseFit) || (croot.Position == Defender && badDefenseFit) {
+				continue
+			}
+
 			crootProfiles := recruitProfileMap[croot.ID]
 			teamCount := 0
 

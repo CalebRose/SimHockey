@@ -634,8 +634,9 @@ func AICoachFillBoardsPhase() {
 			if profileCount >= 100 {
 				break
 			}
-			isBadFit := IsBadSchemeFit(teamProfile.OffensiveScheme, teamProfile.DefensiveScheme, tp.Archetype, tp.Position)
-			if isBadFit || !majorNeedsMap[tp.Position] || tp.PreviousTeamID == uint8(team.ID) || playerProfileMap[tp.ID].CollegePlayerID == tp.ID || playerProfileMap[tp.ID].ID > 0 {
+			badOffenseFit := IsBadOffenseFit(teamProfile.OffensiveSystem, tp.Archetype)
+			badDefenseFit := IsBadDefenseSchemeFit(teamProfile.DefensiveSystem, tp.Archetype)
+			if (tp.Position != Defender && badOffenseFit) || (tp.Position == Defender && badDefenseFit) || !majorNeedsMap[tp.Position] || tp.PreviousTeamID == uint8(team.ID) || playerProfileMap[tp.ID].CollegePlayerID == tp.ID || playerProfileMap[tp.ID].ID > 0 {
 				continue
 			}
 			isEligible := tp.TransferStatus == 2 || (tp.LeagueID == 2 && tp.Age > 17)
@@ -811,8 +812,9 @@ func AICoachAllocateAndPromisePhase() {
 			}
 			tp := transferPortalPlayerMap[profile.CollegePlayerID]
 			// If player has already signed or if the position has been fulfilled
-			isBadFit := IsBadSchemeFit(teamProfile.OffensiveScheme, teamProfile.DefensiveScheme, tp.Archetype, tp.Position)
-			if isBadFit || tp.TeamID > 0 || tp.TransferStatus == 0 || tp.ID == 0 || !majorNeedsMap[tp.Position] {
+			badOffenseFit := IsBadOffenseFit(teamProfile.OffensiveSystem, tp.Archetype)
+			badDefenseFit := IsBadDefenseSchemeFit(teamProfile.DefensiveSystem, tp.Archetype)
+			if (tp.Position != Defender && badOffenseFit) || (tp.Position == Defender && badDefenseFit) || tp.TeamID > 0 || tp.TransferStatus == 0 || tp.ID == 0 || !majorNeedsMap[tp.Position] {
 				profile.Deactivate()
 				repository.SaveTransferPortalProfileRecord(profile, db)
 				continue
@@ -1137,59 +1139,83 @@ func SyncTransferPortal() {
 // Portal Helper Functions
 func getSchemeMod(tp *structs.RecruitingTeamProfile, p structs.CollegePlayer, drop, gain float64) float64 {
 	schemeMod := 0.0
-	if tp.OffensiveScheme == "" && tp.DefensiveScheme == "" {
+	if tp.OffensiveSystem == 0 && tp.DefensiveSystem == 0 {
 		fmt.Println("PING!")
 	}
-	goodFit := IsGoodSchemeFit(tp.OffensiveScheme, tp.DefensiveScheme, p.Archetype, p.Position)
-	badFit := IsBadSchemeFit(tp.OffensiveScheme, tp.DefensiveScheme, p.Archetype, p.Position)
-	if goodFit {
+	goodOffenseFit := IsGoodOffenseFit(tp.OffensiveSystem, p.Archetype)
+	goodDefenseFit := IsGoodDefenseFit(tp.DefensiveSystem, p.Archetype)
+	badOffenseFit := IsBadOffenseFit(tp.OffensiveSystem, p.Archetype)
+	badDefenseFit := IsBadDefenseSchemeFit(tp.DefensiveSystem, p.Archetype)
+	if goodOffenseFit {
 		schemeMod += drop
-	} else if badFit {
+	} else if badOffenseFit {
+		schemeMod += gain
+	}
+
+	if goodDefenseFit {
+		schemeMod += drop
+	} else if badDefenseFit {
 		schemeMod += gain
 	}
 
 	return schemeMod
 }
 
-func IsGoodSchemeFit(offensiveScheme, defensiveScheme, arch, position string) bool {
-	archType := arch + " " + position
-	offensiveSchemeList := GetFitsByScheme(offensiveScheme, false)
-	defensiveSchemeList := GetFitsByScheme(defensiveScheme, false)
-	totalFitList := append(offensiveSchemeList, defensiveSchemeList...)
-
-	return CheckPlayerFits(archType, totalFitList)
+func IsGoodOffenseFit(offensiveScheme uint8, arch string) bool {
+	archType := arch
+	offensiveSchemeList := GetOffensiveFitsByScheme(offensiveScheme, false)
+	return CheckPlayerFits(archType, offensiveSchemeList)
 }
 
-func IsBadSchemeFit(offensiveScheme, defensiveScheme, arch, position string) bool {
-	archType := arch + " " + position
-	offensiveSchemeList := GetFitsByScheme(offensiveScheme, true)
-	defensiveSchemeList := GetFitsByScheme(defensiveScheme, true)
-	totalFitList := append(offensiveSchemeList, defensiveSchemeList...)
+func IsGoodDefenseFit(defensiveScheme uint8, arch string) bool {
+	archType := arch
+	defensiveSchemeList := GetDefensiveFitsByScheme(defensiveScheme, false)
+	return CheckPlayerFits(archType, defensiveSchemeList)
+}
 
-	return CheckPlayerFits(archType, totalFitList)
+func IsBadOffenseFit(offensiveScheme uint8, arch string) bool {
+	archType := arch
+	offensiveSchemeList := GetOffensiveFitsByScheme(offensiveScheme, true)
+	return CheckPlayerFits(archType, offensiveSchemeList)
+}
+
+func IsBadDefenseSchemeFit(defensiveScheme uint8, arch string) bool {
+	archType := arch
+	defensiveSchemeList := GetDefensiveFitsByScheme(defensiveScheme, true)
+	return CheckPlayerFits(archType, defensiveSchemeList)
 }
 
 // Update this for hockey schemes later this offseason
-func GetFitsByScheme(scheme string, isBadFit bool) []string {
-	fullMap := map[string]structs.SchemeFits{
-		"Power Run":                  {GoodFits: []string{"Power RB", "Blocking FB", "Blocking TE", "Red Zone Threat WR", "Run Blocking OG", "Run Blocking OT", "Run Blocking C"}, BadFits: []string{"Speed RB", "Receiving RB", "Receiving FB", "Receiving TE", "Vertical Threat TE", "Pass Blocking OG", "Pass Blocking OT", "Pass Blocking C"}},
-		"Vertical":                   {GoodFits: []string{"Pocket QB", "Receiving RB", "Receiving TE", "Vertical Threat TE", "Route Runner WR", "Speed WR", "Pass Blocking OG", "Pass Blocking OT", "Pass Blocking C"}, BadFits: []string{"Balanced QB", "Scrambler QB", "Field General QB", "Power RB", "Blocking FB", "Rushing FB", "Blocking TE", "Red Zone Threat WR", "Run Blocking OG", "Run Blocking OT", "Run Blocking C"}},
-		"West Coast":                 {GoodFits: []string{"Field General QB", "Balanced FB", "Receiving FB", "Receiving TE", "Route Runner WR", "Possession WR", "Line Captain C"}, BadFits: []string{"Blocking FB", "Red Zone Threat WR"}},
-		"I-Option":                   {GoodFits: []string{"Scrambler QB", "Power RB", "Rushing FB", "Blocking TE", "Possession WR"}, BadFits: []string{"Pocket QB", "Speed RB", "Receiving RB", "Receiving FB", "Receiving TE", "Vertical Threat TE"}},
-		"Run and Shoot":              {GoodFits: []string{"Field General QB", "Speed RB", "Receiving RB", "Speed WR", "Line Captain C"}, BadFits: []string{"Balanced RB", "Power RB", "Blocking FB", "Rushing FB", "Blocking TE", "Possession WR"}},
-		"Air Raid":                   {GoodFits: []string{"Pocket QB", "Receiving RB", "Receiving FB", "Receiving TE", "Vertical Threat TE", "Speed WR", "Pass Blocking OG", "Pass Blocking OT", "Pass Blocking C"}, BadFits: []string{"Balanced QB", "Scrambler QB", "Field General QB", "Power RB", "Blocking FB", "Rushing FB", "Blocking TE", "Run Blocking OG", "Run Blocking OT", "Run Blocking C"}},
-		"Pistol":                     {GoodFits: []string{"Balanced QB", "Pocket QB", "Balanced RB", "Rushing FB", "Vertical Threat TE", "Route Runner WR", "Possession WR"}, BadFits: []string{"Balanced FB", "Line Captain C"}},
-		"Spread Option":              {GoodFits: []string{"Scrambler QB", "Speed RB", "Receiving FB", "Route Runner WR", "Possession WR"}, BadFits: []string{"Balanced RB", "Balanced FB"}},
-		"Wing-T":                     {GoodFits: []string{"Balanced QB", "Balanced RB", "Balanced FB", "Speed WR"}, BadFits: []string{}},
-		"Double Wing":                {GoodFits: []string{"Power RB", "Blocking FB", "Rushing FB", "Blocking TE", "Red Zone Threat WR", "Run Blocking OG", "Run Blocking OT", "Run Blocking C"}, BadFits: []string{"Pocket QB", "Speed RB", "Receiving RB", "Receiving FB", "Receiving TE", "Vertical Threat TE", "Pass Blocking OG", "Pass Blocking OT", "Pass Blocking C"}},
-		"Wishbone":                   {GoodFits: []string{"Balanced QB", "Field General QB", "Balanced RB", "Red Zone Threat WR"}, BadFits: []string{"Balanced FB", "Route Runner WR", "Line Captain C"}},
-		"Flexbone":                   {GoodFits: []string{"Scrambler QB", "Speed RB", "Balanced FB", "Red Zone Threat WR"}, BadFits: []string{"Balanced RB", "Speed WR", "Possession WR"}},
-		"Old School":                 {GoodFits: []string{"Run Stopper DE", "Run Stopper OLB", "Run Stopper ILB", "Field General ILB"}, BadFits: []string{"Nose Tackle DT", "Coverage OLB", "Coverage ILB"}},
-		"2-Gap":                      {GoodFits: []string{"Run Stopper DE", "Nose Tackle DT", "Run Stopper OLB", "Pass Rush OLB", "Run Stopper ILB"}, BadFits: []string{"Speed Rusher DE", "Pass Rusher DT", "Speed OLB", "Speed ILB"}},
-		"4-man Front Spread Stopper": {GoodFits: []string{"Speed Rusher DE", "Pass Rusher DT", "Coverage OLB", "Coverage ILB"}, BadFits: []string{"Run Stopper DE", "Nose Tackle DT", "Run Stoppper OLB", "Run Stopper ILB", "Run Stopper FS", "Run Stopper SS"}},
-		"3-man Front Spread Stopper": {GoodFits: []string{"Nose Tackle DT", "Pash Rush OLB", "Coverage ILB"}, BadFits: []string{"Nose Tackle DT", "Run Stopper OLB", "Run Stopper ILB", "Run Stopper FS", "Run Stopper SS", "Speed OLB", "Speed ILB", "Field General ILB"}},
-		"Speed":                      {GoodFits: []string{"Speed Rusher DE", "Pass Rusher DT", "Coverage OLB", "Speed OLB", "Speed ILB"}, BadFits: []string{"Run Stopper DE", "Nose Tackle DT", "Pass Rush OLB", "Field General ILB"}},
-		"Multiple":                   {GoodFits: []string{"Run Stopper DE", "Speed OLB", "Speed ILB", "Field General ILB", "Run Stopper FS", "Run Stopper SS"}, BadFits: []string{"Speed Rusher DE", "Pass Rusher DT", "Coverage OLB", "Coverage ILB"}},
+func GetOffensiveFitsByScheme(scheme uint8, isBadFit bool) []string {
+	fullMap := map[uint8]structs.SchemeFits{
+		1: {GoodFits: []string{"Grinder", "Two-Way", "Playmaker", "Defensive"}, BadFits: []string{"Power"}},
+		2: {GoodFits: []string{"Grinder", "Enforcer", "Playmaker", "Two-Way", "Defensive"}, BadFits: []string{"Sniper"}},
+		3: {GoodFits: []string{"Sniper", "Playmaker", "Power"}, BadFits: []string{"Grinder", "Defensive"}},
+		4: {GoodFits: []string{"Playmaker", "Power", "Sniper"}, BadFits: []string{"Grinder", "Enforcer"}},
+		5: {GoodFits: []string{"Offensive", "Sniper", "Two-Way"}, BadFits: []string{"Enforcer", "Power"}},
+		6: {GoodFits: []string{"Playmaker", "Offensive", "Sniper", "Two-Way"}, BadFits: []string{"Enforcer", "Grinder"}},
+		7: {GoodFits: []string{"Playmaker", "Sniper", "Two-Way", "Offensive"}, BadFits: []string{"Power", "Enforcer"}},
+		8: {GoodFits: []string{"Power", "Enforcer", "Grinder"}, BadFits: []string{"Playmaker", "Sniper"}},
+	}
+	if schemeFits, ok := fullMap[scheme]; ok {
+		if isBadFit {
+			return schemeFits.BadFits
+		}
+		return schemeFits.GoodFits
+	}
+	return []string{}
+}
+
+func GetDefensiveFitsByScheme(scheme uint8, isBadFit bool) []string {
+	fullMap := map[uint8]structs.SchemeFits{
+		1: {GoodFits: []string{"Two-Way", "Defensive", "Grinder", "Offensive"}, BadFits: []string{"Enforcer"}},
+		2: {GoodFits: []string{"Defensive", "Grinder"}, BadFits: []string{""}},
+		3: {GoodFits: []string{"Defensive", "Two-Way", "Grinder", "Playmaker"}, BadFits: []string{"Enforcer", "Power"}},
+		4: {GoodFits: []string{"Two-Way", "Grinder", "Defensive"}, BadFits: []string{"Offensive", "Sniper"}},
+		5: {GoodFits: []string{"Two-Way", "Grinder", "Defensive"}, BadFits: []string{"Offensive", "Power"}},
+		6: {GoodFits: []string{"Enforcer", "Grinder"}, BadFits: []string{"Playmaker", "Sniper"}},
+		7: {GoodFits: []string{"Defensive", "Two-Way", "Enforcer"}, BadFits: []string{"Offensive", "Sniper"}},
+		8: {GoodFits: []string{"Defensive", "Two-Way", "Grinder", "Enforcer"}, BadFits: []string{"Offensive", "Playmaker"}},
 	}
 	if schemeFits, ok := fullMap[scheme]; ok {
 		if isBadFit {
