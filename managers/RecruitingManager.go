@@ -430,3 +430,15 @@ func ScoutPortalAttribute(dto structs.ScoutAttributeDTO) structs.TransferPortalP
 
 	return portalProfile
 }
+
+func GenerateOffensiveAndDefensiveSystemsForRecruiting() {
+	db := dbprovider.GetInstance().GetDB()
+	profiles := repository.FindTeamRecruitingProfiles(false)
+
+	for _, team := range profiles {
+		off := uint8(util.GenerateIntFromRange(1, 8))
+		def := uint8(util.GenerateIntFromRange(1, 8))
+		team.AssignSystemInfo(off, def)
+		repository.SaveTeamProfileRecord(db, team)
+	}
+}

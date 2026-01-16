@@ -81,6 +81,10 @@ func MoveUpWeek() structs.Timestamp {
 			ProfessionalProgressionMain()
 		}
 	}
+	GenerateCHLTeamLetterGrades()
+	GeneratePHLTeamLetterGrades()
+
+	// Save Timestamp
 	repository.SaveTimestamp(ts, db)
 
 	return ts

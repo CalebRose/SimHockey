@@ -28,3 +28,8 @@ func RemoveUserFromProTeam(w http.ResponseWriter, r *http.Request) {
 
 	json.NewEncoder(w).Encode(req)
 }
+
+func GenerateCHLTeamLetterGrades(w http.ResponseWriter, r *http.Request) {
+	managers.GenerateCHLTeamLetterGrades()
+	json.NewEncoder(w).Encode(true)
+}

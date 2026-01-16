@@ -93,6 +93,7 @@ func handleRequests() http.Handler {
 	// apiRouter.HandleFunc("/admin/generate/test/pro/rosters/", controllers.GenerateProTestData).Methods("GET")
 	// apiRouter.HandleFunc("/admin/generate/capsheets/", controllers.GenerateCapsheets).Methods("GET")
 	// apiRouter.HandleFunc("/admin/generate/fa/preferences/", controllers.AddFAPreferences).Methods("GET")
+	// apiRouter.HandleFunc("/admin/generate/recruiting/systems/", controllers.GenerateSystemsForRecruitingProfile).Methods("GET")
 	// apiRouter.HandleFunc("/admin/run/fa/sync/", controllers.TestFASync).Methods("GET")
 	// apiRouter.HandleFunc("/admin/run/fa/sync/", controllers.TestFAOffers).Methods("GET")
 	// apiRouter.HandleFunc("/admin/ai/fill/boards", controllers.FillAIBoards).Methods("GET")
@@ -152,6 +153,10 @@ func handleRequests() http.Handler {
 	// apiRouter.HandleFunc("/migrate/faces", controllers.MigrateFaceData).Methods("GET")
 	// apiRouter.HandleFunc("/migrate/stats/fix", controllers.FixSeasonStatTables).Methods("GET")
 
+	// Notifications
+	apiRouter.HandleFunc("/notification/toggle/{notiID}", controllers.ToggleNotificationAsRead).Methods("GET")
+	apiRouter.HandleFunc("/notification/delete/{notiID}", controllers.DeleteNotification).Methods("GET")
+
 	// Poll Controls
 	apiRouter.HandleFunc("/college/poll/create/", controllers.CreatePollSubmission).Methods("POST")
 	apiRouter.HandleFunc("/college/poll/sync", controllers.SyncCollegePoll).Methods("GET")
@@ -199,6 +204,7 @@ func handleRequests() http.Handler {
 
 	// Teams
 	apiRouter.HandleFunc("/chl/teams/remove/{teamID}", controllers.RemoveUserFromCollegeTeam).Methods("GET")
+	// apiRouter.HandleFunc("/chl/teams/generate/grades", controllers.GenerateCHLTeamLetterGrades).Methods("GET")
 	apiRouter.HandleFunc("/phl/teams/remove/user", controllers.RemoveUserFromProTeam).Methods("POST")
 
 	// Trades

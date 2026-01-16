@@ -175,6 +175,11 @@ func (r *RecruitingTeamProfile) ToggleAIBehavior() {
 	r.IsAI = !r.IsAI
 }
 
+func (r *RecruitingTeamProfile) AssignSystemInfo(off, def uint8) {
+	r.OffensiveSystem = off
+	r.DefensiveSystem = def
+}
+
 func (r *RecruitingTeamProfile) UpdateAIBehavior(isAi bool, starMax, starMin, min, max, off, def uint8) {
 	r.IsAI = isAi
 	r.AIStarMax = starMax

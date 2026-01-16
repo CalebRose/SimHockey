@@ -74,3 +74,38 @@ func CreateNotification(league, message, messageType string, teamID uint) {
 
 	repository.CreateNotification(notification, db)
 }
+
+func GetNotificationById(id string) structs.Notification {
+	notifications := repository.FindNotificationRecords(id, "", "")
+
+	if len(notifications) == 0 {
+		return structs.Notification{}
+	}
+
+	return notifications[0]
+}
+
+func ToggleNotification(id string) {
+	db := dbprovider.GetInstance().GetDB()
+
+	noti := GetNotificationById(id)
+
+	if noti.ID == 0 {
+		return
+	}
+
+	noti.ToggleIsRead()
+	repository.SaveNotification(noti, db)
+}
+
+func DeleteNotification(id string) {
+	db := dbprovider.GetInstance().GetDB()
+
+	noti := GetNotificationById(id)
+
+	if noti.ID == 0 {
+		return
+	}
+
+	repository.DeleteNotificationRecord(noti, db)
+}

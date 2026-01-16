@@ -116,3 +116,8 @@ func ScoutPortalAttribute(w http.ResponseWriter, r *http.Request) {
 
 	json.NewEncoder(w).Encode(profile)
 }
+
+func GenerateSystemsForRecruitingProfile(w http.ResponseWriter, r *http.Request) {
+	managers.GenerateOffensiveAndDefensiveSystemsForRecruiting()
+	json.NewEncoder(w).Encode("Offensive and Defensive Systems Generated for Recruiting Profiles")
+}

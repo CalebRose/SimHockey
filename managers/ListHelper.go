@@ -254,3 +254,14 @@ func MakeProfessionalPlayerListFromHistorics(list []structs.RetiredPlayer) []str
 	}
 	return players
 }
+
+func MakeBasePlayerList(collegePlayers []structs.CollegePlayer, proPlayers []structs.ProfessionalPlayer) []structs.BasePlayer {
+	players := []structs.BasePlayer{}
+	for _, player := range collegePlayers {
+		players = append(players, player.BasePlayer)
+	}
+	for _, player := range proPlayers {
+		players = append(players, player.BasePlayer)
+	}
+	return players
+}

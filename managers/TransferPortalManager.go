@@ -624,7 +624,7 @@ func AICoachFillBoardsPhase() {
 		majorNeedsMap := getMajorNeedsMap()
 
 		for _, r := range roster {
-			if r.Overall > 20 && majorNeedsMap[r.Position] {
+			if r.Overall > 22 && majorNeedsMap[r.Position] {
 				majorNeedsMap[r.Position] = false
 			}
 		}
@@ -823,7 +823,7 @@ func AICoachAllocateAndPromisePhase() {
 			if teamProfile.SpentPoints >= teamProfile.WeeklyPoints || pointsRemaining <= 0 || (pointsRemaining < 1 && pointsRemaining > 0) {
 				break
 			}
-			isEligible := tp.TransferStatus == 2 || tp.LeagueID == 2
+			isEligible := tp.TransferStatus == 2 || (tp.LeagueID == 2 && tp.Age > 17)
 			if !isEligible {
 				continue
 			}

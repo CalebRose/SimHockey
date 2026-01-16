@@ -29,6 +29,7 @@ type BaseTeam struct {
 	OverallGrade     string
 	OffenseGrade     string
 	DefenseGrade     string
+	GoalieGrade      string
 	LastLogin        time.Time
 }
 
@@ -38,6 +39,13 @@ func (bt *BaseTeam) UpdateLatestInstance() {
 
 func (bt *BaseTeam) AssignDiscordID(id string) {
 	bt.DiscordID = id
+}
+
+func (bt *BaseTeam) AssignLetterGrades(overall, offense, defense, goalie string) {
+	bt.OverallGrade = overall
+	bt.OffenseGrade = offense
+	bt.DefenseGrade = defense
+	bt.GoalieGrade = goalie
 }
 
 type ProfileAttributes struct {
@@ -185,4 +193,47 @@ type Arena struct {
 	Country          string
 	Capacity         uint16
 	RecordAttendance uint16
+}
+
+type TeamGrade struct {
+	OffenseGradeNumber float64
+	DefenseGradeNumber float64
+	GoalieGradeNumber  float64
+	OverallGradeNumber float64
+	OffenseGradeLetter string
+	DefenseGradeLetter string
+	GoalieGradeLetter  string
+	OverallGradeLetter string
+}
+
+func (tg *TeamGrade) SetOffenseGradeNumber(grade float64) {
+	tg.OffenseGradeNumber = grade
+}
+
+func (tg *TeamGrade) SetDefenseGradeNumber(grade float64) {
+	tg.DefenseGradeNumber = grade
+}
+
+func (tg *TeamGrade) SetGoalieGradeNumber(grade float64) {
+	tg.GoalieGradeNumber = grade
+}
+
+func (tg *TeamGrade) SetOverallGradeNumber(grade float64) {
+	tg.OverallGradeNumber = grade
+}
+
+func (tg *TeamGrade) SetOffenseGradeLetter(grade string) {
+	tg.OffenseGradeLetter = grade
+}
+
+func (tg *TeamGrade) SetDefenseGradeLetter(grade string) {
+	tg.DefenseGradeLetter = grade
+}
+
+func (tg *TeamGrade) SetGoalieGradeLetter(grade string) {
+	tg.GoalieGradeLetter = grade
+}
+
+func (tg *TeamGrade) SetOverallGradeLetter(grade string) {
+	tg.OverallGradeLetter = grade
 }
