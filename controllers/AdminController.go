@@ -193,3 +193,8 @@ func SeasonMigration(w http.ResponseWriter, r *http.Request) {
 	managers.HandlePostSeasonMigration()
 	json.NewEncoder(w).Encode("Data Generated ran!")
 }
+
+func GeneratePairwiseRanks(w http.ResponseWriter, r *http.Request) {
+	managers.UpdateCollegeRankings()
+	json.NewEncoder(w).Encode("Pairwise Ranks Generated")
+}

@@ -41,6 +41,10 @@ func SyncRecruitingViaCron() {
 	} else if ts.RunCron && ts.IsOffSeason && ts.TransferPortalPhase == 3 {
 		// Sync Transfer Portal
 		managers.SyncTransferPortal()
+		if ts.TransferPortalRound >= 10 {
+			// Portal is closed, create a preseason ranking
+			managers.CreatePreseasonRanking()
+		}
 	}
 }
 

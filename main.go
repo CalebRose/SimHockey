@@ -88,6 +88,7 @@ func handleRequests() http.Handler {
 	// apiRouter.HandleFunc("/admin/generate/chl/schedule/", controllers.GenerateCHLSchedule).Methods("GET")
 	// apiRouter.HandleFunc("/admin/generate/chl/tourney/schedule/", controllers.GenerateCHLTourneySchedule).Methods("GET")
 	// apiRouter.HandleFunc("/admin/generate/phl/playoff/games/", controllers.GenerateProPlayoffGames).Methods("GET")
+	// apiRouter.HandleFunc("/admin/generate/pairwise/ranks/", controllers.GeneratePairwiseRanks).Methods("GET")
 
 	// apiRouter.HandleFunc("/admin/generate/pre/schedule/", controllers.GeneratePreseasonGames).Methods("GET")
 	// apiRouter.HandleFunc("/admin/generate/test/pro/rosters/", controllers.GenerateProTestData).Methods("GET")

@@ -1,6 +1,7 @@
 package structs
 
 import (
+	"fmt"
 	"strings"
 
 	"gorm.io/gorm"
@@ -14,10 +15,55 @@ type CollegeStandings struct {
 	IsPostSeasonQualified          bool
 	IsQuarterfinals                bool
 	IsFrozenFour                   bool
+	PreseasonRank                  uint8   // Preseason ranking: 1-255 is fine
+	PairwiseRank                   uint8   // Rankings: 1-255 is fine
+	RPIRank                        uint8   // Rankings: 1-255 is fine
+	RPI                            float32 // RPI Value: 0.000-1.000+ (need decimals)
+	SOS                            float32 // Strength of Schedule: decimal value
+	SOR                            float32 // Strength of Record: decimal value
+	Tier1Wins                      uint8   // Counts: integers are fine
+	Tier2Wins                      uint8   // Counts: integers are fine
+	BadLosses                      uint8   // Counts: integers are fine
+	ConferenceStrengthAdj          float32 // Conference strength: decimal value
 }
 
 func (cs *CollegeStandings) AssignRank(rank int) {
 	cs.Rank = uint(rank)
+}
+
+// GetWinPercentage returns the team's win percentage including OT losses as half wins
+func (cs *CollegeStandings) GetWinPercentage() float32 {
+	totalGames := cs.TotalWins + cs.TotalLosses + cs.TotalOTLosses
+	if totalGames == 0 {
+		return 0.0
+	}
+	adjustedWins := float32(cs.TotalWins) + (float32(cs.TotalOTLosses) * 0.5)
+	return adjustedWins / float32(totalGames)
+}
+
+// GetRPIDisplay returns RPI as a decimal for display purposes
+func (cs *CollegeStandings) GetRPIDisplay() string {
+	return fmt.Sprintf("%.3f", cs.RPI)
+}
+
+// GetSOSDisplay returns SOS as a decimal for display purposes
+func (cs *CollegeStandings) GetSOSDisplay() string {
+	return fmt.Sprintf("%.3f", cs.SOS)
+}
+
+// GetSORDisplay returns SOR as a decimal for display purposes
+func (cs *CollegeStandings) GetSORDisplay() string {
+	return fmt.Sprintf("%.3f", cs.SOR)
+}
+
+// GetQualityRecord returns a formatted string showing quality wins
+func (cs *CollegeStandings) GetQualityRecord() string {
+	return fmt.Sprintf("T1: %d, T2: %d, Bad: %d", cs.Tier1Wins, cs.Tier2Wins, cs.BadLosses)
+}
+
+// IsRanked returns true if the team is in the top 25 Pairwise rankings
+func (cs *CollegeStandings) IsRanked() bool {
+	return cs.PairwiseRank <= 25 && cs.PairwiseRank > 0
 }
 
 func (cs *CollegeStandings) UpdateSeasonStatus(game CollegeGame) {
