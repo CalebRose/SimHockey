@@ -53,7 +53,7 @@ func GetDraftBootstrap() structs.ProDraftPageResponse {
 	ts := GetTimestamp()
 	seasonID := strconv.Itoa(int(ts.SeasonID))
 	var wg sync.WaitGroup
-	wg.Add(4)
+	wg.Add(5)
 	var (
 		draftees         []structs.DraftablePlayer
 		collegePlayers   []structs.CollegePlayer
