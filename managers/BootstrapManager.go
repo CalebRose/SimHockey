@@ -62,7 +62,7 @@ func GetBootstrapData(collegeID, proID string) structs.BootstrapData {
 		collegeNotifications   []structs.Notification
 		collegeGames           []structs.CollegeGame
 		recruits               []structs.Croot
-		collegeGameplan        structs.CollegeGameplan
+		collegeGameplanMap     map[uint]structs.CollegeGameplan
 		collegeLineups         []structs.CollegeLineup
 		collegeShootoutLineup  structs.CollegeShootoutLineup
 		faceDataMap            map[uint]structs.FaceDataResponse
@@ -87,7 +87,7 @@ func GetBootstrapData(collegeID, proID string) structs.BootstrapData {
 		proNews             []structs.NewsLog
 		proNotifications    []structs.Notification
 		proGames            []structs.ProfessionalGame
-		proGameplan         structs.ProGameplan
+		proGameplanMap      map[uint]structs.ProGameplan
 		proLineups          []structs.ProfessionalLineup
 		proShootoutLineup   structs.ProfessionalShootoutLineup
 		contractMap         map[uint]structs.ProContract
@@ -184,7 +184,8 @@ func GetBootstrapData(collegeID, proID string) structs.BootstrapData {
 		}()
 		go func() {
 			defer wg.Done()
-			collegeGameplan = repository.FindCollegeGameplanRecord(collegeID)
+			collegeGameplans := repository.FindCollegeGameplanRecords()
+			collegeGameplanMap = MakeCollegeGameplanMap(collegeGameplans)
 		}()
 		go func() {
 			defer wg.Done()
@@ -251,7 +252,8 @@ func GetBootstrapData(collegeID, proID string) structs.BootstrapData {
 		}()
 		go func() {
 			defer wg.Done()
-			proGameplan = repository.FindProGameplanRecord(proID)
+			proGameplans := repository.FindProfessionalGameplanRecords()
+			proGameplanMap = MakeProGameplanMap(proGameplans)
 		}()
 
 		wg.Add(8)
@@ -313,7 +315,7 @@ func GetBootstrapData(collegeID, proID string) structs.BootstrapData {
 		CollegeInjuryReport:       injuredCollegePlayers,
 		CollegeNews:               collegeNews,
 		CollegeNotifications:      collegeNotifications,
-		CHLGameplan:               collegeGameplan,
+		CHLGameplanMap:            collegeGameplanMap,
 		CollegeTeamLineups:        collegeLineups,
 		CollegeTeamShootoutLineup: collegeShootoutLineup,
 		AllCollegeGames:           collegeGames,
@@ -328,7 +330,7 @@ func GetBootstrapData(collegeID, proID string) structs.BootstrapData {
 		ProNews:                   proNews,
 		ProNotifications:          proNotifications,
 		AllProGames:               proGames,
-		PHLGameplan:               proGameplan,
+		PHLGameplanMap:            proGameplanMap,
 		ProTeamLineups:            proLineups,
 		ProTeamShootoutLineup:     proShootoutLineup,
 		FaceData:                  faceDataMap,
