@@ -163,6 +163,7 @@ func MakeDraftablePlayerListWithGrades(players []structs.DraftablePlayer) []stru
 				GoalkeepingGrade:       util.GetLetterGrade(int(p.Goalkeeping), 3),
 				GoalieVisionGrade:      util.GetLetterGrade(int(p.GoalieVision), 3),
 			},
+			DraftablePlayerType: p.DraftablePlayerType,
 		}
 
 		draftableList = append(draftableList, draftable)
