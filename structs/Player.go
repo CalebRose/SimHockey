@@ -1069,7 +1069,7 @@ type DraftablePlayer struct {
 	DraftedRound        uint8
 	DraftPickID         uint
 	DraftedPick         uint16
-	DraftablePlayerType uint8 // 0 = College, 1 = Graduate, 2 = International, 3 = Junior
+	DraftablePlayerType uint8 // 0 = College, 1 = Graduate, 2 = International, 3 = Junior/Canada
 }
 
 func (n *DraftablePlayer) AssignDraftedTeam(num uint, pickID uint, teamID uint, team string) {

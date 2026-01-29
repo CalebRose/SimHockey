@@ -105,6 +105,10 @@ func MakeDraftablePlayerList(players []structs.CollegePlayer) []structs.Draftabl
 		if p.Age < 18 {
 			continue
 		}
+		draftablePlayerType := uint8(0)
+		if p.LeagueID > 1 {
+			draftablePlayerType = 3
+		}
 		draftable := structs.DraftablePlayer{
 			Model:          p.Model,
 			BasePlayer:     p.BasePlayer,
@@ -126,7 +130,7 @@ func MakeDraftablePlayerList(players []structs.CollegePlayer) []structs.Draftabl
 				GoalkeepingGrade:       util.GetLetterGrade(int(p.Goalkeeping), p.Year),
 				GoalieVisionGrade:      util.GetLetterGrade(int(p.GoalieVision), p.Year),
 			},
-			DraftablePlayerType: 0,
+			DraftablePlayerType: draftablePlayerType,
 		}
 
 		draftableList = append(draftableList, draftable)
