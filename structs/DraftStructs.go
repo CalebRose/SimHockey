@@ -53,19 +53,26 @@ func (p *DraftPick) MapValuesToDraftPick(id, draftRound, draftNumber, teamID uin
 
 type ScoutingProfile struct {
 	gorm.Model
-	PlayerID         uint
-	TeamID           uint
-	ShowAttribute1   bool
-	ShowAttribute2   bool
-	ShowAttribute3   bool
-	ShowAttribute4   bool
-	ShowAttribute5   bool
-	ShowAttribute6   bool
-	ShowAttribute7   bool
-	ShowAttribute8   bool
-	ShowPotential    bool
-	RemovedFromBoard bool
-	ShowCount        uint8
+	PlayerID          uint
+	TeamID            uint
+	ShowAttribute1    bool
+	ShowAttribute2    bool
+	ShowAttribute3    bool
+	ShowAttribute4    bool
+	ShowAttribute5    bool
+	ShowAttribute6    bool
+	ShowAttribute7    bool
+	ShowAttribute8    bool
+	ShowPotAttribute1 bool
+	ShowPotAttribute2 bool
+	ShowPotAttribute3 bool
+	ShowPotAttribute4 bool
+	ShowPotAttribute5 bool
+	ShowPotAttribute6 bool
+	ShowPotAttribute7 bool
+	ShowPotAttribute8 bool
+	RemovedFromBoard  bool
+	ShowCount         uint8
 }
 
 func (sp *ScoutingProfile) RevealAttribute(attr string) {
@@ -86,8 +93,22 @@ func (sp *ScoutingProfile) RevealAttribute(attr string) {
 		sp.ShowAttribute7 = true
 	case "ShowAttribute8":
 		sp.ShowAttribute8 = true
-	case "ShowPotential":
-		sp.ShowPotential = true
+	case "ShowPotential1":
+		sp.ShowPotAttribute1 = true
+	case "ShowPotential2":
+		sp.ShowPotAttribute2 = true
+	case "ShowPotential3":
+		sp.ShowPotAttribute3 = true
+	case "ShowPotential4":
+		sp.ShowPotAttribute4 = true
+	case "ShowPotential5":
+		sp.ShowPotAttribute5 = true
+	case "ShowPotential6":
+		sp.ShowPotAttribute6 = true
+	case "ShowPotential7":
+		sp.ShowPotAttribute7 = true
+	case "ShowPotential8":
+		sp.ShowPotAttribute8 = true
 	}
 	sp.ShowCount++
 }
