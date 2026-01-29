@@ -63,10 +63,11 @@ func CollegeProgressionMain() {
 					historicRecords = append(historicRecords, historicRecord)
 					// Graduate players with no draft rights become draftee records before UDFAs
 					draftee := structs.DraftablePlayer{
-						Model:          player.Model,
-						BasePlayer:     player.BasePlayer,
-						BasePotentials: player.BasePotentials,
-						CollegeID:      uint(player.TeamID),
+						Model:               player.Model,
+						BasePlayer:          player.BasePlayer,
+						BasePotentials:      player.BasePotentials,
+						CollegeID:           uint(player.TeamID),
+						DraftablePlayerType: 1,
 					}
 					draftablePlayers = append(draftablePlayers, draftee)
 				} else {
