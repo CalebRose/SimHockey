@@ -94,7 +94,7 @@ func GetBootstrapData(collegeID, proID string) structs.BootstrapData {
 		extensionMap        map[uint]structs.ExtensionOffer
 		tradeProposalMap    map[uint][]structs.TradeProposal
 		tradePreferencesMap map[uint]structs.TradePreferences
-		draftPicks          []structs.DraftPick
+		draftPicks          map[uint][]structs.DraftPick
 	)
 	ts := GetTimestamp()
 	_, collegeGameType := ts.GetCurrentGameType(true)
@@ -239,7 +239,8 @@ func GetBootstrapData(collegeID, proID string) structs.BootstrapData {
 		}()
 		go func() {
 			defer wg.Done()
-			draftPicks = GetAllDraftPicksBySeasonID("")
+			allDraftPicks := GetAllDraftPicksBySeasonID("")
+			draftPicks = MakeDraftPickMapByTeamID(allDraftPicks)
 		}()
 		go func() {
 			defer wg.Done()

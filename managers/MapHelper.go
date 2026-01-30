@@ -542,3 +542,11 @@ func MakeDraftablePlayerMapByID(draftablePlayers []structs.DraftablePlayer) map[
 	}
 	return playerMap
 }
+
+func MakeDraftPickMapByTeamID(draftPicks []structs.DraftPick) map[uint][]structs.DraftPick {
+	playerMap := make(map[uint][]structs.DraftPick)
+	for _, p := range draftPicks {
+		playerMap[p.TeamID] = append(playerMap[p.TeamID], p)
+	}
+	return playerMap
+}

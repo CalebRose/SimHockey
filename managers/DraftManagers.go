@@ -59,7 +59,7 @@ func GetDraftBootstrap() structs.ProDraftPageResponse {
 		collegePlayers   []structs.CollegePlayer
 		warRooms         []structs.ProWarRoom
 		draftPicks       []structs.DraftPick
-		draftPickFormat  [7][]structs.DraftPick
+		draftPickFormat  map[uint][]structs.DraftPick
 		scoutingProfiles []structs.ScoutingProfile
 	)
 
@@ -110,8 +110,8 @@ func GetDraftBootstrap() structs.ProDraftPageResponse {
 	})
 
 	for _, pick := range draftPicks {
-		roundIdx := int(pick.DraftRound) - 1
-		if roundIdx >= 0 && roundIdx < len(draftPickFormat) {
+		roundIdx := uint(pick.DraftRound)
+		if roundIdx > 0 {
 			draftPickFormat[roundIdx] = append(draftPickFormat[roundIdx], pick)
 		} else {
 			log.Panicln("Invalid round to insert pick!")

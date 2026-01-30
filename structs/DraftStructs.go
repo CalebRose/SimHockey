@@ -162,5 +162,5 @@ type ProDraftPageResponse struct {
 	WarRoomMap       map[uint]ProWarRoom
 	DraftablePlayers []DraftablePlayer
 	ScoutingProfiles []ScoutingProfile
-	DraftPicks       [7][]DraftPick
+	DraftPicks       map[uint][]DraftPick
 }
