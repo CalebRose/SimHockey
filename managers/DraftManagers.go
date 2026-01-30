@@ -59,9 +59,11 @@ func GetDraftBootstrap() structs.ProDraftPageResponse {
 		collegePlayers   []structs.CollegePlayer
 		warRooms         []structs.ProWarRoom
 		draftPicks       []structs.DraftPick
-		draftPickFormat  = make(map[uint][]structs.DraftPick)
 		scoutingProfiles []structs.ScoutingProfile
 	)
+
+	// Initialize map after variable declaration to ensure proper allocation
+	draftPickFormat := make(map[uint][]structs.DraftPick)
 
 	// GetProWarRoomByTeamID
 	go func() {
@@ -112,11 +114,14 @@ func GetDraftBootstrap() structs.ProDraftPageResponse {
 	for _, pick := range draftPicks {
 		roundIdx := uint(pick.DraftRound)
 		if roundIdx > 0 {
+			// Ensure the map is not nil before assignment
+			if draftPickFormat == nil {
+				draftPickFormat = make(map[uint][]structs.DraftPick)
+			}
 			draftPickFormat[roundIdx] = append(draftPickFormat[roundIdx], pick)
 		} else {
 			log.Panicln("Invalid round to insert pick!")
 		}
-
 	}
 
 	res := structs.ProDraftPageResponse{
