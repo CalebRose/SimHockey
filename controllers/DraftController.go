@@ -2,7 +2,6 @@ package controllers
 
 import (
 	"encoding/json"
-	"fmt"
 	"net/http"
 
 	"github.com/CalebRose/SimHockey/managers"
@@ -48,8 +47,6 @@ func ExportDraftedPicks(w http.ResponseWriter, r *http.Request) {
 	saveComplete := managers.ExportDraftedPlayers(draftPickDTO.DraftPicks)
 
 	json.NewEncoder(w).Encode(saveComplete)
-
-	fmt.Fprintf(w, "Exported Players to new tables")
 }
 
 func RevealScoutingAttribute(w http.ResponseWriter, r *http.Request) {
@@ -62,7 +59,6 @@ func RevealScoutingAttribute(w http.ResponseWriter, r *http.Request) {
 
 	saveComplete := managers.RevealScoutingAttribute(revealAttributeDTO)
 
-	fmt.Fprintf(w, "New Scout Profile Created")
 	json.NewEncoder(w).Encode(saveComplete)
 }
 
@@ -75,7 +71,7 @@ func RemovePlayerFromScoutBoard(w http.ResponseWriter, r *http.Request) {
 
 	managers.RemovePlayerFromScoutBoard(id)
 
-	json.NewEncoder(w).Encode("Removed Player From Scout Board")
+	json.NewEncoder(w).Encode(true)
 }
 
 func GetScoutingDataByDraftee(w http.ResponseWriter, r *http.Request) {

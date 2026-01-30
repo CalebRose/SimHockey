@@ -482,7 +482,14 @@ export class ScoutingProfile {
     ShowAttribute6: boolean;
     ShowAttribute7: boolean;
     ShowAttribute8: boolean;
-    ShowPotential: boolean;
+    ShowPotAttribute1: boolean;
+    ShowPotAttribute2: boolean;
+    ShowPotAttribute3: boolean;
+    ShowPotAttribute4: boolean;
+    ShowPotAttribute5: boolean;
+    ShowPotAttribute6: boolean;
+    ShowPotAttribute7: boolean;
+    ShowPotAttribute8: boolean;
     RemovedFromBoard: boolean;
     ShowCount: number;
 
@@ -502,7 +509,14 @@ export class ScoutingProfile {
         this.ShowAttribute6 = source["ShowAttribute6"];
         this.ShowAttribute7 = source["ShowAttribute7"];
         this.ShowAttribute8 = source["ShowAttribute8"];
-        this.ShowPotential = source["ShowPotential"];
+        this.ShowPotAttribute1 = source["ShowPotAttribute1"];
+        this.ShowPotAttribute2 = source["ShowPotAttribute2"];
+        this.ShowPotAttribute3 = source["ShowPotAttribute3"];
+        this.ShowPotAttribute4 = source["ShowPotAttribute4"];
+        this.ShowPotAttribute5 = source["ShowPotAttribute5"];
+        this.ShowPotAttribute6 = source["ShowPotAttribute6"];
+        this.ShowPotAttribute7 = source["ShowPotAttribute7"];
+        this.ShowPotAttribute8 = source["ShowPotAttribute8"];
         this.RemovedFromBoard = source["RemovedFromBoard"];
         this.ShowCount = source["ShowCount"];
     }
@@ -3227,6 +3241,7 @@ export class BaseTeam {
     OverallGrade: string;
     OffenseGrade: string;
     DefenseGrade: string;
+    GoalieGrade: string;
     LastLogin: Time;
 
     constructor(source: any = {}) {
@@ -3253,6 +3268,7 @@ export class BaseTeam {
         this.OverallGrade = source["OverallGrade"];
         this.OffenseGrade = source["OffenseGrade"];
         this.DefenseGrade = source["DefenseGrade"];
+        this.GoalieGrade = source["GoalieGrade"];
         this.LastLogin = this.convertValues(source["LastLogin"], Time);
     }
 
@@ -3301,6 +3317,7 @@ export class CollegeTeam {
     OverallGrade: string;
     OffenseGrade: string;
     DefenseGrade: string;
+    GoalieGrade: string;
     LastLogin: Time;
     IsUserCoached: boolean;
     IsClub: boolean;
@@ -3345,6 +3362,7 @@ export class CollegeTeam {
         this.OverallGrade = source["OverallGrade"];
         this.OffenseGrade = source["OffenseGrade"];
         this.DefenseGrade = source["DefenseGrade"];
+        this.GoalieGrade = source["GoalieGrade"];
         this.LastLogin = this.convertValues(source["LastLogin"], Time);
         this.IsUserCoached = source["IsUserCoached"];
         this.IsClub = source["IsClub"];
@@ -3407,6 +3425,7 @@ export class ProfessionalTeam {
     OverallGrade: string;
     OffenseGrade: string;
     DefenseGrade: string;
+    GoalieGrade: string;
     LastLogin: Time;
     Owner: string;
     GM: string;
@@ -3444,6 +3463,7 @@ export class ProfessionalTeam {
         this.OverallGrade = source["OverallGrade"];
         this.OffenseGrade = source["OffenseGrade"];
         this.DefenseGrade = source["DefenseGrade"];
+        this.GoalieGrade = source["GoalieGrade"];
         this.LastLogin = this.convertValues(source["LastLogin"], Time);
         this.Owner = source["Owner"];
         this.GM = source["GM"];
@@ -4805,8 +4825,8 @@ export class RecruitingTeamProfile {
     AIStarMin: number;
     AIStarMax: number;
     Recruiter: string;
-    OffensiveScheme: string;
-    DefensiveScheme: string;
+    OffensiveSystem: number;
+    DefensiveSystem: number;
     Y1Rank: number;
     Y2Rank: number;
     Y3Rank: number;
@@ -4852,8 +4872,8 @@ export class RecruitingTeamProfile {
         this.AIStarMin = source["AIStarMin"];
         this.AIStarMax = source["AIStarMax"];
         this.Recruiter = source["Recruiter"];
-        this.OffensiveScheme = source["OffensiveScheme"];
-        this.DefensiveScheme = source["DefensiveScheme"];
+        this.OffensiveSystem = source["OffensiveSystem"];
+        this.DefensiveSystem = source["DefensiveSystem"];
         this.Y1Rank = source["Y1Rank"];
         this.Y2Rank = source["Y2Rank"];
         this.Y3Rank = source["Y3Rank"];
@@ -5479,6 +5499,16 @@ export class CollegeStandings {
     IsPostSeasonQualified: boolean;
     IsQuarterfinals: boolean;
     IsFrozenFour: boolean;
+    PreseasonRank: number;
+    PairwiseRank: number;
+    RPIRank: number;
+    RPI: number;
+    SOS: number;
+    SOR: number;
+    Tier1Wins: number;
+    Tier2Wins: number;
+    BadLosses: number;
+    ConferenceStrengthAdj: number;
 
     constructor(source: any = {}) {
         if ('string' === typeof source) source = JSON.parse(source);
@@ -5520,6 +5550,16 @@ export class CollegeStandings {
         this.IsPostSeasonQualified = source["IsPostSeasonQualified"];
         this.IsQuarterfinals = source["IsQuarterfinals"];
         this.IsFrozenFour = source["IsFrozenFour"];
+        this.PreseasonRank = source["PreseasonRank"];
+        this.PairwiseRank = source["PairwiseRank"];
+        this.RPIRank = source["RPIRank"];
+        this.RPI = source["RPI"];
+        this.SOS = source["SOS"];
+        this.SOR = source["SOR"];
+        this.Tier1Wins = source["Tier1Wins"];
+        this.Tier2Wins = source["Tier2Wins"];
+        this.BadLosses = source["BadLosses"];
+        this.ConferenceStrengthAdj = source["ConferenceStrengthAdj"];
     }
 
 	convertValues(a: any, classs: any, asMap: boolean = false): any {
@@ -5555,7 +5595,7 @@ export class BootstrapData {
     CollegeNews: NewsLog[];
     CollegeNotifications: Notification[];
     AllCollegeGames: CollegeGame[];
-    CHLGameplan: CollegeGameplan;
+    CHLGameplanMap: {[key: uint]: CollegeGameplan};
     CollegeTeamLineups: CollegeLineup[];
     CollegeTeamShootoutLineup: CollegeShootoutLineup;
     TopCHLGoals: CollegePlayer[];
@@ -5578,7 +5618,7 @@ export class BootstrapData {
     ProNews: NewsLog[];
     ProNotifications: Notification[];
     AllProGames: ProfessionalGame[];
-    PHLGameplan: ProGameplan;
+    PHLGameplanMap: {[key: uint]: ProGameplan};
     ProTeamLineups: ProfessionalLineup[];
     ProTeamShootoutLineup: ProfessionalShootoutLineup;
     FaceData: {[key: uint]: FaceDataResponse};
@@ -5605,7 +5645,7 @@ export class BootstrapData {
         this.CollegeNews = this.convertValues(source["CollegeNews"], NewsLog);
         this.CollegeNotifications = this.convertValues(source["CollegeNotifications"], Notification);
         this.AllCollegeGames = this.convertValues(source["AllCollegeGames"], CollegeGame);
-        this.CHLGameplan = this.convertValues(source["CHLGameplan"], CollegeGameplan);
+        this.CHLGameplanMap = this.convertValues(source["CHLGameplanMap"], CollegeGameplan, true);
         this.CollegeTeamLineups = this.convertValues(source["CollegeTeamLineups"], CollegeLineup);
         this.CollegeTeamShootoutLineup = this.convertValues(source["CollegeTeamShootoutLineup"], CollegeShootoutLineup);
         this.TopCHLGoals = this.convertValues(source["TopCHLGoals"], CollegePlayer);
@@ -5628,7 +5668,7 @@ export class BootstrapData {
         this.ProNews = this.convertValues(source["ProNews"], NewsLog);
         this.ProNotifications = this.convertValues(source["ProNotifications"], Notification);
         this.AllProGames = this.convertValues(source["AllProGames"], ProfessionalGame);
-        this.PHLGameplan = this.convertValues(source["PHLGameplan"], ProGameplan);
+        this.PHLGameplanMap = this.convertValues(source["PHLGameplanMap"], ProGameplan, true);
         this.ProTeamLineups = this.convertValues(source["ProTeamLineups"], ProfessionalLineup);
         this.ProTeamShootoutLineup = this.convertValues(source["ProTeamShootoutLineup"], ProfessionalShootoutLineup);
         this.FaceData = this.convertValues(source["FaceData"], FaceDataResponse, true);

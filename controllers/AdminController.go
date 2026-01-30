@@ -198,3 +198,9 @@ func GeneratePairwiseRanks(w http.ResponseWriter, r *http.Request) {
 	managers.UpdateCollegeRankings()
 	json.NewEncoder(w).Encode("Pairwise Ranks Generated")
 }
+
+func GeneratePHLDraftWarRooms(w http.ResponseWriter, r *http.Request) {
+	managers.GenerateDraftWarRooms()
+
+	json.NewEncoder(w).Encode("Data Generated ran!")
+}

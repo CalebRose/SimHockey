@@ -978,3 +978,29 @@ func FixMigrationPlayerData() {
 
 	repository.CreateCollegeHockeyPlayerRecordsBatch(db, collegePlayerBatch, 100)
 }
+
+func GenerateDraftWarRooms() {
+	db := dbprovider.GetInstance().GetDB()
+
+	proTeams := repository.FindAllProTeams(repository.TeamClauses{})
+
+	warRooms := repository.FindProWarRooms()
+	warRoomMap := MakeProWarRoomMapByTeamID(warRooms)
+
+	for _, team := range proTeams {
+		existingWarRoom := warRoomMap[team.ID]
+
+		if existingWarRoom.ID > 0 {
+			continue
+		}
+
+		warRoom := structs.ProWarRoom{
+			TeamID:         team.ID,
+			Team:           team.Abbreviation,
+			ScoutingPoints: 1200,
+			SpentPoints:    0,
+		}
+
+		db.Create(&warRoom)
+	}
+}
