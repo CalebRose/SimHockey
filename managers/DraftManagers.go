@@ -59,7 +59,7 @@ func GetDraftBootstrap() structs.ProDraftPageResponse {
 		collegePlayers   []structs.CollegePlayer
 		warRooms         []structs.ProWarRoom
 		draftPicks       []structs.DraftPick
-		draftPickFormat  map[uint][]structs.DraftPick
+		draftPickFormat  = make(map[uint][]structs.DraftPick)
 		scoutingProfiles []structs.ScoutingProfile
 	)
 
