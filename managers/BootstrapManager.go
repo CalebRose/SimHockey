@@ -95,7 +95,6 @@ func GetBootstrapData(collegeID, proID string) structs.BootstrapData {
 		tradeProposalMap    map[uint][]structs.TradeProposal
 		tradePreferencesMap map[uint]structs.TradePreferences
 		draftPicks          []structs.DraftPick
-		draftablePlayers    []structs.DraftablePlayer
 	)
 	ts := GetTimestamp()
 	_, collegeGameType := ts.GetCurrentGameType(true)
@@ -124,8 +123,6 @@ func GetBootstrapData(collegeID, proID string) structs.BootstrapData {
 			collegePlayers := GetAllCollegePlayers()
 			chlStats := GetCollegePlayerSeasonStatsBySeason(seasonID, collegeGameType)
 			mu.Lock()
-			existingPlayersDraftList := MakeDraftablePlayerList(collegePlayers)
-			draftablePlayers = append(draftablePlayers, existingPlayersDraftList...)
 			collegePlayerMap = MakeCollegePlayerMapByTeamID(collegePlayers)
 			collegePlayerIndvMap := MakeCollegePlayerMap(collegePlayers)
 			chlGoals = GetCollegeOrderedListByStatType("GOALS", collegeTeam.ID, chlStats, collegePlayerIndvMap)
@@ -144,16 +141,10 @@ func GetBootstrapData(collegeID, proID string) structs.BootstrapData {
 			transferPortalProfiles = repository.FindTransferPortalProfileRecords(repository.TransferPortalQuery{RemovedFromBoard: "N"})
 		}()
 		wg.Wait()
-		wg.Add(5)
+		wg.Add(4)
 		go func() {
 			defer wg.Done()
 			collegeGames = GetCollegeGamesBySeasonID("", ts.IsPreseason)
-		}()
-		go func() {
-			defer wg.Done()
-			graduatedPlayers := repository.FindAllDraftablePlayers(repository.PlayerQuery{})
-			graduatedPlayersWithGrades := MakeDraftablePlayerListWithGrades(graduatedPlayers)
-			draftablePlayers = append(draftablePlayers, graduatedPlayersWithGrades...)
 		}()
 
 		go func() {
@@ -347,7 +338,6 @@ func GetBootstrapData(collegeID, proID string) structs.BootstrapData {
 		DraftPicks:                draftPicks,
 		CollegePoll:               poll,
 		OfficialPolls:             officialPolls,
-		DraftablePlayers:          draftablePlayers,
 	}
 }
 
