@@ -93,21 +93,21 @@ func (sp *ScoutingProfile) RevealAttribute(attr string) {
 		sp.ShowAttribute7 = true
 	case "ShowAttribute8":
 		sp.ShowAttribute8 = true
-	case "ShowPotential1":
+	case "ShowPotAttribute1":
 		sp.ShowPotAttribute1 = true
-	case "ShowPotential2":
+	case "ShowPotAttribute2":
 		sp.ShowPotAttribute2 = true
-	case "ShowPotential3":
+	case "ShowPotAttribute3":
 		sp.ShowPotAttribute3 = true
-	case "ShowPotential4":
+	case "ShowPotAttribute4":
 		sp.ShowPotAttribute4 = true
-	case "ShowPotential5":
+	case "ShowPotAttribute5":
 		sp.ShowPotAttribute5 = true
-	case "ShowPotential6":
+	case "ShowPotAttribute6":
 		sp.ShowPotAttribute6 = true
-	case "ShowPotential7":
+	case "ShowPotAttribute7":
 		sp.ShowPotAttribute7 = true
-	case "ShowPotential8":
+	case "ShowPotAttribute8":
 		sp.ShowPotAttribute8 = true
 	}
 	sp.ShowCount++
