@@ -1004,3 +1004,64 @@ func GenerateDraftWarRooms() {
 		db.Create(&warRoom)
 	}
 }
+
+func ImportPhlDraftOrder() {
+	db := dbprovider.GetInstance().GetDB()
+	filePath := filepath.Join(os.Getenv("ROOT"), "data", "2026", "2026_simphl_draft_pick_ownership.csv")
+	picksCSV := util.ReadCSV(filePath)
+	ts := GetTimestamp()
+
+	proTeams := repository.FindAllProTeams(repository.TeamClauses{LeagueID: "1"})
+	proTeamMap := make(map[string]structs.ProfessionalTeam)
+
+	for _, team := range proTeams {
+		proTeamMap[team.Abbreviation] = team
+	}
+
+	currentSeasonDraftPicks := repository.FindDraftPicks(strconv.Itoa(int(ts.SeasonID)))
+
+	draftPickMap := make(map[uint]structs.DraftPick)
+
+	for _, pick := range currentSeasonDraftPicks {
+		// Need to calculate the exact pick number based on round and number
+		baseRound := (pick.DraftRound - 1) * uint(len(proTeams))
+		pickNumber := baseRound + pick.DraftNumber
+		draftPickMap[pickNumber] = pick
+	}
+
+	for idx, row := range picksCSV {
+		if idx == 0 {
+			continue
+		}
+		teamAbbr := row[0]
+		pickNumber := util.ConvertStringToInt(row[2])
+		originalTeamAbbr := row[3]
+
+		draftPick := draftPickMap[uint(pickNumber)]
+		if draftPick.ID == 0 {
+			continue
+		}
+
+		team := proTeamMap[teamAbbr]
+		originalTeam := proTeamMap[originalTeamAbbr]
+		previousTeamID := uint(0)
+		previousTeam := ""
+		notes := ""
+		if originalTeam.ID == 0 {
+			originalTeam = team
+		} else {
+			previousTeamID = originalTeam.ID
+			previousTeam = originalTeam.Abbreviation
+			notes = "Traded from " + originalTeam.Abbreviation
+		}
+		draftPick.TeamID = team.ID
+		draftPick.Team = team.Abbreviation
+		draftPick.OriginalTeamID = originalTeam.ID
+		draftPick.OriginalTeam = originalTeam.Abbreviation
+		draftPick.PreviousTeamID = previousTeamID
+		draftPick.PreviousTeam = previousTeam
+		draftPick.Notes = notes
+
+		repository.SaveDraftPickRecord(draftPick, db)
+	}
+}

@@ -128,7 +128,7 @@ func CreateTradeOptionRecordsBatch(db *gorm.DB, options []structs.TradeOption, b
 func FindLatestProposalInDB(db *gorm.DB) uint {
 	var latestProposal structs.TradeProposal
 
-	err := db.Last(&latestProposal).Error
+	err := db.Unscoped().Order("id DESC").First(&latestProposal).Error
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return 1

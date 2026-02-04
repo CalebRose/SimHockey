@@ -96,6 +96,11 @@ func handleRequests() http.Handler {
 	// apiRouter.HandleFunc("/admin/generate/capsheets/", controllers.GenerateCapsheets).Methods("GET")
 	// apiRouter.HandleFunc("/admin/generate/fa/preferences/", controllers.AddFAPreferences).Methods("GET")
 	// apiRouter.HandleFunc("/admin/generate/recruiting/systems/", controllers.GenerateSystemsForRecruitingProfile).Methods("GET")
+
+	// Import
+	// apiRouter.HandleFunc("/admin/import/phl/order/", controllers.ImportPHLDraftOrder).Methods("GET")
+
+	// Run
 	// apiRouter.HandleFunc("/admin/run/fa/sync/", controllers.TestFASync).Methods("GET")
 	// apiRouter.HandleFunc("/admin/run/fa/sync/", controllers.TestFAOffers).Methods("GET")
 	// apiRouter.HandleFunc("/admin/ai/fill/boards", controllers.FillAIBoards).Methods("GET")

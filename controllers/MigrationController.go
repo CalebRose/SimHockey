@@ -20,3 +20,8 @@ func FixStandingsTables(w http.ResponseWriter, r *http.Request) {
 	managers.FixStandingsTables()
 	json.NewEncoder(w).Encode("Recruiting Sync Complete")
 }
+
+func ImportPHLDraftOrder(w http.ResponseWriter, r *http.Request) {
+	managers.ImportPhlDraftOrder()
+	json.NewEncoder(w).Encode("Recruiting Sync Complete")
+}
