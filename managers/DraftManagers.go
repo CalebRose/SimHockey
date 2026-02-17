@@ -85,7 +85,7 @@ func GetDraftBootstrap() structs.ProDraftPageResponse {
 	// GetAllProWarRooms
 	go func() {
 		defer wg.Done()
-		scoutingProfiles = repository.FindScoutingProfiles(repository.ScoutProfileQuery{})
+		scoutingProfiles = repository.FindScoutingProfiles(repository.ScoutProfileQuery{FilterOutRemovedProfiles: true})
 	}()
 
 	// GetAllCurrentSeasonDraftPicksForDraftRoom

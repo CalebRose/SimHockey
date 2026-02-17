@@ -216,41 +216,113 @@ func CalculateEventWeights(gs *GameState) EventWeights {
 		if (gs.PuckLocation == HomeGoal && !isHome) || (gs.PuckLocation == AwayGoal && isHome) {
 			// Offensive goal zone
 			weights.ShotWeight = int(attackStrategy.AGZShot) + int(pc.AGZShot) + int(gs.Momentum)
+			if weights.ShotWeight < 1 {
+				weights.ShotWeight = 1 // Ensure minimum weight for shot attempts in goal zone
+			}
 			weights.PassWeight = int(attackStrategy.AGZPass) + int(pc.AGZPass)
+			if weights.PassWeight < 1 {
+				weights.PassWeight = 1 // Ensure minimum weight for passes in goal zone
+			}
 			weights.PassBackWeight = int(attackStrategy.AGZPassBack) + int(pc.AGZPassBack)
+			if weights.PassBackWeight < 1 {
+				weights.PassBackWeight = 1 // Ensure minimum weight for pass backs in goal zone
+			}
 			weights.StickCheckWeight = int(defendStrategy.DGZStickCheck)
+			if weights.StickCheckWeight < 1 {
+				weights.StickCheckWeight = 1 // Ensure minimum weight for stick checks in goal zone
+			}
 			weights.BodyCheckWeight = int(defendStrategy.DGZBodyCheck)
+			if weights.BodyCheckWeight < 1 {
+				weights.BodyCheckWeight = 1 // Ensure minimum weight for body checks in goal zone
+			}
 		} else {
 			// Defensive goal zone
 			weights.AgilityWeight = int(attackStrategy.DGZAgility) + int(pc.DGZAgility)
+			if weights.AgilityWeight < 1 {
+				weights.AgilityWeight = 1 // Ensure minimum weight for agility in defensive goal zone
+			}
 			weights.PassWeight = int(attackStrategy.DGZPass) + int(pc.DGZPass)
+			if weights.PassWeight < 1 {
+				weights.PassWeight = 1 // Ensure minimum weight for passes in defensive goal zone
+			}
 			weights.LongPassWeight = int(attackStrategy.DGZLongPass) + int(pc.DGZLongPass)
+			if weights.LongPassWeight < 1 {
+				weights.LongPassWeight = 1 // Ensure minimum weight for long passes in defensive goal zone
+			}
 			weights.StickCheckWeight = int(defendStrategy.AGZStickCheck)
+			if weights.StickCheckWeight < 1 {
+				weights.StickCheckWeight = 1 // Ensure minimum weight for stick checks in defensive goal zone
+			}
 			weights.BodyCheckWeight = int(defendStrategy.AGZBodyCheck)
+			if weights.BodyCheckWeight < 1 {
+				weights.BodyCheckWeight = 1 // Ensure minimum weight for body checks in defensive goal zone
+			}
 		}
 
 	case HomeZone, AwayZone:
 		if (gs.PuckLocation == HomeZone && !isHome) || (gs.PuckLocation == AwayZone && isHome) {
 			// Offensive zone
 			weights.ShotWeight = int(attackStrategy.AZShot) + int(pc.AZShot) + int(gs.Momentum)
+			if weights.ShotWeight < 1 {
+				weights.ShotWeight = 1 // Ensure minimum weight for shot attempts in offensive zone
+			}
 			weights.AgilityWeight = int(attackStrategy.AZAgility) + int(pc.AZAgility)
+			if weights.AgilityWeight < 1 {
+				weights.AgilityWeight = 1 // Ensure minimum weight for agility in offensive zone
+			}
 			weights.PassWeight = int(attackStrategy.AZPass) + int(pc.AZPass)
+			if weights.PassWeight < 1 {
+				weights.PassWeight = 1 // Ensure minimum weight for passes in offensive zone
+			}
 			weights.LongPassWeight = int(attackStrategy.AZLongPass) + int(pc.AZLongPass)
+			if weights.LongPassWeight < 1 {
+				weights.LongPassWeight = 1 // Ensure minimum weight for long passes in offensive zone
+			}
 			weights.StickCheckWeight = int(defendStrategy.DZStickCheck)
+			if weights.StickCheckWeight < 1 {
+				weights.StickCheckWeight = 1 // Ensure minimum weight for stick checks in offensive zone
+			}
 			weights.BodyCheckWeight = int(defendStrategy.DZBodyCheck)
+			if weights.BodyCheckWeight < 1 {
+				weights.BodyCheckWeight = 1 // Ensure minimum weight for body checks in offensive zone
+			}
 		} else {
 			// Defensive zone
 			weights.AgilityWeight = int(attackStrategy.DZAgility) + int(pc.DZAgility)
+			if weights.AgilityWeight < 1 {
+				weights.AgilityWeight = 1 // Ensure minimum weight for agility in defensive zone
+			}
 			weights.PassWeight = int(attackStrategy.DZPass) + int(pc.DZPass)
+			if weights.PassWeight < 1 {
+				weights.PassWeight = 1 // Ensure minimum weight for passes in defensive zone
+			}
 			weights.StickCheckWeight = int(defendStrategy.AZStickCheck)
+			if weights.StickCheckWeight < 1 {
+				weights.StickCheckWeight = 1 // Ensure minimum weight for stick checks in defensive zone
+			}
 			weights.BodyCheckWeight = int(defendStrategy.AZBodyCheck)
+			if weights.BodyCheckWeight < 1 {
+				weights.BodyCheckWeight = 1 // Ensure minimum weight for body checks in defensive zone
+			}
 		}
 
 	case NeutralZone:
 		weights.AgilityWeight = int(attackStrategy.NAgility) + int(pc.NAgility)
+		if weights.AgilityWeight < 1 {
+			weights.AgilityWeight = 1 // Ensure minimum weight for agility in neutral zone
+		}
 		weights.PassWeight = int(attackStrategy.NPass) + int(pc.NPass)
+		if weights.PassWeight < 1 {
+			weights.PassWeight = 1 // Ensure minimum weight for passes in neutral zone
+		}
 		weights.StickCheckWeight = int(defendStrategy.NStickCheck)
+		if weights.StickCheckWeight < 1 {
+			weights.StickCheckWeight = 1 // Ensure minimum weight for stick checks in neutral zone
+		}
 		weights.BodyCheckWeight = int(defendStrategy.NBodyCheck)
+		if weights.BodyCheckWeight < 1 {
+			weights.BodyCheckWeight = 1 // Ensure minimum weight for body checks in neutral zone
+		}
 	}
 
 	weights.TotalWeight = weights.ShotWeight + weights.PassWeight + weights.AgilityWeight +

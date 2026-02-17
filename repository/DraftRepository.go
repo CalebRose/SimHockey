@@ -10,9 +10,10 @@ import (
 )
 
 type ScoutProfileQuery struct {
-	ID       string
-	PlayerID string
-	TeamID   string
+	ID                       string
+	PlayerID                 string
+	TeamID                   string
+	FilterOutRemovedProfiles bool
 }
 
 func FindDraftablePlayerRecord(clauses ScoutProfileQuery) structs.DraftablePlayer {
@@ -175,6 +176,11 @@ func FindScoutingProfiles(clauses ScoutProfileQuery) []structs.ScoutingProfile {
 	if len(clauses.TeamID) > 0 {
 		query = query.Where("team_id = ?", clauses.TeamID)
 	}
+
+	if clauses.FilterOutRemovedProfiles {
+		query = query.Where("removed_from_board = ?", false)
+	}
+
 	if err := query.Find(&scoutingProfiles).Error; err != nil {
 		return []structs.ScoutingProfile{}
 	}
