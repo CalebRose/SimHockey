@@ -88,8 +88,17 @@ func SyncAcceptedTrade(w http.ResponseWriter, r *http.Request) {
 	}
 
 	managers.SyncAcceptedTrade(proposalID)
+}
 
-	json.NewEncoder(w).Encode("Proposal " + proposalID + " has been accepted.")
+func SyncAcceptedDraftTrade(w http.ResponseWriter, r *http.Request) {
+	var tradeProposalDTO structs.TradeProposal
+	err := json.NewDecoder(r.Body).Decode(&tradeProposalDTO)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	managers.SyncAcceptedDraftTrade(tradeProposalDTO)
 }
 
 // SyncAcceptedTrade -- Admin approve a trade

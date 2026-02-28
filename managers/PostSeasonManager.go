@@ -74,8 +74,8 @@ func HandleTeamProfileValues(ts structs.Timestamp) structs.Timestamp {
 		programDevelopment += uint8(programDevelopmentMod)
 		if programDevelopment < 1 {
 			programDevelopment = 1
-		} else if programDevelopment > 9 {
-			programDevelopment = 9
+		} else if programDevelopment > 10 {
+			programDevelopment = 10
 		}
 
 		// Professional Development Rating
@@ -98,11 +98,11 @@ func HandleTeamProfileValues(ts structs.Timestamp) structs.Timestamp {
 		}
 		totalGames := coachWins + coachOTWins + coachLosses + coachOTLosses
 		winPercentage := float64(coachWins+coachOTWins) / float64(totalGames)
-		// Normalize within a 1-9 range
-		coachRating = int(winPercentage*8) + 1
+		// Normalize within a 1-10 range
+		coachRating = int(winPercentage*9) + 1
 
-		// Season Momentum -- Normalize win percentage to 1-9 scale
-		seasonMomentum := int(winPct*8) + 1
+		// Season Momentum -- Normalize win percentage to 1-10 scale
+		seasonMomentum := int(winPct*9) + 1
 
 		// Conference Prestige
 		teamGames := collegeGamesMap[t.ID]

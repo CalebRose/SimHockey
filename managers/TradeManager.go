@@ -201,6 +201,18 @@ func SyncAcceptedTrade(proposalID string) {
 	repository.SaveTradeProposalRecord(proposal, db)
 }
 
+func SyncAcceptedDraftTrade(proposal structs.TradeProposal) {
+	db := dbprovider.GetInstance().GetDB()
+
+	SentOptions := proposal.TeamTradeOptions
+
+	proTeamMap := GetProTeamMap()
+	capsheetMap := GetProCapsheetMap()
+	contractMap := GetContractMap()
+
+	syncAcceptedOptions(db, SentOptions, proposal.TeamID, proposal.RecepientTeamID, proTeamMap, capsheetMap, contractMap)
+}
+
 func syncAcceptedOptions(db *gorm.DB, options []structs.TradeOption, senderID uint, recepientID uint, proTeamMap map[uint]structs.ProfessionalTeam, capsheetMap map[uint]structs.ProCapsheet, contractMap map[uint]structs.ProContract) {
 	sendingTeam := proTeamMap[senderID]
 	receivingTeam := proTeamMap[recepientID]

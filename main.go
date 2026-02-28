@@ -221,6 +221,7 @@ func handleRequests() http.Handler {
 	apiRouter.HandleFunc("/trades/phl/proposal/reject/{proposalID}", controllers.RejectTradeOffer).Methods("GET")
 	apiRouter.HandleFunc("/trades/phl/proposal/cancel/{proposalID}", controllers.CancelTradeOffer).Methods("GET")
 	apiRouter.HandleFunc("/trades/admin/accept/sync/{proposalID}", controllers.SyncAcceptedTrade).Methods("GET")
+	apiRouter.HandleFunc("/trades/draft/accept/trade/process", controllers.SyncAcceptedTrade).Methods("GET")
 	apiRouter.HandleFunc("/trades/admin/veto/sync/{proposalID}", controllers.VetoAcceptedTrade).Methods("GET")
 	apiRouter.HandleFunc("/trades/admin/cleanup", controllers.CleanUpRejectedTrades).Methods("GET")
 

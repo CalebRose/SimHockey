@@ -13,7 +13,7 @@ func GetCollegeTeamByTeamID(teamID string) structs.CollegeTeam {
 }
 
 func GetAllCollegeTeams() []structs.CollegeTeam {
-	return repository.FindAllCollegeTeams(repository.TeamClauses{LeagueID: "1"})
+	return repository.FindAllCollegeTeams(repository.TeamClauses{})
 }
 
 func GetAllCanadianCHLTeams() []structs.CollegeTeam {
