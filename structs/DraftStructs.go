@@ -51,6 +51,10 @@ func (p *DraftPick) MapValuesToDraftPick(id, draftRound, draftNumber, teamID uin
 	p.IsVoid = isVoid
 }
 
+func (p *DraftPick) MapDraftPickResults(drafteeID uint) {
+	p.DrafteeID = drafteeID
+}
+
 type ScoutingProfile struct {
 	gorm.Model
 	PlayerID          uint

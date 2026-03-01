@@ -49,6 +49,11 @@ func CollegeProgressionMain() {
 					professionalPlayer := structs.ProfessionalPlayer{
 						Model:          player.Model,
 						DraftedTeamID:  uint8(player.DraftedTeamID),
+						DraftedTeam:    player.DraftedTeam,
+						DraftedRound:   uint8(player.DraftedRound),
+						DraftedPick:    uint16(player.DraftedPick),
+						DraftPickID:    player.DraftPickID,
+						DraftedYearID:  player.DraftedYearID,
 						BasePlayer:     player.BasePlayer,
 						BasePotentials: player.BasePotentials,
 						Year:           0,
@@ -68,6 +73,23 @@ func CollegeProgressionMain() {
 						BasePotentials:      player.BasePotentials,
 						CollegeID:           uint(player.TeamID),
 						DraftablePlayerType: 1,
+						BaseLetterGrades: structs.BaseLetterGrades{
+							AgilityGrade:           util.GetLetterGrade(int(player.Agility), player.Year),
+							FaceoffsGrade:          util.GetLetterGrade(int(player.Faceoffs), player.Year),
+							LongShotAccuracyGrade:  util.GetLetterGrade(int(player.LongShotAccuracy), player.Year),
+							LongShotPowerGrade:     util.GetLetterGrade(int(player.LongShotPower), player.Year),
+							CloseShotAccuracyGrade: util.GetLetterGrade(int(player.CloseShotAccuracy), player.Year),
+							CloseShotPowerGrade:    util.GetLetterGrade(int(player.CloseShotPower), player.Year),
+							OneTimerGrade:          util.GetLetterGrade(int(player.OneTimer), player.Year),
+							PassingGrade:           util.GetLetterGrade(int(player.Passing), player.Year),
+							PuckHandlingGrade:      util.GetLetterGrade(int(player.PuckHandling), player.Year),
+							StrengthGrade:          util.GetLetterGrade(int(player.Strength), player.Year),
+							BodyCheckingGrade:      util.GetLetterGrade(int(player.BodyChecking), player.Year),
+							StickCheckingGrade:     util.GetLetterGrade(int(player.StickChecking), player.Year),
+							ShotBlockingGrade:      util.GetLetterGrade(int(player.ShotBlocking), player.Year),
+							GoalkeepingGrade:       util.GetLetterGrade(int(player.Goalkeeping), player.Year),
+							GoalieVisionGrade:      util.GetLetterGrade(int(player.GoalieVision), player.Year),
+						},
 					}
 					draftablePlayers = append(draftablePlayers, draftee)
 				} else {
@@ -120,6 +142,11 @@ func CollegeProgressionMain() {
 					professionalPlayer := structs.ProfessionalPlayer{
 						Model:          player.Model,
 						DraftedTeamID:  uint8(player.DraftedTeamID),
+						DraftedTeam:    player.DraftedTeam,
+						DraftedRound:   uint8(player.DraftedRound),
+						DraftedPick:    uint16(player.DraftedPick),
+						DraftPickID:    player.DraftPickID,
+						DraftedYearID:  player.DraftedYearID,
 						BasePlayer:     player.BasePlayer,
 						BasePotentials: player.BasePotentials,
 						Year:           0,
@@ -546,7 +573,7 @@ func DetermineIfRetiring(player structs.ProfessionalPlayer, statMap map[uint][]s
 	} else if age > primeAge && player.Overall < 40 {
 		benchmark += (4 * (age - primeAge))
 	} else if age > primeAge && player.Overall < 50 {
-		benchmark += (2 * (age - primeAge))
+		benchmark += (1 * (age - primeAge))
 	}
 	diceRoll := util.GenerateIntFromRange(1, 100)
 	// If the roll is less than the benchmark, player will retire. Otherwise, they are staying.

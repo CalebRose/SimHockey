@@ -550,3 +550,11 @@ func MakeDraftPickMapByTeamID(draftPicks []structs.DraftPick) map[uint][]structs
 	}
 	return playerMap
 }
+
+func MakeDraftPickMapByPickID(draftPicks []structs.DraftPick) map[uint]structs.DraftPick {
+	pickMap := make(map[uint]structs.DraftPick)
+	for _, p := range draftPicks {
+		pickMap[p.ID] = p
+	}
+	return pickMap
+}

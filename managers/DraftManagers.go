@@ -7,7 +7,6 @@ import (
 	"strconv"
 	"sync"
 
-	util "github.com/CalebRose/SimHockey/_util"
 	"github.com/CalebRose/SimHockey/dbprovider"
 	"github.com/CalebRose/SimHockey/repository"
 	"github.com/CalebRose/SimHockey/structs"
@@ -223,12 +222,14 @@ func ExportDraftedPlayers(picks []structs.DraftPick) bool {
 	draftableCollegePlayerMap := MakeCollegePlayerMap(collegePlayers)
 	proPlayers := repository.FindAllProPlayers(repository.PlayerQuery{})
 	proPlayerMap := MakeProfessionalPlayerMap(proPlayers)
+	draftPicks := repository.FindDraftPicks(strconv.Itoa(int(ts.SeasonID)))
+	draftPickMap := MakeDraftPickMapByPickID(draftPicks)
 
 	for _, pick := range picks {
 		if pick.IsVoid {
 			continue
 		}
-		playerId := strconv.Itoa(int(pick.SelectedPlayerID))
+		playerId := strconv.Itoa(int(pick.DrafteeID))
 		draftee := repository.FindDraftablePlayerRecord(repository.ScoutProfileQuery{PlayerID: playerId})
 
 		if draftee.DraftablePlayerType == 0 {
@@ -247,18 +248,23 @@ func ExportDraftedPlayers(picks []structs.DraftPick) bool {
 				DraftedRound:   uint8(pick.DraftRound),
 				DraftedPick:    uint16(pick.DraftNumber),
 				DraftedYearID:  pick.SeasonID,
+				DraftPickID:    pick.ID,
 				CollegeID:      draftee.CollegeID,
-				Year:           1,
+				Year:           0,
 			}
 			proPlayer.AssignDraftedTeam(pick.TeamID, pick.Team, 1)
 			playerReference := proPlayerMap[proPlayer.ID]
 			if playerReference.ID > 0 {
 				continue
 			}
-			year1Salary := util.GetDrafteeSalary(pick.DraftNumber, 1, pick.DraftRound, true)
-			year2Salary := util.GetDrafteeSalary(pick.DraftNumber, 2, pick.DraftRound, true)
-			year3Salary := util.GetDrafteeSalary(pick.DraftNumber, 3, pick.DraftRound, true)
-			year4Salary := util.GetDrafteeSalary(pick.DraftNumber, 4, pick.DraftRound, true)
+			// year1Salary := util.GetDrafteeSalary(pick.DraftNumber, 1, pick.DraftRound, true)
+			// year2Salary := util.GetDrafteeSalary(pick.DraftNumber, 2, pick.DraftRound, true)
+			// year3Salary := util.GetDrafteeSalary(pick.DraftNumber, 3, pick.DraftRound, true)
+			// year4Salary := util.GetDrafteeSalary(pick.DraftNumber, 4, pick.DraftRound, true)
+			year1Salary := float32(1.0)
+			year2Salary := float32(1.0)
+			year3Salary := float32(1.0)
+			year4Salary := float32(1.0)
 			yearsRemaining := 4
 			contract := structs.ProContract{
 				PlayerID:       proPlayer.ID,
@@ -276,6 +282,11 @@ func ExportDraftedPlayers(picks []structs.DraftPick) bool {
 			newProPlayerRecords = append(newProPlayerRecords, proPlayer)
 			repository.SaveDraftablePlayerRecord(draftee, db)
 		}
+
+		// Fetch Draft pick
+		draftPick := draftPickMap[pick.ID]
+		draftPick.MapDraftPickResults(pick.DrafteeID)
+		repository.SaveDraftPickRecord(draftPick, db)
 	}
 
 	draftablePlayers := repository.FindAllDraftablePlayers(repository.PlayerQuery{})
@@ -291,7 +302,9 @@ func ExportDraftedPlayers(picks []structs.DraftPick) bool {
 			BasePlayer:     draftee.BasePlayer, // Assuming BasePlayer fields are common
 			BasePotentials: draftee.BasePotentials,
 			CollegeID:      draftee.CollegeID,
-			Year:           1,
+			Year:           0,
+			IsUDFA:         true,
+			IsFreeAgent:    true,
 		}
 		playerReference := proPlayerMap[proPlayer.ID]
 		if playerReference.ID > 0 {
@@ -321,6 +334,16 @@ func BringUpCollegePlayerToPros(pickID string) bool {
 
 	collegePlayer := repository.FindCollegePlayer(repository.PlayerQuery{ID: strconv.Itoa(int(draftPick.DrafteeID))})
 
+	if collegePlayer.ID == 0 {
+		return false
+	}
+	if collegePlayer.LeagueID == 1 && collegePlayer.Age < 18 {
+		return false
+	}
+	if collegePlayer.LeagueID == 2 && collegePlayer.Age < 18 {
+		return false
+	}
+
 	proPlayer := structs.ProfessionalPlayer{
 		Model:          collegePlayer.Model,
 		BasePlayer:     collegePlayer.BasePlayer, // Assuming BasePlayer fields are common
@@ -335,7 +358,26 @@ func BringUpCollegePlayerToPros(pickID string) bool {
 	}
 	proPlayer.AssignDraftedTeam(draftPick.TeamID, draftPick.Team, 1)
 
+	year1Salary := float32(1.0)
+	year2Salary := float32(1.0)
+	year3Salary := float32(1.0)
+	year4Salary := float32(1.0)
+	yearsRemaining := 4
+	contract := structs.ProContract{
+		PlayerID:       proPlayer.ID,
+		TeamID:         uint(proPlayer.TeamID),
+		OriginalTeamID: uint(proPlayer.TeamID),
+		ContractLength: yearsRemaining,
+		ContractType:   "Rookie",
+		Y1BaseSalary:   year1Salary,
+		Y2BaseSalary:   year2Salary,
+		Y3BaseSalary:   year3Salary,
+		Y4BaseSalary:   year4Salary,
+		IsActive:       true,
+	}
+
 	repository.CreateProHockeyPlayerRecordsBatch(db, []structs.ProfessionalPlayer{proPlayer}, 1)
+	repository.CreateProContractRecordsBatch(db, []structs.ProContract{contract}, 1)
 
 	// Create Historic College Player Record
 	historicRecord := structs.HistoricCollegePlayer{

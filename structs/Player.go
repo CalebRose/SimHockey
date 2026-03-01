@@ -809,6 +809,7 @@ type ProfessionalPlayer struct {
 	CompetitivePreference uint8
 	FinancialPreference   uint8
 	IsEligibleForPlay     bool
+	IsUDFA                bool
 	Stats                 []ProfessionalPlayerGameStats `gorm:"foreignKey:PlayerID;references:ID"`
 	SeasonStats           ProfessionalPlayerSeasonStats `gorm:"foreignKey:PlayerID;references:ID"`
 	Contract              ProContract                   `gorm:"foreignKey:PlayerID"`
@@ -826,6 +827,7 @@ func (cp *ProfessionalPlayer) ProgressPlayer(progressions BasePlayerProgressions
 	cp.Year++
 	cp.GetOverall()
 	cp.HasProgressed = true
+	cp.IsUDFA = cp.Year == 1 && cp.DraftedTeamID == 0
 }
 
 func (np *ProfessionalPlayer) ToggleIsFreeAgent() {
