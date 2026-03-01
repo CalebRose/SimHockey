@@ -7,6 +7,7 @@ import (
 	"strconv"
 	"sync"
 
+	util "github.com/CalebRose/SimHockey/_util"
 	"github.com/CalebRose/SimHockey/dbprovider"
 	"github.com/CalebRose/SimHockey/repository"
 	"github.com/CalebRose/SimHockey/structs"
@@ -250,9 +251,11 @@ func ExportDraftedPlayers(picks []structs.DraftPick) bool {
 				DraftedYearID:  pick.SeasonID,
 				DraftPickID:    pick.ID,
 				CollegeID:      draftee.CollegeID,
-				Year:           0,
+				Year:           1,
 			}
 			proPlayer.AssignDraftedTeam(pick.TeamID, pick.Team, 1)
+			proPlayer.FinancialPreference = uint8(util.GenerateNormalizedIntFromRange(1, 9))
+			proPlayer.MarketPreference = uint8(util.GenerateNormalizedIntFromRange(1, 9))
 			playerReference := proPlayerMap[proPlayer.ID]
 			if playerReference.ID > 0 {
 				continue
@@ -302,10 +305,14 @@ func ExportDraftedPlayers(picks []structs.DraftPick) bool {
 			BasePlayer:     draftee.BasePlayer, // Assuming BasePlayer fields are common
 			BasePotentials: draftee.BasePotentials,
 			CollegeID:      draftee.CollegeID,
-			Year:           0,
+			Year:           1,
 			IsUDFA:         true,
 			IsFreeAgent:    true,
 		}
+		proPlayer.Team = ""
+		proPlayer.TeamID = 0
+		proPlayer.FinancialPreference = uint8(util.GenerateNormalizedIntFromRange(1, 9))
+		proPlayer.MarketPreference = uint8(util.GenerateNormalizedIntFromRange(1, 9))
 		playerReference := proPlayerMap[proPlayer.ID]
 		if playerReference.ID > 0 {
 			continue

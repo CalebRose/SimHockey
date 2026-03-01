@@ -56,8 +56,10 @@ func CollegeProgressionMain() {
 						DraftedYearID:  player.DraftedYearID,
 						BasePlayer:     player.BasePlayer,
 						BasePotentials: player.BasePotentials,
-						Year:           0,
+						Year:           1,
 					}
+					professionalPlayer.FinancialPreference = uint8(util.GenerateNormalizedIntFromRange(1, 9))
+					professionalPlayer.MarketPreference = uint8(util.GenerateNormalizedIntFromRange(1, 9))
 					collegePlayerIDs = append(collegePlayerIDs, id)
 					// Assign their drafted team ID if they have been drafted
 					professionalPlayer.AssignTeam(player.DraftedTeamID, player.DraftedTeam, 1)
