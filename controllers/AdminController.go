@@ -118,6 +118,11 @@ func GeneratePreseasonGames(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode("Data Generated ran!")
 }
 
+func GenerateCanadaGames(w http.ResponseWriter, r *http.Request) {
+	managers.ImportCanadaSeasonSchedule()
+	json.NewEncoder(w).Encode("Data Generated ran!")
+}
+
 func ShowGameResults(w http.ResponseWriter, r *http.Request) {
 	managers.ShowGames()
 	json.NewEncoder(w).Encode("Game results revealed!")

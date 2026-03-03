@@ -532,7 +532,7 @@ func AddFAPreferences() {
 
 func ImportCHLSchedule() {
 	db := dbprovider.GetInstance().GetDB()
-	filePath := filepath.Join(os.Getenv("ROOT"), "data", "gen", "2025_chl_schedule.csv")
+	filePath := filepath.Join(os.Getenv("ROOT"), "data", "2026", "gen", "2026_chl_schedule.csv")
 	gamesCSV := util.ReadCSV(filePath)
 	ts := GetTimestamp()
 	games := []structs.CollegeGame{}
@@ -561,7 +561,9 @@ func ImportCHLSchedule() {
 			awayCoach = "AI"
 		}
 
-		conferenceGame := util.ConvertStringToBool(row[7])
+		conferenceGame := homeTeam.ConferenceID == awayTeam.ConferenceID
+		isInvitational := util.ConvertStringToBool(row[8])
+		gameTitle := row[17]
 
 		game := structs.CollegeGame{
 			BaseGame: structs.BaseGame{
@@ -581,7 +583,10 @@ func ImportCHLSchedule() {
 				Arena:         homeTeam.Arena,
 				GameDay:       day,
 				IsConference:  conferenceGame,
+				GameTitle:     gameTitle,
+				LeagueID:      1,
 			},
+			IsInvitational: isInvitational,
 		}
 		games = append(games, game)
 	}
@@ -606,11 +611,22 @@ func (sg *ScheduledGame) ApplyRoundAndSlot(round int, slot string) {
 	sg.Slot = slot
 }
 
+type ScheduledCHLGame struct {
+	structs.CollegeGame
+	Round int
+	Slot  string // "A", "B", or "C"
+}
+
+func (sg *ScheduledCHLGame) ApplyRoundAndSlot(round int, slot string) {
+	sg.Round = round
+	sg.Slot = slot
+}
+
 func ImportPHLSeasonSchedule() {
 	db := dbprovider.GetInstance().GetDB()
 	ts := repository.FindTimestamp()
 	phlTeams := repository.FindAllProTeams(repository.TeamClauses{LeagueID: "1"})
-	schedule, err := GenerateSeasonSchedule(phlTeams, ts.SeasonID, 2000)
+	schedule, err := GenerateProSeasonSchedule(phlTeams, ts.SeasonID, 2000)
 	if err != nil {
 		log.Println("Generation Failed: ", err)
 		return
@@ -624,7 +640,7 @@ func ImportPHLSeasonSchedule() {
 	repository.CreatePHLGamesRecordsBatch(db, finalUpload, 100)
 }
 
-func GenerateSeasonSchedule(
+func GenerateProSeasonSchedule(
 	teams []structs.ProfessionalTeam,
 	seasonID uint,
 	maxPartitionAttempts int,
@@ -633,18 +649,25 @@ func GenerateSeasonSchedule(
 	rng := rand.New(src)
 	exceptionsMap := make(map[string]uint)
 
-	exceptionsMap["CHI-MNS"] = 4
-	exceptionsMap["COL-KCS"] = 4
-	exceptionsMap["CALG-EDM"] = 4
+	// Atlantic
+	exceptionsMap["NYI-NYR"] = 4
+	exceptionsMap["TOR-MONT"] = 4
+	exceptionsMap["NJ-OTT"] = 4
+
+	// Metro
 	exceptionsMap["DET-ATL"] = 4
 	exceptionsMap["FLA-NASH"] = 4
 	exceptionsMap["PHI-PIT"] = 4
-	exceptionsMap["CBJ-NYR"] = 4
-	exceptionsMap["TOR-OTT"] = 4
-	exceptionsMap["MONT-QUE"] = 4
+
+	// Central
+	exceptionsMap["MIN-MNS"] = 4
+	exceptionsMap["CHI-KCS"] = 4
+	exceptionsMap["COL-UTAH"] = 4
+
+	// Pacific
 	exceptionsMap["SJ-CAL"] = 4
-	exceptionsMap["ANA-VGK"] = 4
-	exceptionsMap["SEA-VAN"] = 4
+	exceptionsMap["SEA-VGK"] = 4
+	exceptionsMap["CALG-VAN"] = 4
 
 	var master []ScheduledGame
 	for i := 0; i < len(teams); i++ {
@@ -820,6 +843,7 @@ func generateProGameRecord(teamA structs.ProfessionalTeam, teamB structs.Profess
 			State:        teamA.State,
 			Country:      teamA.Country,
 			IsConference: teamA.ConferenceID == teamB.ConferenceID,
+			LeagueID:     uint(teamA.LeagueID),
 		},
 		IsDivisional: teamA.DivisionID == teamB.DivisionID,
 	}
@@ -1063,5 +1087,154 @@ func ImportPhlDraftOrder() {
 		draftPick.Notes = notes
 
 		repository.SaveDraftPickRecord(draftPick, db)
+	}
+}
+
+func ImportCanadaSeasonSchedule() {
+	db := dbprovider.GetInstance().GetDB()
+	ts := repository.FindTimestamp()
+	chlTeams := GetAllCanadianCHLTeams()
+	schedule, err := GenerateCanadaSeasonSchedule(chlTeams, ts.SeasonID, 2000)
+	if err != nil {
+		log.Println("Generation Failed: ", err)
+		return
+	}
+	finalUpload := []structs.CollegeGame{}
+	for _, game := range schedule {
+		game.AddWeekData((ts.Season*1000 + uint(game.Round)), uint(game.Round), game.Slot)
+		finalUpload = append(finalUpload, game.CollegeGame)
+
+	}
+	repository.CreateCHLGamesRecordsBatch(db, finalUpload, 100)
+}
+
+func GenerateCanadaSeasonSchedule(
+	teams []structs.CollegeTeam,
+	seasonID uint,
+	maxPartitionAttempts int,
+) ([]ScheduledCHLGame, error) {
+	// Group teams by conference for intra-conference scheduling
+	conferences := make(map[uint8][]structs.CollegeTeam)
+	for _, team := range teams {
+		conferences[team.ConferenceID] = append(conferences[team.ConferenceID], team)
+	}
+
+	src := rand.NewSource(time.Now().UnixNano())
+	rng := rand.New(src)
+
+	var schedule []ScheduledCHLGame
+
+	// For each conference, generate a round-robin schedule (1 home, 1 away vs each opponent)
+	for _, confTeams := range conferences {
+		confSchedule := scheduleConferenceGames(confTeams, seasonID, rng)
+		schedule = append(schedule, confSchedule...)
+	}
+
+	// Validate that we have the correct number of games for each team
+	gameCount := make(map[uint]int)
+	for _, g := range schedule {
+		gameCount[g.HomeTeamID]++
+		gameCount[g.AwayTeamID]++
+	}
+
+	for _, team := range teams {
+		log.Printf("⚠️ team %d has %d games\n", team.ID, gameCount[team.ID])
+	}
+
+	// Assign games to rounds without team conflicts
+	final, err := assignGamesToRounds(schedule, len(teams))
+	if err != nil {
+		return nil, err
+	}
+
+	return final, nil
+}
+
+// scheduleConferenceGames creates a round-robin within a conference (1 home, 1 away vs each opponent)
+// This is flexible and works for any conference size
+func scheduleConferenceGames(teams []structs.CollegeTeam, seasonID uint, rng *rand.Rand) []ScheduledCHLGame {
+	var games []ScheduledCHLGame
+
+	// Generate all matchups within the conference
+	for i := 0; i < len(teams); i++ {
+		for j := i + 1; j < len(teams); j++ {
+			// Team i hosts Team j
+			g1 := generateCHLGameRecord(teams[i], teams[j], seasonID)
+			games = append(games, ScheduledCHLGame{CollegeGame: g1})
+
+			// Team j hosts Team i
+			g2 := generateCHLGameRecord(teams[j], teams[i], seasonID)
+			games = append(games, ScheduledCHLGame{CollegeGame: g2})
+		}
+	}
+
+	// Shuffle for randomness
+	rng.Shuffle(len(games), func(i, j int) {
+		games[i], games[j] = games[j], games[i]
+	})
+
+	return games
+}
+
+// assignGamesToRounds distributes games into rounds without team conflicts
+// This algorithm works for any number of teams and conferences
+func assignGamesToRounds(games []ScheduledCHLGame, totalTeams int) ([]ScheduledCHLGame, error) {
+	matchesPerRound := totalTeams / 2
+	var result []ScheduledCHLGame
+	remaining := games
+	roundNum := 1
+
+	for len(remaining) > 0 {
+		usedTeams := make(map[uint]bool)
+		roundGames := []ScheduledCHLGame{}
+		var nextRemaining []ScheduledCHLGame
+
+		// Greedily select games for this round (no team can play twice in same round)
+		for _, g := range remaining {
+			if !usedTeams[g.HomeTeamID] && !usedTeams[g.AwayTeamID] && len(roundGames) < matchesPerRound {
+				week := (roundNum + 1) / 2
+				slot := ""
+				if roundNum%2 == 1 {
+					slot = "A"
+				} else {
+					slot = "B"
+				}
+				g.ApplyRoundAndSlot(week, slot)
+				roundGames = append(roundGames, g)
+				usedTeams[g.HomeTeamID] = true
+				usedTeams[g.AwayTeamID] = true
+			} else {
+				nextRemaining = append(nextRemaining, g)
+			}
+		}
+
+		if len(roundGames) == 0 {
+			return nil, fmt.Errorf("failed to schedule games: round %d has no games (remaining: %d)", roundNum, len(remaining))
+		}
+
+		result = append(result, roundGames...)
+		remaining = nextRemaining
+		roundNum++
+	}
+
+	return result, nil
+}
+
+func generateCHLGameRecord(teamA structs.CollegeTeam, teamB structs.CollegeTeam, seasonID uint) structs.CollegeGame {
+	return structs.CollegeGame{
+		BaseGame: structs.BaseGame{
+			SeasonID:     seasonID,
+			HomeTeamID:   teamA.ID,
+			HomeTeam:     teamA.Abbreviation,
+			AwayTeamID:   teamB.ID,
+			AwayTeam:     teamB.Abbreviation,
+			ArenaID:      uint(teamA.ArenaID),
+			Arena:        teamA.Arena,
+			City:         teamA.City,
+			State:        teamA.State,
+			Country:      teamA.Country,
+			IsConference: teamA.ConferenceID == teamB.ConferenceID,
+			LeagueID:     2,
+		},
 	}
 }

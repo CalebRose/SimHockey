@@ -35,6 +35,10 @@ func SyncAIBoardsViaCron() {
 
 func SyncRecruitingViaCron() {
 	ts := managers.GetTimestamp()
+	if !ts.CrootsGenerated && !ts.IsDraftTime && (ts.IsOffSeason || ts.IsPreseason) {
+		managers.GenerateCroots()
+		managers.RefillCHLRosters()
+	}
 	if ts.RunCron && !ts.CollegeSeasonOver && !ts.IsPreseason && !ts.IsOffSeason {
 		// Sync Recruiting
 		managers.SyncCollegeRecruiting()

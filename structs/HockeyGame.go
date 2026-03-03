@@ -42,6 +42,7 @@ type BaseGame struct {
 	NextGameID            uint
 	NextGameHOA           string
 	IsPreseason           bool
+	LeagueID              uint
 }
 
 func (b *BaseGame) HideScore() {

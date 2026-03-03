@@ -476,7 +476,7 @@ func (b *BasePlayer) RecoverGoalieStamina() {
 }
 
 func (b *BasePlayer) Progress(progressions BasePlayerProgressions) {
-	b.Age++
+	b.Age += 1
 	b.HasProgressed = true
 	b.Agility = ProgressAttribute(b.Agility, progressions.Agility)
 	b.Faceoffs = ProgressAttribute(b.Faceoffs, progressions.Faceoffs)
