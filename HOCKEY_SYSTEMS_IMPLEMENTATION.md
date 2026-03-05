@@ -24,6 +24,7 @@ SimHockey's revolutionary tactical systems bring unprecedented depth and realism
 6. [Outsmarting AI Coaches](#outsmarting-ai-coaches)
 7. [Advanced Strategic Concepts](#advanced-strategic-concepts)
 8. [Building Championship Teams](#building-championship-teams)
+9. [Event Selection by Zone: How Systems Actually Work](#event-selection-by-zone-how-systems-actually-work)
 
 ---
 
@@ -1193,3 +1194,282 @@ This hockey systems implementation provides:
 6. **User Control**: Manual system selection for user teams with AI handling computer teams
 
 The system creates authentic hockey tactical diversity while maintaining game balance through careful archetype weighting and intensity scaling. Each system has clear identity, strategic trade-offs, and roster requirements that mirror real hockey tactical philosophy.
+
+---
+
+## 🎲 Event Selection by Zone: How Systems Actually Work
+
+_Understanding the engine under the hood — turning tactical choices into play-by-play probability_
+
+Every simulated tick of the game resolves as a single **event**. Your offensive and defensive systems don't just provide vague bonuses — they directly shift the weighted probability pool that the engine draws from when deciding what happens next. This section explains that pipeline precisely.
+
+---
+
+### The Event Selection Pipeline
+
+For every active game tick, the engine runs three sequential steps:
+
+**Step 1 — Build Base Event Weights**
+Base weights are pulled from your lineup's zone allocations — the `AGZShot`, `DZPass`, `NAgility` values etc. set in your gameplan for the zone where the puck currently sits. These represent your players' raw positional tendencies before any system influence.
+
+**Step 2 — Apply System Modifiers**
+The engine then adds your system's zone-specific bonuses on top of the base weights:
+
+- The **possessing team's offensive system** adds to `ShotWeight`, `PassWeight`, and `AgilityWeight`.
+- The **defending team's defensive system** adds to `StickCheckWeight` and `BodyCheckWeight`.
+
+Modifiers scale linearly with intensity: `bonus = defined_value × (intensity / 5)`. At intensity 5 the multiplier is 1.0×; at intensity 10 it is 2.0×; at intensity 1 it is 0.2×.
+
+**Step 3 — Roll and Resolve**
+A random float is rolled from 1 to `totalWeight`. The result falls into one of the event cutoff bands, and that event is executed. Higher weight = proportionally higher probability.
+
+---
+
+### Available Events by Zone
+
+Each zone has a fixed set of events that can be selected. Systems can only shift the weights of events that exist for that zone — they cannot add new event types.
+
+| Zone                               | Offensive Events Available             | Defensive Events Available        |
+| ---------------------------------- | -------------------------------------- | --------------------------------- |
+| **Attacking Goal Zone**            | Shot (Slap), Pass, Pass-Back           | Stick Check, Body Check           |
+| **Offensive Zone**                 | Shot (Wrist), Pass, Long Pass, Agility | Stick Check, Body Check           |
+| **Neutral Zone**                   | Pass, Agility                          | Stick Check, Body Check           |
+| **Defensive Zone** (own puck)      | Pass, Pass-Back, Agility               | Opp. Stick Check, Opp. Body Check |
+| **Defending Goal Zone** (own puck) | Pass, Long Pass, Agility, Faceoff\*    | Opp. Stick Check, Opp. Body Check |
+
+\*Faceoff only triggers when the goalie is the puck carrier (covered puck).
+
+> **Key Insight**: There are no shot events in the Neutral Zone, Defensive Zone, or Defending Goal Zone. Shot bonus modifiers on these zones (e.g. Quick Transition's Defending Zone pass/agility bonuses) shift the pace of breakout play, not shooting directly.
+
+---
+
+### Offensive System Event Weight Impacts
+
+All values shown at **intensity 5** (1.0× multiplier). Zones not listed receive no modifier from that system.
+
+#### 1-2-2 Forecheck — _The Balanced Blade_
+
+| Zone           | Shot Δ | Pass Δ | Agility Δ |
+| -------------- | ------ | ------ | --------- |
+| Attacking Zone | +2     | +3     | —         |
+| Neutral Zone   | —      | +2     | +3        |
+
+**Effect**: Modestly increases shot and pass options when pressuring, plus agility in transition. No bonuses at the goal mouth — finishes are left to player skill alone. The most evenly distributed offensive footprint.
+
+---
+
+#### 2-1-2 Forecheck — _The Aggressive Hunter_
+
+| Zone           | Shot Δ | Pass Δ | Agility Δ |
+| -------------- | ------ | ------ | --------- |
+| Attacking Zone | +4     | —      | —         |
+| Neutral Zone   | —      | —      | +4        |
+
+**Effect**: Dramatically boosts shot attempts in the offensive zone — the two-forward pressure generates more direct shot opportunities. The large agility bonus in the neutral zone speeds up the transition back after failed attacks. Note that the `StickCheckBonus` (+2 AZ, +1 NZ) defined in this system affects **puck battle resolution**, not the primary event weight pool.
+
+---
+
+#### 1-1-3 Forecheck — _The Offensive Avalanche_
+
+| Zone           | Shot Δ | Pass Δ | Agility Δ |
+| -------------- | ------ | ------ | --------- |
+| Attacking Zone | +6     | +3     | —         |
+| Neutral Zone   | —      | —      | -2        |
+
+**Effect**: The largest raw shot bonus of any offensive system in the attacking zone. Three forwards camping the offensive zone dramatically spike shot probability. The **-2 agility penalty in the neutral zone** is critical — it represents the reduced coverage when committing three forwards deep, making zone exits harder if possession is lost.
+
+---
+
+#### Cycle Game — _The Patient Predator_
+
+| Zone                | Shot Δ | Pass Δ | Agility Δ |
+| ------------------- | ------ | ------ | --------- |
+| Attacking Goal Zone | +5     | +4     | —         |
+| Attacking Zone      | +3     | +5     | —         |
+
+**Effect**: The only offensive system that provides strong bonuses in **both** the attacking zone and the attacking goal zone simultaneously. Heavy pass weight in the attacking zone reflects possession cycling; when the puck reaches the goal mouth, both shot and pass options are elevated — giving the engine a real choice between pass-for-a-better-look or shoot from the current position.
+
+---
+
+#### Quick Transition — _The Lightning Strike_
+
+| Zone           | Shot Δ | Pass Δ | Agility Δ |
+| -------------- | ------ | ------ | --------- |
+| Neutral Zone   | —      | +5     | +5        |
+| Defending Zone | —      | +4     | +3        |
+
+**Effect**: The only system with **zero offensive-zone modifiers**. All bonuses are concentrated in the neutral zone and own defensive zone — reflecting the philosophy that scoring comes from rapid breakouts, not sustained zone pressure. The large neutral zone pass+agility stack makes zone entries faster and more likely to result in odd-man rushes.
+
+---
+
+#### Umbrella (1-3-1) — _The Quarterback System_
+
+| Zone                | Shot Δ | Pass Δ | Agility Δ |
+| ------------------- | ------ | ------ | --------- |
+| Attacking Goal Zone | +4     | +5     | —         |
+| Attacking Zone      | —      | +6     | —         |
+
+**Effect**: The highest pass bonus of any system in the attacking zone (+6). The engine will overwhelmingly lean toward pass events when in the offensive zone, simulating puck movement in search of the optimal shot. The goal zone then sees a balanced Shot+4/Pass+5 split — reflecting the umbrella's philosophy of one more pass for a better angle before firing.
+
+---
+
+#### East-West Motion — _The Hypnotic Dance_
+
+| Zone                | Shot Δ | Pass Δ | Agility Δ |
+| ------------------- | ------ | ------ | --------- |
+| Attacking Goal Zone | —      | +5     | +4        |
+| Attacking Zone      | —      | +6     | +5        |
+
+**Effect**: **No shot bonuses anywhere.** This system adds zero weight to shot events — instead piling equally large bonuses into pass and agility across both offensive zones. The engine will persist in passing and repositioning far longer than any other system before a shot occurs. This can generate high-quality looks but requires many successful pass checks to reach them.
+
+---
+
+#### Crash the Net — _The Bulldozer Approach_
+
+| Zone                | Shot Δ | Pass Δ | Agility Δ |
+| ------------------- | ------ | ------ | --------- |
+| Attacking Goal Zone | +6     | —      | —         |
+| Attacking Zone      | +4     | —      | —         |
+
+**Effect**: Pure shot weight, no pass or agility bonuses. The engine will select shot events at the highest combined rate of any system. The `BodyCheckBonus` values (+3 AGZ, +2 AZ) defined in this system influence **puck battle resolution** in net-front scrums rather than primary event selection — reflecting the physical presence in traffic.
+
+---
+
+### Defensive System Event Weight Impacts
+
+Defensive system modifiers add to the **defending team's** `StickCheckWeight` and `BodyCheckWeight` — the events that interrupt the puck carrier's play. All values at **intensity 5**.
+
+#### Balanced Defense
+
+| Zone                | Stick Check Δ | Body Check Δ | Pass Δ (possesor) |
+| ------------------- | ------------- | ------------ | ----------------- |
+| Defending Zone      | +2            | +2           | —                 |
+| Defending Goal Zone | +2            | +2           | —                 |
+| Neutral Zone        | —             | —            | +1\*              |
+
+\*The neutral zone `PassBonus` here actually benefits **the possessing team's transition**, a deliberate design reflecting balanced defense's flexibility rather than aggression.
+
+**Effect**: No zone has overwhelming defensive weight. Both stick and body check probabilities rise equally everywhere in the defensive end. The most reliable defensive profile with no obvious hole to exploit.
+
+---
+
+#### Man-to-Man Defense
+
+| Zone                | Stick Check Δ | Body Check Δ |
+| ------------------- | ------------- | ------------ |
+| Defending Zone      | +3            | +5           |
+| Defending Goal Zone | +4            | +6           |
+
+**Effect**: By far the largest body check bonuses in the game. In the defending goal zone, body check probability gets a +6 modifier — the engine will aggressively select body check events when opponents enter the slot. No neutral zone modifiers, meaning this system offers no trap-style resistance in transition; opponents can enter your zone more freely, but once there they face maximum physicality.
+
+---
+
+#### Zone Defense
+
+| Zone                | Stick Check Δ | Body Check Δ | Pass Δ (possessor) |
+| ------------------- | ------------- | ------------ | ------------------ |
+| Defending Zone      | +3            | —            | +4\*               |
+| Defending Goal Zone | +4            | +3           | —                  |
+| Neutral Zone        | —             | —            | +3\*               |
+
+\*These `PassBonus` values benefit the **possessing team's** breakout and transition — they represent the space that disciplined zone coverage intentionally concedes on the perimeter.
+
+**Effect**: Heavy stick-check emphasis over body checking in the defensive zone. The pass bonuses in the defending zone and neutral zone are a design trade-off — zone defense gives up neutral-zone possession to protect high-danger areas, so the engine makes breakout passes more likely while the goal mouth gets both strong stick (+4) and physical (+3) coverage.
+
+---
+
+#### Neutral Zone Trap
+
+| Zone           | Stick Check Δ | Body Check Δ | Agility Δ |
+| -------------- | ------------- | ------------ | --------- |
+| Neutral Zone   | +5            | —            | +4        |
+| Attacking Zone | +3            | —            | —         |
+
+**Effect**: The only defensive system with significant bonuses in the **attacking zone and neutral zone** rather than the defensive end. Stick check probability spikes enormously in neutral ice (+5) — interceptions and poke checks become the dominant event in the trap zone. The agility bonus (+4) represents defenders reading lanes and stepping into passing seams. No defensive-zone bonuses at all: the trap is designed to prevent the opponent from ever reaching your defensive zone.
+
+---
+
+#### Left-Wing Lock
+
+| Zone           | Stick Check Δ | Body Check Δ |
+| -------------- | ------------- | ------------ |
+| Defending Zone | +4            | +3           |
+| Neutral Zone   | +3            | —            |
+
+**Effect**: A two-zone defensive footprint. The defending zone gets a balanced stick+4/body+3 split. The neutral zone carries a +3 stick check bonus as the locked-in left winger maintains pressure through the middle of the ice. Compared to Man-to-Man, this system sacrifices some peak physicality for wider coverage across two zones.
+
+---
+
+#### Aggressive Forecheck (Defensive)
+
+| Zone           | Stick Check Δ | Body Check Δ | Agility Δ |
+| -------------- | ------------- | ------------ | --------- |
+| Attacking Zone | +4            | +6           | —         |
+| Neutral Zone   | —             | +5           | +3        |
+
+**Effect**: The heaviest body check bonuses for any defensive system in the **opponent's** zone (+6 AZ). This system creates high body check event probability while the puck carrier is trying to break out of their own end — reflects the swarming pressure style. The neutral zone carries +5 body check weight, maintaining that physical harassment through the middle. No defensive-zone modifiers: if the opponent breaks through, you have no fallback structure.
+
+---
+
+#### Collapsing Defense
+
+| Zone                | Stick Check Δ | Body Check Δ |
+| ------------------- | ------------- | ------------ |
+| Defending Goal Zone | +3            | +4           |
+| Defending Zone      | +3            | +3           |
+
+**Effect**: Concentrated bonuses strictly in the defensive half. The goal zone places slightly more weight on body checking (+4) than stick checking (+3), reflecting physical bodies blocking lanes and engaging in net-front battles. Evenly weighted stick+3/body+3 in the broader defensive zone. No neutral zone or attacking zone presence — opponents can move freely until they reach the defensive cluster.
+
+---
+
+#### Box Defense
+
+| Zone                | Stick Check Δ | Body Check Δ |
+| ------------------- | ------------- | ------------ |
+| Defending Goal Zone | +4            | +3           |
+
+**Effect**: The most focused defensive system — **only modifies the defending goal zone**. Enormous stick check priority (+4) in the box area reflects disciplined positional sticks breaking up passing lanes. Designed specifically for penalty kills and structured man-down situations where protecting the immediate net area is the sole priority.
+
+---
+
+### System Matchup: How Both Teams Interact
+
+Because the engine applies **both** teams' systems simultaneously, the practical probability of each event depends on the **combination** of the two systems in play. The possessing team shifts shot/pass/agility; the defending team shifts stick/body check. Neither team directly cancels the other's bonuses — they add independently to the same shared pool.
+
+**Example — Crash the Net vs. Man-to-Man at intensity 5, Attacking Goal Zone:**
+
+| Event       | Base Weight (example) | Crash the Net Adds | Man-to-Man Adds | Final Weight |
+| ----------- | --------------------- | ------------------ | --------------- | ------------ |
+| Shot        | 20                    | +6                 | —               | **26**       |
+| Pass        | 15                    | —                  | —               | 15           |
+| Stick Check | 15                    | —                  | +4              | **19**       |
+| Body Check  | 10                    | —                  | +6              | **16**       |
+
+Total pool: 76 → Shot probability: **34%** vs. raw 25%. Stick/body check probability: **46%** combined vs. 33% raw. This is the highest-contested goal-zone environment in the game.
+
+**Example — Quick Transition vs. Neutral Zone Trap at intensity 5, Neutral Zone:**
+
+| Event       | Base Weight (example) | QT Adds | Trap Adds | Final Weight |
+| ----------- | --------------------- | ------- | --------- | ------------ |
+| Pass        | 20                    | +5      | —         | **25**       |
+| Agility     | 15                    | +5      | +4        | **24**       |
+| Stick Check | 10                    | —       | +5        | **15**       |
+| Body Check  | 10                    | —       | —         | 10           |
+
+Total pool: 74 → Despite the high pass/agility weights, the trap's +5 stick check nearly matches pass probability, creating a high-turnover neutral zone battleground — exactly the chaos both systems are designed to generate from their respective sides.
+
+---
+
+### Intensity as a Probability Dial
+
+Every modifier scales as `value × (intensity / 5)`. This means:
+
+| Intensity | Multiplier | Practical Effect                                              |
+| --------- | ---------- | ------------------------------------------------------------- |
+| 1         | 0.2×       | System barely influences the pool — near-neutral play         |
+| 3         | 0.6×       | Moderate lean toward system-preferred events                  |
+| 5         | 1.0×       | Full design intent as documented above                        |
+| 7         | 1.4×       | Strong system identity, opponent can read your tendencies     |
+| 10        | 2.0×       | Maximum expression — all bonuses doubled, highest risk/reward |
+
+Running a Crash the Net at intensity 10 in the attacking goal zone adds +12 to shot weight — roughly doubling shot probability versus a neutral distribution. Running it at intensity 1 adds only +1.2, making the system nearly invisible in the event pool.

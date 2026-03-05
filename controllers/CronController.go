@@ -38,6 +38,7 @@ func SyncRecruitingViaCron() {
 	if !ts.CrootsGenerated && !ts.IsDraftTime && (ts.IsOffSeason || ts.IsPreseason) {
 		managers.GenerateCroots()
 		managers.RefillCHLRosters()
+		managers.ResetScoutingProfilesForRecruiting()
 	}
 	if ts.RunCron && !ts.CollegeSeasonOver && !ts.IsPreseason && !ts.IsOffSeason {
 		// Sync Recruiting

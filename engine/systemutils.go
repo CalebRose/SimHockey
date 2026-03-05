@@ -85,19 +85,22 @@ func ApplySystemModifiersToEventWeights(gs *GameState, eventWeights *EventWeight
 	// Apply modifiers to the possessing team
 	var modifiers structs.SystemModifiers
 	var zoneModifiers structs.ZoneModifiers
+	var defenderZoneModifiers structs.ZoneModifiers
 
 	if isHomePossession {
 		modifiers = homeModifiers
 		zoneModifiers = GetZoneModifiersForEvent(modifiers, gs.PuckLocation, true)
+		defenderZoneModifiers = GetZoneModifiersForEvent(awayModifiers, gs.PuckLocation, false)
 	} else {
 		modifiers = awayModifiers
 		zoneModifiers = GetZoneModifiersForEvent(modifiers, gs.PuckLocation, false)
+		defenderZoneModifiers = GetZoneModifiersForEvent(homeModifiers, gs.PuckLocation, true)
 	}
 
 	// Apply zone-specific bonuses to event weights
 	eventWeights.ShotWeight += int(zoneModifiers.ShotBonus)
-	eventWeights.PassWeight += int(zoneModifiers.PassBonus)
-	eventWeights.AgilityWeight += int(zoneModifiers.AgilityBonus)
+	eventWeights.PassWeight += int(zoneModifiers.PassBonus) + int(defenderZoneModifiers.PassBonus)
+	eventWeights.AgilityWeight += int(zoneModifiers.AgilityBonus) + int(defenderZoneModifiers.AgilityBonus)
 
 	// Apply defensive modifiers to defending team
 	var defenseModifiers structs.SystemModifiers

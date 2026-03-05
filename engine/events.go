@@ -476,6 +476,22 @@ func handleAgilityCheck(gs *GameState) {
 				return
 			}
 
+			// Apply defensive system bonuses to agility resolution in the neutral zone.
+			// The trap excels at denying zone entries through positioning; aggressive forecheck
+			// tightens skating lanes through pressure. Only applies in the neutral zone where
+			// these systems define their AgilityBonus values.
+			if gs.PuckLocation == NeutralZone {
+				isHomePossession := pc.TeamID == uint16(gs.HomeTeamID)
+				defenderPlaybook := gs.GetPlaybook(!isHomePossession)
+				defenderSystem := structs.DefensiveSystemType(defenderPlaybook.Gameplan.DefensiveSystem)
+				switch defenderSystem {
+				case structs.DefensiveNeutralTrap:
+					puckHandling -= 2.0 // Trap's lane positioning specifically denies zone entries
+				case structs.DefensiveAggressiveForecheck:
+					puckHandling -= 1.0 // Forecheck pressure tightens skating lanes
+				}
+			}
+
 			puckHandling = math.Max(puckHandling, 1.0)
 
 			if float64(diceRoll) < puckHandling {

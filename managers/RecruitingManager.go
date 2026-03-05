@@ -442,3 +442,14 @@ func GenerateOffensiveAndDefensiveSystemsForRecruiting() {
 		repository.SaveTeamProfileRecord(db, team)
 	}
 }
+
+func ResetScoutingProfilesForRecruiting() {
+	db := dbprovider.GetInstance().GetDB()
+
+	profiles := repository.FindTeamRecruitingProfiles(false)
+
+	for _, team := range profiles {
+		team.ResetScoutingPoints(0)
+		repository.SaveTeamProfileRecord(db, team)
+	}
+}
