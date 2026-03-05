@@ -68,6 +68,14 @@ func (r *RecruitingTeamProfile) ResetSpentPoints() {
 func (r *RecruitingTeamProfile) ResetScoutingPoints(week int) {
 	if week == 0 {
 		r.WeeklyScoutingPoints = 30
+		r.SpentPoints = 0
+		r.TotalCommitments = 0
+		r.ThreeStars = 0
+		r.FourStars = 0
+		r.FiveStars = 0
+		r.WeeksMissed = 0
+		r.BattlesLost = 0
+		r.BattlesWon = 0
 	} else {
 		r.WeeklyScoutingPoints = 10
 	}

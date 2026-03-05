@@ -319,7 +319,7 @@ func GenerateCroots() {
 		attributeBlob:     getAttributeBlob(),
 		positionList:      util.GetPositionList(),
 		newID:             lastPlayerRecord.ID + 1,
-		requiredPlayers:   util.GenerateIntFromRange(462, 660),
+		requiredPlayers:   util.GenerateIntFromRange(518, 660),
 		faceDataBlob:      getFaceDataBlob(),
 		count:             0,
 		star5:             0,
