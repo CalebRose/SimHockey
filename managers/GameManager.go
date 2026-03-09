@@ -1337,6 +1337,7 @@ func GenerateProPlayoffGames(db *gorm.DB, ts structs.Timestamp) {
 }
 
 func GetCollegeGamesForPreseason(teamMap map[uint]structs.CollegeTeam) []structs.CollegeGame {
+	ts := GetTimestamp()
 	games := []structs.CollegeGame{}
 	teamIDs := make([]uint, 0, len(teamMap))
 	playedGameReference := make(map[uint]map[uint]bool)
@@ -1348,7 +1349,7 @@ func GetCollegeGamesForPreseason(teamMap map[uint]structs.CollegeTeam) []structs
 
 	for round := 1; round <= 3; round++ {
 		var pairings [][2]uint
-		const maxTries = 500
+		const maxTries = 1000
 		for tries := 0; tries < maxTries; tries++ {
 			// shuffle
 			rand.Shuffle(len(teamIDs), func(i, j int) {
@@ -1370,9 +1371,8 @@ func GetCollegeGamesForPreseason(teamMap map[uint]structs.CollegeTeam) []structs
 		// generate the Game objects
 		for _, pair := range pairings {
 			game := generateCollegeGame(
-				1,    // leagueID
-				2501, // seasonID
-				1,    // weekID
+				ts.SeasonID, ts.WeekID+1,
+				ts.Week+1,
 				pair[0], pair[1],
 				gameDay, "", teamMap, true,
 			)
@@ -1392,6 +1392,7 @@ func GetCollegeGamesForPreseason(teamMap map[uint]structs.CollegeTeam) []structs
 }
 
 func GetProGamesForPreseason(teamMap map[uint]structs.ProfessionalTeam) []structs.ProfessionalGame {
+	ts := GetTimestamp()
 	playedGameReference := make(map[uint]map[uint]bool)
 	games := []structs.ProfessionalGame{}
 	gameDay := "A"
@@ -1425,9 +1426,8 @@ func GetProGamesForPreseason(teamMap map[uint]structs.ProfessionalTeam) []struct
 		// generate the Game objects
 		for _, pair := range pairings {
 			game := generateProfessionalGame(
-				1,    // leagueID
-				2501, // seasonID
-				1,    // weekID
+				ts.SeasonID, ts.WeekID+1,
+				ts.Week+1,
 				pair[0], pair[1],
 				gameDay, teamMap, true,
 			)

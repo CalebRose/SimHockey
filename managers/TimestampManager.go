@@ -54,6 +54,11 @@ func MoveUpWeek() structs.Timestamp {
 		ResetCollegeStandingsRanks()
 	}
 
+	if ts.IsPreseason && ts.Week == 0 {
+		// Generate Preseason Games
+		GeneratePreseasonGames()
+	}
+
 	// Sync to Next Week
 	RecoverPlayers()
 	ts.SyncToNextWeek()
