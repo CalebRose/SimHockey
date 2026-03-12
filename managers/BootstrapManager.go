@@ -15,6 +15,12 @@ type BootstrapDataNews struct {
 	ProNews     []structs.NewsLog
 }
 
+type BootstrapDataStats struct {
+	// PostSeasonAwards       AwardsList
+	HistoricCollegePlayers []structs.HistoricCollegePlayer
+	RetiredPlayers         []structs.RetiredPlayer
+}
+
 func GetAllTeamsData() structs.BootstrapData {
 	var wg sync.WaitGroup
 
@@ -375,5 +381,41 @@ func GetNewsBootstrap(collegeID, proID string) BootstrapDataNews {
 	return BootstrapDataNews{
 		CollegeNews: collegeNews,
 		ProNews:     proNews,
+	}
+}
+
+func GetStatsBootstrap(collegeID, proID string) BootstrapDataStats {
+	var wg sync.WaitGroup
+
+	var (
+		historicCollegePlayers []structs.HistoricCollegePlayer
+		retiredPlayers         []structs.RetiredPlayer
+	)
+
+	if len(collegeID) > 0 && collegeID != "0" {
+		wg.Add(1)
+
+		go func() {
+			defer wg.Done()
+			historicCollegePlayers = GetAllHistoricCollegePlayers()
+		}()
+		log.Println("Initiated all College data queries.")
+	}
+
+	if len(proID) > 0 && proID != "0" {
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			log.Println("Fetching Retired Players...")
+			retiredPlayers = GetAllRetiredPlayers()
+			log.Println("Fetched Retired Players, count:", len(retiredPlayers))
+		}()
+	}
+
+	wg.Wait()
+
+	return BootstrapDataStats{
+		HistoricCollegePlayers: historicCollegePlayers,
+		RetiredPlayers:         retiredPlayers,
 	}
 }

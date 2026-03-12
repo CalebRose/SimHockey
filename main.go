@@ -120,6 +120,7 @@ func handleRequests() http.Handler {
 	apiRouter.HandleFunc("/bootstrap/{collegeID}/{proID}", controllers.BootstrapHockeyData).Methods("GET")
 	apiRouter.HandleFunc("/bootstrap/teams/", controllers.BootstrapTeamData).Methods("GET")
 	apiRouter.HandleFunc("/bootstrap/news/{collegeID}/{proID}", controllers.BootstrapNewsData).Methods("GET")
+	apiRouter.HandleFunc("/bootstrap/stats/{collegeID}/{proID}", controllers.BootstrapStatsData).Methods("GET")
 
 	// Draft
 	apiRouter.HandleFunc("/phl/draft/export/picks", controllers.ExportDraftedPicks).Methods("POST")
@@ -243,6 +244,7 @@ func handleRequests() http.Handler {
 	apiRouter.HandleFunc("/portal/promise/player/{playerID}/{teamID}", controllers.GetPromiseByPlayerID).Methods("GET")
 	// apiRouter.HandleFunc("/portal/player/scout/{id}", controllers.GetScoutingDataByTransfer).Methods("GET")
 	apiRouter.HandleFunc("/portal/export/players/", controllers.ExportPortalPlayersToCSV).Methods("GET")
+	apiRouter.HandleFunc("/portal/refill/teams/", controllers.RefillCollegeTeamsWithPortalPlayers).Methods("GET")
 
 	// Discord
 	apiRouter.HandleFunc("/ds/chl/team/{teamID}/", controllers.GetCHLTeamByTeamIDForDiscord).Methods("GET")

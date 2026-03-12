@@ -182,3 +182,9 @@ func PortalScoutAttribute(w http.ResponseWriter, r *http.Request) {
 
 	json.NewEncoder(w).Encode(profile)
 }
+
+func RefillCollegeTeamsWithPortalPlayers(w http.ResponseWriter, r *http.Request) {
+	managers.RefillTeamsWithPortalPlayers()
+
+	json.NewEncoder(w).Encode("College teams refilled with transfer portal players.")
+}

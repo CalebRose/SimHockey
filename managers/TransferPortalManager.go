@@ -1508,3 +1508,66 @@ func PortalScoutAttribute(dto structs.ScoutAttributeDTO) structs.TransferPortalP
 
 	return portalProfile
 }
+
+func RefillTeamsWithPortalPlayers() {
+	db := dbprovider.GetInstance().GetDB()
+
+	teams := repository.FindAllCollegeTeams(repository.TeamClauses{LeagueID: "1"})
+
+	collegePlayers := repository.FindAllCollegePlayers(repository.PlayerQuery{})
+	transferPlayers := repository.FindAllCollegePlayers(repository.PlayerQuery{TransferStatus: "2"})
+
+	collegeRosterMap := MakeCollegePlayerMapByTeamID(collegePlayers)
+
+	minimumRosterSize := 28
+
+	for _, team := range teams {
+		roster := collegeRosterMap[team.ID]
+
+		if len(roster) >= minimumRosterSize {
+			continue
+		}
+
+		// Get position counts
+		positionCounts := make(map[string]int)
+		for _, player := range roster {
+			positionCounts[player.Position]++
+		}
+
+		// Iterate through transfer players
+		for _, transferPlayer := range transferPlayers {
+			if transferPlayer.TeamID > 0 || transferPlayer.TeamID == uint16(team.ID) {
+				continue
+			}
+
+			if len(collegeRosterMap[team.ID]) >= minimumRosterSize {
+				break
+			}
+
+			// Check if the transfer player can fill a positional need
+			positionCount := positionCounts[transferPlayer.Position]
+			meetsCriteria := (transferPlayer.Position == "G" && positionCount <= 2) || (transferPlayer.Position == "C" && positionCount <= 5) || (transferPlayer.Position == "D" && positionCount <= 8) || (transferPlayer.Position == "F" && positionCount <= 10)
+			if meetsCriteria {
+				// Add player to roster
+				collegeRosterMap[team.ID] = append(collegeRosterMap[team.ID], transferPlayer)
+				positionCounts[transferPlayer.Position]++
+				transferPlayer.SignWithNewTeam(int(team.ID), team.Abbreviation, 1)
+				repository.SaveCollegeHockeyPlayerRecord(transferPlayer, db)
+
+				// Filter out player from transfer list to avoid duplicate signings
+				transferPlayers = FilterOutCollegePlayer(transferPlayers, transferPlayer.ID)
+				fmt.Printf("Added transfer player %s %s to team %s to fill positional need\n", transferPlayer.FirstName, transferPlayer.LastName, team.Abbreviation)
+			}
+		}
+	}
+}
+
+func FilterOutCollegePlayer(transferPlayers []structs.CollegePlayer, u uint) []structs.CollegePlayer {
+	var filtered []structs.CollegePlayer
+	for _, player := range transferPlayers {
+		if player.ID != u {
+			filtered = append(filtered, player)
+		}
+	}
+	return filtered
+}
