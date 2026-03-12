@@ -565,16 +565,17 @@ func DetermineIfRetiring(player structs.ProfessionalPlayer, statMap map[uint][]s
 	age := int(player.Age)
 	primeAge := int(player.PrimeAge)
 	retirementAge := primeAge + util.GenerateIntFromRange(4, 7)
+	overall := player.Overall
 	if age > retirementAge {
-		benchmark += 50
+		benchmark += 33
 	}
-	if age > primeAge && player.Overall < 20 {
+	if age > primeAge && overall < 20 {
 		benchmark += (15 * (age - primeAge))
-	} else if age > primeAge && player.Overall < 30 {
+	} else if age > primeAge && overall < 30 {
 		benchmark += (7 * (age - primeAge))
-	} else if age > primeAge && player.Overall < 40 {
+	} else if age > primeAge && overall < 40 {
 		benchmark += (4 * (age - primeAge))
-	} else if age > primeAge && player.Overall < 50 {
+	} else if age > primeAge && overall < 50 {
 		benchmark += (1 * (age - primeAge))
 	}
 	diceRoll := util.GenerateIntFromRange(1, 100)
