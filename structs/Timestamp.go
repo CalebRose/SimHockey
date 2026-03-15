@@ -68,6 +68,12 @@ func (t *Timestamp) MoveUpWeek() {
 		if t.PreseasonPhase > 3 {
 			t.IsPreseason = !t.IsPreseason
 			t.PreseasonPhase = 0
+			t.Week = 1
+			// set WeekID to seasonID * 100 + week
+			// Season is by 20XX, so subtract 2000 to get base season, then multiply by 100 and add week
+			baseSeason := t.Season - 2000
+			multSeason := baseSeason * 100
+			t.WeekID = multSeason + t.Week
 		}
 	} else {
 		t.WeekID++

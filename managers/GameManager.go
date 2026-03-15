@@ -1371,8 +1371,8 @@ func GetCollegeGamesForPreseason(teamMap map[uint]structs.CollegeTeam) []structs
 		// generate the Game objects
 		for _, pair := range pairings {
 			game := generateCollegeGame(
-				ts.SeasonID, ts.WeekID+1,
-				ts.Week+1,
+				ts.SeasonID, ts.WeekID,
+				ts.Week,
 				pair[0], pair[1],
 				gameDay, "", teamMap, true,
 			)
@@ -1426,8 +1426,8 @@ func GetProGamesForPreseason(teamMap map[uint]structs.ProfessionalTeam) []struct
 		// generate the Game objects
 		for _, pair := range pairings {
 			game := generateProfessionalGame(
-				ts.SeasonID, ts.WeekID+1,
-				ts.Week+1,
+				ts.SeasonID, ts.WeekID,
+				ts.Week,
 				pair[0], pair[1],
 				gameDay, teamMap, true,
 			)
