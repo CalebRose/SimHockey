@@ -659,9 +659,9 @@ func (cp *BaseInjuryData) ApplyInjury(injuryName string, injuryType string, days
 }
 func (cp *BaseInjuryData) RecoveryCheck() {
 	// Resolves Data Type issues
-	var roof uint = 100000000
+	var roof uint = 120
 	cp.DaysOfRecovery--
-	if cp.DaysOfRecovery == 0 || uint(cp.DaysOfRecovery) > roof {
+	if cp.DaysOfRecovery <= 0 || uint(cp.DaysOfRecovery) > roof {
 		cp.ResetInjuryStatus()
 	}
 
