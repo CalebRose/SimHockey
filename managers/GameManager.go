@@ -73,6 +73,22 @@ func RunGames() {
 		// } else {
 		// 	WriteProPlayByPlayCSVFile(pbps, "test_results/test_twelve/play_by_play/"+r.HomeTeam+"_vs_"+r.AwayTeam+".csv", proPlayersMap, proTeamMap)
 		// }
+
+		// Update players with injury data
+		for _, injury := range r.InjuryLog {
+			if r.IsCollegeGame && !ts.IsPreseason {
+				if player, ok := collegePlayerMap[injury.PlayerID]; ok {
+					player.ApplyInjury(injury.InjuryName, injury.InjuryType.String(), int8(injury.RecoveryDays))
+					repository.SaveCollegeHockeyPlayerRecord(player, db)
+				}
+			} else if !ts.IsPreseason && !r.IsCollegeGame {
+				if player, ok := proPlayersMap[injury.PlayerID]; ok {
+					player.ApplyInjury(injury.InjuryName, injury.InjuryType.String(), int8(injury.RecoveryDays))
+					repository.SaveProPlayerRecord(player, db)
+				}
+			}
+		}
+
 		gameType, _ := ts.GetCurrentGameType(r.IsCollegeGame)
 		upload.Collect(r, ts.SeasonID, uint(gameType))
 		stars := GenerateThreeStars(r, ts.SeasonID)

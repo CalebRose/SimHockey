@@ -263,8 +263,12 @@ func (gs *GameState) CalculateWinner() {
 	gs.GameComplete = true
 	if (gs.HomeTeamScore > gs.AwayTeamScore) || (gs.HomeTeamShootoutScore > gs.AwayTeamShootoutScore) {
 		gs.HomeTeamWin = true
+		gs.HomeStrategy.Goalies[gs.HomeStrategy.CurrentGoalie].Players[0].Stats.AddGameResult(true)
+		gs.AwayStrategy.Goalies[gs.AwayStrategy.CurrentGoalie].Players[0].Stats.AddGameResult(false)
 	} else if (gs.AwayTeamScore > gs.HomeTeamScore) || gs.AwayTeamShootoutScore > gs.HomeTeamShootoutScore {
 		gs.AwayTeamWin = true
+		gs.AwayStrategy.Goalies[gs.AwayStrategy.CurrentGoalie].Players[0].Stats.AddGameResult(true)
+		gs.HomeStrategy.Goalies[gs.HomeStrategy.CurrentGoalie].Players[0].Stats.AddGameResult(false)
 	} else {
 		gs.TieGame = true
 	}
@@ -1147,6 +1151,14 @@ func (p *PlayerStatsDTO) AddGoal(isEvenStrength, isPowerPlay, isShorthanded, isO
 	}
 	if isOvertime {
 		p.OvertimeGoals++
+	}
+}
+
+func (p *PlayerStatsDTO) AddGameResult(wonGame bool) {
+	if wonGame {
+		p.GoalieWins++
+	} else {
+		p.GoalieLosses++
 	}
 }
 
