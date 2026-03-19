@@ -317,9 +317,9 @@ func RunLineupsForAICollegeTeams() {
 
 	for _, t := range teams {
 		gameplan := collegeGameplanMap[t.ID]
-		// if gameplan.ID == 0 || !gameplan.IsAI {
-		// 	continue
-		// }
+		if gameplan.ID == 0 || !gameplan.IsAI {
+			continue
+		}
 		fmt.Println("Iterating over Team: " + t.Abbreviation)
 
 		teamID := strconv.Itoa(int(t.ID))

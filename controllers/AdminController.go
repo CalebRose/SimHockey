@@ -41,7 +41,8 @@ func GenerateInitialRosters(w http.ResponseWriter, r *http.Request) {
 }
 
 func GenerateCHLRosters(w http.ResponseWriter, r *http.Request) {
-	managers.GenerateInitialCHLRosters()
+	// managers.GenerateInitialCHLRosters()
+	managers.RefillCollegeHockeyRosters()
 
 	json.NewEncoder(w).Encode("Data Generated ran!")
 }

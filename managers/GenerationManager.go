@@ -76,7 +76,7 @@ func (pg *CrootGenerator) generatePlayer() (structs.Recruit, structs.GlobalPlaye
 	coachTeamID := 0
 	coachTeamAbbr := ""
 	notes := ""
-	star := util.GetStarRating(false, false)
+	star := util.GetStarRating(false, false, false)
 	state := ""
 	country := pickCountry()
 	switch country {
@@ -212,7 +212,7 @@ func (pg *CrootGenerator) generateTwin(player *structs.Recruit) (structs.Recruit
 	twinN := pg.caser.String(strings.ToLower(twinName))
 	twinPosition := util.PickFromStringList(pg.positionList)
 	coinFlip := util.GenerateIntFromRange(1, 2)
-	stars := util.GetStarRating(false, false)
+	stars := util.GetStarRating(false, false, false)
 	if coinFlip == 2 {
 		twinPosition = player.Position
 		stars = int(player.Stars)
@@ -368,7 +368,7 @@ func GenerateCustomCroots() {
 			continue
 		}
 
-		star := util.GetStarRating(true, false)
+		star := util.GetStarRating(true, false, false)
 		fName := row[0]
 		lName := row[1]
 		position := row[2]
@@ -478,7 +478,7 @@ func GenerateWalkonCroots() {
 			countryNames := generator.nameMap[pickedEthnicity]
 			firstNameList := countryNames["first_names"]
 			lastNameList := countryNames["last_names"]
-			stars := util.GetStarRating(false, false)
+			stars := util.GetStarRating(false, false, true)
 			lastName := util.PickFromStringList(lastNameList)
 			casedLastName := generator.caser.String(strings.ToLower(lastName))
 			recruit := createRecruit(pos, arch, stars, util.PickFromStringList(firstNameList), casedLastName, generator.attributeBlob, country, state, city, hs, crootLocations)
@@ -568,7 +568,7 @@ func GenerateInitialRosters() {
 			year := dto.Year
 			pos := dto.Pos
 			age := 18 + year - 1
-			p, _ := generator.createInitialPlayer(pos, false, age)
+			p, _ := generator.createInitialPlayer(pos, false, false, age)
 			cp := structs.CollegePlayer{
 				BasePlayer:     p.BasePlayer,
 				BasePotentials: p.BasePotentials,
@@ -647,7 +647,7 @@ func GenerateInitialCHLRosters() {
 			year := dto.Year
 			pos := dto.Pos
 			age := 16 + year - 1
-			p, _ := generator.createInitialPlayer(pos, true, age)
+			p, _ := generator.createInitialPlayer(pos, true, false, age)
 			cp := structs.CollegePlayer{
 				BasePlayer:     p.BasePlayer,
 				BasePotentials: p.BasePotentials,
@@ -778,7 +778,7 @@ func RefillCHLRosters() {
 			year := fillYears[idx%len(fillYears)]
 			age := 16 + year - 1
 
-			p, _ := generator.createInitialPlayer(pos, true, age)
+			p, _ := generator.createInitialPlayer(pos, true, false, age)
 			cp := structs.CollegePlayer{
 				BasePlayer:     p.BasePlayer,
 				BasePotentials: p.BasePotentials,
@@ -792,6 +792,137 @@ func RefillCHLRosters() {
 				cp = ProgressCollegePlayer(cp, "1", []structs.CollegePlayerGameStats{}, true)
 			}
 			cp.ResetCHLCollegeYear()
+			skinColor := getSkinColor(cp.Country)
+			face := getFace(latestID, int(cp.Weight), skinColor, generator.faceDataBlob)
+
+			generator.FacesList = append(generator.FacesList, face)
+			cpList = append(cpList, cp)
+
+			globalPlayer := structs.GlobalPlayer{
+				Model: gorm.Model{
+					ID: latestID,
+				},
+				RecruitID:            latestID,
+				CollegePlayerID:      latestID,
+				ProfessionalPlayerID: latestID,
+			}
+			latestID++
+			globalList = append(globalList, globalPlayer)
+		}
+	}
+
+	if len(cpList) == 0 {
+		log.Println("RefillCHLRosters: all teams already meet minimum roster requirements")
+		return
+	}
+
+	log.Printf("RefillCHLRosters: creating %d new player(s)\n", len(cpList))
+	repository.CreateCollegeHockeyPlayerRecordsBatch(db, cpList, 100)
+	repository.CreateGlobalPlayerRecordsBatch(db, globalList, 100)
+	repository.CreateFaceRecordsBatch(db, generator.FacesList, 100)
+}
+
+func RefillCollegeHockeyRosters() {
+	const (
+		minCenters   = 5
+		minForwards  = 10
+		minDefenders = 9
+		minGoalies   = 4
+	)
+
+	db := dbprovider.GetInstance().GetDB()
+	lastPlayerRecord := repository.FindLatestGlobalPlayerRecord()
+	latestID := lastPlayerRecord.ID + 1
+
+	teams := repository.FindAllCollegeTeams(repository.TeamClauses{LeagueID: "1"})
+	collegePlayers := GetAllCollegePlayers()
+	collegePlayerMapByTeamID := MakeCollegePlayerMapByTeamID(collegePlayers)
+
+	generator := CrootGenerator{
+		nameMap:          getInternationalNameMap(),
+		teamMap:          GetCollegeTeamMap(),
+		usCrootLocations: getCrootLocations("HS"),
+		cnCrootLocations: getCrootLocations("CanadianHS"),
+		svCrootLocations: getCrootLocations("SwedenHS"),
+		ruCrootLocations: getCrootLocations("RussianHS"),
+		attributeBlob:    getAttributeBlob(),
+		positionList:     util.GetPositionList(),
+		newID:            1,
+		caser:            cases.Title(language.English),
+		faceDataBlob:     getFaceDataBlob(),
+		FacesList:        []structs.FaceData{},
+		pickedEthnicity:  "",
+	}
+
+	// Spread of years used when filling roster spots (CHL ages 16-18)
+	fillYears := []int{1, 2, 3, 1, 2, 3, 1, 2}
+
+	cpList := []structs.CollegePlayer{}
+	globalList := []structs.GlobalPlayer{}
+
+	for _, team := range teams {
+		if team.LeagueID == 2 {
+			continue
+		}
+
+		roster := collegePlayerMapByTeamID[team.ID]
+
+		// Count existing positions on the roster
+		centerCount := 0
+		forwardCount := 0
+		defenderCount := 0
+		goalieCount := 0
+		for _, p := range roster {
+			switch p.Position {
+			case "C":
+				centerCount++
+			case "F":
+				forwardCount++
+			case "D":
+				defenderCount++
+			case "G":
+				goalieCount++
+			}
+		}
+
+		// Build the list of positions that still need to be filled
+		needed := []string{}
+		for i := centerCount; i < minCenters; i++ {
+			needed = append(needed, "C")
+		}
+		for i := forwardCount; i < minForwards; i++ {
+			needed = append(needed, "F")
+		}
+		for i := defenderCount; i < minDefenders; i++ {
+			needed = append(needed, "D")
+		}
+		for i := goalieCount; i < minGoalies; i++ {
+			needed = append(needed, "G")
+		}
+
+		if len(needed) == 0 {
+			log.Printf("Team %s (%d) roster is full - no refill needed\n", team.Abbreviation, team.ID)
+			continue
+		}
+
+		log.Printf("Team %s (%d): filling %d spot(s) [C:%d F:%d D:%d G:%d → need C:%d F:%d D:%d G:%d]\n",
+			team.Abbreviation, team.ID, len(needed),
+			centerCount, forwardCount, defenderCount, goalieCount,
+			minCenters, minForwards, minDefenders, minGoalies)
+
+		for idx, pos := range needed {
+			year := fillYears[idx%len(fillYears)]
+			age := 18 + year - 1
+
+			p, _ := generator.createInitialPlayer(pos, false, true, age)
+			cp := structs.CollegePlayer{
+				BasePlayer:     p.BasePlayer,
+				BasePotentials: p.BasePotentials,
+				Year:           1,
+			}
+			cp.AssignTeam(team.ID, team.Abbreviation, 1)
+			cp.AssignID(latestID)
+
 			skinColor := getSkinColor(cp.Country)
 			face := getFace(latestID, int(cp.Weight), skinColor, generator.faceDataBlob)
 
@@ -869,7 +1000,7 @@ func GenerateInitialProPool() {
 			if positionNeedIdx > len(positionNeeds)-1 {
 				positionNeedIdx = 0
 			}
-			p, _ := generator.createInitialPlayer(pos, false, age)
+			p, _ := generator.createInitialPlayer(pos, false, false, age)
 			cp := structs.CollegePlayer{
 				BasePlayer:     p.BasePlayer,
 				BasePotentials: p.BasePotentials,
@@ -1099,14 +1230,14 @@ func createRecruit(position, arch string, stars int, firstName, lastName string,
 	}
 }
 
-func (pg *CrootGenerator) createInitialPlayer(position string, isCHL bool, age int) (structs.Recruit, structs.GlobalPlayer) {
+func (pg *CrootGenerator) createInitialPlayer(position string, isCHL, isWalkon bool, age int) (structs.Recruit, structs.GlobalPlayer) {
 	cpLen := len(pg.collegePlayerList) - 1
 	relativeType := 0
 	relativeID := 0
 	coachTeamID := 0
 	coachTeamAbbr := ""
 	notes := ""
-	star := util.GetStarRating(false, isCHL)
+	star := util.GetStarRating(false, isCHL, isWalkon)
 	state := ""
 	country := pickCountry()
 	if isCHL {

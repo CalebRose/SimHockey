@@ -14,7 +14,7 @@ func GetPositionList() []string {
 	}
 }
 
-func GetStarRating(isCustom, isCHL bool) int {
+func GetStarRating(isCustom, isCHL, isWalkon bool) int {
 	roll := GenerateIntFromRange(1, 1000)
 	if isCHL {
 		if roll < 3 {
@@ -33,6 +33,8 @@ func GetStarRating(isCustom, isCHL bool) int {
 	}
 	if isCustom {
 		roll -= 100
+	} else if isWalkon {
+		roll += 43
 	}
 	if roll < 0 {
 		roll = 1
