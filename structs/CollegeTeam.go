@@ -93,6 +93,7 @@ func (t *CollegeTeam) AssignToUser(username string) {
 func (t *CollegeTeam) RemoveUser() {
 	t.IsUserCoached = false
 	t.Coach = ""
+	t.DiscordID = ""
 }
 
 func (t *CollegeTeam) ToggleRecruitsAdded() {
@@ -138,6 +139,7 @@ func (t *ProfessionalTeam) RemoveUser(role string) {
 	switch role {
 	case "Owner":
 		t.Owner = ""
+		t.DiscordID = ""
 	case "GM":
 		t.GM = ""
 	case "Scout":
