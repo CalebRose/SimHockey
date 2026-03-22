@@ -553,9 +553,6 @@ func (gp *GamePlaybook) handleLineReplacement(players []*GamePlayer, playerID, r
 
 func (gp *GamePlaybook) InitializeStamina() {
 	for idx := range gp.Forwards {
-		if idx == 3 {
-			continue
-		}
 		gp.Forwards[idx].InitializeBoostedStamina(false)
 	}
 
@@ -612,7 +609,7 @@ func (gp *GamePlaybook) CheckAndRotateLineup() {
 	}
 	// Goalies do not swap unless overtime
 	if float64(gp.Goalies[gp.CurrentGoalie].CurrentStamina) < float64(gp.Goalies[gp.CurrentGoalie].TotalStamina)*(0.1) {
-		gp.CurrentGoalie = (gp.CurrentGoalie + 1) & len(gp.Goalies)
+		gp.CurrentGoalie = (gp.CurrentGoalie + 1) % len(gp.Goalies)
 	}
 }
 

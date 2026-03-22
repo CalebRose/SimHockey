@@ -71,8 +71,8 @@ func handleRequests() http.Handler {
 
 	// Admin
 	apiRouter.HandleFunc("/admin/generate/ts/models/", controllers.CreateTSModelsFile).Methods("GET")
-	apiRouter.HandleFunc("/admin/test/engine/", controllers.TestEngine).Methods("GET")
-	apiRouter.HandleFunc("/admin/ai/generate/college/lineups/", controllers.RunAICollegeLineups).Methods("GET")
+	// apiRouter.HandleFunc("/admin/test/engine/", controllers.TestEngine).Methods("GET")
+	// apiRouter.HandleFunc("/admin/ai/generate/college/lineups/", controllers.RunAICollegeLineups).Methods("GET")
 	// apiRouter.HandleFunc("/admin/ai/generate/gameplans/", controllers.CreateGameplans).Methods("GET")
 	// apiRouter.HandleFunc("/admin/ai/generate/optimal/systems/", controllers.RunAISelectOptimalSystems).Methods("GET")
 	// apiRouter.HandleFunc("/admin/ai/generate/pro/lineups/", controllers.RunAIProLineups).Methods("GET")
