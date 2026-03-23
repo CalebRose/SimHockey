@@ -231,6 +231,7 @@ func (r *RecruitingTeamProfile) ResetScores() {
 	r.ESPNScore = 0
 	r.Rank247Score = 0
 	r.RivalsScore = 0
+	r.TotalCommitments = 0
 }
 
 func (r *RecruitingTeamProfile) AddStarPlayer(stars uint8) {

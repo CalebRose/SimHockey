@@ -357,7 +357,7 @@ func GenerateCustomCroots() {
 	globalList := []structs.GlobalPlayer{}
 	facesList := []structs.FaceData{}
 
-	filePath := filepath.Join(os.Getenv("ROOT"), "data", "gen", "custom_croots.csv")
+	filePath := filepath.Join(os.Getenv("ROOT"), "data", "2026", "gen", "custom_croots.csv")
 	playersCSV := util.ReadCSV(filePath)
 	pg := CrootGenerator{
 		attributeBlob: getAttributeBlob(),
