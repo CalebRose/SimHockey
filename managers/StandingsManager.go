@@ -678,7 +678,7 @@ func UpdateStandings(ts structs.Timestamp, gameDay string) structs.Timestamp {
 func UpdateCollegeRankings() {
 	db := dbprovider.GetInstance().GetDB()
 	timestamp := GetTimestamp()
-	seasonID := strconv.Itoa(int(timestamp.SeasonID - 1))
+	seasonID := strconv.Itoa(int(timestamp.SeasonID))
 
 	// Get all teams and games for the season
 	teams := repository.FindAllCollegeTeams(repository.TeamClauses{LeagueID: "1"})
@@ -730,6 +730,31 @@ func UpdateCollegeRankings() {
 	// Step 8: Calculate and assign final rankings
 	assignRPIRanks(teamRPIs, &standings, db)
 	assignPairwiseRanks(teamRPIs, teamOpponents, games, &standings, db)
+
+	// Step 9: Build a system-generated poll submission from the top 20 pairwise-ranked teams.
+	ranked := make([]structs.CollegeStandings, 0, 20)
+	for _, s := range standings {
+		if s.PairwiseRank >= 1 && s.PairwiseRank <= 20 {
+			ranked = append(ranked, s)
+		}
+	}
+	for i := 0; i < len(ranked)-1; i++ {
+		for j := i + 1; j < len(ranked); j++ {
+			if ranked[i].PairwiseRank > ranked[j].PairwiseRank {
+				ranked[i], ranked[j] = ranked[j], ranked[i]
+			}
+		}
+	}
+	submission := structs.CollegePollSubmission{
+		Username: "SimHCKEngine",
+		SeasonID: timestamp.SeasonID,
+		WeekID:   timestamp.WeekID,
+		Week:     timestamp.Week,
+	}
+	for i, s := range ranked {
+		submission.AssignRank(i, s.TeamID, s.TeamName)
+	}
+	repository.CreateCollegePollSubmissionRecord(db, submission)
 }
 
 // Helper function to calculate team opponents from games

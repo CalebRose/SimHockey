@@ -62,3 +62,8 @@ func GetOfficialPollsBySeasonID(w http.ResponseWriter, r *http.Request) {
 
 	json.NewEncoder(w).Encode(res)
 }
+
+func GeneratePreseasonPoll(w http.ResponseWriter, r *http.Request) {
+	ts := managers.GetTimestamp()
+	managers.GeneratePreseasonPoll(ts)
+}

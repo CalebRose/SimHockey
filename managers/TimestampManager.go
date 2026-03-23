@@ -76,8 +76,12 @@ func MoveUpWeek() structs.Timestamp {
 	UpdateCollegeRankings()
 
 	if ts.Week < 21 && !ts.CollegeSeasonOver && !ts.IsOffSeason && !ts.IsPreseason {
-		SyncCollegePollSubmissionForCurrentWeek(uint(ts.Week), uint(ts.WeekID), uint(ts.SeasonID))
-		ts.TogglePollRan()
+		if ts.Week == 1 {
+			GeneratePreseasonPoll(ts)
+		} else {
+			SyncCollegePollSubmissionForCurrentWeek(uint(ts.Week), uint(ts.WeekID), uint(ts.SeasonID))
+			ts.TogglePollRan()
+		}
 	}
 	if ts.Week > 15 {
 		SyncExtensionOffers()

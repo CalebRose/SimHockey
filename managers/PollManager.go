@@ -223,3 +223,84 @@ func CreatePoll(dto structs.CollegePollSubmission) structs.CollegePollSubmission
 func GetOfficialPollBySeasonID(seasonID string) []structs.CollegePollOfficial {
 	return repository.FindCollegePollOfficial(seasonID)
 }
+
+func GeneratePreseasonPoll(ts structs.Timestamp) {
+	db := dbprovider.GetInstance().GetDB()
+	seasonID := strconv.Itoa(int(ts.SeasonID))
+	collegeStandings := repository.FindAllCollegeStandings(repository.StandingsQuery{SeasonID: seasonID})
+	preseasonGames := repository.FindCollegeGames(repository.GamesClauses{IsPreseason: true, SeasonID: seasonID})
+
+	collegeStandingsMap := MakeCollegeStandingsMap(collegeStandings)
+
+	// Apply preseason game results to temporarily adjust wins/losses used for ranking.
+	// CollegeStandings is a value type in the map, so write-back is required.
+	for _, game := range preseasonGames {
+		homeStandings := collegeStandingsMap[game.HomeTeamID]
+		awayStandings := collegeStandingsMap[game.AwayTeamID]
+
+		homeStandings.UpdateStandings(game.BaseGame)
+		awayStandings.UpdateStandings(game.BaseGame)
+
+		collegeStandingsMap[game.HomeTeamID] = homeStandings
+		collegeStandingsMap[game.AwayTeamID] = awayStandings
+	}
+
+	// Build a vote list from the temporarily adjusted standings. Only include
+	// college teams (TeamID <= 74) that have a preseason rank assigned.
+	preseasonPoll := []structs.TeamVote{}
+	for _, standings := range collegeStandingsMap {
+		// Calculate a ranking based on the standings records and their preseason record
+		if standings.TeamID > 74 {
+			continue
+		}
+		if standings.PreseasonRank == 0 {
+			continue
+		}
+
+		// Performance score from preseason games + inverted expert rank (rank 1 = 25 pts).
+		performanceScore := int(standings.TotalWins)*2 - int(standings.TotalLosses)
+		expertScore := int(26 - standings.PreseasonRank)
+		totalVotes := performanceScore + expertScore
+		if totalVotes < 0 {
+			totalVotes = 0
+		}
+		preseasonPoll = append(preseasonPoll, structs.TeamVote{
+			TeamID:     standings.TeamID,
+			Team:       standings.TeamName,
+			TotalVotes: uint(totalVotes),
+		})
+	}
+
+	sort.Slice(preseasonPoll, func(i, j int) bool {
+		return preseasonPoll[i].TotalVotes > preseasonPoll[j].TotalVotes
+	})
+
+	officialPoll := structs.CollegePollOfficial{
+		WeekID:   ts.WeekID,
+		Week:     ts.Week,
+		SeasonID: ts.SeasonID,
+	}
+
+	// Use the original (unmodified) standings when saving so that temporary
+	// preseason W/L totals are not persisted to the database.
+	originalStandingsMap := make(map[uint]structs.CollegeStandings)
+	for _, s := range collegeStandings {
+		originalStandingsMap[s.TeamID] = s
+	}
+
+	count := 0
+	for idx, v := range preseasonPoll {
+		if count >= 20 {
+			break
+		}
+		count++
+		officialPoll.AssignRank(idx, v)
+
+		teamStandings := originalStandingsMap[v.TeamID]
+		rank := idx + 1
+		teamStandings.AssignRank(rank)
+		repository.SaveCollegeStandingsRecord(teamStandings, db)
+	}
+
+	repository.CreateCollegePollRecord(db, officialPoll)
+}

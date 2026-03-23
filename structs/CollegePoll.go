@@ -141,6 +141,71 @@ func (s *CollegePollSubmission) AssignID(id uint) {
 	s.ID = id
 }
 
+func (s *CollegePollSubmission) AssignRank(idx int, teamID uint, teamName string) {
+	switch idx {
+	case 0:
+		s.Rank1 = teamName
+		s.Rank1ID = teamID
+	case 1:
+		s.Rank2 = teamName
+		s.Rank2ID = teamID
+	case 2:
+		s.Rank3 = teamName
+		s.Rank3ID = teamID
+	case 3:
+		s.Rank4 = teamName
+		s.Rank4ID = teamID
+	case 4:
+		s.Rank5 = teamName
+		s.Rank5ID = teamID
+	case 5:
+		s.Rank6 = teamName
+		s.Rank6ID = teamID
+	case 6:
+		s.Rank7 = teamName
+		s.Rank7ID = teamID
+	case 7:
+		s.Rank8 = teamName
+		s.Rank8ID = teamID
+	case 8:
+		s.Rank9 = teamName
+		s.Rank9ID = teamID
+	case 9:
+		s.Rank10 = teamName
+		s.Rank10ID = teamID
+	case 10:
+		s.Rank11 = teamName
+		s.Rank11ID = teamID
+	case 11:
+		s.Rank12 = teamName
+		s.Rank12ID = teamID
+	case 12:
+		s.Rank13 = teamName
+		s.Rank13ID = teamID
+	case 13:
+		s.Rank14 = teamName
+		s.Rank14ID = teamID
+	case 14:
+		s.Rank15 = teamName
+		s.Rank15ID = teamID
+	case 15:
+		s.Rank16 = teamName
+		s.Rank16ID = teamID
+	case 16:
+		s.Rank17 = teamName
+		s.Rank17ID = teamID
+	case 17:
+		s.Rank18 = teamName
+		s.Rank18ID = teamID
+	case 18:
+		s.Rank19 = teamName
+		s.Rank19ID = teamID
+	case 19:
+		s.Rank20 = teamName
+		s.Rank20ID = teamID
+	}
+}
+
 func (s *CollegePollSubmission) MoveSubmissionToNextWeek(weekID, week uint) {
 	s.WeekID = weekID
 	s.Week = week
