@@ -22,7 +22,7 @@ func GetCHLPlayByPlayStreamData(streamType string) []structs.StreamResponse {
 	streams := []structs.StreamResponse{}
 
 	for _, game := range games {
-		if !game.GameComplete || (ts.Week == 18 && game.ID < 2633) {
+		if !game.GameComplete || game.LeagueID > 1 {
 			continue
 		}
 		homeTeam := teamMap[uint(game.HomeTeamID)]
