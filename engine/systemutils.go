@@ -203,6 +203,30 @@ type EventWeights struct {
 	TotalWeight      int
 }
 
+// normalizeDefenseWeights scales stick check and body check so their sum always equals 30,
+// preserving the user's ratio between the two while preventing negative or zero values from
+// distorting the overall event probability distribution.
+func normalizeDefenseWeights(stickRaw, bodyRaw int) (int, int) {
+	const target = 30
+	if stickRaw < 1 {
+		stickRaw = 1
+	}
+	if bodyRaw < 1 {
+		bodyRaw = 1
+	}
+	total := stickRaw + bodyRaw
+	stick := stickRaw * target / total
+	if stick < 1 {
+		stick = 1
+	}
+	body := target - stick
+	if body < 1 {
+		body = 1
+		stick = target - 1
+	}
+	return stick, body
+}
+
 // CalculateEventWeights computes the base event weights for the current situation
 func CalculateEventWeights(gs *GameState) EventWeights {
 	pc := gs.PuckCarrier
@@ -230,14 +254,9 @@ func CalculateEventWeights(gs *GameState) EventWeights {
 			if weights.PassBackWeight < 1 {
 				weights.PassBackWeight = 1 // Ensure minimum weight for pass backs in goal zone
 			}
-			weights.StickCheckWeight = int(defendStrategy.DGZStickCheck)
-			if weights.StickCheckWeight < 1 {
-				weights.StickCheckWeight = 1 // Ensure minimum weight for stick checks in goal zone
-			}
-			weights.BodyCheckWeight = int(defendStrategy.DGZBodyCheck)
-			if weights.BodyCheckWeight < 1 {
-				weights.BodyCheckWeight = 1 // Ensure minimum weight for body checks in goal zone
-			}
+			weights.StickCheckWeight, weights.BodyCheckWeight = normalizeDefenseWeights(
+				int(defendStrategy.DGZStickCheck), int(defendStrategy.DGZBodyCheck),
+			)
 		} else {
 			// Defensive goal zone
 			weights.AgilityWeight = int(attackStrategy.DGZAgility) + int(pc.DGZAgility)
@@ -252,14 +271,9 @@ func CalculateEventWeights(gs *GameState) EventWeights {
 			if weights.LongPassWeight < 1 {
 				weights.LongPassWeight = 1 // Ensure minimum weight for long passes in defensive goal zone
 			}
-			weights.StickCheckWeight = int(defendStrategy.AGZStickCheck)
-			if weights.StickCheckWeight < 1 {
-				weights.StickCheckWeight = 1 // Ensure minimum weight for stick checks in defensive goal zone
-			}
-			weights.BodyCheckWeight = int(defendStrategy.AGZBodyCheck)
-			if weights.BodyCheckWeight < 1 {
-				weights.BodyCheckWeight = 1 // Ensure minimum weight for body checks in defensive goal zone
-			}
+			weights.StickCheckWeight, weights.BodyCheckWeight = normalizeDefenseWeights(
+				int(defendStrategy.AGZStickCheck), int(defendStrategy.AGZBodyCheck),
+			)
 		}
 
 	case HomeZone, AwayZone:
@@ -281,14 +295,9 @@ func CalculateEventWeights(gs *GameState) EventWeights {
 			if weights.LongPassWeight < 1 {
 				weights.LongPassWeight = 1 // Ensure minimum weight for long passes in offensive zone
 			}
-			weights.StickCheckWeight = int(defendStrategy.DZStickCheck)
-			if weights.StickCheckWeight < 1 {
-				weights.StickCheckWeight = 1 // Ensure minimum weight for stick checks in offensive zone
-			}
-			weights.BodyCheckWeight = int(defendStrategy.DZBodyCheck)
-			if weights.BodyCheckWeight < 1 {
-				weights.BodyCheckWeight = 1 // Ensure minimum weight for body checks in offensive zone
-			}
+			weights.StickCheckWeight, weights.BodyCheckWeight = normalizeDefenseWeights(
+				int(defendStrategy.DZStickCheck), int(defendStrategy.DZBodyCheck),
+			)
 		} else {
 			// Defensive zone
 			weights.AgilityWeight = int(attackStrategy.DZAgility) + int(pc.DZAgility)
@@ -299,14 +308,9 @@ func CalculateEventWeights(gs *GameState) EventWeights {
 			if weights.PassWeight < 1 {
 				weights.PassWeight = 1 // Ensure minimum weight for passes in defensive zone
 			}
-			weights.StickCheckWeight = int(defendStrategy.AZStickCheck)
-			if weights.StickCheckWeight < 1 {
-				weights.StickCheckWeight = 1 // Ensure minimum weight for stick checks in defensive zone
-			}
-			weights.BodyCheckWeight = int(defendStrategy.AZBodyCheck)
-			if weights.BodyCheckWeight < 1 {
-				weights.BodyCheckWeight = 1 // Ensure minimum weight for body checks in defensive zone
-			}
+			weights.StickCheckWeight, weights.BodyCheckWeight = normalizeDefenseWeights(
+				int(defendStrategy.AZStickCheck), int(defendStrategy.AZBodyCheck),
+			)
 		}
 
 	case NeutralZone:
@@ -318,14 +322,9 @@ func CalculateEventWeights(gs *GameState) EventWeights {
 		if weights.PassWeight < 1 {
 			weights.PassWeight = 1 // Ensure minimum weight for passes in neutral zone
 		}
-		weights.StickCheckWeight = int(defendStrategy.NStickCheck)
-		if weights.StickCheckWeight < 1 {
-			weights.StickCheckWeight = 1 // Ensure minimum weight for stick checks in neutral zone
-		}
-		weights.BodyCheckWeight = int(defendStrategy.NBodyCheck)
-		if weights.BodyCheckWeight < 1 {
-			weights.BodyCheckWeight = 1 // Ensure minimum weight for body checks in neutral zone
-		}
+		weights.StickCheckWeight, weights.BodyCheckWeight = normalizeDefenseWeights(
+			int(defendStrategy.NStickCheck), int(defendStrategy.NBodyCheck),
+		)
 	}
 
 	weights.TotalWeight = weights.ShotWeight + weights.PassWeight + weights.AgilityWeight +
