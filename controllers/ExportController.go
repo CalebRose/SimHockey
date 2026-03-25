@@ -93,3 +93,9 @@ func ExportDraftablePlayersToCSV(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "text/csv")
 	managers.ExportDraftablePlayersToCSV(w)
 }
+
+func ExportProFreeAgents(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "text/csv")
+	players := managers.GetAllFreeAgents()
+	managers.WriteProPlayersExport(w, players, "_phl_free_agents.csv")
+}
