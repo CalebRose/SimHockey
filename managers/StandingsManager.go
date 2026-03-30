@@ -749,8 +749,8 @@ func UpdateCollegeRankings() {
 	submission := structs.CollegePollSubmission{
 		Username: "SimHCKEngine",
 		SeasonID: timestamp.SeasonID,
-		WeekID:   timestamp.WeekID,
-		Week:     timestamp.Week,
+		WeekID:   timestamp.WeekID + 1,
+		Week:     timestamp.Week + 1,
 	}
 	for i, s := range ranked {
 		team := teamMap[s.TeamID]
