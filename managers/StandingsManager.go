@@ -688,52 +688,60 @@ func UpdateCollegeRankings() {
 	// Create maps for easier access
 	teamMap := MakeCollegeTeamMap(teams)
 	// standingsMap := MakeCollegeStandingsMap(standings)
+	collegeStandings := []structs.CollegeStandings{}
+	for _, s := range standings {
+		team := teamMap[s.TeamID]
+		if team.ID == 0 || team.LeagueID != 1 {
+			continue
+		}
+		collegeStandings = append(collegeStandings, s)
+	}
 
 	// Calculate opponent maps for each team
 	teamOpponents := calculateTeamOpponents(games)
 
 	// Step 1: Calculate basic win percentages
-	teamWinPercentages := calculateWinPercentages(standings)
+	teamWinPercentages := calculateWinPercentages(collegeStandings)
 
 	// Step 2: Calculate RPI for each team
-	teamRPIs := calculateRPI(teamWinPercentages, teamOpponents, standings)
+	teamRPIs := calculateRPI(teamWinPercentages, teamOpponents, collegeStandings)
 
 	// Step 3: Calculate SOS (Strength of Schedule)
 	teamSOS := calculateSOS(teamRPIs, teamOpponents)
 
 	// Step 4: Calculate SOR (Strength of Record)
-	teamSOR := calculateSOR(teamWinPercentages, teamSOS, standings)
+	teamSOR := calculateSOR(teamWinPercentages, teamSOS, collegeStandings)
 
 	// Step 5: Calculate Quality Win metrics
-	calculateQualityWins(teamRPIs, teamOpponents, games, &standings)
+	calculateQualityWins(teamRPIs, teamOpponents, games, &collegeStandings)
 
 	// Step 6: Calculate Conference Strength Adjustments
 	conferenceStrengths := calculateConferenceStrengths(teamRPIs, teams)
 
 	// Step 7: Update standings with calculated values
-	for i := range standings {
-		teamID := standings[i].TeamID
+	for i := range collegeStandings {
+		teamID := collegeStandings[i].TeamID
 
 		// Store the actual RPI value and scaled SOS/SOR
-		standings[i].RPI = teamRPIs[teamID]
-		standings[i].SOS = teamSOS[teamID]
-		standings[i].SOR = teamSOR[teamID]
+		collegeStandings[i].RPI = teamRPIs[teamID]
+		collegeStandings[i].SOS = teamSOS[teamID]
+		collegeStandings[i].SOR = teamSOR[teamID]
 
 		if conferenceID := teamMap[teamID].ConferenceID; conferenceID > 0 {
-			standings[i].ConferenceStrengthAdj = conferenceStrengths[uint(conferenceID)]
+			collegeStandings[i].ConferenceStrengthAdj = conferenceStrengths[uint(conferenceID)]
 		}
 
 		// Save updated standings
-		repository.SaveCollegeStandingsRecord(standings[i], db)
+		repository.SaveCollegeStandingsRecord(collegeStandings[i], db)
 	}
 
 	// Step 8: Calculate and assign final rankings
-	assignRPIRanks(teamRPIs, &standings, db)
-	assignPairwiseRanks(teamRPIs, teamOpponents, games, &standings, db)
+	assignRPIRanks(teamRPIs, &collegeStandings, db)
+	assignPairwiseRanks(teamRPIs, teamOpponents, games, &collegeStandings, db)
 
 	// Step 9: Build a system-generated poll submission from the top 20 pairwise-ranked teams.
 	ranked := make([]structs.CollegeStandings, 0, 20)
-	for _, s := range standings {
+	for _, s := range collegeStandings {
 		if s.PairwiseRank >= 1 && s.PairwiseRank <= 20 {
 			ranked = append(ranked, s)
 		}
