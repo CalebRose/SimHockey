@@ -738,6 +738,7 @@ func UpdateCollegeRankings() {
 			ranked = append(ranked, s)
 		}
 	}
+	// Sort by PairwiseRank, lowest rank == best
 	for i := 0; i < len(ranked)-1; i++ {
 		for j := i + 1; j < len(ranked); j++ {
 			if ranked[i].PairwiseRank > ranked[j].PairwiseRank {
@@ -752,6 +753,11 @@ func UpdateCollegeRankings() {
 		Week:     timestamp.Week,
 	}
 	for i, s := range ranked {
+		team := teamMap[s.TeamID]
+		if team.ID == 0 || team.LeagueID != 1 {
+			continue
+		}
+
 		submission.AssignRank(i, s.TeamID, s.TeamName)
 	}
 	repository.CreateCollegePollSubmissionRecord(db, submission)
