@@ -753,6 +753,10 @@ func UpdateCollegeRankings() {
 		Week:     timestamp.Week + 1,
 	}
 	for i, s := range ranked {
+		if s.PairwiseRank == 0 {
+			continue
+		}
+
 		team := teamMap[s.TeamID]
 		if team.ID == 0 || team.LeagueID != 1 {
 			continue
