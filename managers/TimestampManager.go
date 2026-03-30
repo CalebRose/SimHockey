@@ -35,7 +35,7 @@ func ShowGames() {
 	// Generate CHL Postseason playoff format
 	if ts.Week == 19 && gameDay == "B" {
 		// Update College Ranks First
-		UpdateCollegeRankings()
+		UpdateCollegeRankings(ts)
 		PrepareCHLPostSeasonGamesFormat(db, ts)
 	}
 
@@ -73,7 +73,7 @@ func MoveUpWeek() structs.Timestamp {
 	}
 
 	// Update College Ranks
-	UpdateCollegeRankings()
+	UpdateCollegeRankings(ts)
 
 	if ts.Week < 21 && !ts.CollegeSeasonOver && !ts.IsOffSeason && !ts.IsPreseason {
 		if ts.Week == 1 {

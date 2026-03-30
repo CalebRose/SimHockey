@@ -201,7 +201,8 @@ func SeasonMigration(w http.ResponseWriter, r *http.Request) {
 }
 
 func GeneratePairwiseRanks(w http.ResponseWriter, r *http.Request) {
-	managers.UpdateCollegeRankings()
+	ts := managers.GetTimestamp()
+	managers.UpdateCollegeRankings(ts)
 	json.NewEncoder(w).Encode("Pairwise Ranks Generated")
 }
 

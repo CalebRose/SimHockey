@@ -675,7 +675,7 @@ func UpdateStandings(ts structs.Timestamp, gameDay string) structs.Timestamp {
 	return ts
 }
 
-func UpdateCollegeRankings() {
+func UpdateCollegeRankings(ts structs.Timestamp) {
 	db := dbprovider.GetInstance().GetDB()
 	timestamp := GetTimestamp()
 	seasonID := strconv.Itoa(int(timestamp.SeasonID))
@@ -738,6 +738,10 @@ func UpdateCollegeRankings() {
 	// Step 8: Calculate and assign final rankings
 	assignRPIRanks(teamRPIs, &collegeStandings, db)
 	assignPairwiseRanks(teamRPIs, teamOpponents, games, &collegeStandings, db)
+
+	if ts.Week < 3 {
+		return
+	}
 
 	// Step 9: Build a system-generated poll submission from the top 20 pairwise-ranked teams.
 	ranked := make([]structs.CollegeStandings, 0, 20)
