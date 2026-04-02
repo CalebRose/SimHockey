@@ -351,7 +351,7 @@ func RunLineupsForAICollegeTeams() {
 
 		// Allocate players to proper list
 		for _, p := range roster {
-			if p.IsInjured || p.IsRedshirt {
+			if p.IsInjured || p.IsRedshirting {
 				continue
 			}
 
@@ -434,6 +434,7 @@ func RunLineupsForAICollegeTeams() {
 				}
 			} else {
 				for _, p := range gPlayers {
+
 					if lineUpCheckMap[p.ID] {
 						continue
 					}
