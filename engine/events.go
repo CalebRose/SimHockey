@@ -1378,9 +1378,8 @@ func handlePuckBattle(gs *GameState, contestedPlayers []*GamePlayer) {
 		}
 	}
 
-	// Find opposing team player and additional participant to track
+	// Find opposing team player to track in dpID (shown in battle description)
 	var opposingPlayer *GamePlayer
-	var additionalPlayer *GamePlayer
 
 	// Get a player from the opposing team (not the winner)
 	if winner.TeamID == uint16(gs.HomeTeamID) {
@@ -1389,25 +1388,11 @@ func handlePuckBattle(gs *GameState, contestedPlayers []*GamePlayer) {
 			opposingPlayer = player
 			break
 		}
-		// Get additional home team participant if available
-		for _, player := range homeTeamPlayers {
-			if player.ID != winner.ID {
-				additionalPlayer = player
-				break
-			}
-		}
 	} else {
 		// Winner is away team, get home team player
 		for _, player := range homeTeamPlayers {
 			opposingPlayer = player
 			break
-		}
-		// Get additional away team participant if available
-		for _, player := range awayTeamPlayers {
-			if player.ID != winner.ID {
-				additionalPlayer = player
-				break
-			}
 		}
 	}
 
@@ -1418,17 +1403,14 @@ func handlePuckBattle(gs *GameState, contestedPlayers []*GamePlayer) {
 		outcomeID = PuckBattleLoseID
 	}
 
-	// Track participants: winner as pcID, opposing team as dpID, additional as ppID
+	// Track participants: winner as both pcID and ppID (so winner appears in battle description),
+	// opposing team player as dpID. additionalPlayer is tracked separately but not stored in PbP.
 	opposingPlayerID := uint(0)
 	if opposingPlayer != nil {
 		opposingPlayerID = opposingPlayer.ID
 	}
-	additionalPlayerID := uint(0)
-	if additionalPlayer != nil {
-		additionalPlayerID = additionalPlayer.ID
-	}
 
-	RecordPlay(gs, eventID, outcomeID, 0, 0, 0, 0, 0, 0, false, winner.ID, additionalPlayerID, 0, opposingPlayerID, 0, false)
+	RecordPlay(gs, eventID, outcomeID, 0, 0, 0, 0, 0, 0, false, winner.ID, winner.ID, 0, opposingPlayerID, 0, false)
 
 	// Winner takes possession
 	gs.SetPuckBearer(winner, false)

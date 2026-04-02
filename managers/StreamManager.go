@@ -401,6 +401,16 @@ func generateCollegeResultsString(play structs.PbP, event, outcome string, playe
 			statement += " and he misses the goal! It's a loose puck! Picked up by " + receivingPlayerLabel + "!"
 		case ShotOnGoal:
 			statement += " and he scores! That's a point for " + teamLabel + "!"
+		case PuckScramble:
+			statement += " and it's a miss by the net and the puck is loose! It's a scramble for the puck! Picked up by " + receivingPlayerLabel + "!"
+		case PenaltyCheck:
+			penalty := getPenaltyByID(uint(play.PenaltyID))
+			severity := getSeverityByID(play.Severity)
+			penaltyMinutes := "two"
+			if play.Severity > 1 {
+				penaltyMinutes = "five"
+			}
+			statement += " and a penalty is called! " + defendingPlayerLabel + " has been called for a " + severity + " " + penalty + " on " + puckCarrierLabel + ". This will lead into a faceoff. Power play for " + penaltyMinutes + " minutes."
 		}
 	case SlapshotCheck:
 		statement = puckCarrierLabel + " attempts a slapshot on goal..."
@@ -417,6 +427,8 @@ func generateCollegeResultsString(play structs.PbP, event, outcome string, playe
 			}
 		case ShotOnGoal:
 			statement += " and he scores! That's a point for " + teamLabel + "!"
+		case PuckScramble:
+			statement += " and it's a miss by the net and the puck is loose! It's a scramble for the puck! Picked up by " + receivingPlayerLabel + "!"
 		case PenaltyCheck:
 			penalty := getPenaltyByID(uint(play.PenaltyID))
 			severity := getSeverityByID(play.Severity)
@@ -457,7 +469,7 @@ func generateCollegeResultsString(play structs.PbP, event, outcome string, playe
 		case PuckBattleWin:
 			statement += " " + puckCarrierLabel + " retains the puck!"
 		case PuckBattleLose:
-			statement += " " + defendingPlayerLabel + " comes out with the puck!"
+			statement += " " + puckCarrierLabel + " comes out with the puck!"
 		}
 
 	case PuckScramble:
@@ -622,7 +634,7 @@ func generateProResultsString(play structs.PbP, event, outcome string, playerMap
 		case PuckBattleWin:
 			statement += " " + puckCarrierLabel + " retains the puck!"
 		case PuckBattleLose:
-			statement += " " + defendingPlayerLabel + " comes out with the puck!"
+			statement += " " + puckCarrierLabel + " comes out with the puck!"
 		}
 
 	case PuckScramble:
