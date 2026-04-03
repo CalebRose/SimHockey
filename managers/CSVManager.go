@@ -1145,7 +1145,8 @@ func ExportHCKGameResults(w http.ResponseWriter, seasonID, weekID, timeslot stri
 
 	collegePlayers := GetAllCollegePlayers()
 	historicPlayers := GetAllHistoricCollegePlayers()
-	chlTeamMap := GetCollegeTeamMap()
+	allCollegeTeams := repository.FindAllCollegeTeams(repository.TeamClauses{})
+	chlTeamMap := MakeCollegeTeamMap(allCollegeTeams)
 	proTeamMap := GetProTeamMap()
 
 	for _, hp := range historicPlayers {
