@@ -537,8 +537,16 @@ func (gp *GamePlaybook) handleLineReplacement(players []*GamePlayer, playerID, r
 		// Check if a substitution ID exists for the current queue player
 		if queue.SubstitutionID > 0 {
 			nextLine := gp.getNextLine(lineType)
-			replacement = queue.Player
-			queue = GetPlayerFromLine(queue.SubstitutionID, nextLine)
+			subQueue := GetPlayerFromLine(queue.SubstitutionID, nextLine)
+			if subQueue.Player != nil && subQueue.Player.ID > 0 && !subQueue.Player.IsInjured && !subQueue.Player.IsOut {
+				// Use the designated substitute and chain their substituteID for the next iteration
+				replacement = subQueue.Player
+				queue = subQueue
+			} else {
+				// Designated substitute is unavailable; fall back to the bench
+				queue.SubstitutionID = 0
+				replacement, gp.BenchPlayers = popPlayerFromBench(gp.BenchPlayers, replacePos)
+			}
 		} else {
 			// Use a player from the bench
 			replacement, gp.BenchPlayers = popPlayerFromBench(gp.BenchPlayers, replacePos)
@@ -921,6 +929,9 @@ func popPlayerFromBench(bench []*GamePlayer, replacePos string) (*GamePlayer, []
 	}
 
 	for i, p := range bench {
+		if p.IsInjured || p.IsOut {
+			continue
+		}
 		if p.Position == replacePos {
 			return popAt(i)
 		}
@@ -928,6 +939,10 @@ func popPlayerFromBench(bench []*GamePlayer, replacePos string) (*GamePlayer, []
 
 	if replacePos != "G" {
 		for i, p := range bench {
+			if p.IsInjured || p.IsOut {
+				continue
+			}
+
 			if p.Position != "G" {
 				return popAt(i)
 			}

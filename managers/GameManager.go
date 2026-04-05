@@ -144,21 +144,62 @@ func (u *StatsUpload) collectTeamStats(state engine.GameState, seasonID, gameTyp
 }
 
 func (u *StatsUpload) collectPlayerStats(pl engine.GamePlaybook, week, gameID, gameType uint, isCollege bool) {
+	collect := func(p *engine.GamePlayer) {
+		if p == nil || p.ID == 0 {
+			return
+		}
+		if isCollege {
+			u.CollegePlayerStats = append(u.CollegePlayerStats,
+				makeCollegePlayerStatsObject(week, gameID, gameType, p.Stats),
+			)
+		} else {
+			u.ProPlayerStats = append(u.ProPlayerStats,
+				makeProPlayerStatsObject(week, gameID, gameType, p.Stats),
+			)
+		}
+	}
+
 	types := [][]engine.LineStrategy{pl.Forwards, pl.Defenders, pl.Goalies}
 	for _, group := range types {
 		for _, line := range group {
 			for _, p := range line.Players {
-				if isCollege {
-					u.CollegePlayerStats = append(u.CollegePlayerStats,
-						makeCollegePlayerStatsObject(week, gameID, gameType, p.Stats),
-					)
-				} else {
-					u.ProPlayerStats = append(u.ProPlayerStats,
-						makeProPlayerStatsObject(week, gameID, gameType, p.Stats),
-					)
-				}
+				collect(p)
 			}
 		}
+	}
+
+	// Collect stats for players who were injured mid-game and removed from their lines.
+	for _, p := range pl.InjuredPlayers {
+		collect(p)
+	}
+
+	// Conduct a final filter where we check for every ID to ensure we didn't accidentally miss any players nor did we include any duplicate records
+	// This is a safety check to ensure data integrity before upload
+	seen := make(map[uint]bool)
+	if isCollege {
+		filtered := make([]structs.CollegePlayerGameStats, 0, len(u.CollegePlayerStats))
+		for _, s := range u.CollegePlayerStats {
+			if s.PlayerID == 0 {
+				continue
+			}
+			if _, ok := seen[s.PlayerID]; !ok {
+				seen[s.PlayerID] = true
+				filtered = append(filtered, s)
+			}
+		}
+		u.CollegePlayerStats = filtered
+	} else {
+		filtered := make([]structs.ProfessionalPlayerGameStats, 0, len(u.ProPlayerStats))
+		for _, s := range u.ProPlayerStats {
+			if s.PlayerID == 0 {
+				continue
+			}
+			if _, ok := seen[s.PlayerID]; !ok {
+				seen[s.PlayerID] = true
+				filtered = append(filtered, s)
+			}
+		}
+		u.ProPlayerStats = filtered
 	}
 }
 
