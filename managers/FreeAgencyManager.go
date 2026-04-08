@@ -1,6 +1,7 @@
 package managers
 
 import (
+	"context"
 	"fmt"
 	"sort"
 	"strconv"
@@ -8,6 +9,7 @@ import (
 
 	util "github.com/CalebRose/SimHockey/_util"
 	"github.com/CalebRose/SimHockey/dbprovider"
+	fbsvc "github.com/CalebRose/SimHockey/firebase"
 	"github.com/CalebRose/SimHockey/repository"
 	"github.com/CalebRose/SimHockey/structs"
 )
@@ -133,6 +135,26 @@ func CreateFAOffer(offer structs.FreeAgencyOfferDTO) structs.FreeAgencyOffer {
 		if player.IsAffiliatePlayer {
 			notificationMessage := proTeam.TeamName + " have placed an offer on " + player.Position + " " + player.FirstName + " " + player.LastName + " to pick up from the practice squad."
 			CreateNotification("PHL", notificationMessage, "Affiliate Player Offer", uint(player.TeamID))
+			// Firebase: notify the owning team's owner/GM
+			ownerTeam := repository.FindProTeamRecord(strconv.Itoa(int(player.TeamID)))
+			recipients := collectProTeamUsernames(ownerTeam)
+			if len(recipients) > 0 {
+				ctx := context.Background()
+				uids := fbsvc.ResolveUIDsByUsernames(ctx, recipients)
+				if len(uids) > 0 {
+					eventKey := fbsvc.BuildSourceEventKey("affiliate_offer", "phl", strconv.Itoa(int(player.TeamID)), strconv.Itoa(int(player.ID)), strconv.Itoa(int(offer.TeamID)))
+					_ = fbsvc.NotifyAffiliatePlayerOffer(ctx, fbsvc.AffiliatePlayerOfferNotificationInput{
+						OwnerTeamID:    uint(player.TeamID),
+						OwnerTeamName:  ownerTeam.TeamName,
+						OfferingTeam:   proTeam.TeamName,
+						PlayerID:       uint(player.ID),
+						PlayerName:     player.FirstName + " " + player.LastName,
+						Position:       player.Position,
+						RecipientUIDs:  uids,
+						SourceEventKey: eventKey,
+					})
+				}
+			}
 		}
 		message := proTeam.TeamName + " have placed an offer on " + player.Team + " " + player.Position + " " + player.FirstName + " " + player.LastName
 		if player.IsAffiliatePlayer {

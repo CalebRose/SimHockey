@@ -1,6 +1,7 @@
 package managers
 
 import (
+	"context"
 	"fmt"
 	"math"
 	"math/rand"
@@ -8,6 +9,7 @@ import (
 	"strconv"
 
 	"github.com/CalebRose/SimHockey/dbprovider"
+	fbsvc "github.com/CalebRose/SimHockey/firebase"
 	"github.com/CalebRose/SimHockey/repository"
 	"github.com/CalebRose/SimHockey/structs"
 	"gorm.io/gorm"
@@ -42,6 +44,7 @@ func SyncCollegeRecruiting() {
 
 	logs := []structs.NewsLog{}
 	pointAllocations := []structs.RecruitPointAllocation{}
+	signingLabels := []string{}
 
 	for _, r := range recruits {
 		if r.IsSigned {
@@ -129,6 +132,26 @@ func SyncCollegeRecruiting() {
 						message := r.FirstName + " " + r.LastName + ", " + strconv.Itoa(int(r.Stars)) + " star " + r.Position + " from " + r.State + ", " + r.Country + " has signed with " + team.TeamName + " with " + strconv.Itoa(int(odds)) + " percent odds."
 						news := CreateNewsLogObject("CHL", message, "Commitment", int(winningTeamID), ts, false)
 						logs = append(logs, news)
+						signingLabels = append(signingLabels, message)
+
+						// Firebase: notify the coach of the winning team
+						if recruitTeamProfile.IsUserTeam && recruitTeamProfile.Recruiter != "" {
+							ctx := context.Background()
+							uids := fbsvc.ResolveUIDsByUsernames(ctx, []string{recruitTeamProfile.Recruiter})
+							if len(uids) > 0 {
+								eventKey := fbsvc.BuildSourceEventKey("recruit_signed", "chl", strconv.Itoa(int(r.ID)))
+								_ = fbsvc.NotifyRecruitSigned(ctx, fbsvc.RecruitSignedNotificationInput{
+									League:         "chl",
+									Domain:         fbsvc.DomainCHL,
+									TeamID:         winningTeamID,
+									TeamName:       team.TeamName,
+									RecruitID:      r.ID,
+									RecruitName:    r.FirstName + " " + r.LastName,
+									RecipientUIDs:  uids,
+									SourceEventKey: eventKey,
+								})
+							}
+						}
 
 						for i := 0; i < len(recruitProfiles); i++ {
 							if recruitProfiles[i].ProfileID == winningTeamID {
@@ -177,6 +200,8 @@ func SyncCollegeRecruiting() {
 	repository.CreateNewsLogRecordsBatch(db, logs, 50)
 
 	updateTeamRankings(teamProfiles, teamProfileMap, teamPointsMap, db, int(ts.Week))
+
+	go CreateRecruitingSyncForumThread(int(ts.Season), int(ts.Week), signingLabels)
 
 	if ts.IsRecruitingLocked {
 		ts.ToggleLockRecruiting()

@@ -1,6 +1,7 @@
 package managers
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"math/rand"
@@ -13,6 +14,7 @@ import (
 	util "github.com/CalebRose/SimHockey/_util"
 	"github.com/CalebRose/SimHockey/dbprovider"
 	"github.com/CalebRose/SimHockey/engine"
+	fbsvc "github.com/CalebRose/SimHockey/firebase"
 	"github.com/CalebRose/SimHockey/repository"
 	"github.com/CalebRose/SimHockey/structs"
 	"gorm.io/gorm"
@@ -58,11 +60,15 @@ func RunGames() {
 	collegeGameMap := MakeCollegeGameMap(collegeGames)
 	proGameMap := MakeProGameMap(proGames)
 
-	// collegeTeamMap := GetCollegeTeamMap()
-	// proTeamMap := GetProTeamMap()
+	collegeTeamMap := GetCollegeTeamMap()
+	proTeamMap := GetProTeamMap()
 	collegePlayerMap := GetCollegePlayersMap()
 	proPlayersMap := GetProPlayersMap()
 	upload := NewStatsUpload()
+	// Track which teams have already received an injury notification this run
+	// to avoid duplicate alerts when multiple players are injured in the same game.
+	sentCollegeInjuryNotification := make(map[uint]bool)
+	sentProInjuryNotification := make(map[uint]bool)
 	for _, r := range results {
 		// Iterate through all lines, players, accumulate stats to upload
 		// WriteBoxScoreFile(r, "test_results/test_twelve/box_score/"+r.HomeTeam+"_vs_"+r.AwayTeam+".csv")
@@ -74,17 +80,72 @@ func RunGames() {
 		// 	WriteProPlayByPlayCSVFile(pbps, "test_results/test_twelve/play_by_play/"+r.HomeTeam+"_vs_"+r.AwayTeam+".csv", proPlayersMap, proTeamMap)
 		// }
 
+		gameID := strconv.Itoa(int(r.GameID))
+
 		// Update players with injury data
 		for _, injury := range r.InjuryLog {
 			if r.IsCollegeGame && !ts.IsPreseason {
 				if player, ok := collegePlayerMap[injury.PlayerID]; ok {
 					player.ApplyInjury(injury.InjuryName, injury.InjuryType.String(), int8(injury.RecoveryDays))
 					repository.SaveCollegeHockeyPlayerRecord(player, db)
+					// Firebase: notify the team's coach (once per team per game run)
+					teamID := uint(player.TeamID)
+					if !sentCollegeInjuryNotification[teamID] {
+						if team, ok := collegeTeamMap[teamID]; ok && team.Coach != "" && team.Coach != "AI" {
+							ctx := context.Background()
+							uids := fbsvc.ResolveUIDsByUsernames(ctx, []string{team.Coach})
+							if len(uids) > 0 {
+								eventKey := fbsvc.BuildSourceEventKey("injury", "chl", gameID, strconv.Itoa(int(injury.PlayerID)))
+								_ = fbsvc.NotifyTeamInjury(ctx, fbsvc.TeamInjuryNotificationInput{
+									League:         "chl",
+									Domain:         fbsvc.DomainCHL,
+									TeamID:         teamID,
+									TeamName:       team.TeamName,
+									PlayerID:       injury.PlayerID,
+									PlayerName:     player.FirstName + " " + player.LastName,
+									Position:       player.Position,
+									InjuryType:     injury.InjuryType.String(),
+									DaysOfRecovery: injury.RecoveryDays,
+									GameID:         gameID,
+									RecipientUIDs:  uids,
+									SourceEventKey: eventKey,
+								})
+							}
+							sentCollegeInjuryNotification[teamID] = true
+						}
+					}
 				}
 			} else if !ts.IsPreseason && !r.IsCollegeGame {
 				if player, ok := proPlayersMap[injury.PlayerID]; ok {
 					player.ApplyInjury(injury.InjuryName, injury.InjuryType.String(), int8(injury.RecoveryDays))
 					repository.SaveProPlayerRecord(player, db)
+					// Firebase: notify the team's owner (once per team per game run)
+					teamID := uint(player.TeamID)
+					if !sentProInjuryNotification[teamID] {
+						if team, ok := proTeamMap[teamID]; ok && team.Owner != "" {
+							ctx := context.Background()
+							recipients := collectProTeamUsernames(team)
+							uids := fbsvc.ResolveUIDsByUsernames(ctx, recipients)
+							if len(uids) > 0 {
+								eventKey := fbsvc.BuildSourceEventKey("injury", "phl", gameID, strconv.Itoa(int(injury.PlayerID)))
+								_ = fbsvc.NotifyTeamInjury(ctx, fbsvc.TeamInjuryNotificationInput{
+									League:         "phl",
+									Domain:         fbsvc.DomainPHL,
+									TeamID:         teamID,
+									TeamName:       team.TeamName,
+									PlayerID:       injury.PlayerID,
+									PlayerName:     player.FirstName + " " + player.LastName,
+									Position:       player.Position,
+									InjuryType:     injury.InjuryType.String(),
+									DaysOfRecovery: injury.RecoveryDays,
+									GameID:         gameID,
+									RecipientUIDs:  uids,
+									SourceEventKey: eventKey,
+								})
+							}
+							sentProInjuryNotification[teamID] = true
+						}
+					}
 				}
 			}
 		}
@@ -115,6 +176,19 @@ func RunGames() {
 
 func NewStatsUpload() *StatsUpload {
 	return &StatsUpload{}
+}
+
+// collectProTeamUsernames returns the non-empty, non-"AI" usernames assigned to
+// a PHL team's Owner and/or GM so they can be resolved to Firebase UIDs.
+func collectProTeamUsernames(team structs.ProfessionalTeam) []string {
+	usernames := make([]string, 0, 2)
+	if team.Owner != "" {
+		usernames = append(usernames, team.Owner)
+	}
+	if team.GM != "" && team.GM != team.Owner {
+		usernames = append(usernames, team.GM)
+	}
+	return usernames
 }
 
 func (u *StatsUpload) Collect(state engine.GameState, seasonID, gameType uint) {

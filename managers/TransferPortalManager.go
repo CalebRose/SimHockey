@@ -1,6 +1,7 @@
 package managers
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"math/rand"
@@ -10,6 +11,7 @@ import (
 
 	util "github.com/CalebRose/SimHockey/_util"
 	"github.com/CalebRose/SimHockey/dbprovider"
+	fbsvc "github.com/CalebRose/SimHockey/firebase"
 	"github.com/CalebRose/SimHockey/repository"
 	"github.com/CalebRose/SimHockey/structs"
 	"gorm.io/gorm"
@@ -250,6 +252,26 @@ func ProcessTransferIntention(w http.ResponseWriter) {
 		}
 		notificationMessage := strconv.Itoa(int(p.Stars)) + " star " + p.Position + " " + p.FirstName + " " + p.LastName + " has a " + p.TransferLikeliness + " likeliness of entering the transfer portal. Please navigate to the Roster page to submit a promise."
 		CreateNotification("CHL", notificationMessage, "Transfer Intention", uint(p.TeamID))
+		// Firebase: notify the team's coach if it is a user team
+		fbTeamProfile := teamProfileMap[uint(teamID)]
+		if fbTeamProfile != nil && fbTeamProfile.IsUserTeam && fbTeamProfile.Recruiter != "" {
+			ctx := context.Background()
+			uids := fbsvc.ResolveUIDsByUsernames(ctx, []string{fbTeamProfile.Recruiter})
+			if len(uids) > 0 {
+				eventKey := fbsvc.BuildSourceEventKey("transfer_intention", "chl", strconv.Itoa(int(p.ID)))
+				_ = fbsvc.NotifyTransferIntention(ctx, fbsvc.TransferIntentionNotificationInput{
+					TeamID:             uint(teamID),
+					TeamAbbr:           p.Team,
+					PlayerID:           uint(p.ID),
+					PlayerName:         p.FirstName + " " + p.LastName,
+					Position:           p.Position,
+					Stars:              int(p.Stars),
+					TransferLikeliness: p.TransferLikeliness,
+					RecipientUIDs:      uids,
+					SourceEventKey:     eventKey,
+				})
+			}
+		}
 		// fmt.Println(strconv.Itoa(p.Year)+" YEAR "+p.TeamAbbr+" "+p.Position+" "+p.FirstName+" "+p.LastName+" HAS ANNOUNCED THEIR INTENTION TO TRANSFER | Weight: ", int(transferWeight))
 		// // db.Save(&p)
 		// csvModel := structs.MapPlayerToCSVModel(p)
@@ -274,6 +296,21 @@ func ProcessTransferIntention(w http.ResponseWriter) {
 	}
 	transferPortalMessage := "Breaking News! About " + strconv.Itoa(transferCount) + " players intend to transfer from their current schools. Teams have one week to commit promises to retain players."
 	CreateNewsLog("CHL", transferPortalMessage, "Transfer Portal", 0, ts, true)
+	go CreateTransferIntentionsForumThread(TransferIntentionsSummary{
+		Season:                 int(ts.Season),
+		TransferCount:          transferCount,
+		FreshmanCount:          freshmanCount,
+		RedshirtFreshmanCount:  redshirtFreshmanCount,
+		SophomoreCount:         sophomoreCount,
+		RedshirtSophomoreCount: redshirtSophomoreCount,
+		JuniorCount:            juniorCount,
+		RedshirtJuniorCount:    redshirtJuniorCount,
+		SeniorCount:            seniorCount,
+		RedshirtSeniorCount:    redshirtSeniorCount,
+		LowCount:               lowCount,
+		MediumCount:            mediumCount,
+		HighCount:              highCount,
+	})
 	ts.EnactPromisePhase()
 	repository.SaveTimestamp(ts, db)
 	fmt.Println("Total number of players entering the transfer portal: ", transferCount)
@@ -425,6 +462,7 @@ func EnterTheTransferPortal() {
 	ts := GetTimestamp()
 	// Get All Teams
 	teams := GetAllCollegeTeams()
+	portalEntrants := []string{}
 
 	for _, t := range teams {
 		teamID := strconv.Itoa(int(t.ID))
@@ -442,6 +480,7 @@ func EnterTheTransferPortal() {
 
 			promise := GetCollegePromiseByCollegePlayerID(playerID, teamID)
 			if promise.ID == 0 {
+				portalEntrants = append(portalEntrants, fmt.Sprintf("%s %s (%d★ %s, %s)", p.FirstName, p.LastName, p.Stars, p.Position, p.Team))
 				p.WillTransfer()
 				repository.SaveCollegeHockeyPlayerRecord(p, db)
 				continue
@@ -463,10 +502,11 @@ func EnterTheTransferPortal() {
 				// If the dice roll is within the 40%. They leave.
 				// Okay this makes sense.
 
+				portalEntrants = append(portalEntrants, fmt.Sprintf("%s %s (%d★ %s, %s)", p.FirstName, p.LastName, p.Stars, p.Position, p.Team))
 				p.WillTransfer()
 
 				// Create News Log
-				message := "Breaking News! " + p.Team + " " + strconv.Itoa(int(p.Stars)) + " Star " + p.Position + " " + p.FirstName + " " + p.LastName + " has officially entered the transfer portal!"
+				message := "Breaking News! " + p.PreviousTeam + " " + strconv.Itoa(int(p.Stars)) + " Star " + p.Position + " " + p.FirstName + " " + p.LastName + " has officially entered the transfer portal!"
 				CreateNewsLog("CHL", message, "Transfer Portal", int(p.PreviousTeamID), ts, true)
 
 				repository.SaveCollegeHockeyPlayerRecord(p, db)
@@ -485,6 +525,7 @@ func EnterTheTransferPortal() {
 		}
 	}
 
+	go CreateTransferPortalOpenForumThread(int(ts.Season), portalEntrants)
 	ts.EnactPortalPhase()
 	repository.SaveTimestamp(ts, db)
 }
@@ -960,6 +1001,7 @@ func SyncTransferPortal() {
 	// Use IsRecruitingLocked to lock the TP when not in use
 	teamProfiles := repository.FindTeamRecruitingProfiles(false)
 	teamProfileMap := MakeTeamProfileMap(teamProfiles)
+	signingLabels := []string{}
 	transferPortalPlayers := repository.FindAllCollegePlayers(repository.PlayerQuery{
 		TransferStatus: "2",
 	})
@@ -1082,7 +1124,27 @@ func SyncTransferPortal() {
 						portalPlayer.SignWithNewTeam(int(teamProfile.TeamID), teamProfile.Team, 1)
 						message := portalPlayer.FirstName + " " + portalPlayer.LastName + ", " + strconv.Itoa(int(portalPlayer.Stars)) + " star " + portalPlayer.Position + " from " + portalPlayer.PreviousTeam + " has signed with " + portalPlayer.Team + " with " + strconv.Itoa(int(odds)) + " percent odds."
 						CreateNewsLog("CHL", message, "Transfer Portal", int(winningTeamID), ts, true)
+						signingLabels = append(signingLabels, message)
 						fmt.Println("Created new log!")
+						// Firebase: notify the winning team's coach
+						if teamProfile.IsUserTeam && teamProfile.Recruiter != "" {
+							ctx := context.Background()
+							uids := fbsvc.ResolveUIDsByUsernames(ctx, []string{teamProfile.Recruiter})
+							if len(uids) > 0 {
+								eventKey := fbsvc.BuildSourceEventKey("tp_signing", "chl", strconv.Itoa(int(portalPlayer.ID)))
+								_ = fbsvc.NotifyTransferPortalSigning(ctx, fbsvc.TransferPortalSigningNotificationInput{
+									TeamID:         uint(teamProfile.TeamID),
+									TeamName:       teamProfile.Team,
+									PlayerID:       uint(portalPlayer.ID),
+									PlayerName:     portalPlayer.FirstName + " " + portalPlayer.LastName,
+									Position:       portalPlayer.Position,
+									Stars:          int(portalPlayer.Stars),
+									PreviousTeam:   portalPlayer.PreviousTeam,
+									RecipientUIDs:  uids,
+									SourceEventKey: eventKey,
+								})
+							}
+						}
 						// Add player to existing roster map
 						rosterMap[teamProfile.ID] = append(rosterMap[teamProfile.ID], portalPlayer)
 						for i := range portalProfiles {
@@ -1132,7 +1194,9 @@ func SyncTransferPortal() {
 		}
 	}
 
+	currentRound := ts.TransferPortalRound
 	ts.IncrementTransferPortalRound()
+	go CreateTransferPortalSyncForumThread(int(ts.Season), int(currentRound), signingLabels)
 	repository.SaveTimestamp(ts, db)
 }
 
