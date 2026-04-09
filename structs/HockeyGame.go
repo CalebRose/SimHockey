@@ -36,6 +36,7 @@ type BaseGame struct {
 	IsPlayoffGame         bool
 	IsRivalryGame         bool
 	GameComplete          bool
+	IsRevealed            bool
 	IsOvertime            bool
 	IsShootout            bool
 	GameTitle             string // For rivalry match-ups, bowl games, championships, and more
@@ -75,6 +76,7 @@ func (b *BaseGame) UpdateScore(homeTeamScore, awayTeamScore, hometeamShootoutSco
 	}
 
 	b.GameComplete = true
+	b.IsRevealed = true
 }
 
 func (b *BaseGame) UpdateCoach(TeamID uint, Username string) {
@@ -126,12 +128,21 @@ func (m *BaseGame) AddWeekData(id, week uint, timeslot string) {
 	m.GameDay = timeslot
 }
 
+// RevealResultsOnInterface will reveal game results for interface viewing, but it will not sync data to the season stats quite yet.
+func (m *BaseGame) RevealResultsOnInterface() {
+	m.IsRevealed = true
+}
+
 func (m *BaseGame) Reset() {
 	m.GameComplete = false
 	m.HomeTeamWin = false
 	m.HomeTeamScore = 0
 	m.AwayTeamScore = 0
 	m.AwayTeamWin = false
+	m.IsRevealed = false
+	m.StarOne = 0
+	m.StarTwo = 0
+	m.StarThree = 0
 }
 
 type CollegeGame struct {

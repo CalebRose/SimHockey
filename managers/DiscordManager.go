@@ -876,3 +876,75 @@ func GetCollegeRecruitViaDiscord(id string) structs.Croot {
 
 	return croot
 }
+
+func RevealCHLGameOnInterface(gameID string) {
+	db := dbprovider.GetInstance().GetDB()
+
+	// Fetch game record and player map concurrently
+	gameChan := make(chan structs.CollegeGame, 1)
+	playerMapChan := make(chan map[uint]structs.CollegePlayer, 1)
+
+	go func() { gameChan <- repository.FindCollegeGameRecord(gameID) }()
+	go func() { playerMapChan <- GetCollegePlayersMap() }()
+
+	game := <-gameChan
+	homeTeamID := strconv.Itoa(int(game.HomeTeamID))
+	awayTeamID := strconv.Itoa(int(game.AwayTeamID))
+
+	// Fetch home and away team stats concurrently, while player map finishes
+	homeStatsChan := make(chan structs.CollegeTeamGameStats, 1)
+	awayStatsChan := make(chan structs.CollegeTeamGameStats, 1)
+
+	go func() { homeStatsChan <- repository.FindCollegeTeamStatsRecordByGame(gameID, homeTeamID) }()
+	go func() { awayStatsChan <- repository.FindCollegeTeamStatsRecordByGame(gameID, awayTeamID) }()
+
+	collegePlayerMap := <-playerMapChan
+	homeTeamStats := <-homeStatsChan
+	awayTeamStats := <-awayStatsChan
+
+	if !game.IsPreseason {
+		s1 := LookupCollegeStarName(game.StarOne, collegePlayerMap)
+		s2 := LookupCollegeStarName(game.StarTwo, collegePlayerMap)
+		s3 := LookupCollegeStarName(game.StarThree, collegePlayerMap)
+		go CreatePostGameDiscussionThreadForCHLGame(game, s1, s2, s3, game.SeasonID, homeTeamStats, awayTeamStats)
+	}
+
+	game.RevealResultsOnInterface()
+	repository.SaveCollegeGameRecord(game, db)
+}
+
+func RevealPHLGameOnInterface(gameID string) {
+	db := dbprovider.GetInstance().GetDB()
+
+	// Fetch game record and player map concurrently
+	gameChan := make(chan structs.ProfessionalGame, 1)
+	proPlayerMapChan := make(chan map[uint]structs.ProfessionalPlayer, 1)
+
+	go func() { gameChan <- repository.FindProfessionalGameRecord(gameID) }()
+	go func() { proPlayerMapChan <- GetProPlayersMap() }()
+
+	game := <-gameChan
+	homeTeamID := strconv.Itoa(int(game.HomeTeamID))
+	awayTeamID := strconv.Itoa(int(game.AwayTeamID))
+
+	// Fetch home and away team stats concurrently, while player map finishes
+	homeStatsChan := make(chan structs.ProfessionalTeamGameStats, 1)
+	awayStatsChan := make(chan structs.ProfessionalTeamGameStats, 1)
+
+	go func() { homeStatsChan <- repository.FindProTeamStatsRecordByGame(gameID, homeTeamID) }()
+	go func() { awayStatsChan <- repository.FindProTeamStatsRecordByGame(gameID, awayTeamID) }()
+
+	proPlayersMap := <-proPlayerMapChan
+	homeTeamStats := <-homeStatsChan
+	awayTeamStats := <-awayStatsChan
+
+	if !game.IsPreseason {
+		s1 := LookupProStarName(game.StarOne, proPlayersMap)
+		s2 := LookupProStarName(game.StarTwo, proPlayersMap)
+		s3 := LookupProStarName(game.StarThree, proPlayersMap)
+		go CreatePostGameDiscussionThreadForPHLGame(game, s1, s2, s3, game.SeasonID, homeTeamStats, awayTeamStats)
+	}
+
+	game.RevealResultsOnInterface()
+	repository.SaveProfessionalGameRecord(game, db)
+}

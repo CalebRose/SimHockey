@@ -263,6 +263,8 @@ func handleRequests() http.Handler {
 	apiRouter.HandleFunc("/ds/chl/croot/{id}", controllers.GetCHLRecruitViaDiscord).Methods("GET")
 	apiRouter.HandleFunc("/ds/chl/stream/{streamType}/", controllers.GetCHLGameStreams).Methods("GET")
 	apiRouter.HandleFunc("/ds/phl/stream/{streamType}/", controllers.GetPHLGameStreams).Methods("GET")
+	apiRouter.HandleFunc("/ds/chl/reveal/results/{gameID}/", controllers.RevealCHLGameResults).Methods("GET")
+	apiRouter.HandleFunc("/ds/phl/reveal/results/{gameID}/", controllers.RevealPHLGameResults).Methods("GET")
 
 	// Websocket
 	myRouter.HandleFunc("/ws", ws.WebSocketHandler)

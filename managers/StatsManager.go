@@ -24,8 +24,6 @@ func UpdateSeasonStats(ts structs.Timestamp, gameDay string) {
 	proPlayerSeasonStatMap := GetProPlayerSeasonStatMap(seasonId, proGameType)
 	collegeTeamSeasonStatMap := GetCollegeTeamSeasonStatMap(seasonId, collegeGameType)
 	proTeamSeasonStatMap := GetProTeamSeasonStatMap(seasonId, proGameType)
-	collegePlayerMap := GetCollegePlayersMap()
-	proPlayersMap := GetProPlayersMap()
 
 	for _, game := range games {
 		if !game.GameComplete {
@@ -70,12 +68,6 @@ func UpdateSeasonStats(ts structs.Timestamp, gameDay string) {
 			// }
 
 			repository.SaveCollegePlayerSeasonStatsRecord(playerSeasonStats, db)
-		}
-		if !ts.IsPreseason {
-			s1 := LookupCollegeStarName(game.StarOne, collegePlayerMap)
-			s2 := LookupCollegeStarName(game.StarTwo, collegePlayerMap)
-			s3 := LookupCollegeStarName(game.StarThree, collegePlayerMap)
-			go CreatePostGameDiscussionThreadForCHLGame(game, s1, s2, s3, ts.SeasonID, homeTeamStats, awayTeamStats)
 		}
 	}
 
@@ -127,12 +119,6 @@ func UpdateSeasonStats(ts structs.Timestamp, gameDay string) {
 			// }
 
 			repository.SaveProPlayerSeasonStatsRecord(playerSeasonStats, db)
-		}
-		if !ts.IsPreseason {
-			s1 := LookupProStarName(game.StarOne, proPlayersMap)
-			s2 := LookupProStarName(game.StarTwo, proPlayersMap)
-			s3 := LookupProStarName(game.StarThree, proPlayersMap)
-			go CreatePostGameDiscussionThreadForPHLGame(game, s1, s2, s3, ts.SeasonID, homeTeamStats, awayTeamStats)
 		}
 	}
 	db.Model(&structs.ProfessionalPlayerGameStats{}).Where("game_id in (?)", proGameIDs).Update("reveal_results", true)
