@@ -39,7 +39,7 @@ func CreatePostGameDiscussionThreadForCHLGame(
 	gameID := strconv.Itoa(int(game.ID))
 	eventKey := fmt.Sprintf("postgame_thread:chl:season%d:game%s", seasonID, gameID)
 
-	title := buildHockeyPostGameThreadTitle(game.AwayTeam, game.HomeTeam, game.GameTitle)
+	title := buildHockeyPostGameThreadTitle(game.BaseGame)
 	paragraphs := buildCHLPostGameParagraphs(game, homeTeamStats, awayTeamStats, starOne, starTwo, starThree)
 	bodyText := strings.Join(paragraphs, "\n\n")
 	richBody := buildRichPostBody(paragraphs)
@@ -85,7 +85,7 @@ func CreatePostGameDiscussionThreadForPHLGame(
 	gameID := strconv.Itoa(int(game.ID))
 	eventKey := fmt.Sprintf("postgame_thread:phl:season%d:game%s", seasonID, gameID)
 
-	title := buildHockeyPostGameThreadTitle(game.AwayTeam, game.HomeTeam, game.GameTitle)
+	title := buildHockeyPostGameThreadTitle(game.BaseGame)
 	paragraphs := buildPHLPostGameParagraphs(game, homeTeamStats, awayTeamStats, starOne, starTwo, starThree)
 	bodyText := strings.Join(paragraphs, "\n\n")
 	richBody := buildRichPostBody(paragraphs)
@@ -181,17 +181,19 @@ func buildHockeyPostGameParagraphs(
 	// ── Period-by-period scoring ──────────────────────────────────────────────
 	awayPeriods := formatPeriods(awayTeam, away, awayShootoutScore, isShootout)
 	homePeriods := formatPeriods(homeTeam, home, homeShootoutScore, isShootout)
-	paras = append(paras, "SCORING BY PERIOD:\n"+awayPeriods+"\n"+homePeriods)
+	paras = append(paras, "SCORING BY PERIOD:\n"+awayPeriods)
+	paras = append(paras, "\n"+homePeriods)
+	paras = append(paras, "Note: OT and SO scoring is included in the final score but not the period breakdown.")
 
 	// ── Offensive stats ───────────────────────────────────────────────────────
 	offLines := []string{
-		"OFFENSE:",
-		fmt.Sprintf("  %-20s  Goals: %2d   Shots: %3d   PP: %d   SH: %d   OT: %d",
+		"OFFENSE:\n",
+		fmt.Sprintf("  %-20s  Goals: %2d   Shots: %3d   PP: %d   SH: %d   OT: %d\n",
 			awayTeam,
 			away.GoalsFor, away.Shots,
 			away.PowerPlayGoals, away.ShorthandedGoals, away.OvertimeGoals,
 		),
-		fmt.Sprintf("  %-20s  Goals: %2d   Shots: %3d   PP: %d   SH: %d   OT: %d",
+		fmt.Sprintf("  %-20s  Goals: %2d   Shots: %3d   PP: %d   SH: %d   OT: %d\n",
 			homeTeam,
 			home.GoalsFor, home.Shots,
 			home.PowerPlayGoals, home.ShorthandedGoals, home.OvertimeGoals,
@@ -201,12 +203,12 @@ func buildHockeyPostGameParagraphs(
 
 	// ── Goaltending ──────────────────────────────────────────────────────────
 	gtLines := []string{
-		"GOALTENDING:",
-		fmt.Sprintf("  %-20s  Saves: %3d / %3d   SV%%: %.3f",
+		"GOALTENDING:\n",
+		fmt.Sprintf("  %-20s  Saves: %3d / %3d   SV%%: %.3f\n",
 			awayTeam,
 			away.Saves, away.ShotsAgainst, away.SavePercentage,
 		),
-		fmt.Sprintf("  %-20s  Saves: %3d / %3d   SV%%: %.3f",
+		fmt.Sprintf("  %-20s  Saves: %3d / %3d   SV%%: %.3f\n",
 			homeTeam,
 			home.Saves, home.ShotsAgainst, home.SavePercentage,
 		),
@@ -241,12 +243,12 @@ func buildHockeyPostGameParagraphs(
 
 	// ── Three Stars ───────────────────────────────────────────────────────────
 	if starOne != "" || starTwo != "" || starThree != "" {
-		starsLines := []string{"THREE STARS:"}
+		starsLines := []string{"THREE STARS:\n"}
 		if starOne != "" {
-			starsLines = append(starsLines, "  ⭐⭐⭐ "+starOne)
+			starsLines = append(starsLines, "  ⭐⭐⭐ "+starOne+"\n")
 		}
 		if starTwo != "" {
-			starsLines = append(starsLines, "  ⭐⭐  "+starTwo)
+			starsLines = append(starsLines, "  ⭐⭐  "+starTwo+"\n")
 		}
 		if starThree != "" {
 			starsLines = append(starsLines, "  ⭐     "+starThree)
@@ -275,11 +277,12 @@ func formatPeriods(team string, s structs.BaseTeamStats, shootoutScore int, isSh
 }
 
 // buildHockeyPostGameThreadTitle returns a forum-ready title for a hockey game.
-func buildHockeyPostGameThreadTitle(awayTeam, homeTeam, gameTitle string) string {
-	if gameTitle != "" {
-		return fmt.Sprintf("Postgame Thread: %s", gameTitle)
+func buildHockeyPostGameThreadTitle(game structs.BaseGame) string {
+	season := game.SeasonID + 2024
+	if game.GameTitle != "" {
+		return fmt.Sprintf("[%d] Week %d%s: %s: %s vs %s", season, game.Week, game.GameDay, game.GameTitle, game.AwayTeam, game.HomeTeam)
 	}
-	return fmt.Sprintf("Postgame Thread: %s at %s", awayTeam, homeTeam)
+	return fmt.Sprintf("[%d] Week %d%s: %s at %s", season, game.Week, game.GameDay, game.AwayTeam, game.HomeTeam)
 }
 
 // ─────────────────────────────────────────────
