@@ -199,7 +199,7 @@ func buildHockeyPostGameParagraphs(
 			home.PowerPlayGoals, home.ShorthandedGoals, home.OvertimeGoals,
 		),
 	}
-	paras = append(paras, strings.Join(offLines, "\n"))
+	paras = append(paras, offLines...)
 
 	// ── Goaltending ──────────────────────────────────────────────────────────
 	gtLines := []string{
@@ -213,7 +213,7 @@ func buildHockeyPostGameParagraphs(
 			home.Saves, home.ShotsAgainst, home.SavePercentage,
 		),
 	}
-	paras = append(paras, strings.Join(gtLines, "\n"))
+	paras = append(paras, gtLines...)
 
 	// ── Venue ────────────────────────────────────────────────────────────────
 	venueStr := arena
@@ -253,7 +253,7 @@ func buildHockeyPostGameParagraphs(
 		if starThree != "" {
 			starsLines = append(starsLines, "  ⭐     "+starThree)
 		}
-		paras = append(paras, strings.Join(starsLines, "\n"))
+		paras = append(paras, starsLines...)
 	}
 
 	// ── Discussion prompt ─────────────────────────────────────────────────────
