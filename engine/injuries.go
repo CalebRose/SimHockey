@@ -179,15 +179,15 @@ func GetRandomInjury(eventType InjuryEventType) *Injury {
 // GetInjuryProbabilityByEvent returns injury probability weights for each event type
 func GetInjuryProbabilityByEvent() map[InjuryEventType]float64 {
 	return map[InjuryEventType]float64{
-		BodyCheckEvent:         0.0006,  // 0.06% chance per body check (most dangerous)
-		StickCheckEvent:        0.0002,  // 0.02% chance per stick check
-		PuckContact:            0.0001,  // 0.01% chance per puck contact
-		Fall:                   0.0001,  // 0.01% chance per fall
-		Fighting:               0.0010,  // 0.10% chance per fight (higher risk)
-		PenaltyEvent:           0.0004,  // 0.04% chance per penalty (physical play)
-		MissedShotBlocked:      0.00005, // 0.005% chance per blocked shot
-		MissedPassInterception: 0.00005, // 0.005% chance per interception
-		WildPuck:               0.0001,  // 0.01% chance per wild puck
+		BodyCheckEvent:         0.00006,  // 0.006% chance per body check (most dangerous)
+		StickCheckEvent:        0.00002,  // 0.002% chance per stick check
+		PuckContact:            0.00001,  // 0.001% chance per puck contact
+		Fall:                   0.00001,  // 0.001% chance per fall
+		Fighting:               0.00100,  // 0.10% chance per fight (higher risk)
+		PenaltyEvent:           0.00004,  // 0.004% chance per penalty (physical play)
+		MissedShotBlocked:      0.000005, // 0.0005% chance per blocked shot
+		MissedPassInterception: 0.000005, // 0.0005% chance per interception
+		WildPuck:               0.00001,  // 0.001% chance per wild puck
 	}
 }
 
