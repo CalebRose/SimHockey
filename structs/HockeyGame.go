@@ -76,7 +76,6 @@ func (b *BaseGame) UpdateScore(homeTeamScore, awayTeamScore, hometeamShootoutSco
 	}
 
 	b.GameComplete = true
-	b.IsRevealed = true
 }
 
 func (b *BaseGame) UpdateCoach(TeamID uint, Username string) {
