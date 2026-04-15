@@ -82,3 +82,24 @@ func CancelPHLPlayerExtension(w http.ResponseWriter, r *http.Request) {
 
 	json.NewEncoder(w).Encode(offer)
 }
+
+func PlaceCHLPlayerOnInjuryReserve(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	playerID := vars["playerID"]
+	if len(playerID) == 0 {
+		panic("User did not provide playerID")
+	}
+
+	managers.PlaceCHLPlayerOnInjuryReserve(playerID)
+}
+
+func PlacePHLPlayerOnInjuryReserve(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	playerID := vars["playerID"]
+	if len(playerID) == 0 {
+		panic("User did not provide playerID")
+	}
+
+	managers.PlacePHLPlayerOnInjuryReserve(playerID)
+
+}

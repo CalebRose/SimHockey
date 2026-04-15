@@ -642,13 +642,14 @@ func RerollPotential(attr uint8) uint8 {
 }
 
 type BaseInjuryData struct {
-	IsInjured      bool
-	DaysOfRecovery int8
-	InjuryName     string
-	InjuryType     string
-	InjuryCount    uint8
-	Regression     uint8
-	DecayRate      float32
+	IsInjured       bool
+	DaysOfRecovery  int8
+	InjuryName      string
+	InjuryType      string
+	InjuryCount     uint8
+	Regression      uint8
+	DecayRate       float32
+	IsInjuryReserve bool
 }
 
 func (cp *BaseInjuryData) ApplyInjury(injuryName string, injuryType string, daysOfRecovery int8) {
@@ -657,6 +658,7 @@ func (cp *BaseInjuryData) ApplyInjury(injuryName string, injuryType string, days
 	cp.IsInjured = true
 	cp.DaysOfRecovery = daysOfRecovery
 }
+
 func (cp *BaseInjuryData) RecoveryCheck() {
 	// Resolves Data Type issues
 	var roof uint = 120
@@ -671,6 +673,10 @@ func (cp *BaseInjuryData) ResetInjuryStatus() {
 	cp.InjuryName = ""
 	cp.InjuryType = ""
 	cp.IsInjured = false
+}
+
+func (cp *BaseInjuryData) ToggleInjuryReserve() {
+	cp.IsInjuryReserve = !cp.IsInjuryReserve
 }
 
 type CollegePlayer struct {

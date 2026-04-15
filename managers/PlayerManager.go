@@ -173,3 +173,17 @@ func CancelExtensionOffer(offer structs.ExtensionOffer) structs.ExtensionOffer {
 	repository.SaveExtensionRecord(freeAgentOffer, db)
 	return freeAgentOffer
 }
+
+func PlaceCHLPlayerOnInjuryReserve(playerID string) {
+	db := dbprovider.GetInstance().GetDB()
+	player := repository.FindCollegePlayer(repository.PlayerQuery{ID: playerID})
+	player.ToggleInjuryReserve()
+	repository.SaveCollegeHockeyPlayerRecord(player, db)
+}
+
+func PlacePHLPlayerOnInjuryReserve(playerID string) {
+	db := dbprovider.GetInstance().GetDB()
+	player := repository.FindProPlayer(playerID)
+	player.ToggleInjuryReserve()
+	repository.SaveProPlayerRecord(player, db)
+}
