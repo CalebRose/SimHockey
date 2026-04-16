@@ -219,26 +219,6 @@ func buildHockeyPostGameNodes(
 	}
 	nodes = append(nodes, rtTableNode(periodHeaders, periodRows))
 
-	// ── Offense table ─────────────────────────────────────────────────────────
-	nodes = append(nodes, rtHeading(3, "Offense"))
-	nodes = append(nodes, rtTableNode(
-		[]string{"Team", "Goals", "Shots", "PP", "SH", "OT Goals"},
-		[][]string{
-			{awayTeam, fmt.Sprintf("%d", away.GoalsFor), fmt.Sprintf("%d", away.Shots), fmt.Sprintf("%d", away.PowerPlayGoals), fmt.Sprintf("%d", away.ShorthandedGoals), fmt.Sprintf("%d", away.OvertimeGoals)},
-			{homeTeam, fmt.Sprintf("%d", home.GoalsFor), fmt.Sprintf("%d", home.Shots), fmt.Sprintf("%d", home.PowerPlayGoals), fmt.Sprintf("%d", home.ShorthandedGoals), fmt.Sprintf("%d", home.OvertimeGoals)},
-		},
-	))
-
-	// ── Goaltending table ─────────────────────────────────────────────────────
-	nodes = append(nodes, rtHeading(3, "Goaltending"))
-	nodes = append(nodes, rtTableNode(
-		[]string{"Team", "Saves", "Shots Against", "SV%"},
-		[][]string{
-			{awayTeam, fmt.Sprintf("%d", away.Saves), fmt.Sprintf("%d", away.ShotsAgainst), fmt.Sprintf("%.3f", away.SavePercentage)},
-			{homeTeam, fmt.Sprintf("%d", home.Saves), fmt.Sprintf("%d", home.ShotsAgainst), fmt.Sprintf("%.3f", home.SavePercentage)},
-		},
-	))
-
 	// ── Venue ─────────────────────────────────────────────────────────────────
 	venueStr := arena
 	if city != "" || state != "" || country != "" {
@@ -278,6 +258,26 @@ func buildHockeyPostGameNodes(
 			nodes = append(nodes, rtParagraph("⭐ "+starThree))
 		}
 	}
+
+	// ── Offense table ─────────────────────────────────────────────────────────
+	nodes = append(nodes, rtHeading(3, "Offense"))
+	nodes = append(nodes, rtTableNode(
+		[]string{"Team", "Goals", "Shots", "PP", "SH", "OT Goals"},
+		[][]string{
+			{awayTeam, fmt.Sprintf("%d", away.GoalsFor), fmt.Sprintf("%d", away.Shots), fmt.Sprintf("%d", away.PowerPlayGoals), fmt.Sprintf("%d", away.ShorthandedGoals), fmt.Sprintf("%d", away.OvertimeGoals)},
+			{homeTeam, fmt.Sprintf("%d", home.GoalsFor), fmt.Sprintf("%d", home.Shots), fmt.Sprintf("%d", home.PowerPlayGoals), fmt.Sprintf("%d", home.ShorthandedGoals), fmt.Sprintf("%d", home.OvertimeGoals)},
+		},
+	))
+
+	// ── Goaltending table ─────────────────────────────────────────────────────
+	nodes = append(nodes, rtHeading(3, "Goaltending"))
+	nodes = append(nodes, rtTableNode(
+		[]string{"Team", "Saves", "Shots Against", "SV%"},
+		[][]string{
+			{awayTeam, fmt.Sprintf("%d", away.Saves), fmt.Sprintf("%d", away.ShotsAgainst), fmt.Sprintf("%.3f", away.SavePercentage)},
+			{homeTeam, fmt.Sprintf("%d", home.Saves), fmt.Sprintf("%d", home.ShotsAgainst), fmt.Sprintf("%.3f", home.SavePercentage)},
+		},
+	))
 
 	return nodes
 }
