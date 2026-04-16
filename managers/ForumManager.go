@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"sort"
 	"strconv"
 	"strings"
 
@@ -33,6 +34,9 @@ func CreatePostGameDiscussionThreadForCHLGame(
 	seasonID uint,
 	homeTeamStats structs.CollegeTeamGameStats,
 	awayTeamStats structs.CollegeTeamGameStats,
+	homePlayerStats []structs.CollegePlayerGameStats,
+	awayPlayerStats []structs.CollegePlayerGameStats,
+	collegePlayersMap map[uint]structs.CollegePlayer,
 ) {
 	ctx := context.Background()
 
@@ -40,9 +44,9 @@ func CreatePostGameDiscussionThreadForCHLGame(
 	eventKey := fmt.Sprintf("postgame_thread:chl:season%d:game%s", seasonID, gameID)
 
 	title := buildHockeyPostGameThreadTitle(game.BaseGame)
-	paragraphs := buildCHLPostGameParagraphs(game, homeTeamStats, awayTeamStats, starOne, starTwo, starThree)
-	bodyText := strings.Join(paragraphs, "\n\n")
-	richBody := buildRichPostBody(paragraphs)
+	nodes := buildCHLPostGameNodes(game, homeTeamStats, awayTeamStats, starOne, starTwo, starThree, homePlayerStats, awayPlayerStats, collegePlayersMap)
+	bodyText := nodesToPlainText(nodes)
+	richBody := buildRichDoc(nodes)
 
 	input := fbsvc.CreateForumThreadInput{
 		ForumID:           PostGameForumID + "-simchl",
@@ -79,6 +83,9 @@ func CreatePostGameDiscussionThreadForPHLGame(
 	seasonID uint,
 	homeTeamStats structs.ProfessionalTeamGameStats,
 	awayTeamStats structs.ProfessionalTeamGameStats,
+	homePlayerStats []structs.ProfessionalPlayerGameStats,
+	awayPlayerStats []structs.ProfessionalPlayerGameStats,
+	proPlayersMap map[uint]structs.ProfessionalPlayer,
 ) {
 	ctx := context.Background()
 
@@ -86,9 +93,9 @@ func CreatePostGameDiscussionThreadForPHLGame(
 	eventKey := fmt.Sprintf("postgame_thread:phl:season%d:game%s", seasonID, gameID)
 
 	title := buildHockeyPostGameThreadTitle(game.BaseGame)
-	paragraphs := buildPHLPostGameParagraphs(game, homeTeamStats, awayTeamStats, starOne, starTwo, starThree)
-	bodyText := strings.Join(paragraphs, "\n\n")
-	richBody := buildRichPostBody(paragraphs)
+	nodes := buildPHLPostGameNodes(game, homeTeamStats, awayTeamStats, starOne, starTwo, starThree, homePlayerStats, awayPlayerStats, proPlayersMap)
+	bodyText := nodesToPlainText(nodes)
+	richBody := buildRichDoc(nodes)
 
 	input := fbsvc.CreateForumThreadInput{
 		ForumID:           PostGameForumID + "-simphl",
@@ -119,13 +126,16 @@ func CreatePostGameDiscussionThreadForPHLGame(
 // Post-game body builders
 // ─────────────────────────────────────────────
 
-func buildCHLPostGameParagraphs(
+func buildCHLPostGameNodes(
 	game structs.CollegeGame,
 	homeTeamStats structs.CollegeTeamGameStats,
 	awayTeamStats structs.CollegeTeamGameStats,
 	starOne, starTwo, starThree string,
-) []string {
-	return buildHockeyPostGameParagraphs(
+	homePlayerStats []structs.CollegePlayerGameStats,
+	awayPlayerStats []structs.CollegePlayerGameStats,
+	collegePlayersMap map[uint]structs.CollegePlayer,
+) []map[string]interface{} {
+	nodes := buildHockeyPostGameNodes(
 		game.AwayTeam, game.HomeTeam,
 		int(game.AwayTeamScore), int(game.HomeTeamScore),
 		int(game.AwayTeamShootoutScore), int(game.HomeTeamShootoutScore),
@@ -134,15 +144,23 @@ func buildCHLPostGameParagraphs(
 		awayTeamStats.BaseTeamStats, homeTeamStats.BaseTeamStats,
 		starOne, starTwo, starThree,
 	)
+	awayRows := toCHLPlayerStatRows(awayPlayerStats, collegePlayersMap)
+	homeRows := toCHLPlayerStatRows(homePlayerStats, collegePlayersMap)
+	nodes = appendHockeyPlayerStatTables(nodes, game.AwayTeam, awayRows, game.HomeTeam, homeRows)
+	nodes = append(nodes, rtParagraph("Postgame discussion is open. Share your reactions below."))
+	return nodes
 }
 
-func buildPHLPostGameParagraphs(
+func buildPHLPostGameNodes(
 	game structs.ProfessionalGame,
 	homeTeamStats structs.ProfessionalTeamGameStats,
 	awayTeamStats structs.ProfessionalTeamGameStats,
 	starOne, starTwo, starThree string,
-) []string {
-	return buildHockeyPostGameParagraphs(
+	homePlayerStats []structs.ProfessionalPlayerGameStats,
+	awayPlayerStats []structs.ProfessionalPlayerGameStats,
+	proPlayersMap map[uint]structs.ProfessionalPlayer,
+) []map[string]interface{} {
+	nodes := buildHockeyPostGameNodes(
 		game.AwayTeam, game.HomeTeam,
 		int(game.AwayTeamScore), int(game.HomeTeamScore),
 		int(game.AwayTeamShootoutScore), int(game.HomeTeamShootoutScore),
@@ -151,11 +169,16 @@ func buildPHLPostGameParagraphs(
 		awayTeamStats.BaseTeamStats, homeTeamStats.BaseTeamStats,
 		starOne, starTwo, starThree,
 	)
+	awayRows := toPHLPlayerStatRows(awayPlayerStats, proPlayersMap)
+	homeRows := toPHLPlayerStatRows(homePlayerStats, proPlayersMap)
+	nodes = appendHockeyPlayerStatTables(nodes, game.AwayTeam, awayRows, game.HomeTeam, homeRows)
+	nodes = append(nodes, rtParagraph("Postgame discussion is open. Share your reactions below."))
+	return nodes
 }
 
-// buildHockeyPostGameParagraphs constructs the ordered list of paragraph strings
+// buildHockeyPostGameNodes constructs the ordered list of ProseMirror content nodes
 // for both CHL and PHL post-game forum posts.
-func buildHockeyPostGameParagraphs(
+func buildHockeyPostGameNodes(
 	awayTeam, homeTeam string,
 	awayScore, homeScore int,
 	awayShootoutScore, homeShootoutScore int,
@@ -163,8 +186,8 @@ func buildHockeyPostGameParagraphs(
 	arena, city, state, country string,
 	away, home structs.BaseTeamStats,
 	starOne, starTwo, starThree string,
-) []string {
-	paras := []string{}
+) []map[string]interface{} {
+	nodes := []map[string]interface{}{}
 
 	// ── Final score ──────────────────────────────────────────────────────────
 	suffix := ""
@@ -173,49 +196,50 @@ func buildHockeyPostGameParagraphs(
 	} else if isOvertime {
 		suffix = " (OT)"
 	}
-	paras = append(paras, fmt.Sprintf(
+	nodes = append(nodes, rtBoldParagraph(fmt.Sprintf(
 		"FINAL%s: %s %d, %s %d",
 		suffix, awayTeam, awayScore, homeTeam, homeScore,
+	)))
+
+	// ── Period scoring table ──────────────────────────────────────────────────
+	nodes = append(nodes, rtHeading(3, "Scoring by Period"))
+	awayTotal := int(away.Period1Score) + int(away.Period2Score) + int(away.Period3Score) + int(away.OTScore)
+	homeTotal := int(home.Period1Score) + int(home.Period2Score) + int(home.Period3Score) + int(home.OTScore)
+	periodHeaders := []string{"Team", "P1", "P2", "P3", "OT", "Total"}
+	periodRows := [][]string{
+		{awayTeam, fmt.Sprintf("%d", away.Period1Score), fmt.Sprintf("%d", away.Period2Score), fmt.Sprintf("%d", away.Period3Score), fmt.Sprintf("%d", away.OTScore), fmt.Sprintf("%d", awayTotal)},
+		{homeTeam, fmt.Sprintf("%d", home.Period1Score), fmt.Sprintf("%d", home.Period2Score), fmt.Sprintf("%d", home.Period3Score), fmt.Sprintf("%d", home.OTScore), fmt.Sprintf("%d", homeTotal)},
+	}
+	if isShootout {
+		periodHeaders = []string{"Team", "P1", "P2", "P3", "OT", "SO", "Total"}
+		periodRows = [][]string{
+			{awayTeam, fmt.Sprintf("%d", away.Period1Score), fmt.Sprintf("%d", away.Period2Score), fmt.Sprintf("%d", away.Period3Score), fmt.Sprintf("%d", away.OTScore), fmt.Sprintf("%d", awayShootoutScore), fmt.Sprintf("%d", awayTotal)},
+			{homeTeam, fmt.Sprintf("%d", home.Period1Score), fmt.Sprintf("%d", home.Period2Score), fmt.Sprintf("%d", home.Period3Score), fmt.Sprintf("%d", home.OTScore), fmt.Sprintf("%d", homeShootoutScore), fmt.Sprintf("%d", homeTotal)},
+		}
+	}
+	nodes = append(nodes, rtTableNode(periodHeaders, periodRows))
+
+	// ── Offense table ─────────────────────────────────────────────────────────
+	nodes = append(nodes, rtHeading(3, "Offense"))
+	nodes = append(nodes, rtTableNode(
+		[]string{"Team", "Goals", "Shots", "PP", "SH", "OT Goals"},
+		[][]string{
+			{awayTeam, fmt.Sprintf("%d", away.GoalsFor), fmt.Sprintf("%d", away.Shots), fmt.Sprintf("%d", away.PowerPlayGoals), fmt.Sprintf("%d", away.ShorthandedGoals), fmt.Sprintf("%d", away.OvertimeGoals)},
+			{homeTeam, fmt.Sprintf("%d", home.GoalsFor), fmt.Sprintf("%d", home.Shots), fmt.Sprintf("%d", home.PowerPlayGoals), fmt.Sprintf("%d", home.ShorthandedGoals), fmt.Sprintf("%d", home.OvertimeGoals)},
+		},
 	))
 
-	// ── Period-by-period scoring ──────────────────────────────────────────────
-	awayPeriods := formatPeriods(awayTeam, away, awayShootoutScore, isShootout)
-	homePeriods := formatPeriods(homeTeam, home, homeShootoutScore, isShootout)
-	paras = append(paras, "SCORING BY PERIOD:\n"+awayPeriods)
-	paras = append(paras, "\n"+homePeriods)
-	paras = append(paras, "Note: OT and SO scoring is included in the final score but not the period breakdown.")
+	// ── Goaltending table ─────────────────────────────────────────────────────
+	nodes = append(nodes, rtHeading(3, "Goaltending"))
+	nodes = append(nodes, rtTableNode(
+		[]string{"Team", "Saves", "Shots Against", "SV%"},
+		[][]string{
+			{awayTeam, fmt.Sprintf("%d", away.Saves), fmt.Sprintf("%d", away.ShotsAgainst), fmt.Sprintf("%.3f", away.SavePercentage)},
+			{homeTeam, fmt.Sprintf("%d", home.Saves), fmt.Sprintf("%d", home.ShotsAgainst), fmt.Sprintf("%.3f", home.SavePercentage)},
+		},
+	))
 
-	// ── Offensive stats ───────────────────────────────────────────────────────
-	offLines := []string{
-		"OFFENSE:\n",
-		fmt.Sprintf("  %-20s  Goals: %2d   Shots: %3d   PP: %d   SH: %d   OT: %d\n",
-			awayTeam,
-			away.GoalsFor, away.Shots,
-			away.PowerPlayGoals, away.ShorthandedGoals, away.OvertimeGoals,
-		),
-		fmt.Sprintf("  %-20s  Goals: %2d   Shots: %3d   PP: %d   SH: %d   OT: %d\n",
-			homeTeam,
-			home.GoalsFor, home.Shots,
-			home.PowerPlayGoals, home.ShorthandedGoals, home.OvertimeGoals,
-		),
-	}
-	paras = append(paras, offLines...)
-
-	// ── Goaltending ──────────────────────────────────────────────────────────
-	gtLines := []string{
-		"GOALTENDING:\n",
-		fmt.Sprintf("  %-20s  Saves: %3d / %3d   SV%%: %.3f\n",
-			awayTeam,
-			away.Saves, away.ShotsAgainst, away.SavePercentage,
-		),
-		fmt.Sprintf("  %-20s  Saves: %3d / %3d   SV%%: %.3f\n",
-			homeTeam,
-			home.Saves, home.ShotsAgainst, home.SavePercentage,
-		),
-	}
-	paras = append(paras, gtLines...)
-
-	// ── Venue ────────────────────────────────────────────────────────────────
+	// ── Venue ─────────────────────────────────────────────────────────────────
 	venueStr := arena
 	if city != "" || state != "" || country != "" {
 		location := city
@@ -238,28 +262,24 @@ func buildHockeyPostGameParagraphs(
 		}
 	}
 	if venueStr != "" {
-		paras = append(paras, "VENUE: "+venueStr)
+		nodes = append(nodes, rtParagraph("Venue: "+venueStr))
 	}
 
 	// ── Three Stars ───────────────────────────────────────────────────────────
 	if starOne != "" || starTwo != "" || starThree != "" {
-		starsLines := []string{"THREE STARS:\n"}
+		nodes = append(nodes, rtHeading(3, "Three Stars"))
 		if starOne != "" {
-			starsLines = append(starsLines, "  ⭐⭐⭐ "+starOne+"\n")
+			nodes = append(nodes, rtParagraph("⭐⭐⭐ "+starOne))
 		}
 		if starTwo != "" {
-			starsLines = append(starsLines, "  ⭐⭐  "+starTwo+"\n")
+			nodes = append(nodes, rtParagraph("⭐⭐ "+starTwo))
 		}
 		if starThree != "" {
-			starsLines = append(starsLines, "  ⭐     "+starThree)
+			nodes = append(nodes, rtParagraph("⭐ "+starThree))
 		}
-		paras = append(paras, starsLines...)
 	}
 
-	// ── Discussion prompt ─────────────────────────────────────────────────────
-	paras = append(paras, "Postgame discussion is open. Share your reactions below.")
-
-	return paras
+	return nodes
 }
 
 // formatPeriods returns a single line showing per-period scoring for a team.
@@ -311,6 +331,177 @@ func LookupProStarName(id uint, playerMap map[uint]structs.ProfessionalPlayer) s
 		return fmt.Sprintf("%s %s (%s)", p.FirstName, p.LastName, p.Position)
 	}
 	return ""
+}
+
+// ─────────────────────────────────────────────
+// Player stat helpers
+// ─────────────────────────────────────────────
+
+// hockeyPlayerStatRow pairs a display label and position with a player's per-game stats.
+type hockeyPlayerStatRow struct {
+	Label    string
+	Position string
+	structs.BasePlayerStats
+}
+
+// toCHLPlayerStatRows converts a slice of college player game stats into hockeyPlayerStatRows.
+func toCHLPlayerStatRows(stats []structs.CollegePlayerGameStats, playerMap map[uint]structs.CollegePlayer) []hockeyPlayerStatRow {
+	rows := make([]hockeyPlayerStatRow, 0, len(stats))
+	for _, s := range stats {
+		p, ok := playerMap[s.PlayerID]
+		if !ok {
+			continue
+		}
+		label := fmt.Sprintf("%s %s (%s)", p.FirstName, p.LastName, p.Position)
+		rows = append(rows, hockeyPlayerStatRow{Label: label, Position: p.Position, BasePlayerStats: s.BasePlayerStats})
+	}
+	return rows
+}
+
+// toPHLPlayerStatRows converts a slice of professional player game stats into hockeyPlayerStatRows.
+func toPHLPlayerStatRows(stats []structs.ProfessionalPlayerGameStats, playerMap map[uint]structs.ProfessionalPlayer) []hockeyPlayerStatRow {
+	rows := make([]hockeyPlayerStatRow, 0, len(stats))
+	for _, s := range stats {
+		p, ok := playerMap[s.PlayerID]
+		if !ok {
+			continue
+		}
+		label := fmt.Sprintf("%s %s (%s)", p.FirstName, p.LastName, p.Position)
+		rows = append(rows, hockeyPlayerStatRow{Label: label, Position: p.Position, BasePlayerStats: s.BasePlayerStats})
+	}
+	return rows
+}
+
+// appendHockeyPlayerStatTables appends per-player stat sections for forwards, defenders,
+// and goalies to the node list. Within each section rows are sorted by team then by
+// primary stat descending.
+func appendHockeyPlayerStatTables(
+	nodes []map[string]interface{},
+	awayTeam string, awayRows []hockeyPlayerStatRow,
+	homeTeam string, homeRows []hockeyPlayerStatRow,
+) []map[string]interface{} {
+	allRows := append(awayRows, homeRows...)
+
+	// ── Forwards (Centers & Wingers) ─────────────────────────────────────────
+	var fwdRows [][]string
+	var forwards []hockeyPlayerStatRow
+	for _, r := range allRows {
+		if r.Position == "C" || r.Position == "F" {
+			forwards = append(forwards, r)
+		}
+	}
+	sort.Slice(forwards, func(i, j int) bool {
+		if forwards[i].TeamID != forwards[j].TeamID {
+			return forwards[i].TeamID < forwards[j].TeamID
+		}
+		if forwards[i].Goals != forwards[j].Goals {
+			return forwards[i].Goals > forwards[j].Goals
+		}
+		return forwards[i].Points > forwards[j].Points
+	})
+	for _, r := range forwards {
+		shotPct := "0.0%"
+		if r.Shots > 0 {
+			shotPct = fmt.Sprintf("%.1f%%", float32(r.Goals)/float32(r.Shots)*100)
+		}
+		fwdRows = append(fwdRows, []string{
+			r.Label,
+			fmt.Sprintf("%d", r.Goals),
+			fmt.Sprintf("%d", r.Assists),
+			fmt.Sprintf("%d", r.Points),
+			fmt.Sprintf("%+d", r.PlusMinus),
+			fmt.Sprintf("%d", r.PenaltyMinutes),
+			fmt.Sprintf("%d", r.PowerPlayGoals),
+			fmt.Sprintf("%d", r.ShorthandedGoals),
+			fmt.Sprintf("%d", r.Shots),
+			shotPct,
+		})
+	}
+	if len(fwdRows) > 0 {
+		nodes = append(nodes, rtHeading(3, "Forwards"))
+		nodes = append(nodes, rtTableNode(
+			[]string{"Player", "G", "A", "PTS", "+/-", "PIM", "PPG", "SHG", "Shots", "S%"},
+			fwdRows,
+		))
+	}
+
+	// ── Defenders ─────────────────────────────────────────────────────────────
+	var defRows [][]string
+	var defenders []hockeyPlayerStatRow
+	for _, r := range allRows {
+		if r.Position == "D" {
+			defenders = append(defenders, r)
+		}
+	}
+	sort.Slice(defenders, func(i, j int) bool {
+		if defenders[i].TeamID != defenders[j].TeamID {
+			return defenders[i].TeamID < defenders[j].TeamID
+		}
+		if defenders[i].Points != defenders[j].Points {
+			return defenders[i].Points > defenders[j].Points
+		}
+		return defenders[i].PlusMinus > defenders[j].PlusMinus
+	})
+	for _, r := range defenders {
+		defRows = append(defRows, []string{
+			r.Label,
+			fmt.Sprintf("%d", r.Goals),
+			fmt.Sprintf("%d", r.Assists),
+			fmt.Sprintf("%d", r.Points),
+			fmt.Sprintf("%+d", r.PlusMinus),
+			fmt.Sprintf("%d", r.PenaltyMinutes),
+			fmt.Sprintf("%d", r.ShotsBlocked),
+			fmt.Sprintf("%d", r.BodyChecks),
+		})
+	}
+	if len(defRows) > 0 {
+		nodes = append(nodes, rtHeading(3, "Defenders"))
+		nodes = append(nodes, rtTableNode(
+			[]string{"Player", "G", "A", "PTS", "+/-", "PIM", "ShotBlk", "Checks"},
+			defRows,
+		))
+	}
+
+	// ── Goalies ───────────────────────────────────────────────────────────────
+	var goalieRows [][]string
+	var goalies []hockeyPlayerStatRow
+	for _, r := range allRows {
+		if r.Position == "G" {
+			goalies = append(goalies, r)
+		}
+	}
+	sort.Slice(goalies, func(i, j int) bool {
+		if goalies[i].TeamID != goalies[j].TeamID {
+			return goalies[i].TeamID < goalies[j].TeamID
+		}
+		return goalies[i].Saves > goalies[j].Saves
+	})
+	for _, r := range goalies {
+		svPct := ".000"
+		if r.ShotsAgainst > 0 {
+			svPct = fmt.Sprintf("%.3f", float32(r.Saves)/float32(r.ShotsAgainst))
+		}
+		goalieRows = append(goalieRows, []string{
+			r.Label,
+			fmt.Sprintf("%d", r.Saves),
+			fmt.Sprintf("%d", r.ShotsAgainst),
+			fmt.Sprintf("%d", r.GoalsAgainst),
+			svPct,
+			fmt.Sprintf("%d", r.Shutouts),
+			fmt.Sprintf("%d-%d", r.GoalieWins, r.GoalieLosses),
+		})
+	}
+	if len(goalieRows) > 0 {
+		nodes = append(nodes, rtHeading(3, "Goalies"))
+		nodes = append(nodes, rtTableNode(
+			[]string{"Player", "Saves", "SA", "GA", "SV%", "SO", "W-L"},
+			goalieRows,
+		))
+	}
+
+	_ = awayTeam
+	_ = homeTeam
+	return nodes
 }
 
 // ─────────────────────────────────────────────
@@ -634,4 +825,147 @@ func buildRichPostBody(paragraphs []string) map[string]interface{} {
 		"type":    "doc",
 		"content": content,
 	}
+}
+
+// buildRichDoc wraps a slice of content nodes into a top-level ProseMirror doc.
+func buildRichDoc(nodes []map[string]interface{}) map[string]interface{} {
+	return map[string]interface{}{
+		"type":    "doc",
+		"content": nodes,
+	}
+}
+
+// rtParagraph creates a plain paragraph node.
+func rtParagraph(text string) map[string]interface{} {
+	return map[string]interface{}{
+		"type": "paragraph",
+		"content": []map[string]interface{}{
+			{"type": "text", "text": text},
+		},
+	}
+}
+
+// rtBoldParagraph creates a paragraph with bold-marked text.
+func rtBoldParagraph(text string) map[string]interface{} {
+	return map[string]interface{}{
+		"type": "paragraph",
+		"content": []map[string]interface{}{
+			{
+				"type":  "text",
+				"text":  text,
+				"marks": []map[string]interface{}{{"type": "bold"}},
+			},
+		},
+	}
+}
+
+// rtHeading creates a heading node at the given level (1–6).
+func rtHeading(level int, text string) map[string]interface{} {
+	return map[string]interface{}{
+		"type":  "heading",
+		"attrs": map[string]interface{}{"level": level, "textAlign": "left"},
+		"content": []map[string]interface{}{
+			{"type": "text", "text": text},
+		},
+	}
+}
+
+// rtTableCell creates a single table header or data cell wrapping text in a paragraph.
+func rtTableCell(text string, isHeader bool) map[string]interface{} {
+	cellType := "tableCell"
+	if isHeader {
+		cellType = "tableHeader"
+	}
+	return map[string]interface{}{
+		"type":  cellType,
+		"attrs": map[string]interface{}{"colspan": 1, "rowspan": 1, "colwidth": nil},
+		"content": []map[string]interface{}{
+			{
+				"type":  "paragraph",
+				"attrs": map[string]interface{}{"textAlign": nil},
+				"content": []map[string]interface{}{
+					{"type": "text", "text": text},
+				},
+			},
+		},
+	}
+}
+
+// rtTableNode builds a TipTap-compatible table node from header strings and row data.
+// The first row is rendered as tableHeader cells; all subsequent rows as tableCell.
+func rtTableNode(headers []string, rows [][]string) map[string]interface{} {
+	tableRows := []map[string]interface{}{}
+
+	headerCells := make([]map[string]interface{}, len(headers))
+	for i, h := range headers {
+		headerCells[i] = rtTableCell(h, true)
+	}
+	tableRows = append(tableRows, map[string]interface{}{
+		"type":    "tableRow",
+		"content": headerCells,
+	})
+
+	for _, row := range rows {
+		cells := make([]map[string]interface{}, len(row))
+		for i, cell := range row {
+			cells[i] = rtTableCell(cell, false)
+		}
+		tableRows = append(tableRows, map[string]interface{}{
+			"type":    "tableRow",
+			"content": cells,
+		})
+	}
+
+	return map[string]interface{}{
+		"type":    "table",
+		"content": tableRows,
+	}
+}
+
+// nodesToPlainText extracts readable plain text from rich nodes for the bodyText field.
+func nodesToPlainText(nodes []map[string]interface{}) string {
+	var lines []string
+	for _, node := range nodes {
+		switch node["type"] {
+		case "paragraph", "heading":
+			if text := extractInlineText(node); text != "" {
+				lines = append(lines, text)
+			}
+		case "table":
+			if rows, ok := node["content"].([]map[string]interface{}); ok {
+				for _, row := range rows {
+					if cells, ok := row["content"].([]map[string]interface{}); ok {
+						var cellTexts []string
+						for _, cell := range cells {
+							cellTexts = append(cellTexts, extractCellPlainText(cell))
+						}
+						lines = append(lines, strings.Join(cellTexts, "  |  "))
+					}
+				}
+			}
+		}
+	}
+	return strings.Join(lines, "\n\n")
+}
+
+func extractInlineText(node map[string]interface{}) string {
+	if content, ok := node["content"].([]map[string]interface{}); ok {
+		var texts []string
+		for _, child := range content {
+			if t, ok := child["text"].(string); ok {
+				texts = append(texts, t)
+			}
+		}
+		return strings.Join(texts, "")
+	}
+	return ""
+}
+
+func extractCellPlainText(cell map[string]interface{}) string {
+	if content, ok := cell["content"].([]map[string]interface{}); ok {
+		for _, para := range content {
+			return extractInlineText(para)
+		}
+	}
+	return ""
 }
