@@ -20,6 +20,8 @@ func RunGames(games []structs.GameDTO) []GameState {
 
 func RunTheGame(game structs.GameDTO) GameState {
 	gs := generateGameState(game)
+	gs.HomeStrategy.ScrubInjuredPlayersFromLineups()
+	gs.AwayStrategy.ScrubInjuredPlayersFromLineups()
 	gs.HomeStrategy.InitializeStamina()
 	gs.AwayStrategy.InitializeStamina()
 

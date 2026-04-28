@@ -152,7 +152,7 @@ func calculateBaseModifier(attr int) float32 {
 }
 
 func calculateAdjustmentFactor(teamAttr, playerPref int) float32 {
-	return 1 + float32((teamAttr-playerPref)/10)
+	return 1 + float32(teamAttr-playerPref)/10
 }
 
 func calculateMultiplier(teamAttr uint, playerPref uint) float32 {

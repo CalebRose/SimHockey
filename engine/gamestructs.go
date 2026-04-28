@@ -559,6 +559,53 @@ func (gp *GamePlaybook) handleLineReplacement(players []*GamePlayer, playerID, r
 	return filteredPlayers
 }
 
+// ScrubInjuredPlayersFromLineups sweeps all lineups before game start and
+// removes any players who are already injured, replacing them from the bench.
+func (gp *GamePlaybook) ScrubInjuredPlayersFromLineups() {
+	// Sweep all forward lines
+	for i := range gp.Forwards {
+		for _, pid := range collectInjuredIDs(gp.Forwards[i].Players) {
+			if player, ok := gp.RosterMap[pid]; ok {
+				gp.AddPlayerToInjuredPlayerList(player)
+			}
+			gp.Forwards[i].Players = gp.handleLineReplacement(
+				gp.Forwards[i].Players, pid, 3, 1, Forward)
+		}
+	}
+
+	// Sweep all defender lines
+	for i := range gp.Defenders {
+		for _, pid := range collectInjuredIDs(gp.Defenders[i].Players) {
+			if player, ok := gp.RosterMap[pid]; ok {
+				gp.AddPlayerToInjuredPlayerList(player)
+			}
+			gp.Defenders[i].Players = gp.handleLineReplacement(
+				gp.Defenders[i].Players, pid, 2, 2, Defender)
+		}
+	}
+
+	// Sweep all goalie lines
+	for i := range gp.Goalies {
+		for _, pid := range collectInjuredIDs(gp.Goalies[i].Players) {
+			if player, ok := gp.RosterMap[pid]; ok {
+				gp.AddPlayerToInjuredPlayerList(player)
+			}
+			gp.Goalies[i].Players = gp.handleLineReplacement(
+				gp.Goalies[i].Players, pid, 1, 3, Goalie)
+		}
+	}
+}
+
+func collectInjuredIDs(players []*GamePlayer) []uint {
+	ids := []uint{}
+	for _, p := range players {
+		if p.IsInjured {
+			ids = append(ids, p.ID)
+		}
+	}
+	return ids
+}
+
 func (gp *GamePlaybook) InitializeStamina() {
 	for idx := range gp.Forwards {
 		gp.Forwards[idx].InitializeBoostedStamina(false)
