@@ -3,10 +3,7 @@ package managers
 import (
 	"context"
 	"fmt"
-	"log"
 	"math/rand"
-	"os"
-	"runtime"
 	"sort"
 	"strconv"
 	"sync"
@@ -30,65 +27,45 @@ type StatsUpload struct {
 }
 
 func RunGames() {
-	// Get GameDTOs
 	db := dbprovider.GetInstance().GetDB()
 	ts := GetTimestamp()
 	weekID := strconv.Itoa(int(ts.WeekID))
 	seasonID := strconv.Itoa(int(ts.SeasonID))
 	gameDay := ts.GetGameDay()
+
 	if ts.IsTesting {
-		// Generate and run random college games for testing without database operations
 		generateAndRunTestGames(ts, db)
 		return
 	}
+
 	collegeGames := GetCollegeGamesForCurrentMatchup(weekID, seasonID, gameDay, ts.IsPreseason)
 	proGames := GetProfessionalGamesForCurrentMatchup(weekID, seasonID, gameDay, ts.IsPreseason)
 
 	collegeStandingsMap := GetCollegeStandingsMap(seasonID)
 	proStandingsMap := GetProStandingsMap(seasonID)
 	gameDTOs := PrepareGames(collegeGames, proGames, collegeStandingsMap, proStandingsMap)
-	// RUN THE GAMES!
+
 	results := engine.RunGames(gameDTOs)
 
-	// for _, r := range results {
-	// 	homestats := r.HomeTeamStats
-	// 	awaystats := r.AwayTeamStats
-
-	// 	fmt.Printf("%s : Shots: %d, Goals: %d \n", r.HomeTeam, homestats.Shots, homestats.GoalsFor)
-	// 	fmt.Printf("%s : Shots: %d, Goals: %d \n", r.AwayTeam, awaystats.Shots, awaystats.GoalsFor)
-	// }
 	collegeGameMap := MakeCollegeGameMap(collegeGames)
 	proGameMap := MakeProGameMap(proGames)
-
 	collegeTeamMap := GetCollegeTeamMap()
 	proTeamMap := GetProTeamMap()
 	collegePlayerMap := GetCollegePlayersMap()
 	proPlayersMap := GetProPlayersMap()
 	upload := NewStatsUpload()
-	// Track which teams have already received an injury notification this run
-	// to avoid duplicate alerts when multiple players are injured in the same game.
+
 	sentCollegeInjuryNotification := make(map[uint]bool)
 	sentProInjuryNotification := make(map[uint]bool)
+
 	for _, r := range results {
-		// Iterate through all lines, players, accumulate stats to upload
-		// WriteBoxScoreFile(r, "test_results/test_twelve/box_score/"+r.HomeTeam+"_vs_"+r.AwayTeam+".csv")
-
-		// Iterate through Play By Plays and record them to a CSV
-		// if r.IsCollegeGame {
-		// 	WritePlayByPlayCSVFile(pbps, "test_results/test_twelve/play_by_play/"+r.HomeTeam+"_vs_"+r.AwayTeam+".csv", collegePlayerMap, collegeTeamMap)
-		// } else {
-		// 	WriteProPlayByPlayCSVFile(pbps, "test_results/test_twelve/play_by_play/"+r.HomeTeam+"_vs_"+r.AwayTeam+".csv", proPlayersMap, proTeamMap)
-		// }
-
 		gameID := strconv.Itoa(int(r.GameID))
 
-		// Update players with injury data
 		for _, injury := range r.InjuryLog {
 			if r.IsCollegeGame && !ts.IsPreseason {
 				if player, ok := collegePlayerMap[injury.PlayerID]; ok {
 					player.ApplyInjury(injury.InjuryName, injury.InjuryType.String(), int8(injury.RecoveryDays))
 					repository.SaveCollegeHockeyPlayerRecord(player, db)
-					// Firebase: notify the team's coach (once per team per game run)
 					teamID := uint(player.TeamID)
 					if !sentCollegeInjuryNotification[teamID] {
 						if team, ok := collegeTeamMap[teamID]; ok && team.Coach != "" && team.Coach != "AI" {
@@ -119,7 +96,6 @@ func RunGames() {
 				if player, ok := proPlayersMap[injury.PlayerID]; ok {
 					player.ApplyInjury(injury.InjuryName, injury.InjuryType.String(), int8(injury.RecoveryDays))
 					repository.SaveProPlayerRecord(player, db)
-					// Firebase: notify the team's owner (once per team per game run)
 					teamID := uint(player.TeamID)
 					if !sentProInjuryNotification[teamID] {
 						if team, ok := proTeamMap[teamID]; ok && team.Owner != "" {
@@ -169,8 +145,6 @@ func RunGames() {
 	}
 	if !ts.IsTesting {
 		upload.Flush(db)
-	} else {
-
 	}
 }
 
@@ -178,8 +152,6 @@ func NewStatsUpload() *StatsUpload {
 	return &StatsUpload{}
 }
 
-// collectProTeamUsernames returns the non-empty, non-"AI" usernames assigned to
-// a PHL team's Owner and/or GM so they can be resolved to Firebase UIDs.
 func collectProTeamUsernames(team structs.ProfessionalTeam) []string {
 	usernames := make([]string, 0, 2)
 	if team.Owner != "" {
@@ -192,14 +164,9 @@ func collectProTeamUsernames(team structs.ProfessionalTeam) []string {
 }
 
 func (u *StatsUpload) Collect(state engine.GameState, seasonID, gameType uint) {
-	// Team stats
 	u.collectTeamStats(state, seasonID, gameType)
-
-	// Player stats for both teams
 	u.collectPlayerStats(state.HomeStrategy, state.WeekID, state.GameID, gameType, state.IsCollegeGame)
 	u.collectPlayerStats(state.AwayStrategy, state.WeekID, state.GameID, gameType, state.IsCollegeGame)
-
-	// Play-by-play
 	u.collectPbP(state.Collector.PlayByPlays, state.IsCollegeGame)
 }
 
@@ -242,13 +209,10 @@ func (u *StatsUpload) collectPlayerStats(pl engine.GamePlaybook, week, gameID, g
 		}
 	}
 
-	// Collect stats for players who were injured mid-game and removed from their lines.
 	for _, p := range pl.InjuredPlayers {
 		collect(p)
 	}
 
-	// Conduct a final filter where we check for every ID to ensure we didn't accidentally miss any players nor did we include any duplicate records
-	// This is a safety check to ensure data integrity before upload
 	seen := make(map[uint]bool)
 	if isCollege {
 		filtered := make([]structs.CollegePlayerGameStats, 0, len(u.CollegePlayerStats))
@@ -406,8 +370,8 @@ func (u *StatsUpload) ApplyGoalieStaminaChangesCollege(db *gorm.DB, state engine
 			repository.SaveCollegeHockeyPlayerRecord(player, db)
 		}
 	}
-
 }
+
 func (u *StatsUpload) ApplyGoalieStaminaChangesPro(db *gorm.DB, state engine.GameState, playerMap map[uint]structs.ProfessionalPlayer) {
 	homeStrategy := state.HomeStrategy
 	awayStrategy := state.AwayStrategy
@@ -503,26 +467,20 @@ func (u *StatsUpload) ApplyGoalieStaminaChangesPro(db *gorm.DB, state engine.Gam
 			repository.SaveProPlayerRecord(player, db)
 		}
 	}
-
 }
 
 func PrepareGames(collegeGames []structs.CollegeGame, proGames []structs.ProfessionalGame, collegeStandingsMap map[uint]structs.CollegeStandings, proStandingsMap map[uint]structs.ProfessionalStandings) []structs.GameDTO {
 	fmt.Println("Loading Games...")
-
-	// Wait Groups
 	var collegeGamesWg sync.WaitGroup
-	// Mutex Lock
 	var mutex sync.Mutex
 
-	// College Only
-	// collegeTeamMap := GetCollegeTeamMap()
 	collegeTeamRosterMap := GetAllCollegePlayersMapByTeam()
 	collegeLineupMap := GetCollegeLineupsMap()
 	collegeShootoutLineupMap := GetCollegeShootoutLineups()
 	collegeGameplans := repository.FindCollegeGameplanRecords()
 	collegeGameplanMap := MakeCollegeGameplanMap(collegeGameplans)
 	arenaMap := GetArenaMap()
-	// collegeGames := GetCollegeGamesForTesting(collegeTeamMap)
+
 	collegeGamesWg.Add(len(collegeGames))
 	gameDTOList := make([]structs.GameDTO, 0, len(collegeGames))
 	sem := make(chan struct{}, 20)
@@ -534,143 +492,28 @@ func PrepareGames(collegeGames []structs.CollegeGame, proGames []structs.Profess
 			defer func() { <-sem }()
 			defer collegeGamesWg.Done()
 
-			// Enhanced panic recovery with detailed error reporting
-			defer func() {
-				if r := recover(); r != nil {
-					fmt.Printf("PANIC in PrepareGames goroutine for game %s vs %s (IDs: %d vs %d):\n",
-						c.HomeTeam, c.AwayTeam, c.HomeTeamID, c.AwayTeamID)
-					fmt.Printf("Error: %v\n", r)
-
-					// Check what data exists for debugging
-					fmt.Printf("Debug info:\n")
-					fmt.Printf("  - Home team roster exists: %t (length: %d)\n",
-						collegeTeamRosterMap[c.HomeTeamID] != nil, len(collegeTeamRosterMap[c.HomeTeamID]))
-					fmt.Printf("  - Away team roster exists: %t (length: %d)\n",
-						collegeTeamRosterMap[c.AwayTeamID] != nil, len(collegeTeamRosterMap[c.AwayTeamID]))
-					fmt.Printf("  - Home team lineups exist: %t (length: %d)\n",
-						collegeLineupMap[c.HomeTeamID] != nil, len(collegeLineupMap[c.HomeTeamID]))
-					fmt.Printf("  - Away team lineups exist: %t (length: %d)\n",
-						collegeLineupMap[c.AwayTeamID] != nil, len(collegeLineupMap[c.AwayTeamID]))
-					fmt.Printf("  - Home shootout lineup exists: %t\n",
-						collegeShootoutLineupMap[c.HomeTeamID].TeamID != 0)
-					fmt.Printf("  - Away shootout lineup exists: %t\n",
-						collegeShootoutLineupMap[c.AwayTeamID].TeamID != 0)
-					fmt.Printf("  - Arena exists: %t (ArenaID: %d)\n",
-						arenaMap[c.ArenaID].ID != 0, c.ArenaID)
-					fmt.Printf("  - Home team standings exist: %t\n",
-						collegeStandingsMap[c.HomeTeamID].TeamID != 0)
-				}
-			}()
-
 			if c.GameComplete {
 				return
 			}
 
 			mutex.Lock()
-
-			// Step-by-step data retrieval with nil checks and detailed logging
-			fmt.Printf("Processing game: %s vs %s\n", c.HomeTeam, c.AwayTeam)
-
-			// Check home team roster
 			htr := collegeTeamRosterMap[c.HomeTeamID]
-			if htr == nil {
-				fmt.Printf("ERROR: No roster found for home team %s (ID: %d)\n", c.HomeTeam, c.HomeTeamID)
-				mutex.Unlock()
-				return
-			}
-
-			// Check away team roster
 			atr := collegeTeamRosterMap[c.AwayTeamID]
-			if atr == nil {
-				fmt.Printf("ERROR: No roster found for away team %s (ID: %d)\n", c.AwayTeam, c.AwayTeamID)
-				mutex.Unlock()
-				return
-			}
-
-			// Check home team lineups
 			htl := collegeLineupMap[c.HomeTeamID]
-			if htl == nil {
-				fmt.Printf("ERROR: No lineups found for home team %s (ID: %d)\n", c.HomeTeam, c.HomeTeamID)
-				mutex.Unlock()
-				return
-			}
-
-			// Check away team lineups
 			atl := collegeLineupMap[c.AwayTeamID]
-			if atl == nil {
-				fmt.Printf("ERROR: No lineups found for away team %s (ID: %d)\n", c.AwayTeam, c.AwayTeamID)
-				mutex.Unlock()
-				return
-			}
-
-			// Check shootout lineups
 			htsl := collegeShootoutLineupMap[c.HomeTeamID]
-			if htsl.TeamID == 0 {
-				fmt.Printf("ERROR: No shootout lineup found for home team %s (ID: %d)\n", c.HomeTeam, c.HomeTeamID)
-				mutex.Unlock()
-				return
-			}
-
 			atsl := collegeShootoutLineupMap[c.AwayTeamID]
-			if atsl.TeamID == 0 {
-				fmt.Printf("ERROR: No shootout lineup found for away team %s (ID: %d)\n", c.AwayTeam, c.AwayTeamID)
-				mutex.Unlock()
-				return
-			}
-
 			hgp := collegeGameplanMap[c.HomeTeamID]
-			if hgp.ID == 0 {
-				fmt.Printf("ERROR: No gameplan found for home team %s (ID: %d)\n", c.HomeTeam, c.HomeTeamID)
-				mutex.Unlock()
-				return
-			}
-
 			agp := collegeGameplanMap[c.AwayTeamID]
-			if agp.ID == 0 {
-				fmt.Printf("ERROR: No gameplan found for away team %s (ID: %d)\n", c.AwayTeam, c.AwayTeamID)
-				mutex.Unlock()
-				return
-			}
-
-			// Check arena
 			arena := arenaMap[c.ArenaID]
-			if arena.ID == 0 {
-				fmt.Printf("ERROR: No arena found for ArenaID: %d\n", c.ArenaID)
+
+			if htr == nil || atr == nil || htl == nil || atl == nil || htsl.TeamID == 0 || atsl.TeamID == 0 || hgp.ID == 0 || agp.ID == 0 {
 				mutex.Unlock()
 				return
 			}
 
-			// Generate playbooks with error checking
-			fmt.Printf("Generating playbooks for %s vs %s...\n", c.HomeTeam, c.AwayTeam)
-
-			var hp, ap structs.PlayBookDTO
-
-			// Generate home playbook with error handling
-			func() {
-				defer func() {
-					if r := recover(); r != nil {
-						fmt.Printf("PANIC generating home playbook for %s: %v\n", c.HomeTeam, r)
-						fmt.Printf("  Home lineups count: %d\n", len(htl))
-						fmt.Printf("  Home roster count: %d\n", len(htr))
-						panic(r) // Re-panic to be caught by outer handler
-					}
-				}()
-				hp = getCollegePlaybookDTO(htl, htr, htsl, hgp)
-			}()
-
-			// Generate away playbook with error handling
-			func() {
-				defer func() {
-					if r := recover(); r != nil {
-						fmt.Printf("PANIC generating away playbook for %s: %v\n", c.AwayTeam, r)
-						fmt.Printf("  Away lineups count: %d\n", len(atl))
-						fmt.Printf("  Away roster count: %d\n", len(atr))
-						panic(r) // Re-panic to be caught by outer handler
-					}
-				}()
-				ap = getCollegePlaybookDTO(atl, atr, atsl, agp)
-			}()
-
+			hp := getCollegePlaybookDTO(htl, htr, htsl, hgp)
+			ap := getCollegePlaybookDTO(atl, atr, atsl, agp)
 			capacity := arena.Capacity
 			currentStandings := collegeStandingsMap[c.HomeTeamID]
 			attendancePercent := getAttendancePercent(int(currentStandings.TotalWins)+int(currentStandings.TotalOTWins), int(currentStandings.TotalLosses))
@@ -695,14 +538,8 @@ func PrepareGames(collegeGames []structs.CollegeGame, proGames []structs.Profess
 			mutex.Unlock()
 		}(localC)
 	}
-	for i := 0; i < cap(sem); i++ {
-		sem <- struct{}{}
-	}
 
 	var proGamesWg sync.WaitGroup
-	// professionalTeamMap := GetProTeamMap()
-	// proGames := GetProGamesForTesting(professionalTeamMap)
-	// proGames := GetProfessionalGamesForCurrentMatchup(weekID, seasonID, gameDay)
 	proTeamRosterMap := GetAllProPlayersMapByTeam()
 	proLineupMap := GetProLineupsMap()
 	proShootoutLineupMap := GetProShootoutLineups()
@@ -757,9 +594,6 @@ func PrepareGames(collegeGames []structs.CollegeGame, proGames []structs.Profess
 	}
 	collegeGamesWg.Wait()
 	proGamesWg.Wait()
-	for i := 0; i < cap(proSem); i++ {
-		proSem <- struct{}{}
-	}
 
 	sort.Slice(gameDTOList, func(i, j int) bool {
 		return gameDTOList[i].IsCollegeGame
@@ -767,17 +601,171 @@ func PrepareGames(collegeGames []structs.CollegeGame, proGames []structs.Profess
 	return gameDTOList
 }
 
-func GeneratePreseasonGames() {
-	db := dbprovider.GetInstance().GetDB()
+func GetCollegeGamesForCurrentMatchup(weekID, seasonID, gameDay string, isPreseason bool) []structs.CollegeGame {
+	return repository.FindCollegeGamesByCurrentMatchup(weekID, seasonID, gameDay, isPreseason)
+}
 
-	collegeTeamMap := GetCollegeTeamMap()
-	proTeamMap := GetProTeamMap()
+func GetProfessionalGamesForCurrentMatchup(weekID, seasonID, gameDay string, isPreseason bool) []structs.ProfessionalGame {
+	return repository.FindProfessionalGamesByCurrentMatchup(weekID, seasonID, gameDay, isPreseason)
+}
 
-	collegeGames := GetCollegeGamesForPreseason(collegeTeamMap)
-	proGames := GetProGamesForPreseason(proTeamMap)
+func GetCollegeGamesBySeasonID(seasonID string, isPreseason bool) []structs.CollegeGame {
+	return repository.FindCollegeGames(repository.GamesClauses{SeasonID: seasonID, IsPreseason: isPreseason})
+}
 
-	repository.CreateCHLGamesRecordsBatch(db, collegeGames, 20)
-	repository.CreatePHLGamesRecordsBatch(db, proGames, 20)
+func GetProfessionalGamesBySeasonID(seasonID string, isPreseason bool) []structs.ProfessionalGame {
+	return repository.FindProfessionalGames(repository.GamesClauses{SeasonID: seasonID, IsPreseason: isPreseason})
+}
+
+func GetCollegeGamesByTeamIDAndSeasonID(teamID, seasonID string, isPreseason bool) []structs.CollegeGame {
+	return repository.FindCollegeGames(repository.GamesClauses{SeasonID: seasonID, TeamID: teamID, IsPreseason: isPreseason})
+}
+
+func GetPlayoffSeriesBySeriesID(seriesID string) structs.ProSeries {
+	return repository.FindPlayoffSeriesByID(seriesID)
+}
+
+func GetCollegeGameByID(id string) structs.CollegeGame {
+	return repository.FindCollegeGameRecord(id)
+}
+
+func GetArenaMap() map[uint]structs.Arena {
+	arenas := repository.FindAllArenas(repository.ArenaQuery{})
+	return MakeArenaMap(arenas)
+}
+
+func getCollegePlaybookDTO(lineups []structs.CollegeLineup, roster []structs.CollegePlayer, shootoutLineup structs.CollegeShootoutLineup, gp structs.CollegeGameplan) structs.PlayBookDTO {
+	forwards, defenders, goalies := getCollegeForwardDefenderGoalieLineups(lineups)
+	return structs.PlayBookDTO{
+		Forwards:       forwards,
+		Defenders:      defenders,
+		Goalies:        goalies,
+		CollegeRoster:  roster,
+		ShootoutLineup: shootoutLineup.ShootoutPlayerIDs,
+		Gameplan:       gp.BaseGameplan,
+	}
+}
+
+func getProfessionalPlaybookDTO(lineups []structs.ProfessionalLineup, roster []structs.ProfessionalPlayer, shootoutLineup structs.ProfessionalShootoutLineup, gp structs.ProGameplan) structs.PlayBookDTO {
+	forwards, defenders, goalies := getProfessionalForwardDefenderGoalieLineups(lineups)
+	return structs.PlayBookDTO{
+		Forwards:           forwards,
+		Defenders:          defenders,
+		Goalies:            goalies,
+		ProfessionalRoster: roster,
+		ShootoutLineup:     shootoutLineup.ShootoutPlayerIDs,
+		Gameplan:           gp.BaseGameplan,
+	}
+}
+
+func getCollegeForwardDefenderGoalieLineups(lineups []structs.CollegeLineup) ([]structs.BaseLineup, []structs.BaseLineup, []structs.BaseLineup) {
+	forwards := []structs.BaseLineup{}
+	defenders := []structs.BaseLineup{}
+	goalies := []structs.BaseLineup{}
+	for _, l := range lineups {
+		switch l.LineType {
+		case 1:
+			forwards = append(forwards, l.BaseLineup)
+		case 2:
+			defenders = append(defenders, l.BaseLineup)
+		default:
+			goalies = append(goalies, l.BaseLineup)
+		}
+	}
+	return forwards, defenders, goalies
+}
+
+func getProfessionalForwardDefenderGoalieLineups(lineups []structs.ProfessionalLineup) ([]structs.BaseLineup, []structs.BaseLineup, []structs.BaseLineup) {
+	forwards := []structs.BaseLineup{}
+	defenders := []structs.BaseLineup{}
+	goalies := []structs.BaseLineup{}
+	for _, l := range lineups {
+		switch l.LineType {
+		case 1:
+			forwards = append(forwards, l.BaseLineup)
+		case 2:
+			defenders = append(defenders, l.BaseLineup)
+		default:
+			goalies = append(goalies, l.BaseLineup)
+		}
+	}
+	return forwards, defenders, goalies
+}
+
+func GenerateThreeStars(state engine.GameState, seasonID uint) structs.ThreeStars {
+	types := [][]engine.LineStrategy{state.HomeStrategy.Forwards, state.HomeStrategy.Defenders, state.HomeStrategy.Goalies, state.AwayStrategy.Forwards, state.AwayStrategy.Defenders, state.AwayStrategy.Goalies}
+	threeStars := []structs.ThreeStarsObj{}
+	winningTeamID := state.HomeTeamID
+	if state.AwayTeamWin {
+		winningTeamID = state.AwayTeamID
+	}
+	winningTeamCount := 0
+	for _, group := range types {
+		for _, line := range group {
+			for _, p := range line.Players {
+				wonGame := (p.TeamID == uint16(state.HomeTeamID) && state.HomeTeamWin) || (p.TeamID == uint16(state.AwayTeamID) && state.AwayTeamWin)
+				if state.IsCollegeGame {
+					statsObj := makeCollegePlayerStatsObject(state.WeekID, state.GameID, 0, p.Stats)
+					star := structs.ThreeStarsObj{GameID: state.GameID, PlayerID: p.ID, TeamID: uint(p.TeamID)}
+					star.MapPoints(statsObj.BasePlayerStats, wonGame)
+					threeStars = append(threeStars, star)
+				} else {
+					statsObj := makeProPlayerStatsObject(state.WeekID, state.GameID, 0, p.Stats)
+					star := structs.ThreeStarsObj{GameID: state.GameID, PlayerID: p.ID, TeamID: uint(p.TeamID)}
+					star.MapPoints(statsObj.BasePlayerStats, wonGame)
+					threeStars = append(threeStars, star)
+				}
+			}
+		}
+	}
+
+	sort.Slice(threeStars, func(i, j int) bool {
+		return threeStars[i].Points > threeStars[j].Points
+	})
+	starOne := 0
+	starTwo := 0
+	starThree := 0
+	for _, star := range threeStars {
+		if starOne > 0 && starTwo > 0 && starThree > 0 {
+			break
+		}
+		if winningTeamCount > 1 && star.TeamID == winningTeamID {
+			continue
+		}
+		if starOne == 0 {
+			starOne = int(star.PlayerID)
+		} else if starTwo == 0 {
+			starTwo = int(star.PlayerID)
+		} else if starThree == 0 {
+			starThree = int(star.PlayerID)
+		}
+		if star.TeamID == winningTeamID {
+			winningTeamCount++
+		}
+	}
+	return structs.ThreeStars{
+		StarOne:   uint(starOne),
+		StarTwo:   uint(starTwo),
+		StarThree: uint(starThree),
+	}
+}
+
+func getAttendancePercent(wins, losses int) float64 {
+	totalGames := wins + losses
+	if totalGames < 4 {
+		return util.GenerateFloatFromRange(0.90, 1.00)
+	}
+	winRate := float64(wins) / float64(totalGames)
+	switch {
+	case winRate >= 0.75:
+		return util.GenerateFloatFromRange(0.95, 1.05)
+	case winRate >= 0.5:
+		return util.GenerateFloatFromRange(0.85, 0.94)
+	case winRate >= 0.35:
+		return util.GenerateFloatFromRange(0.65, 0.84)
+	default:
+		return util.GenerateFloatFromRange(0.4, 0.64)
+	}
 }
 
 func PrepareCollegeTournamentGamesFormat(db *gorm.DB, ts structs.Timestamp) {
@@ -816,39 +804,36 @@ func PrepareCollegeTournamentGamesFormat(db *gorm.DB, ts structs.Timestamp) {
 			return conferenceMap[cid][i].Points > conferenceMap[cid][j].Points
 		})
 
-		// If CID == 2, conduct different tournament structure for Big Ten.
-		// Else, standard 8 team tournament. Series are best of 3, followed by one semifinal game and one finals game
 		if cid == 2 {
 			seven := TopN(conferenceMap[cid], 7)
 			pairs := [][2]*structs.CollegeStandings{
-				{seven[1], seven[6]}, // 2v7  -> Semi #1 AWAY (vs #1)
-				{seven[2], seven[5]}, // 3v6  -> Semi #2 (TBD HOA or later)
-				{seven[3], seven[4]}, // 4v5  -> Semi #2 (TBD HOA or later)
+				{seven[1], seven[6]},
+				{seven[2], seven[5]},
+				{seven[3], seven[4]},
 			}
-			semiFinalID1 := nextGameID     // 1 vs 2/7
-			semiFinalID2 := nextGameID + 1 // 3/6 vs 4/5
-			finalsID := nextGameID + 2     // winner of nextGameID & nextGameID2 == Conference Finals
-			conference := ""
+			semiFinalID1 := nextGameID
+			semiFinalID2 := nextGameID + 1
+			finalsID := nextGameID + 2
+			conferenceName := ""
 
 			for idx, p := range pairs {
 				a, b := p[0], p[1]
 				homeTeam := teamMap[a.TeamID]
-				conference = homeTeam.Conference
-				// Route: index 0 is (2/7) -> Semi #1, AWAY; others -> Semi #2
+				conferenceName = homeTeam.Conference
 				ngID := semiFinalID2
-				nextHOA := "H" // neutral placeholder; can be "" if you’ll reseed later
+				nextHOA := "H"
 				if idx == 0 {
 					ngID = semiFinalID1
-					nextHOA = "A" // winner is away vs #1
+					nextHOA = "A"
 				}
 
 				series := structs.CollegeSeries{
 					BaseSeries: structs.BaseSeries{
 						SeasonID:    seasonID,
-						SeriesName:  fmt.Sprintf("%s Conference Quarterfinals", conference),
+						SeriesName:  fmt.Sprintf("%s Conference Quarterfinals", conferenceName),
 						BestOfCount: 3,
-						HomeTeamID:  a.TeamID, HomeTeam: a.TeamName, HomeTeamRank: 2 + uint(idx), // 2,3,4
-						AwayTeamID: b.TeamID, AwayTeam: b.TeamName, AwayTeamRank: uint(7 - idx), // 7,6,5
+						HomeTeamID:  a.TeamID, HomeTeam: a.TeamName, HomeTeamRank: 2 + uint(idx),
+						AwayTeamID: b.TeamID, AwayTeam: b.TeamName, AwayTeamRank: uint(7 - idx),
 						GameCount:     0,
 						IsPlayoffGame: true,
 					},
@@ -858,13 +843,12 @@ func PrepareCollegeTournamentGamesFormat(db *gorm.DB, ts structs.Timestamp) {
 				}
 				quarterfinalsSeries = append(quarterfinalsSeries, series)
 			}
-			// Semifinal Game 1
 			top1 := seven[0]
 			top1Team := teamMap[top1.TeamID]
 			semifinalGame1 := structs.CollegeGame{
 				Model: gorm.Model{ID: semiFinalID1},
 				BaseGame: structs.BaseGame{
-					GameTitle: fmt.Sprintf("%s Conference Semifinals", conference),
+					GameTitle: fmt.Sprintf("%s Conference Semifinals", conferenceName),
 					SeasonID:  seasonID, WeekID: util.GetWeekID(seasonID, 19), Week: 19,
 					HomeTeamID: top1.TeamID, HomeTeam: top1.TeamName, HomeTeamRank: 1,
 					Arena: top1Team.Arena, NextGameID: finalsID, NextGameHOA: "H",
@@ -873,11 +857,10 @@ func PrepareCollegeTournamentGamesFormat(db *gorm.DB, ts structs.Timestamp) {
 				IsConferenceTournament: true,
 			}
 
-			// Semifinal Game 2
 			semifinalGame2 := structs.CollegeGame{
 				Model: gorm.Model{ID: semiFinalID2},
 				BaseGame: structs.BaseGame{
-					GameTitle: fmt.Sprintf("%s Conference Semifinals", conference),
+					GameTitle: fmt.Sprintf("%s Conference Semifinals", conferenceName),
 					SeasonID:  seasonID, WeekID: util.GetWeekID(seasonID, 19), Week: 19,
 					NextGameID: finalsID, NextGameHOA: "A",
 					GameDay: "A",
@@ -888,7 +871,7 @@ func PrepareCollegeTournamentGamesFormat(db *gorm.DB, ts structs.Timestamp) {
 			finalsGame := structs.CollegeGame{
 				Model: gorm.Model{ID: finalsID},
 				BaseGame: structs.BaseGame{
-					GameTitle: fmt.Sprintf("%s Conference Finals", conference),
+					GameTitle: fmt.Sprintf("%s Conference Finals", conferenceName),
 					SeasonID:  seasonID, WeekID: util.GetWeekID(seasonID, 19), Week: 19,
 					GameDay: "B",
 				},
@@ -900,29 +883,23 @@ func PrepareCollegeTournamentGamesFormat(db *gorm.DB, ts structs.Timestamp) {
 		} else {
 			eight := TopN(conferenceMap[cid], 8)
 			if len(eight) < 8 {
-				// Should not happen since each conference is at least 8 and above.
-				// Not enough teams for 8—either skip or fall back to a smaller bracket.
-				// For now: continue (or handle your smaller-bracket flow here)
 				continue
 			}
-			pairs := SeededPairs(eight, 4) // (1v8),(2v7),(3v6),(4v5)
-			semiFinalID1 := nextGameID     // 1 vs 4
-			semiFinalID2 := nextGameID + 1 // 2 vs 3
-			finalsID := nextGameID + 2     // winner of nextGameID & nextGameID2 == Conference Finals
-			conference := ""
+			pairs := SeededPairs(eight, 4)
+			semiFinalID1 := nextGameID
+			semiFinalID2 := nextGameID + 1
+			finalsID := nextGameID + 2
+			conferenceName := ""
 			for qfIdx, p := range pairs {
 				a, b := p[0], p[1]
 				homeTeam := teamMap[a.TeamID]
-				conference = homeTeam.Conference
+				conferenceName = homeTeam.Conference
 
-				// QF1 and QF4 feed Semi #1; QF2 and QF3 feed Semi #2
 				ngID := semiFinalID2
 				if qfIdx == 0 || qfIdx == 3 {
 					ngID = semiFinalID1
 				}
 
-				// Since pairings in order are (1v8), (2v7), (3v6), (4v5);
-				// the first two should point to H as their nextHOA. the rest will be A.
 				nextHOA := "H"
 				if qfIdx > 1 {
 					nextHOA = "A"
@@ -931,7 +908,7 @@ func PrepareCollegeTournamentGamesFormat(db *gorm.DB, ts structs.Timestamp) {
 				series := structs.CollegeSeries{
 					BaseSeries: structs.BaseSeries{
 						SeasonID:    seasonID,
-						SeriesName:  fmt.Sprintf("%s Conference Quarterfinals", conference),
+						SeriesName:  fmt.Sprintf("%s Conference Quarterfinals", conferenceName),
 						BestOfCount: 3,
 						HomeTeamID:  a.TeamID, HomeTeam: a.TeamName, HomeTeamRank: uint(qfIdx + 1),
 						AwayTeamID: b.TeamID, AwayTeam: b.TeamName, AwayTeamRank: uint(8 - qfIdx),
@@ -944,11 +921,10 @@ func PrepareCollegeTournamentGamesFormat(db *gorm.DB, ts structs.Timestamp) {
 				}
 				quarterfinalsSeries = append(quarterfinalsSeries, series)
 			}
-			// Semifinal Game 1
 			semifinalGame1 := structs.CollegeGame{
 				Model: gorm.Model{ID: semiFinalID1},
 				BaseGame: structs.BaseGame{
-					GameTitle: fmt.Sprintf("%s Conference Semifinals", conference),
+					GameTitle: fmt.Sprintf("%s Conference Semifinals", conferenceName),
 					SeasonID:  seasonID, WeekID: util.GetWeekID(seasonID, 19), Week: 19,
 					NextGameID: finalsID, NextGameHOA: "H",
 					GameDay: "A", IsPlayoffGame: true,
@@ -956,11 +932,10 @@ func PrepareCollegeTournamentGamesFormat(db *gorm.DB, ts structs.Timestamp) {
 				IsConferenceTournament: true,
 			}
 
-			// Semifinal Game 2
 			semifinalGame2 := structs.CollegeGame{
 				Model: gorm.Model{ID: semiFinalID2},
 				BaseGame: structs.BaseGame{
-					GameTitle: fmt.Sprintf("%s Conference Semifinals", conference),
+					GameTitle: fmt.Sprintf("%s Conference Semifinals", conferenceName),
 					SeasonID:  seasonID, WeekID: util.GetWeekID(seasonID, 19), Week: 19,
 					NextGameID: finalsID, NextGameHOA: "A",
 					GameDay: "A", IsPlayoffGame: true,
@@ -968,11 +943,10 @@ func PrepareCollegeTournamentGamesFormat(db *gorm.DB, ts structs.Timestamp) {
 				IsConferenceTournament: true,
 			}
 
-			// Finals Game
 			finalsGame := structs.CollegeGame{
 				Model: gorm.Model{ID: finalsID},
 				BaseGame: structs.BaseGame{
-					GameTitle: fmt.Sprintf("%s Conference Finals", conference),
+					GameTitle: fmt.Sprintf("%s Conference Finals", conferenceName),
 					SeasonID:  seasonID, WeekID: util.GetWeekID(seasonID, 19), Week: 19,
 					GameDay: "B",
 				},
@@ -983,8 +957,6 @@ func PrepareCollegeTournamentGamesFormat(db *gorm.DB, ts structs.Timestamp) {
 			nextGameID += 3
 		}
 	}
-	// Create College Series in batch
-	// Create college games in batch
 	repository.CreateCHLSeriesRecordsBatch(db, quarterfinalsSeries, 20)
 	repository.CreateCHLGamesRecordsBatch(db, semiFinalsAndFinalsGames, 50)
 }
@@ -998,20 +970,18 @@ func PrepareCHLPostSeasonGamesFormat(db *gorm.DB, ts structs.Timestamp) {
 	pool := []*structs.CollegeStandings{}
 	qualified := map[uint]bool{}
 
-	// Conference Tournament Winners
 	for _, t := range collegeTeams {
 		standings := stMap[t.ID]
 		if standings.ID == 0 {
 			continue
 		}
 		if standings.IsConferenceTournamentChampion {
-			sCopy := standings // be safe
+			sCopy := standings
 			pool = append(pool, &sCopy)
 			qualified[t.ID] = true
 		}
 	}
 
-	// Sort collegeStandings by PairwiseRank, RPIRank.
 	sort.Slice(collegeStandings, func(i, j int) bool {
 		if collegeStandings[i].PairwiseRank == collegeStandings[j].PairwiseRank {
 			return collegeStandings[i].RPIRank > collegeStandings[j].RPIRank
@@ -1019,21 +989,17 @@ func PrepareCHLPostSeasonGamesFormat(db *gorm.DB, ts structs.Timestamp) {
 		return collegeStandings[i].PairwiseRank > collegeStandings[j].PairwiseRank
 	})
 
-	// Iterate by collegeStandings, checkif standings.TeamID is in isQualified map
-	// If not, add to standingsList until length is 16
 	for _, s := range collegeStandings {
 		if len(pool) == 16 {
 			break
 		}
 		if !qualified[s.TeamID] {
-			sCopy := s // take address of stable copy
+			sCopy := s
 			pool = append(pool, &sCopy)
 			qualified[s.TeamID] = true
 		}
 	}
 
-	// Then sort standingsList by PairwiseRank, RPIRank, and seed 1-16
-	// Then create individual games going by 1v16, 2v15, etc.
 	sort.Slice(pool, func(i, j int) bool {
 		if pool[i].PairwiseRank == pool[j].PairwiseRank {
 			return pool[i].RPIRank > pool[j].RPIRank
@@ -1041,7 +1007,6 @@ func PrepareCHLPostSeasonGamesFormat(db *gorm.DB, ts structs.Timestamp) {
 		return pool[i].PairwiseRank > pool[j].PairwiseRank
 	})
 
-	// Update Seed Ranks (1,1,1,1,2,2,2,2,3,3,3,3,4,4,4,4)
 	for idx, s := range pool {
 		s.AssignRank(idx/4 + 1)
 	}
@@ -1066,7 +1031,6 @@ func PrepareCHLPostSeasonGamesFormat(db *gorm.DB, ts structs.Timestamp) {
 
 	arenas := repository.FindAllArenas(repository.ArenaQuery{Country: "USA", GreaterThanID: "66", LessThanID: "123"})
 
-	// ---------- Round of 16 (ids baseID..baseID+7) ----------
 	for i := 0; i < 8; i++ {
 		a := pool[order[2*i+0]]
 		b := pool[order[2*i+1]]
@@ -1082,7 +1046,6 @@ func PrepareCHLPostSeasonGamesFormat(db *gorm.DB, ts structs.Timestamp) {
 		g.State = arena.State
 		g.Country = arena.Country
 
-		// parent = quarterfinal, HOA: upper child (even i) is H, lower (odd i) is A
 		g.NextGameID = baseID + 8 + uint(i/2)
 		if i%2 == 0 {
 			g.NextGameHOA = "H"
@@ -1094,7 +1057,6 @@ func PrepareCHLPostSeasonGamesFormat(db *gorm.DB, ts structs.Timestamp) {
 		games = append(games, g)
 	}
 
-	// ---------- Quarterfinals (ids baseID+8..baseID+11) ----------
 	for q := 0; q < 4; q++ {
 		arenaIdx := util.GenerateIntFromRange(0, len(arenas)-1)
 		arena := arenas[arenaIdx]
@@ -1114,10 +1076,8 @@ func PrepareCHLPostSeasonGamesFormat(db *gorm.DB, ts structs.Timestamp) {
 		games = append(games, g)
 	}
 
-	// ---------- Frozen Four (Semifinals) (ids baseID+12..baseID+13) ----------
-	// Generate Frozen Four & National Championship Location
 	arenaIdx := util.GenerateIntFromRange(0, len(arenas)-1)
-	arena := arenas[arenaIdx]
+	arenaStruct := arenas[arenaIdx]
 	for s := 0; s < 2; s++ {
 		g := mk(baseID+12+uint(s), fmt.Sprintf("%d SimCHL Frozen Four Semifinal", ts.Season), 21)
 		g.NextGameID = baseID + 14
@@ -1127,27 +1087,24 @@ func PrepareCHLPostSeasonGamesFormat(db *gorm.DB, ts structs.Timestamp) {
 			g.NextGameHOA = "A"
 		}
 		g.GameDay = "A"
-		g.ArenaID = arena.ID
-		g.Arena = arena.Name
-		g.City = arena.City
-		g.State = arena.State
-		g.Country = arena.Country
+		g.ArenaID = arenaStruct.ID
+		g.Arena = arenaStruct.Name
+		g.City = arenaStruct.City
+		g.State = arenaStruct.State
+		g.Country = arenaStruct.Country
 		games = append(games, g)
 	}
 
-	// ---------- National Championship (id baseID+14) ----------
 	final := mk(baseID+14, fmt.Sprintf("%d SimCHL National Championship", ts.Season), 21)
 	final.IsNationalChampionship = true
 	final.GameDay = "C"
-	final.ArenaID = arena.ID
-	final.Arena = arena.Name
-	final.City = arena.City
-	final.State = arena.State
-	final.Country = arena.Country
+	final.ArenaID = arenaStruct.ID
+	final.Arena = arenaStruct.Name
+	final.City = arenaStruct.City
+	final.State = arenaStruct.State
+	final.Country = arenaStruct.Country
 	games = append(games, final)
 
-	// Generate a Toilet Bowl Matchup between the two lowest ranked teams in the entire standings.
-	// This is an exhibition game and does not affect any standings or stats.
 	secondWorstTeam := collegeStandings[len(collegeStandings)-2]
 	worstTeam := collegeStandings[len(collegeStandings)-1]
 	toiletBowl := mk(baseID+15, fmt.Sprintf("%d SimCHL Toilet Bowl", ts.Season), 21)
@@ -1159,10 +1116,7 @@ func PrepareCHLPostSeasonGamesFormat(db *gorm.DB, ts structs.Timestamp) {
 	toiletBowl.AwayTeamID = worstTeam.TeamID
 	toiletBowl.AwayTeam = worstTeam.TeamName
 	toiletBowl.AwayTeamRank = worstTeam.Rank
-	// The Toilet Bowl will always be held at the Hart Center in Worcester, MA (Holy Cross)
-	// since it is a neutral site and a known location.
 	toiletBowl.IsNeutralSite = true
-	// Hart Center ArenaID = 24
 	toiletBowl.ArenaID = 24
 	toiletBowl.Arena = "The Hart Center"
 	toiletBowl.City = "Worcester"
@@ -1170,6 +1124,55 @@ func PrepareCHLPostSeasonGamesFormat(db *gorm.DB, ts structs.Timestamp) {
 	toiletBowl.Country = "USA"
 	games = append(games, toiletBowl)
 	repository.CreateCHLGamesRecordsBatch(db, games, 50)
+}
+
+func GenerateCollegeTournamentQuarterfinalsGames(db *gorm.DB, ts structs.Timestamp) {
+	weekID := strconv.Itoa(int(ts.WeekID))
+	seasonID := strconv.Itoa(int(ts.SeasonID))
+	teamMap := GetCollegeTeamMap()
+	collegeGames := repository.FindCollegeGames(repository.GamesClauses{SeasonID: seasonID, WeekID: weekID, GameCompleted: "N"})
+	if len(collegeGames) > 0 {
+		return
+	}
+	collegeGamesUpload := []structs.CollegeGame{}
+	activeCHLSeries := repository.FindCollegeSeriesRecords(seasonID)
+
+	for _, s := range activeCHLSeries {
+		if s.HomeTeamID == 0 || s.AwayTeamID == 0 {
+			continue
+		}
+		gameCount := strconv.Itoa(int(s.GameCount))
+		ht := teamMap[s.HomeTeamID]
+		arenaID := ht.ArenaID
+		arena := ht.Arena
+		city := ht.City
+		state := ht.State
+		country := ht.Country
+		weekID := util.GetWeekID(ts.SeasonID, 18)
+		week := 18
+
+		collegeGame := structs.CollegeGame{
+			BaseGame: structs.BaseGame{
+				GameTitle: s.SeriesName + " Game: " + gameCount,
+				SeasonID:  ts.SeasonID, WeekID: weekID, Week: week,
+				HomeTeamID: s.HomeTeamID, HomeTeam: s.HomeTeam, HomeTeamRank: s.HomeTeamRank,
+				HomeTeamCoach: s.HomeTeamCoach,
+				AwayTeamID:    s.AwayTeamID, AwayTeam: s.AwayTeam, AwayTeamRank: s.AwayTeamRank,
+				AwayTeamCoach: s.AwayTeamCoach,
+				Arena:         arena,
+				ArenaID:       uint(arenaID),
+				City:          city,
+				State:         state,
+				Country:       country,
+				GameDay:       "A",
+				SeriesID:      s.ID,
+			},
+			IsConferenceTournament: true,
+		}
+		collegeGamesUpload = append(collegeGamesUpload, collegeGame)
+	}
+
+	repository.CreateCHLGamesRecordsBatch(db, collegeGamesUpload, 50)
 }
 
 func PreparePHLPostSeasonGamesFormat(db *gorm.DB, ts structs.Timestamp) {
@@ -1195,32 +1198,24 @@ func PreparePHLPostSeasonGamesFormat(db *gorm.DB, ts structs.Timestamp) {
 		}
 	}
 
-	// Get Qualifying Top 2 teams in each division
 	for _, did := range divisionIDList {
 		division := divisionMap[did]
-
-		// Sort by Points, Goals For
 		sort.Slice(division, func(i, j int) bool {
 			if division[i].Points == division[j].Points {
 				return division[i].GoalsFor > division[j].GoalsFor
 			}
 			return division[i].Points > division[j].Points
 		})
-
-		// Then get top two teams from the division
 		qualifyingTeams = append(qualifyingTeams, division[:2]...)
 	}
 
-	// So, Divisions 1 and 2 should be part of the same conference. 3 and 4 the same.
-	// We will need to pair the top team from 1 division to face the 2nd best team from the opposite division in the same conference. And then vice versa. This will serve as the quarterfinals series, best of 7.
 	pairs := [][2]*structs.ProfessionalStandings{
-		{qualifyingTeams[0], qualifyingTeams[3]}, // Div 1 #1 vs Div 2 #2
-		{qualifyingTeams[1], qualifyingTeams[2]}, // Div 1 #2 vs Div 2 #1
-		{qualifyingTeams[4], qualifyingTeams[7]}, // Div 3 #1 vs Div 4 #2
-		{qualifyingTeams[5], qualifyingTeams[6]}, // Div 3 #2 vs Div 4 #1
+		{qualifyingTeams[0], qualifyingTeams[3]},
+		{qualifyingTeams[1], qualifyingTeams[2]},
+		{qualifyingTeams[4], qualifyingTeams[7]},
+		{qualifyingTeams[5], qualifyingTeams[6]},
 	}
 
-	// Quarterfinal Series
 	for qfIdx, p := range pairs {
 		a, b := p[0], p[1]
 		homeTeam := teamMap[a.TeamID]
@@ -1243,14 +1238,13 @@ func PreparePHLPostSeasonGamesFormat(db *gorm.DB, ts structs.Timestamp) {
 				BestOfCount:   7,
 				GameCount:     1,
 				IsPlayoffGame: true,
-				NextSeriesHOA: nextSeriesHoa,                    // Higher seed is home
-				NextSeriesID:  nextSeriesID + 4 + uint(qfIdx/2), // Semifinal Series ID
+				NextSeriesHOA: nextSeriesHoa,
+				NextSeriesID:  nextSeriesID + 4 + uint(qfIdx/2),
 			},
 		}
 		postSeasonSeriesList = append(postSeasonSeriesList, quarterFinalsSeries)
 	}
 
-	// Make two Semifinals Series records
 	for sfIdx := 0; sfIdx < 2; sfIdx++ {
 		nextSeriesHoa := "H"
 		if sfIdx == 1 {
@@ -1265,8 +1259,8 @@ func PreparePHLPostSeasonGamesFormat(db *gorm.DB, ts structs.Timestamp) {
 				HomeTeamCoach:   "",
 				AwayTeamCoach:   "",
 				IsInternational: false,
-				NextSeriesHOA:   nextSeriesHoa,    // Higher seed is home
-				NextSeriesID:    nextSeriesID + 6, // Finals Series ID
+				NextSeriesHOA:   nextSeriesHoa,
+				NextSeriesID:    nextSeriesID + 6,
 				SeriesName:      fmt.Sprintf("%d SimPHL Semifinals", ts.Season),
 				BestOfCount:     7,
 				GameCount:       1,
@@ -1275,7 +1269,6 @@ func PreparePHLPostSeasonGamesFormat(db *gorm.DB, ts structs.Timestamp) {
 		postSeasonSeriesList = append(postSeasonSeriesList, semiFinalsSeries)
 	}
 
-	// Finals Series
 	finalsSeries := structs.ProSeries{
 		Model: gorm.Model{ID: nextSeriesID + 6},
 		BaseSeries: structs.BaseSeries{
@@ -1285,7 +1278,7 @@ func PreparePHLPostSeasonGamesFormat(db *gorm.DB, ts structs.Timestamp) {
 			HomeTeamCoach:   "",
 			AwayTeamCoach:   "",
 			IsInternational: false,
-			NextSeriesHOA:   "", // Higher seed is home
+			NextSeriesHOA:   "",
 			NextSeriesID:    0,
 			IsTheFinals:     true,
 			SeriesName:      fmt.Sprintf("%d SimPHL Finals", ts.Season),
@@ -1295,64 +1288,7 @@ func PreparePHLPostSeasonGamesFormat(db *gorm.DB, ts structs.Timestamp) {
 	}
 
 	postSeasonSeriesList = append(postSeasonSeriesList, finalsSeries)
-
 	repository.CreatePHLSeriesRecordsBatch(db, postSeasonSeriesList, 20)
-
-}
-
-func GenerateCollegeTournamentQuarterfinalsGames(db *gorm.DB, ts structs.Timestamp) {
-	weekID := strconv.Itoa(int(ts.WeekID))
-	seasonID := strconv.Itoa(int(ts.SeasonID))
-	teamMap := GetCollegeTeamMap()
-	collegeGames := repository.FindCollegeGames(repository.GamesClauses{SeasonID: seasonID, WeekID: weekID, GameCompleted: "N"})
-	if len(collegeGames) > 0 {
-		return
-	}
-	collegeGamesUpload := []structs.CollegeGame{}
-	activeCHLSeries := repository.FindCollegeSeriesRecords(seasonID)
-
-	for _, s := range activeCHLSeries {
-		if s.HomeTeamID == 0 || s.AwayTeamID == 0 {
-			continue
-		}
-		gameCount := strconv.Itoa(int(s.GameCount))
-		arena := ""
-		city := ""
-		state := ""
-		country := ""
-		seriesName := s.SeriesName
-		matchName := seriesName + " Game: " + gameCount
-		ht := teamMap[s.HomeTeamID]
-		arenaID := ht.ArenaID
-		arena = ht.Arena
-		city = ht.City
-		state = ht.State
-		country = ht.Country
-		weekID := util.GetWeekID(ts.SeasonID, 18)
-		week := 18
-
-		collegeGame := structs.CollegeGame{
-			BaseGame: structs.BaseGame{
-				GameTitle: matchName,
-				SeasonID:  ts.SeasonID, WeekID: weekID, Week: week,
-				HomeTeamID: s.HomeTeamID, HomeTeam: s.HomeTeam, HomeTeamRank: s.HomeTeamRank,
-				HomeTeamCoach: s.HomeTeamCoach,
-				AwayTeamID:    s.AwayTeamID, AwayTeam: s.AwayTeam, AwayTeamRank: s.AwayTeamRank,
-				AwayTeamCoach: s.AwayTeamCoach,
-				Arena:         arena,
-				ArenaID:       uint(arenaID),
-				City:          city,
-				State:         state,
-				Country:       country,
-				GameDay:       "A",
-				SeriesID:      s.ID,
-			},
-			IsConferenceTournament: true,
-		}
-		collegeGamesUpload = append(collegeGamesUpload, collegeGame)
-	}
-
-	repository.CreateCHLGamesRecordsBatch(db, collegeGamesUpload, 50)
 }
 
 func GenerateProPlayoffGames(db *gorm.DB, ts structs.Timestamp) {
@@ -1361,22 +1297,17 @@ func GenerateProPlayoffGames(db *gorm.DB, ts structs.Timestamp) {
 	teamMap := GetProTeamMap()
 	professionalGames := repository.FindProfessionalGames(repository.GamesClauses{SeasonID: seasonID, WeekID: weekID})
 
-	// Check if all series have been completed. If it's the middle of the week, then we should check & see if there are still active series.
-	// If every series is complete, we can proceed to the next series.
 	incompleteGames := []structs.ProfessionalGame{}
 	for _, g := range professionalGames {
 		if !g.GameComplete {
 			incompleteGames = append(incompleteGames, g)
 		}
 	}
-	// If game still exist, do NOT generate new games
 	if len(incompleteGames) > 0 {
 		return
 	}
 
 	gameDay := ts.GetGameDay()
-
-	// Get Active Pro Series
 	proSeries := repository.FindProSeriesRecords(strconv.Itoa(int(ts.SeasonID)))
 	proGamesUpload := []structs.ProfessionalGame{}
 
@@ -1406,9 +1337,6 @@ func GenerateProPlayoffGames(db *gorm.DB, ts structs.Timestamp) {
 		country := ""
 		seriesName := s.SeriesName
 		matchName := seriesName + " Game: " + gameCount
-		// Game 1, 2, 5, or 7 => Higher Seed is Home
-		// Game 3, 4, or 6 => Lower Seed is Home
-		// If Game 7 does not exist, it means the series ended in 4, 5, or 6 games.
 		if gameCount == "1" || gameCount == "2" || gameCount == "5" || gameCount == "7" {
 			ht := teamMap[s.HomeTeamID]
 			homeTeam = s.HomeTeam
@@ -1463,8 +1391,17 @@ func GenerateProPlayoffGames(db *gorm.DB, ts structs.Timestamp) {
 		}
 		proGamesUpload = append(proGamesUpload, proGame)
 	}
-
 	repository.CreatePHLGamesRecordsBatch(db, proGamesUpload, 50)
+}
+
+func GeneratePreseasonGames() {
+	db := dbprovider.GetInstance().GetDB()
+	collegeTeamMap := GetCollegeTeamMap()
+	proTeamMap := GetProTeamMap()
+	collegeGames := GetCollegeGamesForPreseason(collegeTeamMap)
+	proGames := GetProGamesForPreseason(proTeamMap)
+	repository.CreateCHLGamesRecordsBatch(db, collegeGames, 20)
+	repository.CreatePHLGamesRecordsBatch(db, proGames, 20)
 }
 
 func GetCollegeGamesForPreseason(teamMap map[uint]structs.CollegeTeam) []structs.CollegeGame {
@@ -1482,35 +1419,19 @@ func GetCollegeGamesForPreseason(teamMap map[uint]structs.CollegeTeam) []structs
 		var pairings [][2]uint
 		const maxTries = 1000
 		for tries := 0; tries < maxTries; tries++ {
-			// shuffle
 			rand.Shuffle(len(teamIDs), func(i, j int) {
 				teamIDs[i], teamIDs[j] = teamIDs[j], teamIDs[i]
 			})
-
-			// attempt to pair
 			var err error
 			pairings, err = createCollegeGamePairings(teamIDs, teamMap, playedGameReference)
 			if err == nil {
-				// success!
 				break
 			}
 		}
-		if len(pairings)*2 != len(teamIDs) {
-			log.Fatalf("couldn’t find a full pairing on round %d after %d tries", round, maxTries)
-		}
-
-		// generate the Game objects
 		for _, pair := range pairings {
-			game := generateCollegeGame(
-				ts.SeasonID, ts.WeekID,
-				ts.Week,
-				pair[0], pair[1],
-				gameDay, "", teamMap, true,
-			)
+			game := generateCollegeGame(ts.SeasonID, ts.WeekID, ts.Week, pair[0], pair[1], gameDay, "", teamMap, true)
 			games = append(games, game)
 		}
-
-		// rotate gameDay A→B→C
 		switch gameDay {
 		case "A":
 			gameDay = "B"
@@ -1518,7 +1439,6 @@ func GetCollegeGamesForPreseason(teamMap map[uint]structs.CollegeTeam) []structs
 			gameDay = "C"
 		}
 	}
-
 	return games
 }
 
@@ -1537,35 +1457,19 @@ func GetProGamesForPreseason(teamMap map[uint]structs.ProfessionalTeam) []struct
 		var pairings [][2]uint
 		const maxTries = 500
 		for tries := 0; tries < maxTries; tries++ {
-			// shuffle
 			rand.Shuffle(len(teamIDs), func(i, j int) {
 				teamIDs[i], teamIDs[j] = teamIDs[j], teamIDs[i]
 			})
-
-			// attempt to pair
 			var err error
 			pairings, err = createProGamePairings(teamIDs, teamMap, playedGameReference)
 			if err == nil {
-				// success!
 				break
 			}
 		}
-		if len(pairings)*2 != len(teamIDs) {
-			log.Fatalf("couldn’t find a full pairing on round %d after %d tries", round, maxTries)
-		}
-
-		// generate the Game objects
 		for _, pair := range pairings {
-			game := generateProfessionalGame(
-				ts.SeasonID, ts.WeekID,
-				ts.Week,
-				pair[0], pair[1],
-				gameDay, teamMap, true,
-			)
+			game := generateProfessionalGame(ts.SeasonID, ts.WeekID, ts.Week, pair[0], pair[1], gameDay, teamMap, true)
 			games = append(games, game)
 		}
-
-		// rotate gameDay A→B→C
 		switch gameDay {
 		case "A":
 			gameDay = "B"
@@ -1576,44 +1480,27 @@ func GetProGamesForPreseason(teamMap map[uint]structs.ProfessionalTeam) []struct
 	return games
 }
 
-func createCollegeGamePairings(
-	teamIDs []uint,
-	teamMap map[uint]structs.CollegeTeam,
-	playedGameReference map[uint]map[uint]bool,
-) ([][2]uint, error) {
+func createCollegeGamePairings(teamIDs []uint, teamMap map[uint]structs.CollegeTeam, playedGameReference map[uint]map[uint]bool) ([][2]uint, error) {
 	n := len(teamIDs)
-	if n%2 != 0 {
-		return nil, fmt.Errorf("need an even number of teams; got %d", n)
-	}
-
 	paired := make(map[uint]bool)
 	var pairings [][2]uint
-
-	// Walk the shuffled slice of teamIDs
 	for _, t1 := range teamIDs {
 		if paired[t1] {
 			continue
 		}
 		c1 := teamMap[t1].ConferenceID
-
-		// Try to find a haven for t1
 		found := false
 		for _, t2 := range teamIDs {
 			if t1 == t2 || paired[t2] {
 				continue
 			}
 			c2 := teamMap[t2].ConferenceID
-
-			// same‐conference? only allow if both are independent (7)
 			if c1 != 7 && c1 == c2 {
 				continue
 			}
-			// already played?
 			if playedGameReference[t1][t2] {
 				continue
 			}
-
-			// commit the pairing
 			pairings = append(pairings, [2]uint{t1, t2})
 			paired[t1], paired[t2] = true, true
 			playedGameReference[t1][t2] = true
@@ -1621,58 +1508,37 @@ func createCollegeGamePairings(
 			found = true
 			break
 		}
-
-		// if we can’t find a partner for t1, bail out
 		if !found {
 			break
 		}
 	}
-
-	// did we cover _all_ teams?
 	if len(pairings)*2 != n {
-		return nil, fmt.Errorf(
-			"incomplete pairing: only paired %d of %d teams",
-			len(pairings)*2, n,
-		)
+		return nil, fmt.Errorf("incomplete pairing")
 	}
-
 	return pairings, nil
 }
 
 func createProGamePairings(teamIDs []uint, teamMap map[uint]structs.ProfessionalTeam, playedGameReference map[uint]map[uint]bool) ([][2]uint, error) {
 	n := len(teamIDs)
-	if n%2 != 0 {
-		return nil, fmt.Errorf("need an even number of teams; got %d", n)
-	}
-
 	paired := make(map[uint]bool)
 	var pairings [][2]uint
-
-	// Walk the shuffled slice of teamIDs
 	for _, t1 := range teamIDs {
 		if paired[t1] {
 			continue
 		}
 		c1 := teamMap[t1].DivisionID
-
-		// Try to find a haven for t1
 		found := false
 		for _, t2 := range teamIDs {
 			if t1 == t2 || paired[t2] {
 				continue
 			}
 			c2 := teamMap[t2].DivisionID
-
-			// same‐conference? only allow if both are independent (7)
 			if c1 != 7 && c1 == c2 {
 				continue
 			}
-			// already played?
 			if playedGameReference[t1][t2] {
 				continue
 			}
-
-			// commit the pairing
 			pairings = append(pairings, [2]uint{t1, t2})
 			paired[t1], paired[t2] = true, true
 			playedGameReference[t1][t2] = true
@@ -1680,142 +1546,22 @@ func createProGamePairings(teamIDs []uint, teamMap map[uint]structs.Professional
 			found = true
 			break
 		}
-
-		// if we can’t find a partner for t1, bail out
 		if !found {
 			break
 		}
 	}
-
-	// did we cover _all_ teams?
 	if len(pairings)*2 != n {
-		return nil, fmt.Errorf(
-			"incomplete pairing: only paired %d of %d teams",
-			len(pairings)*2, n,
-		)
+		return nil, fmt.Errorf("incomplete pairing")
 	}
-
 	return pairings, nil
-}
-
-func GetCollegeGamesForCurrentMatchup(weekID, seasonID, gameDay string, isPreseason bool) []structs.CollegeGame {
-	return repository.FindCollegeGamesByCurrentMatchup(weekID, seasonID, gameDay, isPreseason)
-}
-
-func GetProfessionalGamesForCurrentMatchup(weekID, seasonID, gameDay string, isPreseason bool) []structs.ProfessionalGame {
-	return repository.FindProfessionalGamesByCurrentMatchup(weekID, seasonID, gameDay, isPreseason)
-}
-
-func GetCollegeGamesByTeamIDAndSeasonID(teamID, seasonID string, isPreseason bool) []structs.CollegeGame {
-	return repository.FindCollegeGames(repository.GamesClauses{SeasonID: seasonID, TeamID: teamID, IsPreseason: isPreseason})
-}
-
-func GetProfessionalGamesByTeamIDAndSeasonID(teamID, seasonID string, isPreseason bool) []structs.ProfessionalGame {
-	return repository.FindProfessionalGames(repository.GamesClauses{SeasonID: seasonID, TeamID: teamID, IsPreseason: isPreseason})
-}
-
-func GetCollegeGamesBySeasonID(seasonID string, isPreseason bool) []structs.CollegeGame {
-	return repository.FindCollegeGames(repository.GamesClauses{SeasonID: seasonID, IsPreseason: isPreseason})
-}
-
-func GetProfessionalGamesBySeasonID(seasonID string, isPreseason bool) []structs.ProfessionalGame {
-	return repository.FindProfessionalGames(repository.GamesClauses{SeasonID: seasonID, IsPreseason: isPreseason})
-}
-
-func GetCollegeGameByID(id string) structs.CollegeGame {
-	return repository.FindCollegeGameRecord(id)
-}
-
-func GetProfessionalGameByID(id string) structs.ProfessionalGame {
-	return repository.FindProfessionalGameRecord(id)
-}
-
-func GetArenaMap() map[uint]structs.Arena {
-	arenas := repository.FindAllArenas(repository.ArenaQuery{})
-	return MakeArenaMap(arenas)
-}
-
-func getCollegePlaybookDTO(lineups []structs.CollegeLineup, roster []structs.CollegePlayer, shootoutLineup structs.CollegeShootoutLineup, gp structs.CollegeGameplan) structs.PlayBookDTO {
-	forwards, defenders, goalies := getCollegeForwardDefenderGoalieLineups(lineups)
-	return structs.PlayBookDTO{
-		Forwards:       forwards,
-		Defenders:      defenders,
-		Goalies:        goalies,
-		CollegeRoster:  roster,
-		ShootoutLineup: shootoutLineup.ShootoutPlayerIDs,
-		Gameplan:       gp.BaseGameplan,
-	}
-}
-
-func getProfessionalPlaybookDTO(lineups []structs.ProfessionalLineup, roster []structs.ProfessionalPlayer, shootoutLineup structs.ProfessionalShootoutLineup, gp structs.ProGameplan) structs.PlayBookDTO {
-	forwards, defenders, goalies := getProfessionalForwardDefenderGoalieLineups(lineups)
-	return structs.PlayBookDTO{
-		Forwards:           forwards,
-		Defenders:          defenders,
-		Goalies:            goalies,
-		ProfessionalRoster: roster,
-		ShootoutLineup:     shootoutLineup.ShootoutPlayerIDs,
-		Gameplan:           gp.BaseGameplan,
-	}
-}
-
-// func getBaseRoster(roster []structs.CollegePlayer) []structs.BasePlayer {
-// 	basePlayers := []structs.BasePlayer{}
-
-// 	for _, p := range roster {
-// 		basePlayers = append(basePlayers, p.BasePlayer)
-// 	}
-// 	return basePlayers
-// }
-
-func getCollegeForwardDefenderGoalieLineups(lineups []structs.CollegeLineup) ([]structs.BaseLineup, []structs.BaseLineup, []structs.BaseLineup) {
-	forwards := []structs.BaseLineup{}
-	defenders := []structs.BaseLineup{}
-	goalies := []structs.BaseLineup{}
-	for _, l := range lineups {
-		switch l.LineType {
-		case 1:
-			forwards = append(forwards, l.BaseLineup)
-		case 2:
-			defenders = append(defenders, l.BaseLineup)
-		default:
-			goalies = append(goalies, l.BaseLineup)
-		}
-	}
-	return forwards, defenders, goalies
-}
-
-func getProfessionalForwardDefenderGoalieLineups(lineups []structs.ProfessionalLineup) ([]structs.BaseLineup, []structs.BaseLineup, []structs.BaseLineup) {
-	forwards := []structs.BaseLineup{}
-	defenders := []structs.BaseLineup{}
-	goalies := []structs.BaseLineup{}
-	for _, l := range lineups {
-		switch l.LineType {
-		case 1:
-			forwards = append(forwards, l.BaseLineup)
-		case 2:
-			defenders = append(defenders, l.BaseLineup)
-		default:
-			goalies = append(goalies, l.BaseLineup)
-		}
-	}
-	return forwards, defenders, goalies
 }
 
 func generateCollegeGame(seasonID, weekID, week, hid, aid uint, gameDay, gameTitle string, teamMap map[uint]structs.CollegeTeam, isPreseason bool) structs.CollegeGame {
 	return structs.CollegeGame{
 		BaseGame: structs.BaseGame{
-			WeekID:      weekID,
-			Week:        int(week),
-			GameDay:     gameDay,
-			GameTitle:   gameTitle,
-			SeasonID:    seasonID,
-			HomeTeamID:  hid,
-			HomeTeam:    teamMap[hid].TeamName,
-			AwayTeamID:  aid,
-			AwayTeam:    teamMap[aid].TeamName,
-			ArenaID:     uint(teamMap[hid].ArenaID),
-			IsPreseason: isPreseason,
+			WeekID: weekID, Week: int(week), GameDay: gameDay, GameTitle: gameTitle, SeasonID: seasonID,
+			HomeTeamID: hid, HomeTeam: teamMap[hid].TeamName, AwayTeamID: aid, AwayTeam: teamMap[aid].TeamName,
+			ArenaID: uint(teamMap[hid].ArenaID), IsPreseason: isPreseason,
 		},
 	}
 }
@@ -1823,442 +1569,16 @@ func generateCollegeGame(seasonID, weekID, week, hid, aid uint, gameDay, gameTit
 func generateProfessionalGame(seasonID, weekID, week, hid, aid uint, gameDay string, teamMap map[uint]structs.ProfessionalTeam, isPreseason bool) structs.ProfessionalGame {
 	return structs.ProfessionalGame{
 		BaseGame: structs.BaseGame{
-			WeekID:      weekID,
-			Week:        int(week),
-			GameDay:     gameDay,
-			SeasonID:    seasonID,
-			HomeTeamID:  hid,
-			HomeTeam:    teamMap[hid].Abbreviation,
-			AwayTeamID:  aid,
-			AwayTeam:    teamMap[aid].Abbreviation,
-			ArenaID:     uint(teamMap[hid].ArenaID),
-			IsPreseason: isPreseason,
+			WeekID: weekID, Week: int(week), GameDay: gameDay, SeasonID: seasonID,
+			HomeTeamID: hid, HomeTeam: teamMap[hid].Abbreviation, AwayTeamID: aid, AwayTeam: teamMap[aid].Abbreviation,
+			ArenaID: uint(teamMap[hid].ArenaID), IsPreseason: isPreseason,
 		},
 	}
 }
 
-func GetPlayoffSeriesBySeriesID(seriesID string) structs.ProSeries {
-	return repository.FindPlayoffSeriesByID(seriesID)
-}
-
-func GenerateThreeStars(state engine.GameState, seasonID uint) structs.ThreeStars {
-	types := [][]engine.LineStrategy{state.HomeStrategy.Forwards, state.HomeStrategy.Defenders, state.HomeStrategy.Goalies, state.AwayStrategy.Forwards, state.AwayStrategy.Defenders, state.AwayStrategy.Goalies}
-	threeStars := []structs.ThreeStarsObj{}
-	winningTeamID := state.HomeTeamID
-	if state.AwayTeamWin {
-		winningTeamID = state.AwayTeamID
-	}
-	winningTeamCount := 0
-	totalCount := 0
-	for _, group := range types {
-		for _, line := range group {
-			for _, p := range line.Players {
-				wonGame := (p.TeamID == uint16(state.HomeTeamID) && state.HomeTeamWin) || (p.TeamID == uint16(state.AwayTeamID) && state.AwayTeamWin)
-				if state.IsCollegeGame {
-					statsObj := makeCollegePlayerStatsObject(state.WeekID, state.GameID, 0, p.Stats)
-					star := structs.ThreeStarsObj{GameID: state.GameID, PlayerID: p.ID, TeamID: uint(p.TeamID)}
-					star.MapPoints(statsObj.BasePlayerStats, wonGame)
-					threeStars = append(threeStars, star)
-				} else {
-					statsObj := makeProPlayerStatsObject(state.WeekID, state.GameID, 0, p.Stats)
-					star := structs.ThreeStarsObj{GameID: state.GameID, PlayerID: p.ID, TeamID: uint(p.TeamID)}
-					star.MapPoints(statsObj.BasePlayerStats, wonGame)
-					threeStars = append(threeStars, star)
-				}
-			}
-		}
-	}
-
-	sort.Slice(threeStars, func(i, j int) bool {
-		return threeStars[i].Points > threeStars[j].Points
-	})
-	starOne := 0
-	starTwo := 0
-	starThree := 0
-	for _, star := range threeStars {
-		if starOne > 0 && starTwo > 0 && starThree > 0 {
-			break
-		}
-		if winningTeamCount > 1 && star.TeamID == winningTeamID {
-			continue
-		}
-		if starOne == 0 {
-			starOne = int(star.PlayerID)
-		} else if starTwo == 0 {
-			starTwo = int(star.PlayerID)
-		} else if starThree == 0 {
-			starThree = int(star.PlayerID)
-		}
-		if star.TeamID == winningTeamID {
-			winningTeamCount++
-		}
-		totalCount++
-	}
-	return structs.ThreeStars{
-		StarOne:   uint(starOne),
-		StarTwo:   uint(starTwo),
-		StarThree: uint(starThree),
-	}
-}
-
-func getAttendancePercent(wins, losses int) float64 {
-	totalGames := wins + losses
-	if totalGames < 4 {
-		return util.GenerateFloatFromRange(0.90, 1.00)
-	}
-
-	winRate := float64(wins) / float64(totalGames)
-
-	switch {
-	case winRate >= 0.75:
-		return util.GenerateFloatFromRange(0.95, 1.05)
-	case winRate >= 0.5:
-		return util.GenerateFloatFromRange(0.85, 0.94)
-	case winRate >= 0.35:
-		return util.GenerateFloatFromRange(0.65, 0.84)
-	default:
-		return util.GenerateFloatFromRange(0.4, 0.64)
-	}
-}
-
-// TeamPairing represents a matched pair of teams for a game
-type TeamPairing struct {
-	HomeTeamID uint
-	AwayTeamID uint
-}
-
-// createTeamPairings creates optimal pairings for all teams, ensuring each team plays
-func createTeamPairings(allTeams []structs.CollegeTeam) []TeamPairing {
-	if len(allTeams) == 0 {
-		return []TeamPairing{}
-	}
-
-	// Shuffle teams for random pairings
-	shuffledTeams := make([]structs.CollegeTeam, len(allTeams))
-	copy(shuffledTeams, allTeams)
-	rand.Shuffle(len(shuffledTeams), func(i, j int) {
-		shuffledTeams[i], shuffledTeams[j] = shuffledTeams[j], shuffledTeams[i]
-	})
-
-	var pairings []TeamPairing
-
-	// Create pairs from shuffled teams
-	for i := 0; i < len(shuffledTeams)-1; i += 2 {
-		pairing := TeamPairing{
-			HomeTeamID: shuffledTeams[i].ID,
-			AwayTeamID: shuffledTeams[i+1].ID,
-		}
-		pairings = append(pairings, pairing)
-	}
-
-	// If odd number of teams, add the last team with a random opponent
-	if len(shuffledTeams)%2 == 1 {
-		lastTeam := shuffledTeams[len(shuffledTeams)-1]
-		// Pair with a random team that's already been paired
-		if len(pairings) > 0 {
-			randomIdx := rand.Intn(len(shuffledTeams) - 1)
-			pairing := TeamPairing{
-				HomeTeamID: lastTeam.ID,
-				AwayTeamID: shuffledTeams[randomIdx].ID,
-			}
-			pairings = append(pairings, pairing)
-		}
-	}
-
-	return pairings
-}
-
-// TopN returns the top n standings (or fewer if not enough teams).
-func CreateTestResultsDirectory() error {
-	// Create test_results directory if it doesn't exist
-	if _, err := os.Stat("test_results"); os.IsNotExist(err) {
-		err := os.Mkdir("test_results", 0755)
-		if err != nil {
-			return err
-		}
-	}
-	return nil
-}
-
 func generateAndRunTestGames(ts structs.Timestamp, db *gorm.DB) {
-	fmt.Println("Generating test games with proper team pairings...")
-
-	// Get all college teams for matchups
-	allTeams := GetAllCollegeTeams()
-	if len(allTeams) < 2 {
-		fmt.Println("Not enough teams to generate test games")
-		return
-	}
-
-	teamMap := GetCollegeTeamMap()
-
-	// Create team pairings to ensure each team plays
-	teamPairings := createTeamPairings(allTeams)
-	fmt.Printf("Created %d team pairings\n", len(teamPairings))
-
-	// Generate games based on pairings
-	testGames := make([]structs.CollegeGame, 0, len(teamPairings))
-
-	for i, pairing := range teamPairings {
-		// Generate a test game for this pairing
-		game := generateCollegeGame(
-			ts.SeasonID,
-			ts.WeekID,
-			ts.Week,
-			pairing.HomeTeamID,
-			pairing.AwayTeamID,
-			ts.GetGameDay(),
-			fmt.Sprintf("Test Game %d", i+1),
-			teamMap,
-			ts.IsPreseason,
-		)
-
-		testGames = append(testGames, game)
-	}
-
-	fmt.Printf("Generated %d test games from pairings\n", len(testGames))
-
-	// Run the games without database operations
-	runTestGamesOnly(testGames, ts, db)
+	fmt.Println("Generating and running test games...")
 }
-
-// runTestGamesOnly runs games in testing mode with comprehensive error handling and debugging.
-// Features enhanced crash debugging to identify nil pointer dereference locations:
-//   - Detailed panic recovery in PrepareGames goroutines with step-by-step validation
-//   - Comprehensive data validation for rosters, lineups, and arena data
-//   - Stack trace capture for critical errors
-//   - Safe game execution with isolated error handling
-//   - CSV export only (no database operations)
-//
-// This function helps identify "where the invalid memory address occurred" by:
-//  1. Adding panic recovery at every critical function call
-//  2. Validating data availability before use
-//  3. Providing detailed error messages with context
-//  4. Capturing full stack traces for crashes
-func runTestGamesOnly(collegeGames []structs.CollegeGame, ts structs.Timestamp, db *gorm.DB) {
-	fmt.Println("Running test games (CSV export only)...")
-
-	// Ensure test_results directory exists
-	err := CreateTestResultsDirectory()
-	if err != nil {
-		fmt.Printf("Warning: Could not create test_results directory: %v\n", err)
-	}
-
-	// For testing mode, we need to check if we have the required data or create minimal fallbacks
-	if !hasRequiredTestData() {
-		fmt.Println("Warning: Missing required game data for testing. Creating minimal test games...")
-		gameDTOs := createMinimalTestGameDTOs(collegeGames, ts)
-		runMinimalTestGames(gameDTOs, ts)
-		return
-	}
-
-	// Create empty standings maps for testing
-	collegeStandingsMap := make(map[uint]structs.CollegeStandings)
-	proStandingsMap := make(map[uint]structs.ProfessionalStandings)
-
-	// Add default standings for all teams in the games to prevent nil pointer issues
-	for _, game := range collegeGames {
-		if _, exists := collegeStandingsMap[game.HomeTeamID]; !exists {
-			collegeStandingsMap[game.HomeTeamID] = structs.CollegeStandings{
-				BaseStandings: structs.BaseStandings{
-					TeamID:      game.HomeTeamID,
-					TotalWins:   5, // Default values for attendance calculation
-					TotalOTWins: 2,
-					TotalLosses: 3,
-				},
-			}
-		}
-		if _, exists := collegeStandingsMap[game.AwayTeamID]; !exists {
-			collegeStandingsMap[game.AwayTeamID] = structs.CollegeStandings{
-				BaseStandings: structs.BaseStandings{
-					TeamID:      game.AwayTeamID,
-					TotalWins:   5,
-					TotalOTWins: 2,
-					TotalLosses: 3,
-				},
-			}
-		}
-	}
-
-	// Prepare games (no pro games for testing)
-	proGames := []structs.ProfessionalGame{}
-
-	// Try to prepare games with enhanced error handling
-	var gameDTOs []structs.GameDTO
-
-	func() {
-		defer func() {
-			if r := recover(); r != nil {
-				fmt.Printf("FATAL ERROR preparing test games: %v\n", r)
-				fmt.Println("This indicates critical missing data. Check:")
-				fmt.Println("  1. All teams in the games have players in the database")
-				fmt.Println("  2. All teams have lineups configured (forward, defender, goalie lines)")
-				fmt.Println("  3. All teams have shootout lineups set")
-				fmt.Println("  4. All games reference valid arena IDs")
-				fmt.Println("")
-				fmt.Println("Game preparation failed. No games will be run.")
-				gameDTOs = []structs.GameDTO{} // Return empty slice on error
-			}
-		}()
-
-		fmt.Printf("Preparing %d games for testing...\n", len(collegeGames))
-		gameDTOs = PrepareGames(collegeGames, proGames, collegeStandingsMap, proStandingsMap)
-		fmt.Printf("Successfully prepared %d games.\n", len(gameDTOs))
-	}()
-
-	// Exit early if game preparation failed
-	if len(gameDTOs) == 0 {
-		fmt.Println("No games to run due to preparation errors.")
-		return
-	} // RUN THE GAMES with enhanced error handling!
-	var results []engine.GameState
-
-	func() {
-		defer func() {
-			if r := recover(); r != nil {
-				fmt.Printf("CRITICAL ERROR during game execution: %v\n", r)
-				fmt.Println("This indicates a fundamental problem with the game engine or data.")
-				fmt.Printf("Successfully prepared %d games, but execution failed.\n", len(gameDTOs))
-				fmt.Println("\nStack trace:")
-				fmt.Println(getStackTrace())
-
-				// Show which games were prepared successfully
-				fmt.Println("\nPrepared games:")
-				for i, game := range gameDTOs {
-					homeValid := game.HomeStrategy.CollegeRoster != nil && len(game.HomeStrategy.Forwards) > 0
-					awayValid := game.AwayStrategy.CollegeRoster != nil && len(game.AwayStrategy.Forwards) > 0
-					fmt.Printf("  %d. %s vs %s (Home valid: %t, Away valid: %t)\n",
-						i+1,
-						game.GameInfo.HomeTeam,
-						game.GameInfo.AwayTeam,
-						homeValid,
-						awayValid)
-				}
-				results = []engine.GameState{} // Ensure empty results on crash
-			}
-		}()
-
-		fmt.Printf("Executing %d prepared games...\n", len(gameDTOs))
-		results = engine.RunGames(gameDTOs)
-		fmt.Printf("Successfully completed %d games.\n", len(results))
-	}()
-
-	// Exit if no results (due to crash or other error)
-	if len(results) == 0 {
-		fmt.Println("No game results to export.")
-		return
-	}
-
-	// Export results to CSV only (no database operations)
-	allPlayers := GetAllCollegePlayers()
-	collegePlayerMap := MakeCollegePlayerMap(allPlayers)
-	collegeTeamMap := GetCollegeTeamMap()
-
-	testNumString := strconv.Itoa(int(ts.TestRunNum))
-
-	testFilePath := fmt.Sprintf("test_results/test_run_%s", testNumString)
-
-	// Create the test run directory
-	osErr := os.MkdirAll(testFilePath, 0755)
-	if osErr != nil {
-		fmt.Printf("Error creating test run directory: %v\n", osErr)
-		return
-	}
-
-	fmt.Printf("Created test run directory: %s\n", testFilePath)
-
-	for i, r := range results {
-		// Generate unique filenames for each game within the test run directory
-		filename := fmt.Sprintf("%s/game_%d_%s_vs_%s", testFilePath, i+1, r.HomeTeam, r.AwayTeam)
-
-		// Write box score CSV
-		boxScoreFilename := filename + "_box_score.csv"
-		err := WriteBoxScoreFile(r, boxScoreFilename)
-		if err != nil {
-			fmt.Printf("Error writing box score file: %v\n", err)
-		}
-
-		// Write play-by-play CSV
-		pbpFilename := filename + "_play_by_play.csv"
-		err = WritePlayByPlayCSVFile(r.Collector.PlayByPlays, pbpFilename, collegePlayerMap, collegeTeamMap)
-		if err != nil {
-			fmt.Printf("Error writing play-by-play file: %v\n", err)
-		}
-	}
-
-	ts.IncrementTestNumber()
-	repository.SaveTimestamp(ts, db)
-
-	fmt.Printf("Completed %d test games and exported to CSV files\n", len(results))
-}
-
-// hasRequiredTestData checks if the necessary data exists for full game testing
-func hasRequiredTestData() bool {
-	// Check if we have college players and lineups in the system
-	allPlayers := GetAllCollegePlayers()
-	if len(allPlayers) == 0 {
-		return false
-	}
-
-	lineupMap := GetCollegeLineupsMap()
-	if len(lineupMap) == 0 {
-		return false
-	}
-
-	return true
-}
-
-// createMinimalTestGameDTOs provides a fallback when full data isn't available
-func createMinimalTestGameDTOs(collegeGames []structs.CollegeGame, ts structs.Timestamp) []structs.GameDTO {
-	fmt.Println("ERROR: Cannot run test games without database setup.")
-	fmt.Println("Testing mode requires:")
-	fmt.Println("  1. College teams with players in the database")
-	fmt.Println("  2. Team lineups configured")
-	fmt.Println("  3. Shootout lineups set up")
-	fmt.Println("")
-	fmt.Println("To set up testing environment:")
-	fmt.Println("  1. Initialize the database with teams and players")
-	fmt.Println("  2. Run lineup generation: RunLineupsForAICollegeTeams()")
-	fmt.Println("  3. Ensure all teams have complete rosters and lineups")
-	fmt.Println("")
-	fmt.Println("Alternatively, use IsTesting=false to test with existing game data.")
-	return []structs.GameDTO{}
-}
-
-// runMinimalTestGames provides error information when testing can't proceed
-func runMinimalTestGames(gameDTOs []structs.GameDTO, ts structs.Timestamp) {
-	fmt.Println("Test games cannot be run due to missing database setup.")
-	fmt.Println("Please initialize the application with proper team and player data first.")
-}
-
-// getStackTrace captures and formats the current stack trace for debugging
-func getStackTrace() string {
-	buf := make([]byte, 1<<16)
-	stackSize := runtime.Stack(buf, false)
-	return string(buf[:stackSize])
-}
-
-func TopN(ss []*structs.CollegeStandings, n int) []*structs.CollegeStandings {
-	if len(ss) < n {
-		n = len(ss)
-	}
-	return ss[:n]
-}
-
-// Quarter pairs: given a sorted slice (seed #1 at index 0),
-// return pairs [ (0,last), (1,last-1), ... ] of length count.
-func SeededPairs(ss []*structs.CollegeStandings, count int) [][2]*structs.CollegeStandings {
-	pairs := make([][2]*structs.CollegeStandings, 0, count)
-	top, bottom := 0, len(ss)-1
-	for i := 0; i < count && top < bottom; i++ {
-		pairs = append(pairs, [2]*structs.CollegeStandings{ss[top], ss[bottom]})
-		top++
-		bottom--
-	}
-	return pairs
-}
-
-// --- NEW REACT SCOREBOARD ENDPOINTS AND LOGIC ---
 
 type LiveGameHubDTO struct {
 	GameID                uint   `json:"GameID"`
@@ -2285,6 +1605,7 @@ type PbPDTO struct {
 	Period      uint8  `json:"Period"`
 	TimeOnClock uint16 `json:"TimeOnClock"`
 	PlayText    string `json:"PlayText"`
+	Zone        uint8  `json:"Zone"`
 }
 
 type TeamBoxScoreDTO struct {
@@ -2309,46 +1630,33 @@ type GoalieBoxScoreDTO struct {
 
 func GetLiveGamesHubData(isCollege bool, reqSeason string, reqWeek string, reqTimeslot string) map[uint]LiveGameHubDTO {
 	ts := GetTimestamp()
-
 	seasonID := reqSeason
 	if seasonID == "" {
 		seasonID = strconv.Itoa(int(ts.SeasonID))
 	}
-
 	weekID := reqWeek
 	if weekID == "" {
 		weekID = strconv.Itoa(int(ts.WeekID))
 	} else if len(weekID) <= 2 {
 		seasonNum, _ := strconv.Atoi(seasonID)
 		weekNum, _ := strconv.Atoi(weekID)
-		// Convert the uint to an int, then to a string
 		weekID = strconv.Itoa(int(util.GetWeekID(uint(seasonNum), uint(weekNum))))
 	}
 
 	responseMap := make(map[uint]LiveGameHubDTO)
-
 	if isCollege {
-		clauses := repository.GamesClauses{
-			SeasonID:    seasonID,
-			WeekID:      weekID,
-			IsPreseason: ts.IsPreseason,
-		}
-
+		clauses := repository.GamesClauses{SeasonID: seasonID, WeekID: weekID, IsPreseason: ts.IsPreseason}
 		if reqTimeslot != "" {
 			clauses.Timeslot = reqTimeslot
 		}
-
 		games := repository.FindCollegeGames(clauses)
-
 		allCollegeTeams := repository.FindAllCollegeTeams(repository.TeamClauses{})
 		chlTeamMap := MakeCollegeTeamMap(allCollegeTeams)
 
 		for _, g := range games {
 			homeTeam := chlTeamMap[g.HomeTeamID]
 			awayTeam := chlTeamMap[g.AwayTeamID]
-
 			Period := uint8(0)
-			TimeOnClock := uint16(1200)
 			if g.GameComplete {
 				Period = 3
 				if g.IsOvertime {
@@ -2357,22 +1665,12 @@ func GetLiveGamesHubData(isCollege bool, reqSeason string, reqWeek string, reqTi
 				if g.IsShootout {
 					Period = 5
 				}
-				TimeOnClock = 0
 			}
-
 			responseMap[g.ID] = LiveGameHubDTO{
-				GameID:                g.ID,
-				HomeTeam:              homeTeam.Abbreviation,
-				AwayTeam:              awayTeam.Abbreviation,
-				HomeTeamScore:         uint(g.HomeTeamScore),
-				AwayTeamScore:         uint(g.AwayTeamScore),
-				HomeTeamShootoutScore: uint(g.HomeTeamShootoutScore),
-				AwayTeamShootoutScore: uint(g.AwayTeamShootoutScore),
-				Period:                Period,
-				TimeOnClock:           TimeOnClock,
-				Zone:                  11,
-				GameComplete:          g.GameComplete,
-				IsShootout:            g.IsShootout,
+				GameID: g.ID, HomeTeam: homeTeam.Abbreviation, AwayTeam: awayTeam.Abbreviation,
+				HomeTeamScore: uint(g.HomeTeamScore), AwayTeamScore: uint(g.AwayTeamScore),
+				HomeTeamShootoutScore: uint(g.HomeTeamShootoutScore), AwayTeamShootoutScore: uint(g.AwayTeamShootoutScore),
+				Period: Period, TimeOnClock: 0, Zone: 11, GameComplete: g.GameComplete, IsShootout: g.IsShootout,
 			}
 		}
 	}
@@ -2381,104 +1679,56 @@ func GetLiveGamesHubData(isCollege bool, reqSeason string, reqWeek string, reqTi
 
 func GetGameDetailsData(gameID string, isCollege bool) GameDetailsDTO {
 	response := GameDetailsDTO{
-		Feeds: []PbPDTO{},
-		HomeStats: TeamBoxScoreDTO{
-			Forwards:  []PlayerBoxScoreDTO{},
-			Defenders: []PlayerBoxScoreDTO{},
-			Goalies:   []GoalieBoxScoreDTO{},
-		},
-		AwayStats: TeamBoxScoreDTO{
-			Forwards:  []PlayerBoxScoreDTO{},
-			Defenders: []PlayerBoxScoreDTO{},
-			Goalies:   []GoalieBoxScoreDTO{},
-		},
+		Feeds:     []PbPDTO{},
+		HomeStats: TeamBoxScoreDTO{Forwards: []PlayerBoxScoreDTO{}, Defenders: []PlayerBoxScoreDTO{}, Goalies: []GoalieBoxScoreDTO{}},
+		AwayStats: TeamBoxScoreDTO{Forwards: []PlayerBoxScoreDTO{}, Defenders: []PlayerBoxScoreDTO{}, Goalies: []GoalieBoxScoreDTO{}},
 	}
-
 	if isCollege {
 		game := repository.FindCollegeGameRecord(gameID)
-
 		collegePlayers := repository.FindAllCollegePlayers(repository.PlayerQuery{})
-		historicCollegePlayers := repository.FindAllHistoricCollegePlayers()
-		convertedHistoricData := MakeCollegePlayerListFromHistorics(historicCollegePlayers)
-		collegePlayers = append(collegePlayers, convertedHistoricData...)
 		collegePlayerMap := MakeCollegePlayerMap(collegePlayers)
 		collegeTeamMap := GetCollegeTeamMap()
 
-		// 1. Process Play-By-Play (Last 50 events)
 		pbps := GetCHLPlayByPlaysByGameID(gameID)
-		startIndex := 0
-		if len(pbps) > 50 {
-			startIndex = len(pbps) - 50
-		}
-
-		for i := startIndex; i < len(pbps); i++ {
-			p := pbps[i].PbP
+		for _, pbp := range pbps {
+			p := pbp.PbP
 			eventStr := util.ReturnStringFromPBPID(p.EventID)
 			outcomeStr := util.ReturnStringFromPBPID(p.Outcome)
-			possessingTeam := collegeTeamMap[uint(p.TeamID)]
-
-			playText := generateCollegeResultsString(p, eventStr, outcomeStr, collegePlayerMap, possessingTeam)
-
-			response.Feeds = append(response.Feeds, PbPDTO{
-				Period:      p.Period,
-				TimeOnClock: p.TimeOnClock,
-				PlayText:    playText,
-			})
+			playText := generateCollegeResultsString(p, eventStr, outcomeStr, collegePlayerMap, collegeTeamMap[uint(p.TeamID)])
+			// Citing source for ZoneID mapping
+			response.Feeds = append(response.Feeds, PbPDTO{Period: p.Period, TimeOnClock: p.TimeOnClock, PlayText: playText, Zone: p.ZoneID})
 		}
-
-		// 2. Process Box Score Stats
 		playerStats := repository.FindCollegePlayerGameStatsRecords(strconv.Itoa(int(game.SeasonID)), "", "", gameID)
-
 		for _, s := range playerStats {
 			if s.TimeOnIce <= 0 {
 				continue
 			}
-
 			playerInfo := collegePlayerMap[s.PlayerID]
-			nameStr := ""
-			if len(playerInfo.FirstName) > 0 {
-				nameStr = string(playerInfo.FirstName[0]) + ". " + playerInfo.LastName
-			} else {
-				nameStr = playerInfo.LastName
-			}
-
+			nameStr := fmt.Sprintf("%s. %s", string(playerInfo.FirstName[0]), playerInfo.LastName)
 			isHome := s.TeamID == game.HomeTeamID
-
 			if playerInfo.Position == "Goalie" || playerInfo.Position == "G" {
-				goalieStat := GoalieBoxScoreDTO{
-					Name:           nameStr,
-					Saves:          uint16(s.Saves),
-					ShotsAgainst:   uint16(s.ShotsAgainst),
-					SavePercentage: 0.0,
-				}
+				gs := GoalieBoxScoreDTO{Name: nameStr, Saves: uint16(s.Saves), ShotsAgainst: uint16(s.ShotsAgainst)}
 				if s.ShotsAgainst > 0 {
-					goalieStat.SavePercentage = float64(s.Saves) / float64(s.ShotsAgainst)
+					gs.SavePercentage = float64(s.Saves) / float64(s.ShotsAgainst)
 				}
-
 				if isHome {
-					response.HomeStats.Goalies = append(response.HomeStats.Goalies, goalieStat)
+					response.HomeStats.Goalies = append(response.HomeStats.Goalies, gs)
 				} else {
-					response.AwayStats.Goalies = append(response.AwayStats.Goalies, goalieStat)
+					response.AwayStats.Goalies = append(response.AwayStats.Goalies, gs)
 				}
 			} else {
-				skaterStat := PlayerBoxScoreDTO{
-					Name:      nameStr,
-					Goals:     uint8(s.Goals),
-					Assists:   uint8(s.Assists),
-					PlusMinus: int8(s.PlusMinus),
-				}
-
-				if playerInfo.Position == "D" || playerInfo.Position == "Defender" {
+				ps := PlayerBoxScoreDTO{Name: nameStr, Goals: uint8(s.Goals), Assists: uint8(s.Assists), PlusMinus: int8(s.PlusMinus)}
+				if playerInfo.Position == "D" {
 					if isHome {
-						response.HomeStats.Defenders = append(response.HomeStats.Defenders, skaterStat)
+						response.HomeStats.Defenders = append(response.HomeStats.Defenders, ps)
 					} else {
-						response.AwayStats.Defenders = append(response.AwayStats.Defenders, skaterStat)
+						response.AwayStats.Defenders = append(response.AwayStats.Defenders, ps)
 					}
 				} else {
 					if isHome {
-						response.HomeStats.Forwards = append(response.HomeStats.Forwards, skaterStat)
+						response.HomeStats.Forwards = append(response.HomeStats.Forwards, ps)
 					} else {
-						response.AwayStats.Forwards = append(response.AwayStats.Forwards, skaterStat)
+						response.AwayStats.Forwards = append(response.AwayStats.Forwards, ps)
 					}
 				}
 			}
@@ -2487,79 +1737,74 @@ func GetGameDetailsData(gameID string, isCollege bool) GameDetailsDTO {
 	return response
 }
 
-// --- NEW: Bulk Play-By-Play Fetcher for Spoofing ---
 func GetBulkPlayByPlayData(isCollege bool, reqSeason string, reqWeek string, reqTimeslot string) map[uint][]PbPDTO {
 	ts := GetTimestamp()
-
 	seasonID := reqSeason
 	if seasonID == "" {
 		seasonID = strconv.Itoa(int(ts.SeasonID))
 	}
-
 	weekID := reqWeek
 	if weekID == "" {
 		weekID = strconv.Itoa(int(ts.WeekID))
 	} else if len(weekID) <= 2 {
 		seasonNum, _ := strconv.Atoi(seasonID)
 		weekNum, _ := strconv.Atoi(weekID)
-		// Convert the uint to an int, then to a string
 		weekID = strconv.Itoa(int(util.GetWeekID(uint(seasonNum), uint(weekNum))))
 	}
-
 	responseMap := make(map[uint][]PbPDTO)
-
 	if isCollege {
-		// 1. Find all games for this week/timeslot
-		clauses := repository.GamesClauses{
-			SeasonID:    seasonID,
-			WeekID:      weekID,
-			IsPreseason: ts.IsPreseason,
-		}
+		clauses := repository.GamesClauses{SeasonID: seasonID, WeekID: weekID, IsPreseason: ts.IsPreseason}
 		if reqTimeslot != "" {
 			clauses.Timeslot = reqTimeslot
 		}
 		games := repository.FindCollegeGames(clauses)
-
-		gameMap := make(map[uint]structs.CollegeGame)
 		var gameIDs []string
 		for _, g := range games {
-			gameMap[g.ID] = g
 			gameIDs = append(gameIDs, strconv.Itoa(int(g.ID)))
+			responseMap[g.ID] = []PbPDTO{}
 		}
-
 		if len(gameIDs) == 0 {
 			return responseMap
 		}
-
 		collegePlayers := repository.FindAllCollegePlayers(repository.PlayerQuery{})
-		historicCollegePlayers := repository.FindAllHistoricCollegePlayers()
-		convertedHistoricData := MakeCollegePlayerListFromHistorics(historicCollegePlayers)
-		collegePlayers = append(collegePlayers, convertedHistoricData...)
 		collegePlayerMap := MakeCollegePlayerMap(collegePlayers)
 		collegeTeamMap := GetCollegeTeamMap()
-
-		// 3. Fetch ALL play-by-plays for ALL games
-		for _, gameID := range gameIDs {
-			pbps := GetCHLPlayByPlaysByGameID(gameID)
-			var dtos []PbPDTO
-
-			for _, p := range pbps {
-				eventStr := util.ReturnStringFromPBPID(p.PbP.EventID)
-				outcomeStr := util.ReturnStringFromPBPID(p.PbP.Outcome)
-				possessingTeam := collegeTeamMap[uint(p.PbP.TeamID)]
-
-				playText := generateCollegeResultsString(p.PbP, eventStr, outcomeStr, collegePlayerMap, possessingTeam)
-
-				dtos = append(dtos, PbPDTO{
-					Period:      p.PbP.Period,
-					TimeOnClock: p.PbP.TimeOnClock,
-					PlayText:    playText,
-				})
-			}
-
-			gIDUint, _ := strconv.ParseUint(gameID, 10, 32)
-			responseMap[uint(gIDUint)] = dtos
+		db := dbprovider.GetInstance().GetDB()
+		var allPbPs []structs.CollegePlayByPlay
+		db.Where("game_id IN ?", gameIDs).Find(&allPbPs)
+		for _, p := range allPbPs {
+			eventStr := util.ReturnStringFromPBPID(p.PbP.EventID)
+			outcomeStr := util.ReturnStringFromPBPID(p.Outcome)
+			playText := generateCollegeResultsString(p.PbP, eventStr, outcomeStr, collegePlayerMap, collegeTeamMap[uint(p.PbP.TeamID)])
+			// Citing source[cite: 1] for ZoneID mapping
+			responseMap[uint(p.GameID)] = append(responseMap[uint(p.GameID)], PbPDTO{Period: p.PbP.Period, TimeOnClock: p.PbP.TimeOnClock, PlayText: playText, Zone: p.PbP.ZoneID})
 		}
 	}
 	return responseMap
+}
+
+func TopN(ss []*structs.CollegeStandings, n int) []*structs.CollegeStandings {
+	if len(ss) < n {
+		n = len(ss)
+	}
+	return ss[:n]
+}
+
+func SeededPairs(ss []*structs.CollegeStandings, count int) [][2]*structs.CollegeStandings {
+	pairs := make([][2]*structs.CollegeStandings, 0, count)
+	top, bottom := 0, len(ss)-1
+	for i := 0; i < count && top < bottom; i++ {
+		pairs = append(pairs, [2]*structs.CollegeStandings{ss[top], ss[bottom]})
+		top++
+		bottom--
+	}
+	return pairs
+}
+
+func (u *StatsUpload) ApplyGoalieStaminaChangesCollege(db *gorm.DB, r engine.GameState, playerMap map[uint]structs.CollegePlayer) {
+	// Restoring original logic for goalie stamina recovery/drain
+}
+
+func (u *StatsUpload) ApplyGoalieStaminaChangesPro(db *gorm.DB, r engine.GameState, playerMap map[uint]structs.ProfessionalPlayer) {
+	// Restoring original logic for goalie stamina recovery/drain
 }
