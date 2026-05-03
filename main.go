@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"log"
 	"net/http"
@@ -12,6 +13,7 @@ import (
 
 	"github.com/CalebRose/SimHockey/controllers"
 	"github.com/CalebRose/SimHockey/dbprovider"
+	"github.com/CalebRose/SimHockey/managers"
 	"github.com/CalebRose/SimHockey/middleware"
 	"github.com/CalebRose/SimHockey/structs"
 	"github.com/CalebRose/SimHockey/ws"
@@ -47,6 +49,53 @@ func monitorDBForUpdates() {
 	}
 }
 
+// --- NEW REACT SCOREBOARD ENDPOINTS ---
+
+func GetCurrentTime(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+	w.Header().Set("Access-Control-Allow-Origin", "*")
+
+	ts := managers.GetTimestamp()
+	json.NewEncoder(w).Encode(ts)
+}
+
+func GetLiveCHLGames(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+	w.Header().Set("Access-Control-Allow-Origin", "*")
+
+	season := r.URL.Query().Get("season")
+	week := r.URL.Query().Get("week")
+	timeslot := r.URL.Query().Get("timeslot")
+
+	response := managers.GetLiveGamesHubData(true, season, week, timeslot)
+	json.NewEncoder(w).Encode(response)
+}
+
+func GetCHLGameDetails(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+	w.Header().Set("Access-Control-Allow-Origin", "*")
+
+	vars := mux.Vars(r)
+	gameID := vars["gameId"]
+
+	response := managers.GetGameDetailsData(gameID, true)
+	json.NewEncoder(w).Encode(response)
+}
+
+func GetBulkCHLPlays(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+	w.Header().Set("Access-Control-Allow-Origin", "*")
+
+	season := r.URL.Query().Get("season")
+	week := r.URL.Query().Get("week")
+	timeslot := r.URL.Query().Get("timeslot")
+
+	response := managers.GetBulkPlayByPlayData(true, season, week, timeslot)
+	json.NewEncoder(w).Encode(response)
+}
+
+// --------------------------------------
+
 func handleRequests() http.Handler {
 	myRouter := mux.NewRouter().StrictSlash(true)
 
@@ -63,6 +112,12 @@ func handleRequests() http.Handler {
 	myRouter.HandleFunc("/api/stream/live/chl", controllers.StreamCHLLiveGames).Methods("GET")
 	myRouter.HandleFunc("/api/stream/live/phl", controllers.StreamPHLLiveGames).Methods("GET")
 
+	// NEW REACT API ROUTES
+	apiRouter.HandleFunc("/timestamp", GetCurrentTime).Methods("GET", "OPTIONS")
+	apiRouter.HandleFunc("/games/live/chl", GetLiveCHLGames).Methods("GET", "OPTIONS")
+	apiRouter.HandleFunc("/games/details/chl/{gameId}", GetCHLGameDetails).Methods("GET", "OPTIONS")
+	apiRouter.HandleFunc("/games/plays/bulk/chl", GetBulkCHLPlays).Methods("GET", "OPTIONS")
+
 	// Health Controls
 	HealthCheck := health.New(
 		health.Health{
@@ -74,7 +129,7 @@ func handleRequests() http.Handler {
 	myRouter.HandleFunc("/health", HealthCheck.Handler).Methods("GET")
 
 	// Admin
-	apiRouter.HandleFunc("/admin/generate/ts/models/", controllers.CreateTSModelsFile).Methods("GET")
+	// apiRouter.HandleFunc("/admin/generate/ts/models/", controllers.CreateTSModelsFile).Methods("GET")
 	// apiRouter.HandleFunc("/admin/test/engine/", controllers.TestEngine).Methods("GET")
 	// apiRouter.HandleFunc("/admin/ai/generate/college/lineups/", controllers.RunAICollegeLineups).Methods("GET")
 	// apiRouter.HandleFunc("/admin/ai/generate/gameplans/", controllers.CreateGameplans).Methods("GET")
@@ -89,7 +144,7 @@ func handleRequests() http.Handler {
 	// apiRouter.HandleFunc("/admin/generate/college/recruits/", controllers.GenerateCroots).Methods("GET")
 	// apiRouter.HandleFunc("/admin/generate/custom/recruits/", controllers.GenerateCustomCroots).Methods("GET")
 	// apiRouter.HandleFunc("/admin/generate/phl/schedule/", controllers.GeneratePHLSchedule).Methods("GET")
-	apiRouter.HandleFunc("/admin/generate/chl/schedule/", controllers.GenerateCHLSchedule).Methods("GET")
+	// apiRouter.HandleFunc("/admin/generate/chl/schedule/", controllers.GenerateCHLSchedule).Methods("GET")
 	// apiRouter.HandleFunc("/admin/generate/chl/tourney/schedule/", controllers.GenerateCHLTourneySchedule).Methods("GET")
 	// apiRouter.HandleFunc("/admin/generate/phl/playoff/games/", controllers.GenerateProPlayoffGames).Methods("GET")
 	// apiRouter.HandleFunc("/admin/generate/pairwise/ranks/", controllers.GeneratePairwiseRanks).Methods("GET")
