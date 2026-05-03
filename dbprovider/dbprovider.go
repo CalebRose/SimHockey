@@ -71,7 +71,7 @@ func (p *Provider) InitDatabase() bool {
 	// db.AutoMigrate(&structs.ExtensionOffer{})
 	// db.AutoMigrate(&structs.FreeAgencyOffer{})
 	// db.AutoMigrate(&structs.ProCapsheet{})
-	// db.AutoMigrate(&structs.ProContract{})
+	// 	db.AutoMigrate(&structs.ProContract{})
 	// db.AutoMigrate(&structs.ProPlayByPlay{})
 	// db.AutoMigrate(&structs.ProfessionalPlayerGameStats{})
 	// db.AutoMigrate(&structs.ProfessionalPlayerSeasonStats{})

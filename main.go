@@ -59,6 +59,10 @@ func handleRequests() http.Handler {
 	apiRouter := myRouter.PathPrefix("/api").Subrouter()
 	apiRouter.Use(middleware.GzipMiddleware)
 
+	// Live Scoreboard (Bypass Gzip Middleware for streaming)
+	myRouter.HandleFunc("/api/stream/live/chl", controllers.StreamCHLLiveGames).Methods("GET")
+	myRouter.HandleFunc("/api/stream/live/phl", controllers.StreamPHLLiveGames).Methods("GET")
+
 	// Health Controls
 	HealthCheck := health.New(
 		health.Health{
@@ -85,7 +89,7 @@ func handleRequests() http.Handler {
 	// apiRouter.HandleFunc("/admin/generate/college/recruits/", controllers.GenerateCroots).Methods("GET")
 	// apiRouter.HandleFunc("/admin/generate/custom/recruits/", controllers.GenerateCustomCroots).Methods("GET")
 	// apiRouter.HandleFunc("/admin/generate/phl/schedule/", controllers.GeneratePHLSchedule).Methods("GET")
-	// apiRouter.HandleFunc("/admin/generate/chl/schedule/", controllers.GenerateCHLSchedule).Methods("GET")
+	apiRouter.HandleFunc("/admin/generate/chl/schedule/", controllers.GenerateCHLSchedule).Methods("GET")
 	// apiRouter.HandleFunc("/admin/generate/chl/tourney/schedule/", controllers.GenerateCHLTourneySchedule).Methods("GET")
 	// apiRouter.HandleFunc("/admin/generate/phl/playoff/games/", controllers.GenerateProPlayoffGames).Methods("GET")
 	// apiRouter.HandleFunc("/admin/generate/pairwise/ranks/", controllers.GeneratePairwiseRanks).Methods("GET")
