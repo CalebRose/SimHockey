@@ -63,11 +63,14 @@ func GetLiveCHLGames(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	w.Header().Set("Access-Control-Allow-Origin", "*")
 
+	// Read the toggle from React
+	isCollege := r.URL.Query().Get("isCollege") != "false"
+
 	season := r.URL.Query().Get("season")
 	week := r.URL.Query().Get("week")
 	timeslot := r.URL.Query().Get("timeslot")
 
-	response := managers.GetLiveGamesHubData(true, season, week, timeslot)
+	response := managers.GetLiveGamesHubData(isCollege, season, week, timeslot)
 	json.NewEncoder(w).Encode(response)
 }
 
@@ -78,7 +81,10 @@ func GetCHLGameDetails(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	gameID := vars["gameId"]
 
-	response := managers.GetGameDetailsData(gameID, true)
+	// Read the toggle from React
+	isCollege := r.URL.Query().Get("isCollege") != "false"
+
+	response := managers.GetGameDetailsData(gameID, isCollege)
 	json.NewEncoder(w).Encode(response)
 }
 
@@ -86,11 +92,14 @@ func GetBulkCHLPlays(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	w.Header().Set("Access-Control-Allow-Origin", "*")
 
+	// Read the toggle from React
+	isCollege := r.URL.Query().Get("isCollege") != "false"
+
 	season := r.URL.Query().Get("season")
 	week := r.URL.Query().Get("week")
 	timeslot := r.URL.Query().Get("timeslot")
 
-	response := managers.GetBulkPlayByPlayData(true, season, week, timeslot)
+	response := managers.GetBulkPlayByPlayData(isCollege, season, week, timeslot)
 	json.NewEncoder(w).Encode(response)
 }
 

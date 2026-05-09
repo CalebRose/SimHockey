@@ -1584,6 +1584,8 @@ type LiveGameHubDTO struct {
 	GameID                uint   `json:"GameID"`
 	HomeTeam              string `json:"HomeTeam"`
 	AwayTeam              string `json:"AwayTeam"`
+	HomeTeamID            uint   `json:"HomeTeamID"` // ADD THIS
+	AwayTeamID            uint   `json:"AwayTeamID"` // ADD THIS
 	HomeTeamScore         uint   `json:"HomeTeamScore"`
 	AwayTeamScore         uint   `json:"AwayTeamScore"`
 	HomeTeamShootoutScore uint   `json:"HomeTeamShootoutScore"`
@@ -1606,6 +1608,8 @@ type PbPDTO struct {
 	TimeOnClock uint16 `json:"TimeOnClock"`
 	PlayText    string `json:"PlayText"`
 	Zone        uint8  `json:"Zone"`
+	HomeScore   uint8  `json:"HomeScore"` // ADD THIS
+	AwayScore   uint8  `json:"AwayScore"` // ADD THIS
 }
 
 type TeamBoxScoreDTO struct {
@@ -1630,48 +1634,195 @@ type GoalieBoxScoreDTO struct {
 
 func GetLiveGamesHubData(isCollege bool, reqSeason string, reqWeek string, reqTimeslot string) map[uint]LiveGameHubDTO {
 	ts := GetTimestamp()
-	seasonID := reqSeason
-	if seasonID == "" {
-		seasonID = strconv.Itoa(int(ts.SeasonID))
-	}
-	weekID := reqWeek
-	if weekID == "" {
-		weekID = strconv.Itoa(int(ts.WeekID))
-	} else if len(weekID) <= 2 {
-		seasonNum, _ := strconv.Atoi(seasonID)
-		weekNum, _ := strconv.Atoi(weekID)
-		weekID = strconv.Itoa(int(util.GetWeekID(uint(seasonNum), uint(weekNum))))
-	}
+	seasonID := strconv.Itoa(int(ts.SeasonID))
+	weekID := strconv.Itoa(int(ts.WeekID))
+
+	// Debugger to see what React is asking for
+	fmt.Println("Fetching Live Hub -> isCollege:", isCollege, "| Req Timeslot:", reqTimeslot)
 
 	responseMap := make(map[uint]LiveGameHubDTO)
+
 	if isCollege {
 		clauses := repository.GamesClauses{SeasonID: seasonID, WeekID: weekID, IsPreseason: ts.IsPreseason}
-		if reqTimeslot != "" {
-			clauses.Timeslot = reqTimeslot
-		}
 		games := repository.FindCollegeGames(clauses)
 		allCollegeTeams := repository.FindAllCollegeTeams(repository.TeamClauses{})
 		chlTeamMap := MakeCollegeTeamMap(allCollegeTeams)
 
 		for _, g := range games {
+			// THE BOUNCER: Must be the very first thing in the loop!
+			if reqTimeslot != "" && reqTimeslot != "undefined" {
+				if g.GameDay != reqTimeslot {
+					continue
+				}
+			}
+
 			homeTeam := chlTeamMap[g.HomeTeamID]
 			awayTeam := chlTeamMap[g.AwayTeamID]
-			Period := uint8(0)
+
+			homeScore := uint(g.HomeTeamScore)
+			awayScore := uint(g.AwayTeamScore)
+			period := uint8(0)
+			gameComplete := g.GameComplete
+
 			if g.GameComplete {
-				Period = 3
+				period = 3
 				if g.IsOvertime {
-					Period = 4
+					period = 4
 				}
 				if g.IsShootout {
-					Period = 5
+					period = 5
 				}
 			}
-			responseMap[g.ID] = LiveGameHubDTO{
-				GameID: g.ID, HomeTeam: homeTeam.Abbreviation, AwayTeam: awayTeam.Abbreviation,
-				HomeTeamScore: uint(g.HomeTeamScore), AwayTeamScore: uint(g.AwayTeamScore),
-				HomeTeamShootoutScore: uint(g.HomeTeamShootoutScore), AwayTeamShootoutScore: uint(g.AwayTeamShootoutScore),
-				Period: Period, TimeOnClock: 0, Zone: 11, GameComplete: g.GameComplete, IsShootout: g.IsShootout,
+
+			// THE SPOILER SHIELD
+			if reqTimeslot != "" && reqTimeslot != "undefined" {
+				homeScore = 0
+				awayScore = 0
+				period = 0
+				gameComplete = false
 			}
+
+			responseMap[g.ID] = LiveGameHubDTO{
+				GameID: g.ID, HomeTeamID: g.HomeTeamID, AwayTeamID: g.AwayTeamID,
+				HomeTeam: homeTeam.Abbreviation, AwayTeam: awayTeam.Abbreviation,
+				HomeTeamScore: homeScore, AwayTeamScore: awayScore,
+				HomeTeamShootoutScore: uint(g.HomeTeamShootoutScore), AwayTeamShootoutScore: uint(g.AwayTeamShootoutScore),
+				Period: period, TimeOnClock: 0, Zone: 11, GameComplete: gameComplete, IsShootout: g.IsShootout,
+			}
+		}
+	} else {
+		// PRO GAMES LOGIC
+		clauses := repository.GamesClauses{SeasonID: seasonID, WeekID: weekID, IsPreseason: ts.IsPreseason}
+		games := repository.FindProfessionalGames(clauses)
+		allProTeams := repository.FindAllProTeams(repository.TeamClauses{})
+		phlTeamMap := MakeProTeamMap(allProTeams)
+
+		for _, g := range games {
+			// THE BOUNCER: Must be the very first thing in the loop!
+			if reqTimeslot != "" && reqTimeslot != "undefined" {
+				if g.GameDay != reqTimeslot {
+					continue
+				}
+			}
+
+			homeTeam := phlTeamMap[g.HomeTeamID]
+			awayTeam := phlTeamMap[g.AwayTeamID]
+
+			homeScore := uint(g.HomeTeamScore)
+			awayScore := uint(g.AwayTeamScore)
+			period := uint8(0)
+			gameComplete := g.GameComplete
+
+			if g.GameComplete {
+				period = 3
+				if g.IsOvertime {
+					period = 4
+				}
+				if g.IsShootout {
+					period = 5
+				}
+			}
+
+			// THE SPOILER SHIELD
+			if reqTimeslot != "" && reqTimeslot != "undefined" {
+				homeScore = 0
+				awayScore = 0
+				period = 0
+				gameComplete = false
+			}
+
+			responseMap[g.ID] = LiveGameHubDTO{
+				GameID: g.ID, HomeTeamID: g.HomeTeamID, AwayTeamID: g.AwayTeamID,
+				HomeTeam: homeTeam.Abbreviation, AwayTeam: awayTeam.Abbreviation,
+				HomeTeamScore: homeScore, AwayTeamScore: awayScore,
+				HomeTeamShootoutScore: uint(g.HomeTeamShootoutScore), AwayTeamShootoutScore: uint(g.AwayTeamShootoutScore),
+				Period: period, TimeOnClock: 0, Zone: 11, GameComplete: gameComplete, IsShootout: g.IsShootout,
+			}
+		}
+	}
+	return responseMap
+}
+func GetBulkPlayByPlayData(isCollege bool, reqSeason string, reqWeek string, reqTimeslot string) map[uint][]PbPDTO {
+	ts := GetTimestamp()
+	seasonID := strconv.Itoa(int(ts.SeasonID))
+	weekID := strconv.Itoa(int(ts.WeekID))
+	responseMap := make(map[uint][]PbPDTO)
+
+	if isCollege {
+		clauses := repository.GamesClauses{SeasonID: seasonID, WeekID: weekID, IsPreseason: ts.IsPreseason}
+		games := repository.FindCollegeGames(clauses)
+
+		var gameIDs []uint
+		for _, g := range games {
+			// THE BOUNCER
+			if reqTimeslot != "" && reqTimeslot != "undefined" {
+				if g.GameDay != reqTimeslot {
+					continue
+				}
+			}
+			gameIDs = append(gameIDs, g.ID)
+			responseMap[g.ID] = []PbPDTO{}
+		}
+
+		if len(gameIDs) == 0 {
+			return responseMap
+		}
+
+		collegePlayers := repository.FindAllCollegePlayers(repository.PlayerQuery{})
+		collegePlayerMap := MakeCollegePlayerMap(collegePlayers)
+		collegeTeamMap := GetCollegeTeamMap()
+		db := dbprovider.GetInstance().GetDB()
+
+		var allPbPs []structs.CollegePlayByPlay
+		db.Where("game_id IN ?", gameIDs).Find(&allPbPs)
+
+		for _, p := range allPbPs {
+			eventStr := util.ReturnStringFromPBPID(p.PbP.EventID)
+			outcomeStr := util.ReturnStringFromPBPID(p.Outcome)
+			playText := generateCollegeResultsString(p.PbP, eventStr, outcomeStr, collegePlayerMap, collegeTeamMap[uint(p.PbP.TeamID)])
+
+			responseMap[uint(p.GameID)] = append(responseMap[uint(p.GameID)], PbPDTO{
+				Period: p.PbP.Period, TimeOnClock: p.PbP.TimeOnClock, PlayText: playText, Zone: p.PbP.ZoneID,
+				HomeScore: p.PbP.HomeTeamScore, AwayScore: p.PbP.AwayTeamScore,
+			})
+		}
+	} else {
+		// PRO LOGIC
+		clauses := repository.GamesClauses{SeasonID: seasonID, WeekID: weekID, IsPreseason: ts.IsPreseason}
+		games := repository.FindProfessionalGames(clauses)
+
+		var gameIDs []uint
+		for _, g := range games {
+			// THE BOUNCER
+			if reqTimeslot != "" && reqTimeslot != "undefined" {
+				if g.GameDay != reqTimeslot {
+					continue
+				}
+			}
+			gameIDs = append(gameIDs, g.ID)
+			responseMap[g.ID] = []PbPDTO{}
+		}
+
+		if len(gameIDs) == 0 {
+			return responseMap
+		}
+
+		proPlayerMap := GetProPlayersMap()
+		proTeamMap := GetProTeamMap()
+		db := dbprovider.GetInstance().GetDB()
+
+		var allPbPs []structs.ProPlayByPlay
+		db.Where("game_id IN ?", gameIDs).Find(&allPbPs)
+
+		for _, p := range allPbPs {
+			eventStr := util.ReturnStringFromPBPID(p.PbP.EventID)
+			outcomeStr := util.ReturnStringFromPBPID(p.Outcome)
+			playText := generateProResultsString(p.PbP, eventStr, outcomeStr, proPlayerMap, proTeamMap[uint(p.PbP.TeamID)])
+
+			responseMap[uint(p.GameID)] = append(responseMap[uint(p.GameID)], PbPDTO{
+				Period: p.PbP.Period, TimeOnClock: p.PbP.TimeOnClock, PlayText: playText, Zone: p.PbP.ZoneID,
+				HomeScore: p.PbP.HomeTeamScore, AwayScore: p.PbP.AwayTeamScore,
+			})
 		}
 	}
 	return responseMap
@@ -1735,52 +1886,6 @@ func GetGameDetailsData(gameID string, isCollege bool) GameDetailsDTO {
 		}
 	}
 	return response
-}
-
-func GetBulkPlayByPlayData(isCollege bool, reqSeason string, reqWeek string, reqTimeslot string) map[uint][]PbPDTO {
-	ts := GetTimestamp()
-	seasonID := reqSeason
-	if seasonID == "" {
-		seasonID = strconv.Itoa(int(ts.SeasonID))
-	}
-	weekID := reqWeek
-	if weekID == "" {
-		weekID = strconv.Itoa(int(ts.WeekID))
-	} else if len(weekID) <= 2 {
-		seasonNum, _ := strconv.Atoi(seasonID)
-		weekNum, _ := strconv.Atoi(weekID)
-		weekID = strconv.Itoa(int(util.GetWeekID(uint(seasonNum), uint(weekNum))))
-	}
-	responseMap := make(map[uint][]PbPDTO)
-	if isCollege {
-		clauses := repository.GamesClauses{SeasonID: seasonID, WeekID: weekID, IsPreseason: ts.IsPreseason}
-		if reqTimeslot != "" {
-			clauses.Timeslot = reqTimeslot
-		}
-		games := repository.FindCollegeGames(clauses)
-		var gameIDs []string
-		for _, g := range games {
-			gameIDs = append(gameIDs, strconv.Itoa(int(g.ID)))
-			responseMap[g.ID] = []PbPDTO{}
-		}
-		if len(gameIDs) == 0 {
-			return responseMap
-		}
-		collegePlayers := repository.FindAllCollegePlayers(repository.PlayerQuery{})
-		collegePlayerMap := MakeCollegePlayerMap(collegePlayers)
-		collegeTeamMap := GetCollegeTeamMap()
-		db := dbprovider.GetInstance().GetDB()
-		var allPbPs []structs.CollegePlayByPlay
-		db.Where("game_id IN ?", gameIDs).Find(&allPbPs)
-		for _, p := range allPbPs {
-			eventStr := util.ReturnStringFromPBPID(p.PbP.EventID)
-			outcomeStr := util.ReturnStringFromPBPID(p.Outcome)
-			playText := generateCollegeResultsString(p.PbP, eventStr, outcomeStr, collegePlayerMap, collegeTeamMap[uint(p.PbP.TeamID)])
-			// Citing source for ZoneID mapping
-			responseMap[uint(p.GameID)] = append(responseMap[uint(p.GameID)], PbPDTO{Period: p.PbP.Period, TimeOnClock: p.PbP.TimeOnClock, PlayText: playText, Zone: p.PbP.ZoneID})
-		}
-	}
-	return responseMap
 }
 
 func TopN(ss []*structs.CollegeStandings, n int) []*structs.CollegeStandings {
