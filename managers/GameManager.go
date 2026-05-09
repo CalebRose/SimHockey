@@ -145,6 +145,10 @@ func RunGames() {
 	}
 	if !ts.IsTesting {
 		upload.Flush(db)
+
+		// ADVANCE THE MASTER CLOCK
+		ts.ToggleGames(gameDay)
+		repository.SaveTimestamp(ts, db)
 	}
 }
 
@@ -1608,8 +1612,10 @@ type PbPDTO struct {
 	TimeOnClock uint16 `json:"TimeOnClock"`
 	PlayText    string `json:"PlayText"`
 	Zone        uint8  `json:"Zone"`
-	HomeScore   uint8  `json:"HomeScore"` // ADD THIS
-	AwayScore   uint8  `json:"AwayScore"` // ADD THIS
+	HomeScore   uint8  `json:"HomeScore"`
+	AwayScore   uint8  `json:"AwayScore"`
+	HomeSOScore uint8  `json:"HomeSOScore"`
+	AwaySOScore uint8  `json:"AwaySOScore"`
 }
 
 type TeamBoxScoreDTO struct {
@@ -1784,6 +1790,7 @@ func GetBulkPlayByPlayData(isCollege bool, reqSeason string, reqWeek string, req
 			responseMap[uint(p.GameID)] = append(responseMap[uint(p.GameID)], PbPDTO{
 				Period: p.PbP.Period, TimeOnClock: p.PbP.TimeOnClock, PlayText: playText, Zone: p.PbP.ZoneID,
 				HomeScore: p.PbP.HomeTeamScore, AwayScore: p.PbP.AwayTeamScore,
+				HomeSOScore: p.PbP.HomeTeamShootoutScore, AwaySOScore: p.PbP.AwayTeamShootoutScore,
 			})
 		}
 	} else {
