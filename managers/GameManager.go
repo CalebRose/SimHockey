@@ -1588,8 +1588,8 @@ type LiveGameHubDTO struct {
 	GameID                uint   `json:"GameID"`
 	HomeTeam              string `json:"HomeTeam"`
 	AwayTeam              string `json:"AwayTeam"`
-	HomeTeamID            uint   `json:"HomeTeamID"` // ADD THIS
-	AwayTeamID            uint   `json:"AwayTeamID"` // ADD THIS
+	HomeTeamID            uint   `json:"HomeTeamID"`
+	AwayTeamID            uint   `json:"AwayTeamID"`
 	HomeTeamScore         uint   `json:"HomeTeamScore"`
 	AwayTeamScore         uint   `json:"AwayTeamScore"`
 	HomeTeamShootoutScore uint   `json:"HomeTeamShootoutScore"`
@@ -1643,7 +1643,6 @@ func GetLiveGamesHubData(isCollege bool, reqSeason string, reqWeek string, reqTi
 	seasonID := strconv.Itoa(int(ts.SeasonID))
 	weekID := strconv.Itoa(int(ts.WeekID))
 
-	// Debugger to see what React is asking for
 	fmt.Println("Fetching Live Hub -> isCollege:", isCollege, "| Req Timeslot:", reqTimeslot)
 
 	responseMap := make(map[uint]LiveGameHubDTO)
@@ -1655,7 +1654,6 @@ func GetLiveGamesHubData(isCollege bool, reqSeason string, reqWeek string, reqTi
 		chlTeamMap := MakeCollegeTeamMap(allCollegeTeams)
 
 		for _, g := range games {
-			// THE BOUNCER: Must be the very first thing in the loop!
 			if reqTimeslot != "" && reqTimeslot != "undefined" {
 				if g.GameDay != reqTimeslot {
 					continue
@@ -1680,7 +1678,6 @@ func GetLiveGamesHubData(isCollege bool, reqSeason string, reqWeek string, reqTi
 				}
 			}
 
-			// THE SPOILER SHIELD
 			if reqTimeslot != "" && reqTimeslot != "undefined" {
 				homeScore = 0
 				awayScore = 0
@@ -1697,14 +1694,12 @@ func GetLiveGamesHubData(isCollege bool, reqSeason string, reqWeek string, reqTi
 			}
 		}
 	} else {
-		// PRO GAMES LOGIC
 		clauses := repository.GamesClauses{SeasonID: seasonID, WeekID: weekID, IsPreseason: ts.IsPreseason}
 		games := repository.FindProfessionalGames(clauses)
 		allProTeams := repository.FindAllProTeams(repository.TeamClauses{})
 		phlTeamMap := MakeProTeamMap(allProTeams)
 
 		for _, g := range games {
-			// THE BOUNCER: Must be the very first thing in the loop!
 			if reqTimeslot != "" && reqTimeslot != "undefined" {
 				if g.GameDay != reqTimeslot {
 					continue
@@ -1729,7 +1724,6 @@ func GetLiveGamesHubData(isCollege bool, reqSeason string, reqWeek string, reqTi
 				}
 			}
 
-			// THE SPOILER SHIELD
 			if reqTimeslot != "" && reqTimeslot != "undefined" {
 				homeScore = 0
 				awayScore = 0
@@ -1748,91 +1742,174 @@ func GetLiveGamesHubData(isCollege bool, reqSeason string, reqWeek string, reqTi
 	}
 	return responseMap
 }
-func GetBulkPlayByPlayData(isCollege bool, reqSeason string, reqWeek string, reqTimeslot string) map[uint][]PbPDTO {
+
+type BulkSpoofDataDTO struct {
+	Plays   map[uint][]PbPDTO      `json:"Plays"`
+	Rosters map[uint]GameRosterDTO `json:"Rosters"`
+}
+
+type GameRosterDTO struct {
+	HomeStats TeamBoxScoreDTO `json:"HomeStats"`
+	AwayStats TeamBoxScoreDTO `json:"AwayStats"`
+}
+
+func GetBulkPlayByPlayData(isCollege bool, reqSeason string, reqWeek string, reqTimeslot string) BulkSpoofDataDTO {
 	ts := GetTimestamp()
 	seasonID := strconv.Itoa(int(ts.SeasonID))
 	weekID := strconv.Itoa(int(ts.WeekID))
-	responseMap := make(map[uint][]PbPDTO)
+
+	response := BulkSpoofDataDTO{
+		Plays:   make(map[uint][]PbPDTO),
+		Rosters: make(map[uint]GameRosterDTO),
+	}
+
+	db := dbprovider.GetInstance().GetDB()
 
 	if isCollege {
 		clauses := repository.GamesClauses{SeasonID: seasonID, WeekID: weekID, IsPreseason: ts.IsPreseason}
 		games := repository.FindCollegeGames(clauses)
-
-		var gameIDs []uint
-		for _, g := range games {
-			// THE BOUNCER
-			if reqTimeslot != "" && reqTimeslot != "undefined" {
-				if g.GameDay != reqTimeslot {
-					continue
-				}
-			}
-			gameIDs = append(gameIDs, g.ID)
-			responseMap[g.ID] = []PbPDTO{}
-		}
-
-		if len(gameIDs) == 0 {
-			return responseMap
-		}
-
 		collegePlayers := repository.FindAllCollegePlayers(repository.PlayerQuery{})
 		collegePlayerMap := MakeCollegePlayerMap(collegePlayers)
 		collegeTeamMap := GetCollegeTeamMap()
-		db := dbprovider.GetInstance().GetDB()
+
+		for _, g := range games {
+			if reqTimeslot != "" && reqTimeslot != "undefined" && g.GameDay != reqTimeslot {
+				continue
+			}
+			gameIDStr := strconv.Itoa(int(g.ID))
+			response.Plays[g.ID] = []PbPDTO{}
+
+			// Build Roster for this game
+			roster := GameRosterDTO{
+				HomeStats: TeamBoxScoreDTO{Forwards: []PlayerBoxScoreDTO{}, Defenders: []PlayerBoxScoreDTO{}, Goalies: []GoalieBoxScoreDTO{}},
+				AwayStats: TeamBoxScoreDTO{Forwards: []PlayerBoxScoreDTO{}, Defenders: []PlayerBoxScoreDTO{}, Goalies: []GoalieBoxScoreDTO{}},
+			}
+
+			playerStats := repository.FindCollegePlayerStatsRecordByGame(gameIDStr)
+			for _, s := range playerStats {
+				if s.TimeOnIce <= 0 {
+					continue
+				}
+				pInfo := collegePlayerMap[s.PlayerID]
+				nameStr := fmt.Sprintf("%s. %s", string(pInfo.FirstName[0]), pInfo.LastName)
+				isHome := s.TeamID == g.HomeTeamID
+				if pInfo.Position == "Goalie" || pInfo.Position == "G" {
+					gs := GoalieBoxScoreDTO{Name: nameStr, Saves: 0, ShotsAgainst: 0, SavePercentage: 0}
+					if isHome {
+						roster.HomeStats.Goalies = append(roster.HomeStats.Goalies, gs)
+					} else {
+						roster.AwayStats.Goalies = append(roster.AwayStats.Goalies, gs)
+					}
+				} else {
+					ps := PlayerBoxScoreDTO{Name: nameStr, Goals: 0, Assists: 0, PlusMinus: 0}
+					if pInfo.Position == "D" {
+						if isHome {
+							roster.HomeStats.Defenders = append(roster.HomeStats.Defenders, ps)
+						} else {
+							roster.AwayStats.Defenders = append(roster.AwayStats.Defenders, ps)
+						}
+					} else {
+						if isHome {
+							roster.HomeStats.Forwards = append(roster.HomeStats.Forwards, ps)
+						} else {
+							roster.AwayStats.Forwards = append(roster.AwayStats.Forwards, ps)
+						}
+					}
+				}
+			}
+			response.Rosters[g.ID] = roster
+		}
 
 		var allPbPs []structs.CollegePlayByPlay
+		gameIDs := make([]uint, 0, len(response.Plays))
+		for id := range response.Plays {
+			gameIDs = append(gameIDs, id)
+		}
 		db.Where("game_id IN ?", gameIDs).Find(&allPbPs)
 
 		for _, p := range allPbPs {
 			eventStr := util.ReturnStringFromPBPID(p.PbP.EventID)
 			outcomeStr := util.ReturnStringFromPBPID(p.Outcome)
 			playText := generateCollegeResultsString(p.PbP, eventStr, outcomeStr, collegePlayerMap, collegeTeamMap[uint(p.PbP.TeamID)])
-
-			responseMap[uint(p.GameID)] = append(responseMap[uint(p.GameID)], PbPDTO{
+			response.Plays[uint(p.GameID)] = append(response.Plays[uint(p.GameID)], PbPDTO{
 				Period: p.PbP.Period, TimeOnClock: p.PbP.TimeOnClock, PlayText: playText, Zone: p.PbP.ZoneID,
-				HomeScore: p.PbP.HomeTeamScore, AwayScore: p.PbP.AwayTeamScore,
-				HomeSOScore: p.PbP.HomeTeamShootoutScore, AwaySOScore: p.PbP.AwayTeamShootoutScore,
+				HomeScore: p.PbP.HomeTeamScore, AwayScore: p.AwayTeamScore,
+				HomeSOScore: p.PbP.HomeTeamShootoutScore, AwaySOScore: p.AwayTeamShootoutScore,
 			})
 		}
 	} else {
 		// PRO LOGIC
 		clauses := repository.GamesClauses{SeasonID: seasonID, WeekID: weekID, IsPreseason: ts.IsPreseason}
 		games := repository.FindProfessionalGames(clauses)
-
-		var gameIDs []uint
-		for _, g := range games {
-			// THE BOUNCER
-			if reqTimeslot != "" && reqTimeslot != "undefined" {
-				if g.GameDay != reqTimeslot {
-					continue
-				}
-			}
-			gameIDs = append(gameIDs, g.ID)
-			responseMap[g.ID] = []PbPDTO{}
-		}
-
-		if len(gameIDs) == 0 {
-			return responseMap
-		}
-
 		proPlayerMap := GetProPlayersMap()
 		proTeamMap := GetProTeamMap()
-		db := dbprovider.GetInstance().GetDB()
+
+		for _, g := range games {
+			if reqTimeslot != "" && reqTimeslot != "undefined" && g.GameDay != reqTimeslot {
+				continue
+			}
+			gameIDStr := strconv.Itoa(int(g.ID))
+			response.Plays[g.ID] = []PbPDTO{}
+
+			roster := GameRosterDTO{
+				HomeStats: TeamBoxScoreDTO{Forwards: []PlayerBoxScoreDTO{}, Defenders: []PlayerBoxScoreDTO{}, Goalies: []GoalieBoxScoreDTO{}},
+				AwayStats: TeamBoxScoreDTO{Forwards: []PlayerBoxScoreDTO{}, Defenders: []PlayerBoxScoreDTO{}, Goalies: []GoalieBoxScoreDTO{}},
+			}
+
+			playerStats := repository.FindProPlayerStatsRecordByGame(gameIDStr)
+			for _, s := range playerStats {
+				if s.TimeOnIce <= 0 {
+					continue
+				}
+				pInfo := proPlayerMap[s.PlayerID]
+				nameStr := fmt.Sprintf("%s. %s", string(pInfo.FirstName[0]), pInfo.LastName)
+				isHome := s.TeamID == g.HomeTeamID
+				if pInfo.Position == "Goalie" || pInfo.Position == "G" {
+					gs := GoalieBoxScoreDTO{Name: nameStr, Saves: 0, ShotsAgainst: 0, SavePercentage: 0}
+					if isHome {
+						roster.HomeStats.Goalies = append(roster.HomeStats.Goalies, gs)
+					} else {
+						roster.AwayStats.Goalies = append(roster.AwayStats.Goalies, gs)
+					}
+				} else {
+					ps := PlayerBoxScoreDTO{Name: nameStr, Goals: 0, Assists: 0, PlusMinus: 0}
+					if pInfo.Position == "D" {
+						if isHome {
+							roster.HomeStats.Defenders = append(roster.HomeStats.Defenders, ps)
+						} else {
+							roster.AwayStats.Defenders = append(roster.AwayStats.Defenders, ps)
+						}
+					} else {
+						if isHome {
+							roster.HomeStats.Forwards = append(roster.HomeStats.Forwards, ps)
+						} else {
+							roster.AwayStats.Forwards = append(roster.AwayStats.Forwards, ps)
+						}
+					}
+				}
+			}
+			response.Rosters[g.ID] = roster
+		}
 
 		var allPbPs []structs.ProPlayByPlay
+		gameIDs := make([]uint, 0, len(response.Plays))
+		for id := range response.Plays {
+			gameIDs = append(gameIDs, id)
+		}
 		db.Where("game_id IN ?", gameIDs).Find(&allPbPs)
 
 		for _, p := range allPbPs {
 			eventStr := util.ReturnStringFromPBPID(p.PbP.EventID)
 			outcomeStr := util.ReturnStringFromPBPID(p.Outcome)
 			playText := generateProResultsString(p.PbP, eventStr, outcomeStr, proPlayerMap, proTeamMap[uint(p.PbP.TeamID)])
-
-			responseMap[uint(p.GameID)] = append(responseMap[uint(p.GameID)], PbPDTO{
+			response.Plays[uint(p.GameID)] = append(response.Plays[uint(p.GameID)], PbPDTO{
 				Period: p.PbP.Period, TimeOnClock: p.PbP.TimeOnClock, PlayText: playText, Zone: p.PbP.ZoneID,
-				HomeScore: p.PbP.HomeTeamScore, AwayScore: p.PbP.AwayTeamScore,
+				HomeScore: p.PbP.HomeTeamScore, AwayScore: p.AwayTeamScore,
+				HomeSOScore: p.PbP.HomeTeamShootoutScore, AwaySOScore: p.AwayTeamShootoutScore,
 			})
 		}
 	}
-	return responseMap
+	return response
 }
 
 func GetGameDetailsData(gameID string, isCollege bool) GameDetailsDTO {
@@ -1841,22 +1918,30 @@ func GetGameDetailsData(gameID string, isCollege bool) GameDetailsDTO {
 		HomeStats: TeamBoxScoreDTO{Forwards: []PlayerBoxScoreDTO{}, Defenders: []PlayerBoxScoreDTO{}, Goalies: []GoalieBoxScoreDTO{}},
 		AwayStats: TeamBoxScoreDTO{Forwards: []PlayerBoxScoreDTO{}, Defenders: []PlayerBoxScoreDTO{}, Goalies: []GoalieBoxScoreDTO{}},
 	}
+	db := dbprovider.GetInstance().GetDB()
+
 	if isCollege {
 		game := repository.FindCollegeGameRecord(gameID)
 		collegePlayers := repository.FindAllCollegePlayers(repository.PlayerQuery{})
 		collegePlayerMap := MakeCollegePlayerMap(collegePlayers)
 		collegeTeamMap := GetCollegeTeamMap()
 
-		pbps := GetCHLPlayByPlaysByGameID(gameID)
+		var pbps []structs.CollegePlayByPlay
+		db.Where("game_id = ?", gameID).Order("id asc").Find(&pbps)
+
 		for _, pbp := range pbps {
 			p := pbp.PbP
 			eventStr := util.ReturnStringFromPBPID(p.EventID)
 			outcomeStr := util.ReturnStringFromPBPID(p.Outcome)
 			playText := generateCollegeResultsString(p, eventStr, outcomeStr, collegePlayerMap, collegeTeamMap[uint(p.TeamID)])
-			// Citing source for ZoneID mapping
-			response.Feeds = append(response.Feeds, PbPDTO{Period: p.Period, TimeOnClock: p.TimeOnClock, PlayText: playText, Zone: p.ZoneID})
+			response.Feeds = append(response.Feeds, PbPDTO{
+				Period: p.Period, TimeOnClock: p.TimeOnClock, PlayText: playText, Zone: p.ZoneID,
+				HomeScore: p.HomeTeamScore, AwayScore: p.AwayTeamScore,
+				HomeSOScore: p.HomeTeamShootoutScore, AwaySOScore: p.AwayTeamShootoutScore,
+			})
 		}
-		playerStats := repository.FindCollegePlayerGameStatsRecords(strconv.Itoa(int(game.SeasonID)), "", "", gameID)
+
+		playerStats := repository.FindCollegePlayerStatsRecordByGame(gameID)
 		for _, s := range playerStats {
 			if s.TimeOnIce <= 0 {
 				continue
@@ -1864,18 +1949,71 @@ func GetGameDetailsData(gameID string, isCollege bool) GameDetailsDTO {
 			playerInfo := collegePlayerMap[s.PlayerID]
 			nameStr := fmt.Sprintf("%s. %s", string(playerInfo.FirstName[0]), playerInfo.LastName)
 			isHome := s.TeamID == game.HomeTeamID
+
+			// ZERO OUT STATS FOR SPOILER SHIELD
 			if playerInfo.Position == "Goalie" || playerInfo.Position == "G" {
-				gs := GoalieBoxScoreDTO{Name: nameStr, Saves: uint16(s.Saves), ShotsAgainst: uint16(s.ShotsAgainst)}
-				if s.ShotsAgainst > 0 {
-					gs.SavePercentage = float64(s.Saves) / float64(s.ShotsAgainst)
-				}
+				gs := GoalieBoxScoreDTO{Name: nameStr, Saves: 0, ShotsAgainst: 0, SavePercentage: 0}
 				if isHome {
 					response.HomeStats.Goalies = append(response.HomeStats.Goalies, gs)
 				} else {
 					response.AwayStats.Goalies = append(response.AwayStats.Goalies, gs)
 				}
 			} else {
-				ps := PlayerBoxScoreDTO{Name: nameStr, Goals: uint8(s.Goals), Assists: uint8(s.Assists), PlusMinus: int8(s.PlusMinus)}
+				ps := PlayerBoxScoreDTO{Name: nameStr, Goals: 0, Assists: 0, PlusMinus: 0}
+				if playerInfo.Position == "D" {
+					if isHome {
+						response.HomeStats.Defenders = append(response.HomeStats.Defenders, ps)
+					} else {
+						response.AwayStats.Defenders = append(response.AwayStats.Defenders, ps)
+					}
+				} else {
+					if isHome {
+						response.HomeStats.Forwards = append(response.HomeStats.Forwards, ps)
+					} else {
+						response.AwayStats.Forwards = append(response.AwayStats.Forwards, ps)
+					}
+				}
+			}
+		}
+	} else {
+		game := repository.FindProfessionalGameRecord(gameID)
+		proPlayerMap := GetProPlayersMap()
+		proTeamMap := GetProTeamMap()
+
+		var pbps []structs.ProPlayByPlay
+		db.Where("game_id = ?", gameID).Order("id asc").Find(&pbps)
+
+		for _, pbp := range pbps {
+			p := pbp.PbP
+			eventStr := util.ReturnStringFromPBPID(p.EventID)
+			outcomeStr := util.ReturnStringFromPBPID(p.Outcome)
+			playText := generateProResultsString(p, eventStr, outcomeStr, proPlayerMap, proTeamMap[uint(p.TeamID)])
+			response.Feeds = append(response.Feeds, PbPDTO{
+				Period: p.Period, TimeOnClock: p.TimeOnClock, PlayText: playText, Zone: p.ZoneID,
+				HomeScore: p.HomeTeamScore, AwayScore: p.AwayTeamScore,
+				HomeSOScore: p.HomeTeamShootoutScore, AwaySOScore: p.AwayTeamShootoutScore,
+			})
+		}
+
+		playerStats := repository.FindProPlayerStatsRecordByGame(gameID)
+		for _, s := range playerStats {
+			if s.TimeOnIce <= 0 {
+				continue
+			}
+			playerInfo := proPlayerMap[s.PlayerID]
+			nameStr := fmt.Sprintf("%s. %s", string(playerInfo.FirstName[0]), playerInfo.LastName)
+			isHome := s.TeamID == game.HomeTeamID
+
+			// ZERO OUT STATS FOR SPOILER SHIELD
+			if playerInfo.Position == "Goalie" || playerInfo.Position == "G" {
+				gs := GoalieBoxScoreDTO{Name: nameStr, Saves: 0, ShotsAgainst: 0, SavePercentage: 0}
+				if isHome {
+					response.HomeStats.Goalies = append(response.HomeStats.Goalies, gs)
+				} else {
+					response.AwayStats.Goalies = append(response.AwayStats.Goalies, gs)
+				}
+			} else {
+				ps := PlayerBoxScoreDTO{Name: nameStr, Goals: 0, Assists: 0, PlusMinus: 0}
 				if playerInfo.Position == "D" {
 					if isHome {
 						response.HomeStats.Defenders = append(response.HomeStats.Defenders, ps)
