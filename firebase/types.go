@@ -261,3 +261,14 @@ type GameplanNotificationInput struct {
 	RecipientUIDs  []string
 	SourceEventKey string
 }
+
+// ScheduleEventNotificationInput carries the context needed to notify a coach
+// about a game-request lifecycle event (accepted, rejected, vetoed).
+type ScheduleEventNotificationInput struct {
+	League         string
+	Domain         string // e.g. DomainCHL, DomainPHL
+	TeamID         uint
+	Message        string // fully-formed message from the caller
+	RecipientUIDs  []string
+	SourceEventKey string
+}

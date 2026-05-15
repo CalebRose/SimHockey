@@ -154,6 +154,23 @@ func NotifyGameplanIssue(ctx context.Context, input GameplanNotificationInput) e
 	})
 }
 
+// NotifyScheduleEvent notifies a coach about a game-request lifecycle event
+// such as acceptance, rejection, or an admin veto. Idempotent via SourceEventKey.
+func NotifyScheduleEvent(ctx context.Context, input ScheduleEventNotificationInput) error {
+	if len(input.RecipientUIDs) == 0 {
+		return nil
+	}
+	return writeNotificationsIfNew(ctx, input.RecipientUIDs, ForumNotification{
+		Type:           NotificationTypeSystem,
+		Domain:         input.Domain,
+		LinkTo:         BuildTeamRosterRoute(input.League, input.TeamID),
+		Message:        input.Message,
+		ActorUsername:  "SimSN",
+		IsRead:         false,
+		SourceEventKey: input.SourceEventKey,
+	})
+}
+
 // ─────────────────────────────────────────────
 // Internal helpers
 // ─────────────────────────────────────────────

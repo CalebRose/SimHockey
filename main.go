@@ -71,7 +71,7 @@ func handleRequests() http.Handler {
 
 	// Admin
 	apiRouter.HandleFunc("/admin/generate/ts/models/", controllers.CreateTSModelsFile).Methods("GET")
-	// apiRouter.HandleFunc("/admin/test/engine/", controllers.TestEngine).Methods("GET")
+	apiRouter.HandleFunc("/admin/test/engine/", controllers.TestEngine).Methods("GET")
 	// apiRouter.HandleFunc("/admin/ai/generate/college/lineups/", controllers.RunAICollegeLineups).Methods("GET")
 	// apiRouter.HandleFunc("/admin/ai/generate/gameplans/", controllers.CreateGameplans).Methods("GET")
 	// apiRouter.HandleFunc("/admin/ai/generate/optimal/systems/", controllers.RunAISelectOptimalSystems).Methods("GET")
@@ -267,6 +267,13 @@ func handleRequests() http.Handler {
 	apiRouter.HandleFunc("/ds/phl/stream/{streamType}/", controllers.GetPHLGameStreams).Methods("GET")
 	apiRouter.HandleFunc("/ds/chl/reveal/results/{gameID}/", controllers.RevealCHLGameResults).Methods("GET")
 	apiRouter.HandleFunc("/ds/phl/reveal/results/{gameID}/", controllers.RevealPHLGameResults).Methods("GET")
+
+	// Scheduler Controls (CHL)
+	apiRouter.HandleFunc("/chl/scheduler/game/request/create", controllers.CreateCHLGameRequest).Methods("POST")
+	apiRouter.HandleFunc("/chl/scheduler/game/request/accept/{requestID}", controllers.AcceptCHLGameRequest).Methods("GET")
+	apiRouter.HandleFunc("/chl/scheduler/game/request/reject/{requestID}", controllers.RejectCHLGameRequest).Methods("GET")
+	apiRouter.HandleFunc("/chl/scheduler/game/request/process/{requestID}", controllers.ProcessCHLGameRequest).Methods("GET")
+	apiRouter.HandleFunc("/chl/scheduler/game/request/veto/{requestID}", controllers.VetoCHLGameRequest).Methods("GET")
 
 	// Websocket
 	myRouter.HandleFunc("/ws", ws.WebSocketHandler)
