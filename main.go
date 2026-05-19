@@ -275,6 +275,16 @@ func handleRequests() http.Handler {
 	apiRouter.HandleFunc("/chl/scheduler/game/request/process/{requestID}", controllers.ProcessCHLGameRequest).Methods("GET")
 	apiRouter.HandleFunc("/chl/scheduler/game/request/veto/{requestID}", controllers.VetoCHLGameRequest).Methods("GET")
 
+	// Games
+	apiRouter.HandleFunc("/games/result/chl/{gameID}", controllers.GetCollegeGameResultsByGameID).Methods("GET")
+	apiRouter.HandleFunc("/games/result/phl/{gameID}", controllers.GetProGameResultsByGameID).Methods("GET")
+
+	// --- NEW LIVE SCOREBOARD ROUTES ADDED HERE ---
+	apiRouter.HandleFunc("/games/live/chl", controllers.GetLiveGamesHub).Methods("GET")
+	apiRouter.HandleFunc("/games/plays/bulk/chl", controllers.GetBulkPlayByPlay).Methods("GET")
+	apiRouter.HandleFunc("/admin/run-games", controllers.RunAdminGames).Methods("POST")
+	// ---------------------------------------------
+
 	// Websocket
 	myRouter.HandleFunc("/ws", ws.WebSocketHandler)
 

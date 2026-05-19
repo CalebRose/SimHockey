@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"encoding/json"
 	"fmt"
 	"net/http"
 
@@ -73,4 +74,32 @@ func StreamPHLLiveGames(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 	}
+}
+
+// GetLiveGamesHub returns the current state of games for the live rink hub
+func GetLiveGamesHub(w http.ResponseWriter, r *http.Request) {
+	isCollege := r.URL.Query().Get("isCollege") == "true"
+	season := r.URL.Query().Get("season")
+	week := r.URL.Query().Get("week")
+	timeslot := r.URL.Query().Get("timeslot")
+
+	response := managers.GetLiveGamesHubData(isCollege, season, week, timeslot)
+	json.NewEncoder(w).Encode(response)
+}
+
+// GetBulkPlayByPlay returns the massive array of plays to feed the frontend spoofing loop
+func GetBulkPlayByPlay(w http.ResponseWriter, r *http.Request) {
+	isCollege := r.URL.Query().Get("isCollege") == "true"
+	season := r.URL.Query().Get("season")
+	week := r.URL.Query().Get("week")
+	timeslot := r.URL.Query().Get("timeslot")
+
+	response := managers.GetBulkPlayByPlayData(isCollege, season, week, timeslot)
+	json.NewEncoder(w).Encode(response)
+}
+
+// RunAdminGames manually triggers the game engine via POST from the Control Room
+func RunAdminGames(w http.ResponseWriter, r *http.Request) {
+	managers.RunGames()
+	json.NewEncoder(w).Encode("Live Broadcast Engine Started!")
 }
