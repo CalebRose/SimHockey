@@ -2508,7 +2508,7 @@ func GetBulkPlayByPlayData(isCollege bool, reqSeason string, reqWeek string, req
 		for _, p := range allPbPs {
 			eventStr := util.ReturnStringFromPBPID(p.PbP.EventID)
 			outcomeStr := util.ReturnStringFromPBPID(p.Outcome)
-			playText := generateCollegeResultsString(p.PbP, eventStr, outcomeStr, collegePlayerMap, collegeTeamMap[uint(p.PbP.TeamID)])
+			playText := GeneratePlayByPlayText(p.PbP, eventStr, outcomeStr, collegePlayerMap, collegeTeamMap[uint(p.PbP.TeamID)].TeamName)
 			response.Plays[uint(p.GameID)] = append(response.Plays[uint(p.GameID)], PbPDTO{
 				Period: p.PbP.Period, TimeOnClock: p.PbP.TimeOnClock, PlayText: playText, Zone: p.PbP.ZoneID,
 				HomeScore: p.PbP.HomeTeamScore, AwayScore: p.AwayTeamScore,
@@ -2579,7 +2579,7 @@ func GetBulkPlayByPlayData(isCollege bool, reqSeason string, reqWeek string, req
 		for _, p := range allPbPs {
 			eventStr := util.ReturnStringFromPBPID(p.PbP.EventID)
 			outcomeStr := util.ReturnStringFromPBPID(p.Outcome)
-			playText := generateProResultsString(p.PbP, eventStr, outcomeStr, proPlayerMap, proTeamMap[uint(p.PbP.TeamID)])
+			playText := GeneratePlayByPlayText(p.PbP, eventStr, outcomeStr, proPlayerMap, proTeamMap[uint(p.PbP.TeamID)].TeamName)
 			response.Plays[uint(p.GameID)] = append(response.Plays[uint(p.GameID)], PbPDTO{
 				Period: p.PbP.Period, TimeOnClock: p.PbP.TimeOnClock, PlayText: playText, Zone: p.PbP.ZoneID,
 				HomeScore: p.PbP.HomeTeamScore, AwayScore: p.AwayTeamScore,

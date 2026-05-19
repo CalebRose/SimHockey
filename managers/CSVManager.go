@@ -64,7 +64,7 @@ func HandleCollegePlayByPlayExport(w http.ResponseWriter, gameID string) {
 				isFight = "Yes"
 			}
 
-			result := generateCollegeResultsString(play, event, outcome, collegePlayerMap, possessingTeam)
+			result := GeneratePlayByPlayText(play, event, outcome, collegePlayerMap, possessingTeam.TeamName)
 			err := csvW.Write([]string{
 				periodStr,
 				timeOnClock,
@@ -224,7 +224,7 @@ func HandleProPlayByPlayExport(w http.ResponseWriter, gameID string) {
 				isFight = "Yes"
 			}
 
-			result := generateProResultsString(play, event, outcome, proPlayerMap, possessingTeam)
+			result := GeneratePlayByPlayText(play, event, outcome, proPlayerMap, possessingTeam.TeamName)
 			err := csvW.Write([]string{
 				periodStr,
 				timeOnClock,
@@ -370,7 +370,7 @@ func WritePlayByPlayCSVFile(playByPlays []structs.PbP, filename string, collegeP
 		aos := util.GetOffensiveSystemString(play.AOS)
 		ads := util.GetDefensiveSystemString(play.ADS)
 
-		result := generateCollegeResultsString(play, event, outcome, collegePlayerMap, possessingTeam)
+		result := GeneratePlayByPlayText(play, event, outcome, collegePlayerMap, possessingTeam.TeamName)
 		writer.Write([]string{
 			periodStr,
 			timeOnClock,

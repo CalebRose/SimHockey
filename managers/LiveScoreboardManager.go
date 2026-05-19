@@ -3,6 +3,7 @@ package managers
 import (
 	"context"
 	"encoding/json"
+	"os"
 	"strconv"
 
 	"github.com/CalebRose/SimHockey/engine"
@@ -28,10 +29,14 @@ func StartLiveScoreboardSession(ctx context.Context, leagueType string, gameLimi
 		activeGames = PrepareGames(nil, games, nil, proStandingsMap)
 	}
 
-	// Filter down to only games that are NOT complete and haven't been revealed
+	// Filter down to only games that are NOT complete
 	filteredGames := []structs.GameDTO{}
+
+	// Set DEBUG_GAMES=true in environment to override completion check
+	runAllGames := os.Getenv("DEBUG_GAMES") == "true"
+
 	for _, g := range activeGames {
-		if true { // Force all games to run for testing
+		if runAllGames || !g.GameInfo.GameComplete {
 			filteredGames = append(filteredGames, g)
 		}
 	}
@@ -58,7 +63,6 @@ func StartLiveScoreboardSession(ctx context.Context, leagueType string, gameLimi
 	for {
 		select {
 		case <-ctx.Done():
-			// The user closed the browser, stop processing
 			return
 		case play := <-engineChannel:
 			// 1. Translate the raw IDs to readable strings
