@@ -281,8 +281,9 @@ func handleRequests() http.Handler {
 
 	// --- NEW LIVE SCOREBOARD ROUTES ADDED HERE ---
 	apiRouter.HandleFunc("/games/live/chl", controllers.GetLiveGamesHub).Methods("GET")
+	apiRouter.HandleFunc("/games/live/phl", controllers.GetLiveGamesHub).Methods("GET")
 	apiRouter.HandleFunc("/games/plays/bulk/chl", controllers.GetBulkPlayByPlay).Methods("GET")
-	apiRouter.HandleFunc("/admin/run-games", controllers.RunAdminGames).Methods("POST")
+	apiRouter.HandleFunc("/games/plays/bulk/phl", controllers.GetBulkPlayByPlay).Methods("GET")
 	// ---------------------------------------------
 
 	// Websocket
