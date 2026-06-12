@@ -283,9 +283,9 @@ type ScheduleEventNotificationInput struct {
 // StreamScheduler so any client joining mid-stream can determine the current play
 // without polling.  IsRevealed is set by the cron when the stream completes.
 type LiveGameRecord struct {
-	GameID          uint      `firestore:"GameID"`
-	HomeTeamID      uint      `firestore:"HomeTeamID"`
-	AwayTeamID      uint      `firestore:"AwayTeamID"`
+	GameID          int       `firestore:"GameID"`
+	HomeTeamID      int       `firestore:"HomeTeamID"`
+	AwayTeamID      int       `firestore:"AwayTeamID"`
 	HomeTeam        string    `firestore:"HomeTeam"`
 	AwayTeam        string    `firestore:"AwayTeam"`
 	League          string    `firestore:"League"` // "chl" or "phl"
@@ -293,4 +293,10 @@ type LiveGameRecord struct {
 	StreamEndTime   time.Time `firestore:"StreamEndTime"`
 	TotalPlays      int       `firestore:"TotalPlays"`
 	IsRevealed      bool      `firestore:"IsRevealed"`
+	HomeTeamRank    int       `firestore:"HomeTeamRank"`
+	AwayTeamRank    int       `firestore:"AwayTeamRank"`
+	Arena           string    `firestore:"Arena"`
+	City            string    `firestore:"City"`
+	State           string    `firestore:"State"`
+	Country         string    `firestore:"Country"`
 }

@@ -121,3 +121,7 @@ func RunAdminGames(w http.ResponseWriter, r *http.Request) {
 	managers.RunGames()
 	json.NewEncoder(w).Encode("Live Broadcast Engine Started!")
 }
+
+func TestCHLCronJob(w http.ResponseWriter, r *http.Request) {
+	managers.StartCHLLiveStreamingCron()
+}

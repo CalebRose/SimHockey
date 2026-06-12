@@ -14,14 +14,30 @@ import (
 
 const maxStreamSlots = 8
 
+// cron guards — prevent duplicate streaming goroutines per league.
+var (
+	chlCronMu     sync.Mutex
+	chlCronCancel context.CancelFunc
+	phlCronMu     sync.Mutex
+	phlCronCancel context.CancelFunc
+)
+
 // PendingGame is a lightweight descriptor for a game waiting to enter a slot.
 type PendingGame struct {
-	GameID       uint
-	HomeTeamID   uint
-	AwayTeamID   uint
-	HomeTeam     string
-	AwayTeam     string
-	IsUserGame   bool // true if either team is user-coached / user-owned
+	GameID        uint
+	HomeTeamID    uint
+	AwayTeamID    uint
+	HomeTeam      string
+	AwayTeam      string
+	IsUserGame    bool // true if either team is user-coached / user-owned
+	HomeTeamRank  int
+	AwayTeamRank  int
+	HomeTeamCoach string
+	AwayTeamCoach string
+	Arena         string
+	City          string
+	State         string
+	Country       string
 }
 
 // GameStream represents one active streaming slot.
@@ -106,12 +122,18 @@ func (s *StreamScheduler) InitQueue(weekID, seasonID, gameDay string, isPreseaso
 			homeTeam := teamMap[g.HomeTeamID]
 			awayTeam := teamMap[g.AwayTeamID]
 			pg := PendingGame{
-				GameID:     g.ID,
-				HomeTeamID: g.HomeTeamID,
-				AwayTeamID: g.AwayTeamID,
-				HomeTeam:   homeTeam.Abbreviation,
-				AwayTeam:   awayTeam.Abbreviation,
-				IsUserGame: homeTeam.IsUserCoached || awayTeam.IsUserCoached,
+				GameID:       g.ID,
+				HomeTeamID:   g.HomeTeamID,
+				AwayTeamID:   g.AwayTeamID,
+				HomeTeam:     homeTeam.Abbreviation,
+				AwayTeam:     awayTeam.Abbreviation,
+				IsUserGame:   homeTeam.IsUserCoached || awayTeam.IsUserCoached,
+				HomeTeamRank: int(g.HomeTeamRank),
+				AwayTeamRank: int(g.AwayTeamRank),
+				Arena:        g.Arena,
+				City:         g.City,
+				State:        g.State,
+				Country:      g.Country,
 			}
 			if pg.IsUserGame {
 				userGames = append(userGames, pg)
@@ -131,12 +153,18 @@ func (s *StreamScheduler) InitQueue(weekID, seasonID, gameDay string, isPreseaso
 			isUser := homeTeam.Owner != "" || awayTeam.Owner != "" ||
 				homeTeam.GM != "" || awayTeam.GM != ""
 			pg := PendingGame{
-				GameID:     g.ID,
-				HomeTeamID: g.HomeTeamID,
-				AwayTeamID: g.AwayTeamID,
-				HomeTeam:   homeTeam.Abbreviation,
-				AwayTeam:   awayTeam.Abbreviation,
-				IsUserGame: isUser,
+				GameID:       g.ID,
+				HomeTeamID:   g.HomeTeamID,
+				AwayTeamID:   g.AwayTeamID,
+				HomeTeam:     homeTeam.Abbreviation,
+				AwayTeam:     awayTeam.Abbreviation,
+				IsUserGame:   isUser,
+				HomeTeamRank: int(g.HomeTeamRank),
+				AwayTeamRank: int(g.AwayTeamRank),
+				Arena:        g.Arena,
+				City:         g.City,
+				State:        g.State,
+				Country:      g.Country,
 			}
 			if pg.IsUserGame {
 				userGames = append(userGames, pg)
@@ -194,9 +222,9 @@ func (s *StreamScheduler) Tick(ctx context.Context) {
 
 		start, end := computeStreamTimes(totalSecs)
 		record := fbsvc.LiveGameRecord{
-			GameID:          next.GameID,
-			HomeTeamID:      next.HomeTeamID,
-			AwayTeamID:      next.AwayTeamID,
+			GameID:          int(next.GameID),
+			HomeTeamID:      int(next.HomeTeamID),
+			AwayTeamID:      int(next.AwayTeamID),
 			HomeTeam:        next.HomeTeam,
 			AwayTeam:        next.AwayTeam,
 			League:          s.League,
@@ -204,6 +232,12 @@ func (s *StreamScheduler) Tick(ctx context.Context) {
 			StreamEndTime:   end,
 			TotalPlays:      totalPlays,
 			IsRevealed:      false,
+			HomeTeamRank:    next.HomeTeamRank,
+			AwayTeamRank:    next.AwayTeamRank,
+			Arena:           next.Arena,
+			City:            next.City,
+			State:           next.State,
+			Country:         next.Country,
 		}
 		go func(rec fbsvc.LiveGameRecord, league string) {
 			if err := fbsvc.UploadLiveGame(ctx, rec, league); err != nil {
@@ -238,8 +272,21 @@ func (s *StreamScheduler) IsIdle() bool {
 
 // StartCHLLiveStreamingCron initialises a CHL StreamScheduler, fills its queue,
 // and runs Tick on a 5-second interval until all games are revealed.
+// A second call cancels any in-progress cron before starting a new one.
 func StartCHLLiveStreamingCron() {
 	ts := GetTimestamp()
+	if !ts.RunCron || ts.IsOffSeason || ts.CollegeSeasonOver {
+		return
+	}
+
+	chlCronMu.Lock()
+	if chlCronCancel != nil {
+		chlCronCancel() // stop previous run
+	}
+	ctx, cancel := context.WithCancel(context.Background())
+	chlCronCancel = cancel
+	chlCronMu.Unlock()
+
 	scheduler := &StreamScheduler{League: "chl", isCollege: true}
 	scheduler.InitQueue(
 		strconv.Itoa(int(ts.WeekID)),
@@ -249,28 +296,45 @@ func StartCHLLiveStreamingCron() {
 	)
 	if len(scheduler.Queue) == 0 {
 		log.Println("StreamScheduler(chl): no games to stream")
+		cancel()
 		return
 	}
 
-	ctx := context.Background()
 	scheduler.Tick(ctx) // fill initial slots immediately
 
 	ticker := time.NewTicker(5 * time.Second)
 	go func() {
 		defer ticker.Stop()
-		for range ticker.C {
-			scheduler.Tick(ctx)
-			if scheduler.IsIdle() {
-				log.Println("StreamScheduler(chl): all games complete, stopping")
+		defer cancel()
+		for {
+			select {
+			case <-ctx.Done():
+				log.Println("StreamScheduler(chl): context cancelled, stopping")
 				return
+			case <-ticker.C:
+				scheduler.Tick(ctx)
+				if scheduler.IsIdle() {
+					log.Println("StreamScheduler(chl): all games complete, stopping")
+					return
+				}
 			}
 		}
 	}()
 }
 
 // StartPHLLiveStreamingCron initialises a PHL StreamScheduler and runs it.
+// A second call cancels any in-progress cron before starting a new one.
 func StartPHLLiveStreamingCron() {
 	ts := GetTimestamp()
+
+	phlCronMu.Lock()
+	if phlCronCancel != nil {
+		phlCronCancel()
+	}
+	ctx, cancel := context.WithCancel(context.Background())
+	phlCronCancel = cancel
+	phlCronMu.Unlock()
+
 	scheduler := &StreamScheduler{League: "phl", isCollege: false}
 	scheduler.InitQueue(
 		strconv.Itoa(int(ts.WeekID)),
@@ -280,20 +344,27 @@ func StartPHLLiveStreamingCron() {
 	)
 	if len(scheduler.Queue) == 0 {
 		log.Println("StreamScheduler(phl): no games to stream")
+		cancel()
 		return
 	}
 
-	ctx := context.Background()
 	scheduler.Tick(ctx)
 
 	ticker := time.NewTicker(5 * time.Second)
 	go func() {
 		defer ticker.Stop()
-		for range ticker.C {
-			scheduler.Tick(ctx)
-			if scheduler.IsIdle() {
-				log.Println("StreamScheduler(phl): all games complete, stopping")
+		defer cancel()
+		for {
+			select {
+			case <-ctx.Done():
+				log.Println("StreamScheduler(phl): context cancelled, stopping")
 				return
+			case <-ticker.C:
+				scheduler.Tick(ctx)
+				if scheduler.IsIdle() {
+					log.Println("StreamScheduler(phl): all games complete, stopping")
+					return
+				}
 			}
 		}
 	}()
