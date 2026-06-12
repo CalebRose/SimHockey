@@ -102,3 +102,11 @@ func ShowResultsViaCron() {
 func RunPostSeasonMigrationViaCron() {
 	managers.HandlePostSeasonMigration()
 }
+
+func StreamCHLGamesToInterfaceViaCron() {
+	managers.StartCHLLiveStreamingCron()
+}
+
+func StreamPHLGamesToInterfaceViaCron() {
+	managers.StartPHLLiveStreamingCron()
+}

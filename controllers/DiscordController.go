@@ -194,8 +194,7 @@ func RevealCHLGameResults(w http.ResponseWriter, r *http.Request) {
 	}
 
 	managers.RevealCHLGameOnInterface(gameID)
-
-	json.NewEncoder(w).Encode("Done!")
+	json.NewEncoder(w).Encode(true)
 }
 
 func RevealPHLGameResults(w http.ResponseWriter, r *http.Request) {
@@ -207,5 +206,5 @@ func RevealPHLGameResults(w http.ResponseWriter, r *http.Request) {
 
 	managers.RevealPHLGameOnInterface(gameID)
 
-	json.NewEncoder(w).Encode("Done!")
+	json.NewEncoder(w).Encode(true)
 }

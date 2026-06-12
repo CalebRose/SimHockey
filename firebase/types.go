@@ -272,3 +272,25 @@ type ScheduleEventNotificationInput struct {
 	RecipientUIDs  []string
 	SourceEventKey string
 }
+
+// ─────────────────────────────────────────────
+// Live Scoreboard
+// ─────────────────────────────────────────────
+
+// LiveGameRecord is the Firestore document shape stored in the live_chl_games or
+// live_phl_games collections.  One document per game, keyed by GameID.
+// StreamStartTime and StreamEndTime are computed at slot-activation time by the
+// StreamScheduler so any client joining mid-stream can determine the current play
+// without polling.  IsRevealed is set by the cron when the stream completes.
+type LiveGameRecord struct {
+	GameID          uint      `firestore:"GameID"`
+	HomeTeamID      uint      `firestore:"HomeTeamID"`
+	AwayTeamID      uint      `firestore:"AwayTeamID"`
+	HomeTeam        string    `firestore:"HomeTeam"`
+	AwayTeam        string    `firestore:"AwayTeam"`
+	League          string    `firestore:"League"` // "chl" or "phl"
+	StreamStartTime time.Time `firestore:"StreamStartTime"`
+	StreamEndTime   time.Time `firestore:"StreamEndTime"`
+	TotalPlays      int       `firestore:"TotalPlays"`
+	IsRevealed      bool      `firestore:"IsRevealed"`
+}

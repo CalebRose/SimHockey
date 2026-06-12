@@ -6,6 +6,7 @@ import (
 	"net/http"
 
 	"github.com/CalebRose/SimHockey/managers"
+	"github.com/gorilla/mux"
 )
 
 // StreamCHLLiveGames handles the SSE connection for the CHL frontend
@@ -95,6 +96,23 @@ func GetBulkPlayByPlay(w http.ResponseWriter, r *http.Request) {
 	timeslot := r.URL.Query().Get("timeslot")
 
 	response := managers.GetBulkPlayByPlayData(isCollege, season, week, timeslot)
+	json.NewEncoder(w).Encode(response)
+}
+
+// GetLivePlays returns the ordered play-by-play slice for a single game from the
+// database.  Used by the frontend streaming client to fetch plays once per game.
+// No Firebase reads occur in this handler.
+func GetLivePlays(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	league := vars["league"]
+	gameID := vars["gameID"]
+
+	var response interface{}
+	if league == "chl" {
+		response = managers.GetCHLLivePlays(gameID)
+	} else {
+		response = managers.GetPHLLivePlays(gameID)
+	}
 	json.NewEncoder(w).Encode(response)
 }
 

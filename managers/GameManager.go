@@ -41,6 +41,17 @@ func RunGames() {
 		generateAndRunTestGames(ts, db)
 		return
 	}
+
+	// Purge stale Firebase live game records (IsRevealed == true) before running
+	// the new batch so the scoreboard only shows fresh, unrevealed games.
+	ctx := context.Background()
+	if err := fbsvc.PurgeStaleLiveGames(ctx, "chl"); err != nil {
+		log.Printf("RunGames: PurgeStaleLiveGames(chl): %v", err)
+	}
+	if err := fbsvc.PurgeStaleLiveGames(ctx, "phl"); err != nil {
+		log.Printf("RunGames: PurgeStaleLiveGames(phl): %v", err)
+	}
+
 	collegeGames := GetCollegeGamesForCurrentMatchup(weekID, seasonID, gameDay, ts.IsPreseason)
 	proGames := GetProfessionalGamesForCurrentMatchup(weekID, seasonID, gameDay, ts.IsPreseason)
 
@@ -65,6 +76,7 @@ func RunGames() {
 	collegePlayerMap := GetCollegePlayersMap()
 	proPlayersMap := GetProPlayersMap()
 	upload := NewStatsUpload()
+
 	// Track which teams have already received an injury notification this run
 	// to avoid duplicate alerts when multiple players are injured in the same game.
 	sentCollegeInjuryNotification := make(map[uint]bool)
@@ -169,8 +181,6 @@ func RunGames() {
 	}
 	if !ts.IsTesting {
 		upload.Flush(db)
-	} else {
-
 	}
 }
 
@@ -2315,8 +2325,8 @@ type GoalieBoxScoreDTO struct {
 }
 
 type BulkSpoofDataDTO struct {
-	Plays   map[uint][]PbPDTO      `json:"Plays"`
-	Rosters map[uint]GameRosterDTO `json:"Rosters"`
+	Plays   map[uint][]structs.PlayByPlayResponse `json:"Plays"`
+	Rosters map[uint]GameRosterDTO                `json:"Rosters"`
 }
 
 type GameRosterDTO struct {
@@ -2336,7 +2346,7 @@ func GetLiveGamesHubData(isCollege bool, reqSeason string, reqWeek string, reqTi
 	responseMap := make(map[uint]LiveGameHubDTO)
 
 	if isCollege {
-		clauses := repository.GamesClauses{SeasonID: seasonID, WeekID: weekID, IsPreseason: ts.IsPreseason}
+		clauses := repository.GamesClauses{SeasonID: seasonID, WeekID: weekID, IsPreseason: ts.IsPreseason, Timeslot: reqTimeslot}
 		games := repository.FindCollegeGames(clauses)
 		allCollegeTeams := repository.FindAllCollegeTeams(repository.TeamClauses{})
 		chlTeamMap := MakeCollegeTeamMap(allCollegeTeams)
@@ -2437,7 +2447,7 @@ func GetBulkPlayByPlayData(isCollege bool, reqSeason string, reqWeek string, req
 	weekID := strconv.Itoa(int(ts.WeekID))
 
 	response := BulkSpoofDataDTO{
-		Plays:   make(map[uint][]PbPDTO),
+		Plays:   make(map[uint][]structs.PlayByPlayResponse),
 		Rosters: make(map[uint]GameRosterDTO),
 	}
 
@@ -2454,8 +2464,22 @@ func GetBulkPlayByPlayData(isCollege bool, reqSeason string, reqWeek string, req
 			if reqTimeslot != "" && reqTimeslot != "undefined" && g.GameDay != reqTimeslot {
 				continue
 			}
+			response.Plays[g.ID] = []structs.PlayByPlayResponse{}
+		}
+
+		var allPbPs []structs.CollegePlayByPlay
+		gameIDs := make([]uint, 0, len(response.Plays))
+		for id := range response.Plays {
+			gameIDs = append(gameIDs, id)
+		}
+		db.Where("game_id IN ?", gameIDs).Find(&allPbPs)
+
+		for _, g := range games {
+			if reqTimeslot != "" && reqTimeslot != "undefined" && g.GameDay != reqTimeslot {
+				continue
+			}
 			gameIDStr := strconv.Itoa(int(g.ID))
-			response.Plays[g.ID] = []PbPDTO{}
+			response.Plays[g.ID] = []structs.PlayByPlayResponse{}
 
 			// Build Roster for this game
 			roster := GameRosterDTO{
@@ -2496,24 +2520,16 @@ func GetBulkPlayByPlayData(isCollege bool, reqSeason string, reqWeek string, req
 				}
 			}
 			response.Rosters[g.ID] = roster
-		}
 
-		var allPbPs []structs.CollegePlayByPlay
-		gameIDs := make([]uint, 0, len(response.Plays))
-		for id := range response.Plays {
-			gameIDs = append(gameIDs, id)
-		}
-		db.Where("game_id IN ?", gameIDs).Find(&allPbPs)
+			gamePbps := []structs.CollegePlayByPlay{}
+			for _, p := range allPbPs {
+				if p.GameID != g.ID {
+					continue
+				}
+				gamePbps = append(gamePbps, p)
 
-		for _, p := range allPbPs {
-			eventStr := util.ReturnStringFromPBPID(p.PbP.EventID)
-			outcomeStr := util.ReturnStringFromPBPID(p.Outcome)
-			playText := GeneratePlayByPlayText(p.PbP, eventStr, outcomeStr, collegePlayerMap, collegeTeamMap[uint(p.PbP.TeamID)].TeamName)
-			response.Plays[uint(p.GameID)] = append(response.Plays[uint(p.GameID)], PbPDTO{
-				Period: p.PbP.Period, TimeOnClock: p.PbP.TimeOnClock, PlayText: playText, Zone: p.PbP.ZoneID,
-				HomeScore: p.PbP.HomeTeamScore, AwayScore: p.AwayTeamScore,
-				HomeSOScore: p.PbP.HomeTeamShootoutScore, AwaySOScore: p.AwayTeamShootoutScore,
-			})
+			}
+			response.Plays[uint(g.ID)] = append(response.Plays[uint(g.ID)], GenerateCHLPlayByPlayResponse(gamePbps, collegeTeamMap, collegePlayerMap, true, g.HomeTeamID, g.AwayTeamID)...)
 		}
 	} else {
 		// PRO LOGIC
@@ -2526,8 +2542,22 @@ func GetBulkPlayByPlayData(isCollege bool, reqSeason string, reqWeek string, req
 			if reqTimeslot != "" && reqTimeslot != "undefined" && g.GameDay != reqTimeslot {
 				continue
 			}
+			response.Plays[g.ID] = []structs.PlayByPlayResponse{}
+		}
+
+		var allPbPs []structs.ProPlayByPlay
+		gameIDs := make([]uint, 0, len(response.Plays))
+		for id := range response.Plays {
+			gameIDs = append(gameIDs, id)
+		}
+		db.Where("game_id IN ?", gameIDs).Find(&allPbPs)
+
+		for _, g := range games {
+			if reqTimeslot != "" && reqTimeslot != "undefined" && g.GameDay != reqTimeslot {
+				continue
+			}
 			gameIDStr := strconv.Itoa(int(g.ID))
-			response.Plays[g.ID] = []PbPDTO{}
+			response.Plays[g.ID] = []structs.PlayByPlayResponse{}
 
 			roster := GameRosterDTO{
 				HomeStats: TeamBoxScoreDTO{Forwards: []PlayerBoxScoreDTO{}, Defenders: []PlayerBoxScoreDTO{}, Goalies: []GoalieBoxScoreDTO{}},
@@ -2567,24 +2597,15 @@ func GetBulkPlayByPlayData(isCollege bool, reqSeason string, reqWeek string, req
 				}
 			}
 			response.Rosters[g.ID] = roster
-		}
+			gamePbps := []structs.ProPlayByPlay{}
+			for _, p := range allPbPs {
+				if p.GameID != g.ID {
+					continue
+				}
+				gamePbps = append(gamePbps, p)
 
-		var allPbPs []structs.ProPlayByPlay
-		gameIDs := make([]uint, 0, len(response.Plays))
-		for id := range response.Plays {
-			gameIDs = append(gameIDs, id)
-		}
-		db.Where("game_id IN ?", gameIDs).Find(&allPbPs)
-
-		for _, p := range allPbPs {
-			eventStr := util.ReturnStringFromPBPID(p.PbP.EventID)
-			outcomeStr := util.ReturnStringFromPBPID(p.Outcome)
-			playText := GeneratePlayByPlayText(p.PbP, eventStr, outcomeStr, proPlayerMap, proTeamMap[uint(p.PbP.TeamID)].TeamName)
-			response.Plays[uint(p.GameID)] = append(response.Plays[uint(p.GameID)], PbPDTO{
-				Period: p.PbP.Period, TimeOnClock: p.PbP.TimeOnClock, PlayText: playText, Zone: p.PbP.ZoneID,
-				HomeScore: p.PbP.HomeTeamScore, AwayScore: p.AwayTeamScore,
-				HomeSOScore: p.PbP.HomeTeamShootoutScore, AwaySOScore: p.AwayTeamShootoutScore,
-			})
+			}
+			response.Plays[uint(g.ID)] = append(response.Plays[uint(g.ID)], GeneratePHLPlayByPlayResponse(gamePbps, proTeamMap, proPlayerMap, true, g.HomeTeamID, g.AwayTeamID)...)
 		}
 	}
 	return response
