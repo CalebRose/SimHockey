@@ -570,6 +570,7 @@ func GenerateCHLPlayByPlayResponse(playByPlays []structs.CollegePlayByPlay, team
 		if play.IsFight {
 			isFight = "Yes"
 		}
+		// Note: We use possessingTeam.TeamName because GeneratePlayByPlayText expects a string
 		result := generateCollegeResultsString(play.PbP, event, outcome, playerMap, possessingTeam)
 
 		res := structs.PlayByPlayResponse{
@@ -625,6 +626,7 @@ func GeneratePHLPlayByPlayResponse(playByPlays []structs.ProPlayByPlay, teamMap 
 		if play.IsFight {
 			isFight = "Yes"
 		}
+		// Note: We use possessingTeam.TeamName because GeneratePlayByPlayText expects a string
 		result := generateProResultsString(play.PbP, event, outcome, playerMap, possessingTeam)
 
 		res := structs.PlayByPlayResponse{

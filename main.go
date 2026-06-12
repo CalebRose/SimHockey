@@ -275,6 +275,20 @@ func handleRequests() http.Handler {
 	apiRouter.HandleFunc("/chl/scheduler/game/request/process/{requestID}", controllers.ProcessCHLGameRequest).Methods("GET")
 	apiRouter.HandleFunc("/chl/scheduler/game/request/veto/{requestID}", controllers.VetoCHLGameRequest).Methods("GET")
 
+	// Games
+	apiRouter.HandleFunc("/games/result/chl/{gameID}", controllers.GetCollegeGameResultsByGameID).Methods("GET")
+	apiRouter.HandleFunc("/games/result/phl/{gameID}", controllers.GetProGameResultsByGameID).Methods("GET")
+
+	// --- NEW LIVE SCOREBOARD ROUTES ADDED HERE ---
+	apiRouter.HandleFunc("/games/live/chl", controllers.GetLiveGamesHub).Methods("GET")
+	apiRouter.HandleFunc("/games/live/phl", controllers.GetLiveGamesHub).Methods("GET")
+	apiRouter.HandleFunc("/games/plays/bulk/chl", controllers.GetBulkPlayByPlay).Methods("GET")
+	apiRouter.HandleFunc("/games/plays/bulk/phl", controllers.GetBulkPlayByPlay).Methods("GET")
+	apiRouter.HandleFunc("/games/live-plays/{league}/{gameID}", controllers.GetLivePlays).Methods("GET")
+	// apiRouter.HandleFunc("/games/live-plays/test/", controllers.TestCHLCronJob).Methods("GET")
+
+	// ---------------------------------------------
+
 	// Websocket
 	myRouter.HandleFunc("/ws", ws.WebSocketHandler)
 
@@ -295,6 +309,8 @@ func handleCron() *cron.Cron {
 		c.AddFunc("0 14 * * *", controllers.SyncFreeAgencyViaCron)
 		c.AddFunc("0 10 * * 0,2,4,6", controllers.RunAIGameplanViaCron)
 		c.AddFunc("0 14 * * 0,2,4,6", controllers.RunTheGamesViaCron)
+		c.AddFunc("30 14 * * 0,2,4,6", controllers.StreamCHLGamesToInterfaceViaCron)
+		c.AddFunc("35 14 * * 0,2,4,6", controllers.StreamPHLGamesToInterfaceViaCron)
 		c.AddFunc("0 20 * * 0,2,4,6", controllers.ShowResultsViaCron)
 		c.AddFunc("0 22 * * 0", controllers.SyncToNextWeekViaCron)
 		c.AddFunc("0 16 * * 3", controllers.SyncRecruitingViaCron)
