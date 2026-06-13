@@ -185,7 +185,6 @@ func (s *StreamScheduler) InitQueue(weekID, seasonID, gameDay string, isPreseaso
 func (s *StreamScheduler) Tick(ctx context.Context) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
-
 	now := time.Now().UTC()
 
 	// 1. Mark completed game slots revealed and free them.
@@ -195,7 +194,9 @@ func (s *StreamScheduler) Tick(ctx context.Context) {
 		}
 		// Slot has elapsed — mark revealed and clear.
 		go func(gameID uint, league string) {
-			if err := fbsvc.SetGameRevealed(ctx, gameID, league); err != nil {
+			writeCtx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
+			defer cancel()
+			if err := fbsvc.SetGameRevealed(writeCtx, gameID, league); err != nil {
 				log.Printf("StreamScheduler: SetGameRevealed(gameID=%d, league=%s): %v", gameID, league, err)
 			}
 		}(slot.GameID, slot.League)
@@ -214,12 +215,11 @@ func (s *StreamScheduler) Tick(ctx context.Context) {
 
 		totalSecs := loadTotalSeconds(next.GameID, s.isCollege)
 		if totalSecs == 0 {
-			// No plays in DB yet — skip this game and try the next.
 			log.Printf("StreamScheduler(%s): skipping game %d — no PbP records found", s.League, next.GameID)
+			i--
 			continue
 		}
 		totalPlays := loadTotalPlays(next.GameID, s.isCollege)
-
 		start, end := computeStreamTimes(totalSecs)
 		record := fbsvc.LiveGameRecord{
 			GameID:          int(next.GameID),
@@ -241,7 +241,11 @@ func (s *StreamScheduler) Tick(ctx context.Context) {
 		}
 		go func(rec fbsvc.LiveGameRecord, league string) {
 			if err := fbsvc.UploadLiveGame(ctx, rec, league); err != nil {
-				log.Printf("StreamScheduler: UploadLiveGame(gameID=%d, league=%s): %v", rec.GameID, league, err)
+				writeCtx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
+				defer cancel()
+				if err := fbsvc.UploadLiveGame(writeCtx, rec, league); err != nil {
+					log.Printf("StreamScheduler: UploadLiveGame(gameID=%d, league=%s): %v", rec.GameID, league, err)
+				}
 			}
 		}(record, s.League)
 
