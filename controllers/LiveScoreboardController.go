@@ -125,3 +125,7 @@ func RunAdminGames(w http.ResponseWriter, r *http.Request) {
 func TestCHLCronJob(w http.ResponseWriter, r *http.Request) {
 	managers.StartCHLLiveStreamingCron()
 }
+
+func TestPHLCronJob(w http.ResponseWriter, r *http.Request) {
+	managers.StartPHLLiveStreamingCron()
+}

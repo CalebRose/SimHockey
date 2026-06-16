@@ -888,6 +888,9 @@ func RevealCHLGameOnInterface(gameID string) {
 	go func() { playerMapChan <- GetCollegePlayersMap() }()
 
 	game := <-gameChan
+	if game.IsRevealed {
+		return
+	}
 	homeTeamID := strconv.Itoa(int(game.HomeTeamID))
 	awayTeamID := strconv.Itoa(int(game.AwayTeamID))
 

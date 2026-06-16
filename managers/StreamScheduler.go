@@ -189,7 +189,16 @@ func (s *StreamScheduler) Tick(ctx context.Context) {
 
 	// 1. Mark completed game slots revealed and free them.
 	for i, slot := range s.ActiveSlots {
-		if slot == nil || now.Before(slot.EndTime) {
+		if slot == nil {
+			continue
+		}
+		if now.Before(slot.EndTime) {
+			gameID := strconv.Itoa(int(slot.GameID))
+			if slot.League == "chl" {
+				RevealCHLGameOnInterface(gameID)
+			} else {
+				RevealPHLGameOnInterface(gameID)
+			}
 			continue
 		}
 		// Slot has elapsed — mark revealed and clear.
