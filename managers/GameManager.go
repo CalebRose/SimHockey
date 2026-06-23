@@ -2410,7 +2410,7 @@ func GetLiveGamesHubData(isCollege bool, reqSeason string, reqWeek string, reqTi
 			homeScore := uint(g.HomeTeamScore)
 			awayScore := uint(g.AwayTeamScore)
 			period := uint8(0)
-			gameComplete := g.GameComplete || g.IsRevealed
+			gameComplete := g.IsRevealed
 
 			if g.IsRevealed {
 				period = 3
