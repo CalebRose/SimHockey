@@ -129,3 +129,14 @@ func TestCHLCronJob(w http.ResponseWriter, r *http.Request) {
 func TestPHLCronJob(w http.ResponseWriter, r *http.Request) {
 	managers.StartPHLLiveStreamingCron()
 }
+
+func GetHCKGameQueue(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	league := vars["league"]
+	weekID := r.URL.Query().Get("weekID")
+	seasonID := r.URL.Query().Get("seasonID")
+	gameDay := r.URL.Query().Get("gameDay")
+	isPreseason := r.URL.Query().Get("isPreseason") == "true"
+	queue := managers.BuildStreamGameQueue(league, weekID, seasonID, gameDay, isPreseason)
+	json.NewEncoder(w).Encode(queue)
+}

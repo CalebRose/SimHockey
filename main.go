@@ -72,6 +72,7 @@ func handleRequests() http.Handler {
 	// Admin
 	apiRouter.HandleFunc("/admin/generate/ts/models/", controllers.CreateTSModelsFile).Methods("GET")
 	apiRouter.HandleFunc("/admin/test/engine/", controllers.TestEngine).Methods("GET")
+	apiRouter.HandleFunc("/admin/timestamp/", controllers.GetCurrentTimestamp).Methods("GET")
 	// apiRouter.HandleFunc("/admin/ai/generate/college/lineups/", controllers.RunAICollegeLineups).Methods("GET")
 	// apiRouter.HandleFunc("/admin/ai/generate/gameplans/", controllers.CreateGameplans).Methods("GET")
 	// apiRouter.HandleFunc("/admin/ai/generate/optimal/systems/", controllers.RunAISelectOptimalSystems).Methods("GET")
@@ -285,7 +286,9 @@ func handleRequests() http.Handler {
 	apiRouter.HandleFunc("/games/plays/bulk/chl", controllers.GetBulkPlayByPlay).Methods("GET")
 	apiRouter.HandleFunc("/games/plays/bulk/phl", controllers.GetBulkPlayByPlay).Methods("GET")
 	apiRouter.HandleFunc("/games/live-plays/{league}/{gameID}", controllers.GetLivePlays).Methods("GET")
-	// apiRouter.HandleFunc("/games/chl/live-plays/test/", controllers.TestCHLCronJob).Methods("GET")
+	apiRouter.HandleFunc("/games/hck/games/stream/queue/{league}", controllers.GetHCKGameQueue).Methods("GET")
+	apiRouter.HandleFunc("/games/chl/live-plays/test/", controllers.TestCHLCronJob).Methods("GET")
+
 	// apiRouter.HandleFunc("/games/phl/live-plays/test/", controllers.TestPHLCronJob).Methods("GET")
 
 	// ---------------------------------------------
