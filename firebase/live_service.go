@@ -33,7 +33,7 @@ func PurgeStaleLiveGames(ctx context.Context, league string) error {
 	client := GetFirestoreClient()
 	gamesCol := liveGamesCollection(league)
 
-	iter := client.Collection(gamesCol).Where("IsRevealed", "==", true).Documents(ctx)
+	iter := client.Collection(gamesCol).Documents(ctx)
 	defer iter.Stop()
 
 	batch := client.Batch()
@@ -91,4 +91,3 @@ func SetGameRevealed(ctx context.Context, gameID uint, league string) error {
 	}
 	return nil
 }
-

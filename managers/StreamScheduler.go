@@ -205,6 +205,12 @@ func (s *StreamScheduler) Tick(ctx context.Context) {
 		go func(gameID uint, league string) {
 			writeCtx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
 			defer cancel()
+			gameIDStr := strconv.Itoa(int(gameID))
+			if league == "chl" {
+				RevealCHLGameOnInterface(gameIDStr)
+			} else {
+				RevealPHLGameOnInterface(gameIDStr)
+			}
 			if err := fbsvc.SetGameRevealed(writeCtx, gameID, league); err != nil {
 				log.Printf("StreamScheduler: SetGameRevealed(gameID=%d, league=%s): %v", gameID, league, err)
 			}
