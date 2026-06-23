@@ -2376,12 +2376,12 @@ func GetLiveGamesHubData(isCollege bool, reqSeason string, reqWeek string, reqTi
 				}
 			}
 
-			if reqTimeslot != "" && reqTimeslot != "undefined" {
-				homeScore = 0
-				awayScore = 0
-				period = 0
-				gameComplete = false
-			}
+			// if reqTimeslot != "" && reqTimeslot != "undefined" {
+			// 	homeScore = 0
+			// 	awayScore = 0
+			// 	period = 0
+			// 	gameComplete = false
+			// }
 
 			responseMap[g.ID] = LiveGameHubDTO{
 				GameID: g.ID, HomeTeamID: g.HomeTeamID, AwayTeamID: g.AwayTeamID,
@@ -2422,12 +2422,12 @@ func GetLiveGamesHubData(isCollege bool, reqSeason string, reqWeek string, reqTi
 				}
 			}
 
-			if reqTimeslot != "" && reqTimeslot != "undefined" {
-				homeScore = 0
-				awayScore = 0
-				period = 0
-				gameComplete = false
-			}
+			// if reqTimeslot != "" && reqTimeslot != "undefined" {
+			// 	homeScore = 0
+			// 	awayScore = 0
+			// 	period = 0
+			// 	gameComplete = false
+			// }
 
 			responseMap[g.ID] = LiveGameHubDTO{
 				GameID: g.ID, HomeTeamID: g.HomeTeamID, AwayTeamID: g.AwayTeamID,
