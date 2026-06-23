@@ -192,6 +192,7 @@ func (s *StreamScheduler) Tick(ctx context.Context) {
 		if slot == nil {
 			continue
 		}
+		// If
 		if now.Before(slot.EndTime) {
 			gameID := strconv.Itoa(int(slot.GameID))
 			if slot.League == "chl" {
