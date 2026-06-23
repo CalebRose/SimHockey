@@ -192,26 +192,20 @@ func (s *StreamScheduler) Tick(ctx context.Context) {
 		if slot == nil {
 			continue
 		}
-		// If
+		// If the slot has not yet ended, skip it.
 		if now.Before(slot.EndTime) {
-			gameID := strconv.Itoa(int(slot.GameID))
-			if slot.League == "chl" {
-				RevealCHLGameOnInterface(gameID)
-			} else {
-				RevealPHLGameOnInterface(gameID)
-			}
 			continue
+		}
+		gameID := strconv.Itoa(int(slot.GameID))
+		if slot.League == "chl" {
+			RevealCHLGameOnInterface(gameID)
+		} else {
+			RevealPHLGameOnInterface(gameID)
 		}
 		// Slot has elapsed — mark revealed and clear.
 		go func(gameID uint, league string) {
 			writeCtx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
 			defer cancel()
-			gameIDStr := strconv.Itoa(int(gameID))
-			if league == "chl" {
-				RevealCHLGameOnInterface(gameIDStr)
-			} else {
-				RevealPHLGameOnInterface(gameIDStr)
-			}
 			if err := fbsvc.SetGameRevealed(writeCtx, gameID, league); err != nil {
 				log.Printf("StreamScheduler: SetGameRevealed(gameID=%d, league=%s): %v", gameID, league, err)
 			}
@@ -307,6 +301,10 @@ func StartCHLLiveStreamingCron() {
 	chlCronCancel = cancel
 	chlCronMu.Unlock()
 
+	if err := fbsvc.PurgeStaleLiveGames(ctx, "chl"); err != nil {
+		log.Printf("RunGames: PurgeStaleLiveGames(chl): %v", err)
+	}
+
 	scheduler := &StreamScheduler{League: "chl", isCollege: true}
 	scheduler.InitQueue(
 		strconv.Itoa(int(ts.WeekID)),
@@ -346,6 +344,9 @@ func StartCHLLiveStreamingCron() {
 // A second call cancels any in-progress cron before starting a new one.
 func StartPHLLiveStreamingCron() {
 	ts := GetTimestamp()
+	if !ts.RunCron || ts.IsOffSeason {
+		return
+	}
 
 	phlCronMu.Lock()
 	if phlCronCancel != nil {
@@ -354,6 +355,10 @@ func StartPHLLiveStreamingCron() {
 	ctx, cancel := context.WithCancel(context.Background())
 	phlCronCancel = cancel
 	phlCronMu.Unlock()
+
+	if err := fbsvc.PurgeStaleLiveGames(ctx, "phl"); err != nil {
+		log.Printf("RunGames: PurgeStaleLiveGames(phl): %v", err)
+	}
 
 	scheduler := &StreamScheduler{League: "phl", isCollege: false}
 	scheduler.InitQueue(
