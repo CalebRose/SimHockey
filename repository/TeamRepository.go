@@ -102,6 +102,10 @@ func FindAllProTeams(clauses TeamClauses) []structs.ProfessionalTeam {
 }
 
 func SaveCollegeTeamRecord(db *gorm.DB, teamRecord structs.CollegeTeam) {
+	// This is for saving only, not creating records
+	if teamRecord.ID == 0 {
+		return
+	}
 	// Will need to potentially add stats parameters here
 	err := db.Save(&teamRecord).Error
 	if err != nil {
@@ -110,6 +114,9 @@ func SaveCollegeTeamRecord(db *gorm.DB, teamRecord structs.CollegeTeam) {
 }
 
 func SaveProTeamRecord(db *gorm.DB, teamRecord structs.ProfessionalTeam) {
+	if teamRecord.ID == 0 {
+		return
+	}
 	// Will need to potentially add stats parameters here
 	err := db.Save(&teamRecord).Error
 	if err != nil {
