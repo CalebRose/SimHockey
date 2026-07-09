@@ -924,7 +924,9 @@ func RevealCHLGameOnInterface(gameID string) {
 		s1 := LookupCollegeStarName(game.StarOne, collegePlayerMap)
 		s2 := LookupCollegeStarName(game.StarTwo, collegePlayerMap)
 		s3 := LookupCollegeStarName(game.StarThree, collegePlayerMap)
-		go CreatePostGameDiscussionThreadForCHLGame(game, s1, s2, s3, game.SeasonID, homeTeamStats, awayTeamStats, homePlayerStats, awayPlayerStats, collegePlayerMap)
+		if game.LeagueID == 1 {
+			go CreatePostGameDiscussionThreadForCHLGame(game, s1, s2, s3, game.SeasonID, homeTeamStats, awayTeamStats, homePlayerStats, awayPlayerStats, collegePlayerMap)
+		}
 	}
 
 	game.RevealResultsOnInterface()
