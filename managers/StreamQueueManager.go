@@ -1,5 +1,12 @@
 package managers
 
+import (
+	"strconv"
+
+	"github.com/CalebRose/SimHockey/repository"
+	"github.com/CalebRose/SimHockey/structs"
+)
+
 // StreamGameQueueItem is the wire shape simsn-live consumes to build its
 // own PendingGame queue without touching SimHockey's database directly.
 type StreamGameQueueItem struct {
@@ -33,6 +40,19 @@ func buildCHLStreamQueue(weekID, seasonID, gameDay string, isPreseason bool) []S
 
 	games := GetCollegeGamesForCurrentMatchup(weekID, seasonID, gameDay, isPreseason)
 	teamMap := GetCollegeTeamMap()
+	gameIDs := make([]string, len(games))
+	for i, g := range games {
+		gameIDs[i] = strconv.Itoa(int(g.ID))
+	}
+
+	chlPlayByPlayMap := make(map[uint][]structs.CollegePlayByPlay)
+	phlPlayByPlayMap := make(map[uint][]structs.ProPlayByPlay)
+	playByPlays := repository.FindCHLPlayByPlaysRecordsByGameIDs(gameIDs)
+
+	for _, pbp := range playByPlays {
+		chlPlayByPlayMap[pbp.GameID] = append(chlPlayByPlayMap[pbp.GameID], pbp)
+	}
+
 	for _, g := range games {
 		if !g.GameComplete || g.IsRevealed {
 			continue
@@ -52,8 +72,8 @@ func buildCHLStreamQueue(weekID, seasonID, gameDay string, isPreseason bool) []S
 			City:         g.City,
 			State:        g.State,
 			Country:      g.Country,
-			TotalSeconds: loadTotalSeconds(g.ID, true),
-			TotalPlays:   loadTotalPlays(g.ID, true),
+			TotalSeconds: loadTotalSeconds(g.ID, chlPlayByPlayMap, phlPlayByPlayMap, true),
+			TotalPlays:   loadTotalPlays(g.ID, chlPlayByPlayMap, phlPlayByPlayMap, true),
 		}
 		if item.IsUserGame {
 			userGames = append(userGames, item)
@@ -69,6 +89,21 @@ func buildPHLStreamQueue(weekID, seasonID, gameDay string, isPreseason bool) []S
 
 	games := GetProfessionalGamesForCurrentMatchup(weekID, seasonID, gameDay, isPreseason)
 	teamMap := GetProTeamMap()
+
+	gameIDs := make([]string, len(games))
+	for i, g := range games {
+		gameIDs[i] = strconv.Itoa(int(g.ID))
+	}
+
+	chlPlayByPlayMap := make(map[uint][]structs.CollegePlayByPlay)
+	playByPlays := repository.FindPHLPlayByPlaysRecordsByGameIDs(gameIDs)
+	phlPlayByPlayMap := make(map[uint][]structs.ProPlayByPlay)
+
+	for _, pbp := range playByPlays {
+		phlPlayByPlayMap[pbp.GameID] = append(phlPlayByPlayMap[pbp.GameID], pbp)
+	}
+	// Just keep empty
+
 	for _, g := range games {
 		if !g.GameComplete || g.IsRevealed {
 			continue
@@ -90,8 +125,8 @@ func buildPHLStreamQueue(weekID, seasonID, gameDay string, isPreseason bool) []S
 			City:         g.City,
 			State:        g.State,
 			Country:      g.Country,
-			TotalSeconds: loadTotalSeconds(g.ID, false),
-			TotalPlays:   loadTotalPlays(g.ID, false),
+			TotalSeconds: loadTotalSeconds(g.ID, chlPlayByPlayMap, phlPlayByPlayMap, false),
+			TotalPlays:   loadTotalPlays(g.ID, chlPlayByPlayMap, phlPlayByPlayMap, false),
 		}
 		if item.IsUserGame {
 			userGames = append(userGames, item)

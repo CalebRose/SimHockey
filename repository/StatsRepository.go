@@ -330,12 +330,32 @@ func FindCHLPlayByPlaysRecordsByGameID(id string) []structs.CollegePlayByPlay {
 	return plays
 }
 
+func FindCHLPlayByPlaysRecordsByGameIDs(ids []string) []structs.CollegePlayByPlay {
+	db := dbprovider.GetInstance().GetDB()
+
+	plays := []structs.CollegePlayByPlay{}
+
+	db.Where("game_id IN ?", ids).Find(&plays)
+
+	return plays
+}
+
 func FindPHLPlayByPlaysRecordsByGameID(id string) []structs.ProPlayByPlay {
 	db := dbprovider.GetInstance().GetDB()
 
 	plays := []structs.ProPlayByPlay{}
 
 	db.Where("game_id = ?", id).Find(&plays)
+
+	return plays
+}
+
+func FindPHLPlayByPlaysRecordsByGameIDs(ids []string) []structs.ProPlayByPlay {
+	db := dbprovider.GetInstance().GetDB()
+
+	plays := []structs.ProPlayByPlay{}
+
+	db.Where("game_id IN ?", ids).Find(&plays)
 
 	return plays
 }

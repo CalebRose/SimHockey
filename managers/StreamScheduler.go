@@ -51,11 +51,13 @@ type GameStream struct {
 // StreamScheduler manages up to maxStreamSlots concurrent game streams and an
 // ordered queue of pending games for a single league.
 type StreamScheduler struct {
-	mu          sync.Mutex
-	ActiveSlots [maxStreamSlots]*GameStream
-	Queue       []PendingGame
-	League      string // "chl" or "phl"
-	isCollege   bool
+	mu               sync.Mutex
+	ActiveSlots      [maxStreamSlots]*GameStream
+	Queue            []PendingGame
+	League           string // "chl" or "phl"
+	isCollege        bool
+	CHLPlayByPlayMap map[uint][]structs.CollegePlayByPlay
+	PHLPlayByPlayMap map[uint][]structs.ProPlayByPlay
 }
 
 // computeStreamTimes sums SecondsConsumed across a play-by-play slice and
@@ -68,16 +70,15 @@ func computeStreamTimes(totalSecs int) (start, end time.Time) {
 
 // loadTotalSeconds queries the PbP table for gameID and sums SecondsConsumed.
 // Returns 0 if no records are found.
-func loadTotalSeconds(gameID uint, isCollege bool) int {
-	gameIDStr := strconv.FormatUint(uint64(gameID), 10)
+func loadTotalSeconds(gameID uint, chlPlayByPlayMap map[uint][]structs.CollegePlayByPlay, phlPlayByPlayMap map[uint][]structs.ProPlayByPlay, isCollege bool) int {
 	total := 0
 	if isCollege {
-		plays := repository.FindCHLPlayByPlaysRecordsByGameID(gameIDStr)
+		plays := chlPlayByPlayMap[gameID]
 		for _, p := range plays {
 			total += int(p.SecondsConsumed)
 		}
 	} else {
-		plays := repository.FindPHLPlayByPlaysRecordsByGameID(gameIDStr)
+		plays := phlPlayByPlayMap[gameID]
 		for _, p := range plays {
 			total += int(p.SecondsConsumed)
 		}
@@ -86,12 +87,11 @@ func loadTotalSeconds(gameID uint, isCollege bool) int {
 }
 
 // loadTotalPlays returns the number of play-by-play records for a game.
-func loadTotalPlays(gameID uint, isCollege bool) int {
-	gameIDStr := strconv.FormatUint(uint64(gameID), 10)
+func loadTotalPlays(gameID uint, chlPlayByPlayMap map[uint][]structs.CollegePlayByPlay, phlPlayByPlayMap map[uint][]structs.ProPlayByPlay, isCollege bool) int {
 	if isCollege {
-		return len(repository.FindCHLPlayByPlaysRecordsByGameID(gameIDStr))
+		return len(chlPlayByPlayMap[gameID])
 	}
-	return len(repository.FindPHLPlayByPlaysRecordsByGameID(gameIDStr))
+	return len(phlPlayByPlayMap[gameID])
 }
 
 // dequeue pops the first item from the queue.
@@ -112,8 +112,22 @@ func (s *StreamScheduler) InitQueue(weekID, seasonID, gameDay string, isPreseaso
 
 	var userGames, aiGames []PendingGame
 
+	chlPlayByPlayMap := make(map[uint][]structs.CollegePlayByPlay)
+	phlPlayByPlayMap := make(map[uint][]structs.ProPlayByPlay)
+
 	if s.isCollege {
 		games := GetCollegeGamesForCurrentMatchup(weekID, seasonID, gameDay, isPreseason)
+		gameIDs := make([]string, len(games))
+		for i, g := range games {
+			gameIDs[i] = strconv.Itoa(int(g.ID))
+		}
+		// Load Play By Plays for all games in the matchup, keyed by GameID, to avoid querying inside the loop.
+		playByPlays := repository.FindCHLPlayByPlaysRecordsByGameIDs(gameIDs)
+
+		for _, pbp := range playByPlays {
+			chlPlayByPlayMap[pbp.GameID] = append(chlPlayByPlayMap[pbp.GameID], pbp)
+		}
+
 		teamMap := GetCollegeTeamMap()
 		for _, g := range games {
 			if !g.GameComplete || g.IsRevealed {
@@ -143,6 +157,17 @@ func (s *StreamScheduler) InitQueue(weekID, seasonID, gameDay string, isPreseaso
 		}
 	} else {
 		games := GetProfessionalGamesForCurrentMatchup(weekID, seasonID, gameDay, isPreseason)
+
+		gameIDs := make([]string, len(games))
+		for i, g := range games {
+			gameIDs[i] = strconv.Itoa(int(g.ID))
+		}
+		playByPlays := repository.FindPHLPlayByPlaysRecordsByGameIDs(gameIDs)
+
+		for _, pbp := range playByPlays {
+			phlPlayByPlayMap[pbp.GameID] = append(phlPlayByPlayMap[pbp.GameID], pbp)
+		}
+
 		teamMap := GetProTeamMap()
 		for _, g := range games {
 			if !g.GameComplete || g.IsRevealed {
@@ -173,7 +198,8 @@ func (s *StreamScheduler) InitQueue(weekID, seasonID, gameDay string, isPreseaso
 			}
 		}
 	}
-
+	s.CHLPlayByPlayMap = chlPlayByPlayMap
+	s.PHLPlayByPlayMap = phlPlayByPlayMap
 	// User-coached games fill the front of the queue; AI games follow.
 	s.Queue = append(userGames, aiGames...)
 	log.Printf("StreamScheduler(%s): queued %d games (%d user, %d AI)",
@@ -223,13 +249,13 @@ func (s *StreamScheduler) Tick(ctx context.Context) {
 			break
 		}
 
-		totalSecs := loadTotalSeconds(next.GameID, s.isCollege)
+		totalSecs := loadTotalSeconds(next.GameID, s.CHLPlayByPlayMap, s.PHLPlayByPlayMap, s.isCollege)
 		if totalSecs == 0 {
 			log.Printf("StreamScheduler(%s): skipping game %d — no PbP records found", s.League, next.GameID)
 			i--
 			continue
 		}
-		totalPlays := loadTotalPlays(next.GameID, s.isCollege)
+		totalPlays := loadTotalPlays(next.GameID, s.CHLPlayByPlayMap, s.PHLPlayByPlayMap, s.isCollege)
 		start, end := computeStreamTimes(totalSecs)
 		record := fbsvc.LiveGameRecord{
 			GameID:          int(next.GameID),
