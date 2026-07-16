@@ -828,170 +828,90 @@ func PrepareCollegeTournamentGamesFormat(db *gorm.DB, ts structs.Timestamp) {
 
 		// If CID == 2, conduct different tournament structure for Big Ten.
 		// Else, standard 8 team tournament. Series are best of 3, followed by one semifinal game and one finals game
-		if cid == 2 {
-			seven := TopN(conferenceMap[cid], 7)
-			pairs := [][2]*structs.CollegeStandings{
-				{seven[1], seven[6]}, // 2v7  -> Semi #1 AWAY (vs #1)
-				{seven[2], seven[5]}, // 3v6  -> Semi #2 (TBD HOA or later)
-				{seven[3], seven[4]}, // 4v5  -> Semi #2 (TBD HOA or later)
-			}
-			semiFinalID1 := nextGameID     // 1 vs 2/7
-			semiFinalID2 := nextGameID + 1 // 3/6 vs 4/5
-			finalsID := nextGameID + 2     // winner of nextGameID & nextGameID2 == Conference Finals
-			conference := ""
-
-			for idx, p := range pairs {
-				a, b := p[0], p[1]
-				homeTeam := teamMap[a.TeamID]
-				conference = homeTeam.Conference
-				// Route: index 0 is (2/7) -> Semi #1, AWAY; others -> Semi #2
-				ngID := semiFinalID2
-				nextHOA := "H" // neutral placeholder; can be "" if you’ll reseed later
-				if idx == 0 {
-					ngID = semiFinalID1
-					nextHOA = "A" // winner is away vs #1
-				}
-
-				series := structs.CollegeSeries{
-					BaseSeries: structs.BaseSeries{
-						SeasonID:    seasonID,
-						SeriesName:  fmt.Sprintf("%s Conference Quarterfinals", conference),
-						BestOfCount: 3,
-						HomeTeamID:  a.TeamID, HomeTeam: a.TeamName, HomeTeamRank: 2 + uint(idx), // 2,3,4
-						AwayTeamID: b.TeamID, AwayTeam: b.TeamName, AwayTeamRank: uint(7 - idx), // 7,6,5
-						GameCount:     0,
-						IsPlayoffGame: true,
-					},
-					NextGameID:   ngID,
-					NextGameHOA:  nextHOA,
-					ConferenceID: uint8(cid),
-				}
-				quarterfinalsSeries = append(quarterfinalsSeries, series)
-			}
-			// Semifinal Game 1
-			top1 := seven[0]
-			top1Team := teamMap[top1.TeamID]
-			semifinalGame1 := structs.CollegeGame{
-				Model: gorm.Model{ID: semiFinalID1},
-				BaseGame: structs.BaseGame{
-					GameTitle: fmt.Sprintf("%s Conference Semifinals", conference),
-					SeasonID:  seasonID, WeekID: util.GetWeekID(seasonID, 19), Week: 19,
-					HomeTeamID: top1.TeamID, HomeTeam: top1.TeamName, HomeTeamRank: 1,
-					Arena: top1Team.Arena, NextGameID: finalsID, NextGameHOA: "H",
-					GameDay: "A",
-				},
-				IsConferenceTournament: true,
-			}
-
-			// Semifinal Game 2
-			semifinalGame2 := structs.CollegeGame{
-				Model: gorm.Model{ID: semiFinalID2},
-				BaseGame: structs.BaseGame{
-					GameTitle: fmt.Sprintf("%s Conference Semifinals", conference),
-					SeasonID:  seasonID, WeekID: util.GetWeekID(seasonID, 19), Week: 19,
-					NextGameID: finalsID, NextGameHOA: "A",
-					GameDay: "A",
-				},
-				IsConferenceTournament: true,
-			}
-
-			finalsGame := structs.CollegeGame{
-				Model: gorm.Model{ID: finalsID},
-				BaseGame: structs.BaseGame{
-					GameTitle: fmt.Sprintf("%s Conference Finals", conference),
-					SeasonID:  seasonID, WeekID: util.GetWeekID(seasonID, 19), Week: 19,
-					GameDay: "B",
-				},
-				IsConferenceTournament: true,
-			}
-
-			semiFinalsAndFinalsGames = append(semiFinalsAndFinalsGames, semifinalGame1, semifinalGame2, finalsGame)
-			nextGameID += 3
-		} else {
-			eight := TopN(conferenceMap[cid], 8)
-			if len(eight) < 8 {
-				// Should not happen since each conference is at least 8 and above.
-				// Not enough teams for 8—either skip or fall back to a smaller bracket.
-				// For now: continue (or handle your smaller-bracket flow here)
-				continue
-			}
-			pairs := SeededPairs(eight, 4) // (1v8),(2v7),(3v6),(4v5)
-			semiFinalID1 := nextGameID     // 1 vs 4
-			semiFinalID2 := nextGameID + 1 // 2 vs 3
-			finalsID := nextGameID + 2     // winner of nextGameID & nextGameID2 == Conference Finals
-			conference := ""
-			for qfIdx, p := range pairs {
-				a, b := p[0], p[1]
-				homeTeam := teamMap[a.TeamID]
-				conference = homeTeam.Conference
-
-				// QF1 and QF4 feed Semi #1; QF2 and QF3 feed Semi #2
-				ngID := semiFinalID2
-				if qfIdx == 0 || qfIdx == 3 {
-					ngID = semiFinalID1
-				}
-
-				// Since pairings in order are (1v8), (2v7), (3v6), (4v5);
-				// the first two should point to H as their nextHOA. the rest will be A.
-				nextHOA := "H"
-				if qfIdx > 1 {
-					nextHOA = "A"
-				}
-
-				series := structs.CollegeSeries{
-					BaseSeries: structs.BaseSeries{
-						SeasonID:    seasonID,
-						SeriesName:  fmt.Sprintf("%s Conference Quarterfinals", conference),
-						BestOfCount: 3,
-						HomeTeamID:  a.TeamID, HomeTeam: a.TeamName, HomeTeamRank: uint(qfIdx + 1),
-						AwayTeamID: b.TeamID, AwayTeam: b.TeamName, AwayTeamRank: uint(8 - qfIdx),
-						GameCount:     1,
-						IsPlayoffGame: true,
-					},
-					NextGameID:   ngID,
-					NextGameHOA:  nextHOA,
-					ConferenceID: uint8(cid),
-				}
-				quarterfinalsSeries = append(quarterfinalsSeries, series)
-			}
-			// Semifinal Game 1
-			semifinalGame1 := structs.CollegeGame{
-				Model: gorm.Model{ID: semiFinalID1},
-				BaseGame: structs.BaseGame{
-					GameTitle: fmt.Sprintf("%s Conference Semifinals", conference),
-					SeasonID:  seasonID, WeekID: util.GetWeekID(seasonID, 19), Week: 19,
-					NextGameID: finalsID, NextGameHOA: "H",
-					GameDay: "A", IsPlayoffGame: true,
-				},
-				IsConferenceTournament: true,
-			}
-
-			// Semifinal Game 2
-			semifinalGame2 := structs.CollegeGame{
-				Model: gorm.Model{ID: semiFinalID2},
-				BaseGame: structs.BaseGame{
-					GameTitle: fmt.Sprintf("%s Conference Semifinals", conference),
-					SeasonID:  seasonID, WeekID: util.GetWeekID(seasonID, 19), Week: 19,
-					NextGameID: finalsID, NextGameHOA: "A",
-					GameDay: "A", IsPlayoffGame: true,
-				},
-				IsConferenceTournament: true,
-			}
-
-			// Finals Game
-			finalsGame := structs.CollegeGame{
-				Model: gorm.Model{ID: finalsID},
-				BaseGame: structs.BaseGame{
-					GameTitle: fmt.Sprintf("%s Conference Finals", conference),
-					SeasonID:  seasonID, WeekID: util.GetWeekID(seasonID, 19), Week: 19,
-					GameDay: "B",
-				},
-				IsConferenceTournament: true,
-			}
-
-			semiFinalsAndFinalsGames = append(semiFinalsAndFinalsGames, semifinalGame1, semifinalGame2, finalsGame)
-			nextGameID += 3
+		eight := TopN(conferenceMap[cid], 8)
+		if len(eight) < 8 {
+			// Should not happen since each conference is at least 8 and above.
+			// Not enough teams for 8—either skip or fall back to a smaller bracket.
+			// For now: continue (or handle your smaller-bracket flow here)
+			continue
 		}
+		pairs := SeededPairs(eight, 4) // (1v8),(2v7),(3v6),(4v5)
+		semiFinalID1 := nextGameID     // 1 vs 4
+		semiFinalID2 := nextGameID + 1 // 2 vs 3
+		finalsID := nextGameID + 2     // winner of nextGameID & nextGameID2 == Conference Finals
+		conferenceName := ""
+		for qfIdx, p := range pairs {
+			a, b := p[0], p[1]
+			homeTeam := teamMap[a.TeamID]
+			conferenceName = homeTeam.Conference
+
+			// QF1 and QF4 feed Semi #1; QF2 and QF3 feed Semi #2
+			ngID := semiFinalID2
+			if qfIdx == 0 || qfIdx == 3 {
+				ngID = semiFinalID1
+			}
+
+			// Since pairings in order are (1v8), (2v7), (3v6), (4v5);
+			// the first two should point to H as their nextHOA. the rest will be A.
+			nextHOA := "H"
+			if qfIdx > 1 {
+				nextHOA = "A"
+			}
+
+			series := structs.CollegeSeries{
+				BaseSeries: structs.BaseSeries{
+					SeasonID:    seasonID,
+					SeriesName:  fmt.Sprintf("%s Conference Quarterfinals", conferenceName),
+					BestOfCount: 3,
+					HomeTeamID:  a.TeamID, HomeTeam: a.TeamName, HomeTeamRank: uint(qfIdx + 1),
+					AwayTeamID: b.TeamID, AwayTeam: b.TeamName, AwayTeamRank: uint(8 - qfIdx),
+					GameCount:     1,
+					IsPlayoffGame: true,
+				},
+				NextGameID:   ngID,
+				NextGameHOA:  nextHOA,
+				ConferenceID: uint8(cid),
+			}
+			quarterfinalsSeries = append(quarterfinalsSeries, series)
+		}
+		// Semifinal Game 1
+		semifinalGame1 := structs.CollegeGame{
+			Model: gorm.Model{ID: semiFinalID1},
+			BaseGame: structs.BaseGame{
+				GameTitle: fmt.Sprintf("%s Conference Semifinals", conferenceName),
+				SeasonID:  seasonID, WeekID: util.GetWeekID(seasonID, 19), Week: 19,
+				NextGameID: finalsID, NextGameHOA: "H",
+				GameDay: "A", IsPlayoffGame: true,
+			},
+			IsConferenceTournament: true,
+		}
+
+		// Semifinal Game 2
+		semifinalGame2 := structs.CollegeGame{
+			Model: gorm.Model{ID: semiFinalID2},
+			BaseGame: structs.BaseGame{
+				GameTitle: fmt.Sprintf("%s Conference Semifinals", conferenceName),
+				SeasonID:  seasonID, WeekID: util.GetWeekID(seasonID, 19), Week: 19,
+				NextGameID: finalsID, NextGameHOA: "A",
+				GameDay: "A", IsPlayoffGame: true,
+			},
+			IsConferenceTournament: true,
+		}
+
+		// Finals Game
+		finalsGame := structs.CollegeGame{
+			Model: gorm.Model{ID: finalsID},
+			BaseGame: structs.BaseGame{
+				GameTitle: fmt.Sprintf("%s Conference Finals", conferenceName),
+				SeasonID:  seasonID, WeekID: util.GetWeekID(seasonID, 19), Week: 19,
+				GameDay: "B",
+			},
+			IsConferenceTournament: true,
+		}
+
+		semiFinalsAndFinalsGames = append(semiFinalsAndFinalsGames, semifinalGame1, semifinalGame2, finalsGame)
+		nextGameID += 3
+
 	}
 	// Create College Series in batch
 	// Create college games in batch
