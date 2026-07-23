@@ -362,6 +362,7 @@ func UpdateStandings(ts structs.Timestamp, gameDay string) structs.Timestamp {
 							Country:       country,
 							IsPlayoffGame: false,
 							SeriesID:      series.ID,
+							LeagueID:      game.LeagueID,
 						},
 						IsConferenceTournament: true,
 					}

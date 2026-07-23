@@ -882,6 +882,7 @@ func PrepareCollegeTournamentGamesFormat(db *gorm.DB, ts structs.Timestamp) {
 				SeasonID:  seasonID, WeekID: util.GetWeekID(seasonID, 19), Week: 19,
 				NextGameID: finalsID, NextGameHOA: "H",
 				GameDay: "A", IsPlayoffGame: true,
+				LeagueID: 1,
 			},
 			IsConferenceTournament: true,
 		}
@@ -894,6 +895,7 @@ func PrepareCollegeTournamentGamesFormat(db *gorm.DB, ts structs.Timestamp) {
 				SeasonID:  seasonID, WeekID: util.GetWeekID(seasonID, 19), Week: 19,
 				NextGameID: finalsID, NextGameHOA: "A",
 				GameDay: "A", IsPlayoffGame: true,
+				LeagueID: 1,
 			},
 			IsConferenceTournament: true,
 		}
@@ -904,7 +906,8 @@ func PrepareCollegeTournamentGamesFormat(db *gorm.DB, ts structs.Timestamp) {
 			BaseGame: structs.BaseGame{
 				GameTitle: fmt.Sprintf("%s Conference Finals", conferenceName),
 				SeasonID:  seasonID, WeekID: util.GetWeekID(seasonID, 19), Week: 19,
-				GameDay: "B",
+				GameDay:  "B",
+				LeagueID: 1,
 			},
 			IsConferenceTournament: true,
 		}
