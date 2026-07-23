@@ -989,6 +989,7 @@ func PrepareCHLPostSeasonGamesFormat(db *gorm.DB, ts structs.Timestamp) {
 				Week:          week,
 				IsNeutralSite: true,
 				IsPlayoffGame: true,
+				LeagueID:      1,
 				Arena:         "TBD", City: "TBD", State: "TBD", Country: "TBD",
 			},
 		}
@@ -1276,6 +1277,7 @@ func GenerateCollegeTournamentQuarterfinalsGames(db *gorm.DB, ts structs.Timesta
 				Country:       country,
 				GameDay:       "A",
 				SeriesID:      s.ID,
+				LeagueID:      uint(ht.LeagueID),
 			},
 			IsConferenceTournament: true,
 		}
