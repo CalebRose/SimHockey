@@ -1,0 +1,22 @@
+Sim College Hockey Teams,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
+id,Team Name,Mascot,Abbreviation,LeagueID,Conference ID,Conference,Coach (All schools are AI unless noted),City,State,Country,ArenaID,Arena,Arena Capacity,Record Attendance,First Played,Discord ID,Color One,Color Two,Color Three,Overall Grade,Offense Grade,Defense Grade,IsClub,IsActive,Players Progressed,Program,Prof. Development,Traditions,Facilities,Atmosphere,Coach Reputation,Academic Prestige
+95,Baie-Comeau,Drakkar,BCD,2,9,QMJHL,AI,Baie-Comeau,QC,Canada,0,Centre Henry-Leonard,3042,0,2027,,#000000,#FFCC02,#EC1C24,,,,0,0,0,1,1,1,1,1,1,1
+96,Chicoutimi,Sagueneens,CHIC,2,9,QMJHL,AI,Chicoutimi,QC,Canada,0,Centre Georges-Vezina,4724,0,2027,,#3AB4E7,#003263,#FFFFFF,,,,0,0,0,1,1,1,1,1,1,1
+97,Quebec,Remparts,QUER,2,9,QMJHL,AI,Quebec City,QC,Canada,0,Centre Videotron,18259,0,2027,,#E31836,#000000,#FFFFFF,,,,0,0,0,1,1,1,1,1,1,1
+98,Rimouski,Oceanic,RIMO,2,9,QMJHL,AI,Rimouski,QC,Canada,0,Colisee Financiere Sun Life,4030,0,2027,,#ABD8C0,#18124B,#FFFFFF,,,,0,0,0,1,1,1,1,1,1,1
+99,Cape Breton,Eagles,CBE,2,9,QMJHL,AI,Cape Breton,NS,Canada,0,Centre 200,5000,0,2027,,#C2C4C6,#FFFFFF,#FFFFFF,,,,0,0,0,1,1,1,1,1,1,1
+100,Charlottetown,Islanders,CHARL,2,9,QMJHL,AI,Charlottetown,PE,Canada,0,Eastlink Centre,3717,0,2027,,#A8996E,#000000,#FFFFFF,,,,0,0,0,1,1,1,1,1,1,1
+101,Halifax,Mooseheads,HALIF,2,9,QMJHL,AI,Halifax,NS,Canada,0,Scotiabank Centre,10595,0,2027,,#DEB408,#006F51,#FFFFFF,,,,0,0,0,1,1,1,1,1,1,1
+102,Moncton,Wildcats,MONCT,2,9,QMJHL,AI,Moncton,NB,Canada,0,Avenir Centre,880,0,2027,,#FDC13D,#D51E3C,#FFFFFF,,,,0,0,0,1,1,1,1,1,1,1
+103,Newfoundland,Regiment,NFR,2,9,QMJHL,AI,Newfoundland,NL,Canada,0,Mary Brown's Centre,7000,0,2027,,#8A2332,#0B2240,#FFFFFF,,,,0,0,0,1,1,1,1,1,1,1
+104,Saint John,Sea Dogs,SJSD,2,9,QMJHL,AI,Saint John,NL,Canada,0,TD Station,6308,0,2027,,#B1B6BD,#4274A6,#FFFFFF,,,,0,0,0,1,1,1,1,1,1,1
+105,Blainville-Boisbriand,Armada,BBA,2,9,QMJHL,AI,Blainville-Boisbriand,QC,Canada,0,Centre d'Excellence Sports Rousseau,3100,0,2027,,#000000,#FFFFFF,#FFFFFF,,,,0,0,0,1,1,1,1,1,1,1
+106,Gatineau,Olympiques,GATO,2,9,QMJHL,AI,Gatineau,QC,Canada,0,Centre Slush Puppie,4080,0,2027,,#717073,#000000,#FFFFFF,,,,0,0,0,1,1,1,1,1,1,1
+107,Royn-Noranda,Huskies,RNH,2,9,QMJHL,AI,Royn-Noranda,QC,Canada,0,Arena Glencore,2150,0,2027,,#ED1C2E,#000000,#FFFFFF,,,,0,0,0,1,1,1,1,1,1,1
+108,Val-d'Or,Foreurs,VOF,2,9,QMJHL,AI,Val-d'Or,QC,Canada,0,Centre Agnico Eagle,3504,0,2027,,#D5E4DF,#DDB208,#FFFFFF,,,,0,0,0,1,1,1,1,1,1,1
+109,Drummondville,Voltigeurs,DRUMM,2,9,QMJHL,AI,Drummondville,QC,Canada,0,Centre Marcel Dionne,4000,0,2027,,#EE3224,#000000,#FFFFFF,,,,0,0,0,1,1,1,1,1,1,1
+110,Shawinigan,Cataractes,SHAWI,2,9,QMJHL,AI,Shawinigan,QC,Canada,0,Centre Gervais Auto,4125,0,2027,,#002D62,#FFC425,#FFFFFF,,,,0,0,0,1,1,1,1,1,1,1
+111,Sherbrooke,Phoenix,SHER,2,9,QMJHL,AI,Sherbrooke,QC,Canada,0,Palais des Sports,3646,0,2027,,#F8F2D7,#051B54,#FFFFFF,,,,0,0,0,1,1,1,1,1,1,1
+112,Victoriaville,Tigres,VICTO,2,9,QMJHL,AI,Victoriaville,QC,Canada,0,Colisee Desjardins,3420,0,2027,,#FCB827,#000000,#FFFFFF,,,,0,0,0,1,1,1,1,1,1,1
+113,Maryville,Saints,MARY,1,7,Independent,AI,Chesterfield,MO,USA,0,Maryville Univercity Hockey Center,2000,0,2027,,#003263,#C9CBCC,#FFFFFF,,,,1,1,0,1,1,1,2,2,1,2
+114,,,,1,7,Independent,AI,,,USA,0,,,0,2027,,#FFC425,#B0B7BC,#FFFFFF,,,,1,1,0,1,1,1,1,1,1,1

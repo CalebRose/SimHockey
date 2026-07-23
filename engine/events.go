@@ -1280,11 +1280,15 @@ func getShootoutLineup(gp GamePlaybook) []*GamePlayer {
 
 func RecordPlay(gs *GameState, eventID, outcomeID, nextZoneID, injuryID, injuryType, injuryDuration, penaltyID, severity uint8, isFight bool, pcID, ppID, apID, dpID, gpID uint, isBreakaway bool) {
 	_, zoneID := getZoneID(gs.PuckLocation, gs.HomeTeamID, gs.AwayTeamID)
+	secondsConsumed := gs.SecondsConsumed
+	if eventID == CSShootoutID {
+		secondsConsumed = 10
+	}
 	play := structs.PbP{
 		GameID:                gs.GameID,
 		Period:                gs.Period,
 		TimeOnClock:           gs.TimeOnClock,
-		SecondsConsumed:       uint8(gs.SecondsConsumed),
+		SecondsConsumed:       uint8(secondsConsumed),
 		EventID:               eventID,
 		ZoneID:                uint8(zoneID),
 		NextZoneID:            nextZoneID,
