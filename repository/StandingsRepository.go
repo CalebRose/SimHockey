@@ -13,6 +13,7 @@ type StandingsQuery struct {
 	SeasonID     string
 	ConferenceID string
 	TeamID       string
+	LeagueID     string
 }
 
 func FindAllCollegeStandings(clauses StandingsQuery) []structs.CollegeStandings {
@@ -29,6 +30,9 @@ func FindAllCollegeStandings(clauses StandingsQuery) []structs.CollegeStandings 
 	}
 	if len(clauses.SeasonID) > 0 {
 		query = query.Where("season_id = ?", clauses.SeasonID)
+	}
+	if len(clauses.LeagueID) > 0 {
+		query = query.Where("league_id = ?", clauses.LeagueID)
 	}
 
 	if err := query.Order("conference_losses asc").Order("conference_wins desc").
