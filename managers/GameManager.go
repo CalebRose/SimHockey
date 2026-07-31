@@ -947,9 +947,9 @@ func PrepareCHLPostSeasonGamesFormat(db *gorm.DB, ts structs.Timestamp) {
 	// Sort collegeStandings by PairwiseRank, RPIRank.
 	sort.Slice(collegeStandings, func(i, j int) bool {
 		if collegeStandings[i].PairwiseRank == collegeStandings[j].PairwiseRank {
-			return collegeStandings[i].RPIRank > collegeStandings[j].RPIRank
+			return collegeStandings[i].RPIRank < collegeStandings[j].RPIRank
 		}
-		return collegeStandings[i].PairwiseRank > collegeStandings[j].PairwiseRank
+		return collegeStandings[i].PairwiseRank < collegeStandings[j].PairwiseRank
 	})
 
 	// Iterate by collegeStandings, checkif standings.TeamID is in isQualified map
@@ -969,9 +969,9 @@ func PrepareCHLPostSeasonGamesFormat(db *gorm.DB, ts structs.Timestamp) {
 	// Then create individual games going by 1v16, 2v15, etc.
 	sort.Slice(pool, func(i, j int) bool {
 		if pool[i].PairwiseRank == pool[j].PairwiseRank {
-			return pool[i].RPIRank > pool[j].RPIRank
+			return pool[i].RPIRank < pool[j].RPIRank
 		}
-		return pool[i].PairwiseRank > pool[j].PairwiseRank
+		return pool[i].PairwiseRank < pool[j].PairwiseRank
 	})
 
 	// Update Seed Ranks (1,1,1,1,2,2,2,2,3,3,3,3,4,4,4,4)
