@@ -90,6 +90,7 @@ func MoveUpWeek() structs.Timestamp {
 	if ts.CollegeSeasonOver && ts.NHLSeasonOver {
 		// Run Progressions
 		if ts.Week > 21 && !ts.ProgressedCollegePlayers {
+			GenerateWalkonCroots()
 			CollegeProgressionMain()
 		}
 		if ts.Week > 22 && !ts.ProgressedProfessionalPlayers {
