@@ -19,4 +19,6 @@ id,Team Name,Mascot,Abbreviation,LeagueID,Conference ID,Conference,Coach (All sc
 111,Sherbrooke,Phoenix,SHER,2,9,QMJHL,AI,Sherbrooke,QC,Canada,0,Palais des Sports,3646,0,2027,,#F8F2D7,#051B54,#FFFFFF,,,,0,0,0,1,1,1,1,1,1,1
 112,Victoriaville,Tigres,VICTO,2,9,QMJHL,AI,Victoriaville,QC,Canada,0,Colisee Desjardins,3420,0,2027,,#FCB827,#000000,#FFFFFF,,,,0,0,0,1,1,1,1,1,1,1
 113,Maryville,Saints,MARY,1,7,Independent,AI,Chesterfield,MO,USA,0,Maryville Univercity Hockey Center,2000,0,2027,,#003263,#C9CBCC,#FFFFFF,,,,1,1,0,1,1,1,2,2,1,2
-114,,,,1,7,Independent,AI,,,USA,0,,,0,2027,,#FFC425,#B0B7BC,#FFFFFF,,,,1,1,0,1,1,1,1,1,1,1
+114,South Dakota State,Jackrabbits,SDST,1,7,Independent,AI,,,USA,0,,,0,2027,,#FFC425,#B0B7BC,#FFFFFF,,,,1,1,0,1,1,1,1,1,1,1
+115,Florida Gulf Coast,Eagles,FGCU,1,7,Independent,AI,,,,,,,,,,,,,,,,,,,,,,,,,
+116,Oklahoma State,Cowboys,OKST,1,7,Independent,AI,,,,,,,,,,,,,,,,,,,,,,,,,

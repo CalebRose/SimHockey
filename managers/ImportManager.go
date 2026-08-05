@@ -208,6 +208,7 @@ func ImportCollegeTeams() {
 	repository.CreateCollegeLineupRecordsBatch(db, collegeLineups, 50)
 
 	GenerateInitialRosters()
+	ImportTeamRecruitingProfiles()
 }
 
 func ImportProTeams() {
@@ -446,9 +447,15 @@ func ImportTeamRecruitingProfiles() {
 	db := dbprovider.GetInstance().GetDB()
 
 	teams := repository.FindAllCollegeTeams(repository.TeamClauses{LeagueID: "1"})
+	recruitingTeamProfiles := repository.FindTeamRecruitingProfiles(false)
+	teamProfileMap := MakeTeamProfileMap(recruitingTeamProfiles)
 
 	for _, team := range teams {
 		if team.ID < 72 {
+			continue
+		}
+		_, exists := teamProfileMap[team.ID]
+		if exists {
 			continue
 		}
 		teamProfile := structs.RecruitingTeamProfile{
@@ -470,8 +477,8 @@ func ImportTeamRecruitingProfiles() {
 			AIStarMax:             uint8(util.GenerateIntFromRange(3, 5)),
 			Recruiter:             team.Coach,
 		}
-
 		db.Create(&teamProfile)
+
 	}
 }
 

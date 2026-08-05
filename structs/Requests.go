@@ -4,11 +4,16 @@ import "gorm.io/gorm"
 
 // College Request & Pro Requests
 type TeamRequest struct {
-	TeamID     uint
-	Username   string
-	IsApproved bool
-	IsActive   bool
-	Role       string
+	TeamID                  uint
+	Username                string
+	IsApproved              bool
+	IsActive                bool
+	Role                    string
+	DiscordUsername         string
+	HowMuchTimeAnswer       string
+	HowDidYouHearAboutSimSN string
+	CommunityReference      string
+	AboutYourself           string
 }
 
 type CollegeTeamRequest struct {

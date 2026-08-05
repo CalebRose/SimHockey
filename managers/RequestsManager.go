@@ -109,12 +109,15 @@ func CreateCHLTeamRequest(request structs.CollegeTeamRequest) {
 	}
 	existingRequest.Reactivate()
 	repository.SaveCHLTeamRequest(db, existingRequest)
+
+	chlTeam := repository.FindCollegeTeamRecord(strconv.Itoa(int(request.TeamID)))
+	CreateCHLJobApplicationThread(request, chlTeam.TeamName, chlTeam.Mascot)
 }
 
 func CreatePHLTeamRequest(request structs.ProTeamRequest) {
 	db := dbprovider.GetInstance().GetDB()
 
-	existingRequest := repository.FindCHLRequestRecord(repository.RequestQuery{
+	existingRequest := repository.FindPHLRequestRecord(repository.RequestQuery{
 		TeamID:   strconv.Itoa(int(request.TeamID)),
 		Username: request.Username,
 		Role:     request.Role,
@@ -126,6 +129,9 @@ func CreatePHLTeamRequest(request structs.ProTeamRequest) {
 	}
 	existingRequest.Reactivate()
 	repository.SavePHLTeamRequest(db, structs.ProTeamRequest(existingRequest))
+
+	proTeam := repository.FindProTeamRecord(strconv.Itoa(int(request.TeamID)))
+	CreatePHLJobApplicationThread(request, proTeam)
 }
 
 func ApproveCHLTeamRequest(request structs.CollegeTeamRequest) structs.CollegeTeamRequest {

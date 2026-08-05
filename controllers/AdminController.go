@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/CalebRose/SimHockey/dbprovider"
 	"github.com/CalebRose/SimHockey/managers"
 )
 
@@ -208,6 +209,14 @@ func GeneratePairwiseRanks(w http.ResponseWriter, r *http.Request) {
 
 func GeneratePHLDraftWarRooms(w http.ResponseWriter, r *http.Request) {
 	managers.GenerateDraftWarRooms()
+
+	json.NewEncoder(w).Encode("Data Generated ran!")
+}
+
+func PrepareCHLPostSeasonGamesFormat(w http.ResponseWriter, r *http.Request) {
+	db := dbprovider.GetInstance().GetDB()
+	ts := managers.GetTimestamp()
+	managers.PrepareCHLPostSeasonGamesFormat(db, ts)
 
 	json.NewEncoder(w).Encode("Data Generated ran!")
 }

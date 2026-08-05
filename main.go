@@ -110,6 +110,7 @@ func handleRequests() http.Handler {
 	// apiRouter.HandleFunc("/simhck/sync/recruiting/", controllers.SyncRecruiting).Methods("GET")
 	// apiRouter.HandleFunc("/simhck/update/team/ranks/", controllers.UpdateTeamRankings).Methods("GET")
 	// apiRouter.HandleFunc("/simhck/fix/standings/tables/", controllers.FixStandingsTables).Methods("GET")
+	// apiRouter.HandleFunc("/simhck/fix/postseason/tournament/", controllers.PrepareCHLPostSeasonGamesFormat).Methods("GET")
 
 	// Postseason
 	// apiRouter.HandleFunc("/admin/postseason/college/walkons/", controllers.GenerateWalkons).Methods("GET")
