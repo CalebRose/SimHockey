@@ -991,7 +991,7 @@ func CreateCHLJobApplicationThread(request structs.CollegeTeamRequest, teamName,
 		ThreadType:        fbsvc.ThreadTypeStandard,
 		FirstPostBodyText: bodyText,
 		FirstPostBody:     richBody,
-		ReferencedLeague:  "cfb",
+		ReferencedLeague:  "chl",
 		ExternalEventKey:  eventKey,
 	}
 
