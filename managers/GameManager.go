@@ -1174,7 +1174,7 @@ func PreparePHLPostSeasonGamesFormat(db *gorm.DB, ts structs.Timestamp) {
 				IsInternational: homeTeam.LeagueID != 1 && awayTeam.LeagueID != 1,
 				AwayTeamID:      b.TeamID, AwayTeam: b.TeamName, AwayTeamRank: 2,
 				SeriesName:    fmt.Sprintf("%d %s vs %s Quarterfinals", ts.Season, homeTeam.Division, awayTeam.Division),
-				BestOfCount:   7,
+				BestOfCount:   5,
 				GameCount:     1,
 				IsPlayoffGame: true,
 				NextSeriesHOA: nextSeriesHoa,                    // Higher seed is home
@@ -1202,8 +1202,9 @@ func PreparePHLPostSeasonGamesFormat(db *gorm.DB, ts structs.Timestamp) {
 				NextSeriesHOA:   nextSeriesHoa,    // Higher seed is home
 				NextSeriesID:    nextSeriesID + 6, // Finals Series ID
 				SeriesName:      fmt.Sprintf("%d SimPHL Semifinals", ts.Season),
-				BestOfCount:     7,
+				BestOfCount:     5,
 				GameCount:       1,
+				IsPlayoffGame:   true,
 			},
 		}
 		postSeasonSeriesList = append(postSeasonSeriesList, semiFinalsSeries)
@@ -1223,8 +1224,9 @@ func PreparePHLPostSeasonGamesFormat(db *gorm.DB, ts structs.Timestamp) {
 			NextSeriesID:    0,
 			IsTheFinals:     true,
 			SeriesName:      fmt.Sprintf("%d SimPHL Finals", ts.Season),
-			BestOfCount:     7,
+			BestOfCount:     5,
 			GameCount:       1,
+			IsPlayoffGame:   true,
 		},
 	}
 
