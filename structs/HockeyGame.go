@@ -150,6 +150,9 @@ type CollegeGame struct {
 	IsNationalChampionship bool
 	IsConferenceTournament bool
 	IsInvitational         bool
+	InvitationalID         uint8
+	LosingGameID           uint   // For Consolation Games
+	LosingGameHOA          string // For Consolation Games
 }
 
 type ProfessionalGame struct {

@@ -21,6 +21,10 @@ func HandlePostSeasonMigration() {
 	HandleRecruitingTeamProfileReset()
 	ts.MoveUpSeason()
 	GenerateStandingsForNewSeason(ts)
+	// SimCHL Conference Schedule
+	GenerateSimCHLConferenceSchedules(ts)
+	// Canadian Hockey League Schedule
+	GenerateCanadianHockeySchedule(ts)
 
 	repository.SaveTimestamp(ts, db)
 }

@@ -87,16 +87,16 @@ func MoveUpWeek() structs.Timestamp {
 	if ts.Week > 15 {
 		SyncExtensionOffers()
 	}
-	if ts.CollegeSeasonOver && ts.NHLSeasonOver {
-		// Run Progressions
-		if ts.Week > 21 && !ts.ProgressedCollegePlayers {
-			GenerateWalkonCroots()
-			CollegeProgressionMain()
-		}
-		if ts.Week > 22 && !ts.ProgressedProfessionalPlayers {
-			ProfessionalProgressionMain()
-		}
+
+	// Run Progressions
+	if ts.CollegeSeasonOver && ts.Week > 21 && !ts.ProgressedCollegePlayers {
+		GenerateWalkonCroots()
+		CollegeProgressionMain()
 	}
+	if ts.NHLSeasonOver && ts.Week > 22 && !ts.ProgressedProfessionalPlayers {
+		ProfessionalProgressionMain()
+	}
+
 	GenerateCHLTeamLetterGrades()
 	GeneratePHLTeamLetterGrades()
 

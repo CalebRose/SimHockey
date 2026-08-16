@@ -100,7 +100,10 @@ func ShowResultsViaCron() {
 }
 
 func RunPostSeasonMigrationViaCron() {
-	managers.HandlePostSeasonMigration()
+	ts := managers.GetTimestamp()
+	if ts.RunCron && ts.CollegeSeasonOver && ts.NHLSeasonOver && ts.ProgressedCollegePlayers && ts.ProgressedProfessionalPlayers {
+		managers.HandlePostSeasonMigration()
+	}
 }
 
 func StreamCHLGamesToInterfaceViaCron() {

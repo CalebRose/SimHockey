@@ -1,0 +1,123 @@
+H&A vs every team (24 games),,,,,,,Week Conference Play Begins:,,6,,,,,,,,,,,
+"AHA, NCHC",,,,,,,,,,,,,,,,,,,,
+,Team Name,Team Code,,,,Team1,Team2,Team3,Team4,Team5,Team6,Team7,Team8,Team9,Team10,,,Week,Home,Away
+1,Team1,Team1,,1,6A,Team10,Team9,Team8,Team7,Team6,@ Team5,@ Team4,@ Team3,@ Team2,@ Team1,,1,6A,Team1,Team10
+2,Team2,Team2,,2,6B,@ Team9,@ Team7,@ Team6,@ Team5,Team4,Team3,Team2,Team10,Team1,@ Team8,,1,6A,Team2,Team9
+3,Team3,Team3,,3,7A,Team8,Team5,Team4,@ Team3,@ Team2,@ Team10,@ Team9,@ Team1,Team7,Team6,,1,6A,Team3,Team8
+4,Team4,Team4,,4,7B,@ Team7,@ Team3,Team2,Team10,Team9,Team8,Team1,@ Team6,@ Team5,@ Team4,,1,6A,Team4,Team7
+5,Team5,Team5,,5,8A,Team6,@ Team10,@ Team9,@ Team8,@ Team7,@ Team1,Team5,Team4,Team3,Team2,,1,6A,Team5,Team6
+6,Team6,Team6,,6,8B,@ Team5,Team8,Team7,Team6,Team1,@ Team4,@ Team3,@ Team2,@ Team10,Team9,,2,6B,Team9,Team1
+7,Team7,Team7,,7,9A,Team4,@ Team6,@ Team5,@ Team1,Team3,Team2,Team10,Team9,@ Team8,@ Team7,,2,6B,Team7,Team2
+8,Team8,Team8,,8,9B,@ Team3,Team4,Team1,@ Team2,@ Team10,@ Team9,@ Team8,Team7,Team6,Team5,,2,6B,Team6,Team3
+9,Team9,Team9,,9,10A,Team2,@ Team1,Team10,Team9,Team8,Team7,@ Team6,@ Team5,@ Team4,@ Team3,,2,6B,Team5,Team4
+10,Team10,Team10,,10,10B,@ Team10,@ Team9,@ Team8,@ Team7,@ Team6,Team5,Team4,Team3,Team2,Team1,,2,6B,Team8,Team10
+,,,,11,11A,Team9,Team7,Team6,Team5,@ Team4,@ Team3,@ Team2,@ Team10,@ Team1,Team8,,3,7A,Team1,Team8
+,,,,12,11B,@ Team8,@ Team5,@ Team4,Team3,Team2,Team10,Team9,Team1,@ Team7,@ Team6,,3,7A,Team2,Team5
+,,,,13,12A,Team7,Team3,@ Team2,@ Team10,@ Team9,@ Team8,@ Team1,Team6,Team5,Team4,,3,7A,Team3,Team4
+,,,,14,12B,@ Team6,Team10,Team9,Team8,Team7,Team1,@ Team5,@ Team4,@ Team3,@ Team2,,3,7A,Team10,Team6
+,,,,15,13A,Team5,@ Team8,@ Team7,@ Team6,@ Team1,Team4,Team3,Team2,Team10,@ Team9,,3,7A,Team9,Team7
+,,,,16,13B,@ Team4,Team6,Team5,Team1,@ Team3,@ Team2,@ Team10,@ Team9,Team8,Team7,,4,7B,Team7,Team1
+,,,,17,14A,Team3,@ Team4,@ Team1,Team2,Team10,Team9,Team8,@ Team7,@ Team6,@ Team5,,4,7B,Team3,Team2
+,,,,18,14B,@ Team2,Team1,@ Team10,@ Team9,@ Team8,@ Team7,Team6,Team5,Team4,Team3,,4,7B,Team4,Team10
+,,,,19,15A,Team10,Team9,Team8,Team7,Team6,@ Team5,@ Team4,@ Team3,@ Team2,@ Team1,,4,7B,Team5,Team9
+,,,,20,15B,@ Team9,@ Team7,@ Team6,@ Team5,Team4,Team3,Team2,Team10,Team1,@ Team8,,4,7B,Team6,Team8
+,,,,21,16A,Team8,Team5,Team4,@ Team3,@ Team2,@ Team10,@ Team9,@ Team1,Team7,Team6,,5,8A,Team1,Team6
+,,,,22,16B,@ Team7,@ Team3,Team2,Team10,Team9,Team8,Team1,@ Team6,@ Team5,@ Team4,,5,8A,Team10,Team2
+,,,,23,17A,Team6,@ Team10,@ Team9,@ Team8,@ Team7,@ Team1,Team5,Team4,Team3,Team2,,5,8A,Team9,Team3
+,,,,24,17B,@ Team5,Team8,Team7,Team6,Team1,@ Team4,@ Team3,@ Team2,@ Team10,Team9,,5,8A,Team8,Team4
+,,,,,Total,24,24,24,24,24,24,24,24,24,24,,5,8A,Team7,Team5
+,,,,,,,,,,,,,,,,,6,8B,Team5,Team1
+,,,,,,,,,,,,,,,,,6,8B,Team2,Team8
+,,,,,,,,,,,,,,,,,6,8B,Team3,Team7
+,,,,,,,,,,,,,,,,,6,8B,Team4,Team6
+,,,,,,,,,,,,,,,,,6,8B,Team10,Team9
+,,,,,,,,,,,,,,,,,7,9A,Team1,Team4
+,,,,,,,,,,,,,,,,,7,9A,Team6,Team2
+,,,,,,,,,,,,,,,,,7,9A,Team5,Team3
+,,,,,,,,,,,,,,,,,7,9A,Team7,Team10
+,,,,,,,,,,,,,,,,,7,9A,Team8,Team9
+,,,,,,,,,,,,,,,,,8,9B,Team3,Team1
+,,,,,,,,,,,,,,,,,8,9B,Team2,Team4
+,,,,,,,,,,,,,,,,,8,9B,Team10,Team5
+,,,,,,,,,,,,,,,,,8,9B,Team9,Team6
+,,,,,,,,,,,,,,,,,8,9B,Team8,Team7
+,,,,,,,,,,,,,,,,,9,10A,Team1,Team2
+,,,,,,,,,,,,,,,,,9,10A,Team3,Team10
+,,,,,,,,,,,,,,,,,9,10A,Team4,Team9
+,,,,,,,,,,,,,,,,,9,10A,Team5,Team8
+,,,,,,,,,,,,,,,,,9,10A,Team6,Team7
+,,,,,,,,,,,,,,,,,10,10B,Team10,Team1
+,,,,,,,,,,,,,,,,,10,10B,Team9,Team2
+,,,,,,,,,,,,,,,,,10,10B,Team8,Team3
+,,,,,,,,,,,,,,,,,10,10B,Team7,Team4
+,,,,,,,,,,,,,,,,,10,10B,Team6,Team5
+,,,,,,,,,,,,,,,,,11,11A,Team1,Team9
+,,,,,,,,,,,,,,,,,11,11A,Team2,Team7
+,,,,,,,,,,,,,,,,,11,11A,Team3,Team6
+,,,,,,,,,,,,,,,,,11,11A,Team4,Team5
+,,,,,,,,,,,,,,,,,11,11A,Team10,Team8
+,,,,,,,,,,,,,,,,,12,11B,Team8,Team1
+,,,,,,,,,,,,,,,,,12,11B,Team5,Team2
+,,,,,,,,,,,,,,,,,12,11B,Team4,Team3
+,,,,,,,,,,,,,,,,,12,11B,Team6,Team10
+,,,,,,,,,,,,,,,,,12,11B,Team7,Team9
+,,,,,,,,,,,,,,,,,13,12A,Team1,Team7
+,,,,,,,,,,,,,,,,,13,12A,Team2,Team3
+,,,,,,,,,,,,,,,,,13,12A,Team10,Team4
+,,,,,,,,,,,,,,,,,13,12A,Team9,Team5
+,,,,,,,,,,,,,,,,,13,12A,Team8,Team6
+,,,,,,,,,,,,,,,,,14,12B,Team6,Team1
+,,,,,,,,,,,,,,,,,14,12B,Team2,Team10
+,,,,,,,,,,,,,,,,,14,12B,Team3,Team9
+,,,,,,,,,,,,,,,,,14,12B,Team4,Team8
+,,,,,,,,,,,,,,,,,14,12B,Team5,Team7
+,,,,,,,,,,,,,,,,,15,13A,Team1,Team5
+,,,,,,,,,,,,,,,,,15,13A,Team8,Team2
+,,,,,,,,,,,,,,,,,15,13A,Team7,Team3
+,,,,,,,,,,,,,,,,,15,13A,Team6,Team4
+,,,,,,,,,,,,,,,,,15,13A,Team9,Team10
+,,,,,,,,,,,,,,,,,16,13B,Team4,Team1
+,,,,,,,,,,,,,,,,,16,13B,Team2,Team6
+,,,,,,,,,,,,,,,,,16,13B,Team3,Team5
+,,,,,,,,,,,,,,,,,16,13B,Team10,Team7
+,,,,,,,,,,,,,,,,,16,13B,Team9,Team8
+,,,,,,,,,,,,,,,,,17,14A,Team1,Team3
+,,,,,,,,,,,,,,,,,17,14A,Team4,Team2
+,,,,,,,,,,,,,,,,,17,14A,Team5,Team10
+,,,,,,,,,,,,,,,,,17,14A,Team6,Team9
+,,,,,,,,,,,,,,,,,17,14A,Team7,Team8
+,,,,,,,,,,,,,,,,,18,14B,Team2,Team1
+,,,,,,,,,,,,,,,,,18,14B,Team10,Team3
+,,,,,,,,,,,,,,,,,18,14B,Team9,Team4
+,,,,,,,,,,,,,,,,,18,14B,Team8,Team5
+,,,,,,,,,,,,,,,,,18,14B,Team7,Team6
+,,,,,,,,,,,,,,,,,19,15A,Team1,Team10
+,,,,,,,,,,,,,,,,,19,15A,Team2,Team9
+,,,,,,,,,,,,,,,,,19,15A,Team3,Team8
+,,,,,,,,,,,,,,,,,19,15A,Team4,Team7
+,,,,,,,,,,,,,,,,,19,15A,Team5,Team6
+,,,,,,,,,,,,,,,,,20,15B,Team9,Team1
+,,,,,,,,,,,,,,,,,20,15B,Team7,Team2
+,,,,,,,,,,,,,,,,,20,15B,Team6,Team3
+,,,,,,,,,,,,,,,,,20,15B,Team5,Team4
+,,,,,,,,,,,,,,,,,20,15B,Team8,Team10
+,,,,,,,,,,,,,,,,,21,16A,Team1,Team8
+,,,,,,,,,,,,,,,,,21,16A,Team2,Team5
+,,,,,,,,,,,,,,,,,21,16A,Team3,Team4
+,,,,,,,,,,,,,,,,,21,16A,Team10,Team6
+,,,,,,,,,,,,,,,,,21,16A,Team9,Team7
+,,,,,,,,,,,,,,,,,22,16B,Team7,Team1
+,,,,,,,,,,,,,,,,,22,16B,Team3,Team2
+,,,,,,,,,,,,,,,,,22,16B,Team4,Team10
+,,,,,,,,,,,,,,,,,22,16B,Team5,Team9
+,,,,,,,,,,,,,,,,,22,16B,Team6,Team8
+,,,,,,,,,,,,,,,,,23,17A,Team1,Team6
+,,,,,,,,,,,,,,,,,23,17A,Team10,Team2
+,,,,,,,,,,,,,,,,,23,17A,Team9,Team3
+,,,,,,,,,,,,,,,,,23,17A,Team8,Team4
+,,,,,,,,,,,,,,,,,23,17A,Team7,Team5
+,,,,,,,,,,,,,,,,,24,17B,Team5,Team1
+,,,,,,,,,,,,,,,,,24,17B,Team2,Team8
+,,,,,,,,,,,,,,,,,24,17B,Team3,Team7
+,,,,,,,,,,,,,,,,,24,17B,Team4,Team6
+,,,,,,,,,,,,,,,,,24,17B,Team10,Team9
