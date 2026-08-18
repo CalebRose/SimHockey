@@ -194,7 +194,6 @@ func (t *Timestamp) TogglePollRan() {
 }
 
 func (t *Timestamp) EndTheCollegeSeason() {
-	t.IsOffSeason = true
 	t.TransferPortalPhase = 1
 	t.CollegeSeasonOver = true
 }
@@ -219,7 +218,6 @@ func (t *Timestamp) IncrementTransferPortalRound() {
 }
 
 func (t *Timestamp) EndTheProfessionalSeason() {
-	t.IsOffSeason = true
 	t.FreeAgencyRound = 1
 	t.IsDraftTime = false
 	t.IsFreeAgencyLocked = true
