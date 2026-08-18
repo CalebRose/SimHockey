@@ -18,6 +18,7 @@ func HandlePostSeasonMigration() {
 		return
 	}
 	HandleRecruitingTables()
+	HandleDraftTables()
 	HandleTeamProfileValues(ts)
 	HandleRecruitingTeamProfileReset()
 	ts.MoveUpSeason()
@@ -191,6 +192,15 @@ func HandleRecruitingTeamProfileReset() {
 		tp.ResetScores()
 		repository.SaveTeamProfileRecord(db, tp)
 	}
+}
+
+func HandleDraftTables() {
+	db := dbprovider.GetInstance().GetDB()
+
+	// Delete All Records in the Scouting Profile Table
+	db.Delete(&structs.ScoutingProfile{})
+	// Reset War Rooms
+	db.Model(&structs.ProWarRoom{}).Where("spent_points > 0").Update("spent_points", 0)
 }
 
 func GenerateStandingsForNewSeason(ts structs.Timestamp) structs.Timestamp {
