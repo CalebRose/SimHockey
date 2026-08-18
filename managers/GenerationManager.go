@@ -640,6 +640,9 @@ func GenerateInitialCHLRosters() {
 		if team.LeagueID == 1 {
 			continue
 		}
+		if team.ConferenceID == 8 {
+			continue
+		}
 		teamID := team.ID
 		queue := getCollegeGenList(teamID)
 

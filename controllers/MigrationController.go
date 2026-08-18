@@ -25,3 +25,8 @@ func ImportPHLDraftOrder(w http.ResponseWriter, r *http.Request) {
 	managers.ImportPhlDraftOrder()
 	json.NewEncoder(w).Encode("Recruiting Sync Complete")
 }
+
+func FixDraftablePlayersTable(w http.ResponseWriter, r *http.Request) {
+	managers.FixDraftablePlayersTable()
+	json.NewEncoder(w).Encode("Recruiting Sync Complete")
+}
