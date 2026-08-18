@@ -17,6 +17,7 @@ func HandlePostSeasonMigration() {
 	if ts.Week < 22 || !ts.CollegeSeasonOver || !ts.NHLSeasonOver {
 		return
 	}
+	HandleRecruitingTables()
 	HandleTeamProfileValues(ts)
 	HandleRecruitingTeamProfileReset()
 	ts.MoveUpSeason()
@@ -25,8 +26,19 @@ func HandlePostSeasonMigration() {
 	GenerateSimCHLConferenceSchedules(ts)
 	// Canadian Hockey League Schedule
 	GenerateCanadianHockeySchedule(ts)
+	GenerateCroots()
 
 	repository.SaveTimestamp(ts, db)
+}
+
+func HandleRecruitingTables() {
+	db := dbprovider.GetInstance().GetDB()
+	recruitProfileModel := structs.RecruitPlayerProfile{}
+	recruitModel := structs.Recruit{}
+
+	// Delete all existing records.
+	db.Delete(&recruitProfileModel)
+	db.Delete(&recruitModel)
 }
 
 func HandleTeamProfileValues(ts structs.Timestamp) structs.Timestamp {

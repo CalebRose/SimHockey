@@ -166,6 +166,7 @@ func handleRequests() http.Handler {
 	// Migrations
 	// apiRouter.HandleFunc("/migrate/faces", controllers.MigrateFaceData).Methods("GET")
 	// apiRouter.HandleFunc("/migrate/stats/fix", controllers.FixSeasonStatTables).Methods("GET")
+	// apiRouter.HandleFunc("/migrate/croots/fix", controllers.FixAddingCroots).Methods("GET")
 
 	// Notifications
 	apiRouter.HandleFunc("/notification/toggle/{notiID}", controllers.ToggleNotificationAsRead).Methods("GET")

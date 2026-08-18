@@ -1314,3 +1314,22 @@ func FixDraftablePlayersTable() {
 	repository.CreateProHockeyPlayerRecordsBatch(db, proBatch, 200)
 
 }
+
+func FixAddingRecruitsToCollege() {
+	db := dbprovider.GetInstance().GetDB()
+	croots := repository.FindAllRecruits(false, true, true, false, false, "")
+	playersToAdd := []structs.CollegePlayer{}
+	for _, croot := range croots {
+		if croot.TeamID == 0 {
+			continue
+		}
+		cp := structs.CollegePlayer{
+			Model:          croot.Model,
+			BasePlayer:     croot.BasePlayer,
+			BasePotentials: croot.BasePotentials,
+			Year:           1,
+		}
+		playersToAdd = append(playersToAdd, cp)
+	}
+	repository.CreateCollegeHockeyPlayerRecordsBatch(db, playersToAdd, 200)
+}
