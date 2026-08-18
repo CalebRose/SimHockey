@@ -5,9 +5,9 @@ import (
 	"fmt"
 	"log"
 	"math/rand"
-	"net/http"
 	"sort"
 	"strconv"
+	"strings"
 
 	util "github.com/CalebRose/SimHockey/_util"
 	"github.com/CalebRose/SimHockey/dbprovider"
@@ -32,7 +32,7 @@ func GetCollegePromiseByID(id string) structs.CollegePromise {
 	return repository.FindCollegePromiseRecord(repository.TransferPortalQuery{ID: id})
 }
 
-func ProcessTransferIntention(w http.ResponseWriter) {
+func ProcessTransferIntention() {
 	db := dbprovider.GetInstance().GetDB()
 	// w.Header().Set("Content-Disposition", "attachment;filename=transferStats.csv")
 	// w.Header().Set("Transfer-Encoding", "chunked")
@@ -81,7 +81,7 @@ func ProcessTransferIntention(w http.ResponseWriter) {
 
 	for _, p := range allCollegePlayers {
 		// Do not include redshirts and all graduating players
-		if p.TeamID > 74 || p.TeamID == 0 {
+		if p.LeagueID > 1 || p.TeamID == 0 {
 			continue
 		}
 		// Weight will be the initial barrier required for a player to consider transferring.
@@ -1634,4 +1634,214 @@ func FilterOutCollegePlayer(transferPlayers []structs.CollegePlayer, u uint) []s
 		}
 	}
 	return filtered
+}
+
+func SyncPromises() {
+	db := dbprovider.GetInstance().GetDB()
+	ts := GetTimestamp()
+	seasonID := strconv.Itoa(int(ts.SeasonID))
+	teamProfiles := repository.FindTeamRecruitingProfiles(false)
+	teamProfileMap := MakeTeamProfileMap(teamProfiles)
+	activePromises := GetAllCollegePromises()
+	collegePlayers := GetAllCollegePlayers()
+	collegePlayerMap := MakeCollegePlayerMap(collegePlayers)
+	historicCollegePlayers := GetAllHistoricCollegePlayers()
+	historicPlayerMap := MakeHistoricCollegePlayerMap(historicCollegePlayers)
+	standingsMap := GetCollegeStandingsMap(seasonID)
+	seasonStats := repository.FindCollegePlayerSeasonStatsRecords(seasonID, "2")
+	seasonStatsMap := MakeCollegePlayerSeasonStatMap(seasonStats)
+	gameplans := repository.FindCollegeGameplanRecords()
+	gameplanMap := MakeCollegeGameplanMap(gameplans)
+	collegeGames := repository.FindCollegeGames(repository.GamesClauses{SeasonID: seasonID})
+	collegeGamesMap := MakeCollegeGameMapByTeamID(collegeGames)
+
+	for _, promise := range activePromises {
+		if !promise.IsActive || !promise.PromiseMade {
+			continue
+		}
+		isHistoric := false
+		benchMarkStr := ""
+		result := ""
+		player := collegePlayerMap[promise.CollegePlayerID]
+		if player.ID == 0 {
+			historicPlayer := historicPlayerMap[promise.CollegePlayerID]
+			if historicPlayer.ID == 0 {
+				continue
+			}
+			isHistoric = true
+			player = structs.CollegePlayer{
+				Model:      historicPlayer.Model,
+				BasePlayer: historicPlayer.BasePlayer,
+			}
+		}
+		// If player is already going to portal, carry on!
+		if player.TransferStatus == 2 {
+			// Remove promise since there was likely a preceding promise
+			repository.DeleteCollegePromise(promise, db, false)
+			continue
+		}
+		teamID := promise.TeamID
+		team := teamProfileMap[teamID]
+
+		seasonStats := seasonStatsMap[promise.CollegePlayerID]
+		if promise.PromiseType == "Wins" {
+			standings := standingsMap[promise.TeamID]
+			result = strconv.Itoa(int(standings.TotalWins))
+			if standings.TotalWins >= uint8(promise.Benchmark) {
+				promise.FulfillPromise()
+			}
+		} else if promise.PromiseType == "Time On Ice" || promise.PromiseType == "Minutes" {
+			if seasonStats.TimeOnIce > 0 {
+				minutesPerGame := float64(seasonStats.TimeOnIce) / float64(seasonStats.GamesPlayed)
+				result = util.ConvertFloatToString(minutesPerGame)
+				if minutesPerGame >= float64(promise.Benchmark) {
+					promise.FulfillPromise()
+				}
+			}
+		} else if promise.PromiseType == "Home State Game" || promise.PromiseType == "Different State" {
+			// Loop through games
+			benchMarkStr = promise.BenchmarkStr
+			result = "Did not play game in requested state."
+			games := collegeGamesMap[teamID]
+			for _, game := range games {
+				if game.State == promise.BenchmarkStr {
+					result = ""
+					promise.FulfillPromise()
+					break
+				}
+			}
+		} else if promise.PromiseType == "No Redshirt" {
+			result = "Was Redshirted"
+			if !player.IsRedshirting {
+				result = ""
+				promise.FulfillPromise()
+			}
+		} else if promise.PromiseType == "National Championship" {
+			result = "Did not win the Natty."
+			standings := standingsMap[promise.TeamID]
+			if standings.PostSeasonStatus == "National Champion" {
+				result = ""
+				promise.FulfillPromise()
+			}
+		} else if promise.PromiseType == "Conference Championship" {
+			result = "Did not win Conference Championship"
+			standings := standingsMap[promise.TeamID]
+			if standings.IsConferenceTournamentChampion {
+				result = ""
+				promise.FulfillPromise()
+			}
+		} else if promise.PromiseType == "Specific Coach" {
+			// Fulfill for now, will need to adjust value
+			promise.FulfillPromise()
+		} else if promise.PromiseType == "Playoffs" {
+			standings := standingsMap[promise.TeamID]
+			postSeasonStatus := standings.PostSeasonStatus
+			// postSeasonStatus has substring "Round of" or postSeasonStatus == "Sweet 16" or "Elite 8" or "Final 4" or contains "National Champion", fullfill
+			if strings.Contains(postSeasonStatus, "Playoff") || postSeasonStatus == "Round of 16" || postSeasonStatus == "Quarterfinal" || postSeasonStatus == "Semifinal" || strings.Contains(postSeasonStatus, "National") {
+				result = ""
+				promise.FulfillPromise()
+			}
+		} else if promise.PromiseType == "Frozen Four" {
+			standings := standingsMap[promise.TeamID]
+			postSeasonStatus := standings.PostSeasonStatus
+			// postSeasonStatus has substring "Round of" or postSeasonStatus == "Sweet 16" or "Elite 8" or "Final 4" or contains "National Champion", fullfill
+			if strings.Contains(postSeasonStatus, "Frozen Four") || strings.Contains(postSeasonStatus, "Playoff") || postSeasonStatus == "Semifinals" || postSeasonStatus == "Quarterfinals" || strings.Contains(postSeasonStatus, "National") {
+				result = ""
+				promise.FulfillPromise()
+			}
+		} else if promise.PromiseType == "Good Gameplan Fit" {
+			gameplan := gameplanMap[promise.TeamID]
+			goodGameplanFit := IsGoodOffenseFit(gameplan.OffensiveSystem, player.Archetype)
+			goodDefenseFit := IsGoodDefenseFit(gameplan.DefensiveSystem, player.Archetype)
+			if goodGameplanFit || goodDefenseFit {
+				result = ""
+				promise.FulfillPromise()
+			}
+		} else if promise.PromiseType == "Not Bad Gameplan Fit" {
+			gameplan := gameplanMap[promise.TeamID]
+			badSchemeFit := IsBadOffenseFit(gameplan.OffensiveSystem, player.Archetype)
+			badDefenseFit := IsBadDefenseSchemeFit(gameplan.DefensiveSystem, player.Archetype)
+			if !badSchemeFit || !badDefenseFit {
+				result = ""
+				promise.FulfillPromise()
+			}
+		}
+		weightValue := getPromiseWeightValue(!promise.IsFullfilled, promise.PromiseWeight, int(team.PortalReputation))
+		team.AdjustPortalReputation(int8(weightValue))
+		repository.SaveTeamProfileRecord(db, *team)
+		if !promise.IsFullfilled && !isHistoric {
+			message := "Breaking News! " + player.Team + " " + player.FirstName + " " + player.LastName + " will be re-entering the portal after a promise was broken! Promise: " + promise.PromiseType + " | Expected: " + benchMarkStr + " | Result: " + result
+			player.WillTransfer()
+			repository.SaveCollegeHockeyPlayerRecord(player, db)
+			CreateNewsLog("CHL", message, "Portal", int(team.TeamID), ts, true)
+		}
+		repository.DeleteCollegePromise(promise, db, false)
+	}
+}
+
+func getPromiseWeightValue(isPenalty bool, weight string, reputation int) int {
+	switch weight {
+	case "Why even try?":
+		if isPenalty {
+			return -1
+		}
+		return 1
+	case "Low":
+		if isPenalty {
+			return -5
+		}
+		return 3
+	case "Extremely Low":
+		if isPenalty {
+			return -1
+		}
+		return 1
+	case "Very Low":
+		if isPenalty {
+			return -3
+		}
+		return 2
+	case "Medium":
+		if isPenalty {
+			return -10
+		}
+		if reputation > 100 {
+			return 3
+		}
+		return 8
+	case "High":
+		if isPenalty {
+			return -20
+		}
+		if reputation > 100 {
+			return 5
+		}
+		return 15
+	case "Very High":
+		if isPenalty {
+			return -30
+		}
+		if reputation > 100 {
+			return 5
+		}
+		return 20
+	case "Extremely High":
+		if isPenalty {
+			return -35
+		}
+		if reputation > 100 {
+			return 5
+		}
+		return 25
+	case "If you make this promise then you better win it!":
+		if isPenalty {
+			return -50
+		}
+		if reputation > 100 {
+			return 10
+		}
+		return 35
+	}
+
+	return 0
 }

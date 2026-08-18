@@ -17,6 +17,9 @@ func HandlePostSeasonMigration() {
 	if ts.Week < 22 || !ts.CollegeSeasonOver || !ts.NHLSeasonOver {
 		return
 	}
+	HandleRecruitingTables()
+	HandleTransferPortalTables()
+	HandleDraftTables()
 	HandleTeamProfileValues(ts)
 	HandleRecruitingTeamProfileReset()
 	ts.MoveUpSeason()
@@ -25,8 +28,19 @@ func HandlePostSeasonMigration() {
 	GenerateSimCHLConferenceSchedules(ts)
 	// Canadian Hockey League Schedule
 	GenerateCanadianHockeySchedule(ts)
+	GenerateCroots()
 
 	repository.SaveTimestamp(ts, db)
+}
+
+func HandleRecruitingTables() {
+	db := dbprovider.GetInstance().GetDB()
+	recruitProfileModel := structs.RecruitPlayerProfile{}
+	recruitModel := structs.Recruit{}
+
+	// Delete all existing records.
+	db.Delete(&recruitProfileModel)
+	db.Delete(&recruitModel)
 }
 
 func HandleTeamProfileValues(ts structs.Timestamp) structs.Timestamp {
@@ -179,6 +193,22 @@ func HandleRecruitingTeamProfileReset() {
 		tp.ResetScores()
 		repository.SaveTeamProfileRecord(db, tp)
 	}
+}
+
+func HandleTransferPortalTables() {
+	db := dbprovider.GetInstance().GetDB()
+
+	// Delete All Records in the Scouting Profile Table
+	db.Delete(&structs.TransferPortalProfile{})
+}
+
+func HandleDraftTables() {
+	db := dbprovider.GetInstance().GetDB()
+
+	// Delete All Records in the Scouting Profile Table
+	db.Delete(&structs.ScoutingProfile{})
+	// Reset War Rooms
+	db.Model(&structs.ProWarRoom{}).Where("spent_points > 0").Update("spent_points", 0)
 }
 
 func GenerateStandingsForNewSeason(ts structs.Timestamp) structs.Timestamp {

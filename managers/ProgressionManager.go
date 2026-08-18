@@ -15,6 +15,7 @@ func ResetProgressionFlags() {
 	db := dbprovider.GetInstance().GetDB()
 
 	db.Model(&structs.CollegeTeam{}).Where("players_progressed = ?", true).Update("players_progressed", false)
+	db.Model(&structs.CollegeTeam{}).Where("recruits_added = ?", true).Update("recruits_added", false)
 	db.Model(&structs.ProfessionalTeam{}).Where("players_progressed = ?", true).Update("players_progressed", false)
 	db.Model(&structs.CollegePlayer{}).Where("has_progressed = ?", true).Update("has_progressed", false)
 	db.Model(&structs.ProfessionalPlayer{}).Where("has_progressed = ?", true).Update("has_progressed", false)
@@ -37,6 +38,7 @@ func CollegeProgressionMain() {
 	draftablePlayers := []structs.DraftablePlayer{}
 	historicRecords := []structs.HistoricCollegePlayer{}
 	collegePlayerIDs := []string{}
+	playersToAdd := []structs.CollegePlayer{}
 
 	for _, team := range collegeTeams {
 		teamID := strconv.Itoa(int(team.ID))
@@ -116,7 +118,6 @@ func CollegeProgressionMain() {
 
 		// Add Recruits
 		if !team.RecruitsAdded {
-			playersToAdd := []structs.CollegePlayer{}
 			for _, croot := range croots {
 				cp := structs.CollegePlayer{
 					Model:          croot.Model,
@@ -234,7 +235,7 @@ func CollegeProgressionMain() {
 	}
 
 	unsignedRecruits := repository.FindAllRecruits(false, false, false, false, false, "")
-	collegePlayerBatch := []structs.CollegePlayer{}
+	unsignedRecruitBatch := []structs.CollegePlayer{}
 	for _, croot := range unsignedRecruits {
 		if croot.TeamID > 0 {
 			continue
@@ -246,10 +247,11 @@ func CollegeProgressionMain() {
 
 			Year: 1,
 		}
-		collegePlayerBatch = append(collegePlayerBatch, cp)
+		unsignedRecruitBatch = append(unsignedRecruitBatch, cp)
 	}
 
-	repository.CreateCollegeHockeyPlayerRecordsBatch(db, collegePlayerBatch, 100)
+	repository.CreateCollegeHockeyPlayerRecordsBatch(db, playersToAdd, 100)
+	repository.CreateCollegeHockeyPlayerRecordsBatch(db, unsignedRecruitBatch, 100)
 	repository.CreateProHockeyPlayerRecordsBatch(db, graduatingPlayers, 200)
 	repository.CreateDraftablePlayerRecordsBatch(db, draftablePlayers, 200)
 	repository.CreateHistoricCollegePlayerRecordsBatch(db, historicRecords, 200)

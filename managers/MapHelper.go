@@ -12,6 +12,16 @@ func MakeCollegePlayerMap(players []structs.CollegePlayer) map[uint]structs.Coll
 	return playerMap
 }
 
+func MakeHistoricCollegePlayerMap(players []structs.HistoricCollegePlayer) map[uint]structs.HistoricCollegePlayer {
+	playerMap := make(map[uint]structs.HistoricCollegePlayer)
+
+	for _, p := range players {
+		playerMap[p.ID] = p
+	}
+
+	return playerMap
+}
+
 func MakeCollegePlayerMapByTeamID(players []structs.CollegePlayer) map[uint][]structs.CollegePlayer {
 	playerMap := make(map[uint][]structs.CollegePlayer)
 

@@ -30,3 +30,8 @@ func FixDraftablePlayersTable(w http.ResponseWriter, r *http.Request) {
 	managers.FixDraftablePlayersTable()
 	json.NewEncoder(w).Encode("Recruiting Sync Complete")
 }
+
+func FixAddingCroots(w http.ResponseWriter, r *http.Request) {
+	managers.FixAddingRecruitsToCollege()
+	json.NewEncoder(w).Encode("Recruiting Sync Complete")
+}

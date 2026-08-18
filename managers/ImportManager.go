@@ -17,7 +17,7 @@ import (
 
 func ImportCollegeTeams() {
 	db := dbprovider.GetInstance().GetDB()
-	filePath := filepath.Join(os.Getenv("ROOT"), "data", "gen", "simchl_expansion_teams.csv")
+	filePath := filepath.Join(os.Getenv("ROOT"), "data", "2027", "gen", "simchl_expansion_teams.csv")
 	teamsCSV := util.ReadCSV(filePath)
 	teams := []structs.CollegeTeam{}
 	arenas := []structs.Arena{}
@@ -207,8 +207,9 @@ func ImportCollegeTeams() {
 	repository.CreateCollegeTeamRecordsBatch(db, teams, 30)
 	repository.CreateCollegeLineupRecordsBatch(db, collegeLineups, 50)
 
-	GenerateInitialRosters()
-	ImportTeamRecruitingProfiles()
+	RefillCHLRosters()
+	// GenerateInitialRosters()
+	// ImportTeamRecruitingProfiles()
 }
 
 func ImportProTeams() {
@@ -1313,4 +1314,23 @@ func FixDraftablePlayersTable() {
 	repository.CreateDraftablePlayerRecordsBatch(db, draftBatch, 200)
 	repository.CreateProHockeyPlayerRecordsBatch(db, proBatch, 200)
 
+}
+
+func FixAddingRecruitsToCollege() {
+	db := dbprovider.GetInstance().GetDB()
+	croots := repository.FindAllRecruits(false, true, true, false, false, "")
+	playersToAdd := []structs.CollegePlayer{}
+	for _, croot := range croots {
+		if croot.TeamID == 0 {
+			continue
+		}
+		cp := structs.CollegePlayer{
+			Model:          croot.Model,
+			BasePlayer:     croot.BasePlayer,
+			BasePotentials: croot.BasePotentials,
+			Year:           1,
+		}
+		playersToAdd = append(playersToAdd, cp)
+	}
+	repository.CreateCollegeHockeyPlayerRecordsBatch(db, playersToAdd, 200)
 }
