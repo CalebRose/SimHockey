@@ -18,6 +18,7 @@ func HandlePostSeasonMigration() {
 		return
 	}
 	HandleRecruitingTables()
+	HandleTransferPortalTables()
 	HandleDraftTables()
 	HandleTeamProfileValues(ts)
 	HandleRecruitingTeamProfileReset()
@@ -192,6 +193,13 @@ func HandleRecruitingTeamProfileReset() {
 		tp.ResetScores()
 		repository.SaveTeamProfileRecord(db, tp)
 	}
+}
+
+func HandleTransferPortalTables() {
+	db := dbprovider.GetInstance().GetDB()
+
+	// Delete All Records in the Scouting Profile Table
+	db.Delete(&structs.TransferPortalProfile{})
 }
 
 func HandleDraftTables() {

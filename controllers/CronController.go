@@ -35,15 +35,22 @@ func SyncAIBoardsViaCron() {
 
 func SyncRecruitingViaCron() {
 	ts := managers.GetTimestamp()
+	if !ts.RunCron {
+		return
+	}
 	if !ts.CrootsGenerated && !ts.IsDraftTime && (ts.IsOffSeason || ts.IsPreseason) {
-		managers.GenerateCroots()
 		managers.RefillCHLRosters()
 		managers.ResetScoutingProfilesForRecruiting()
 	}
-	if ts.RunCron && !ts.CollegeSeasonOver && !ts.IsPreseason && !ts.IsOffSeason {
+	if !ts.CollegeSeasonOver && !ts.IsPreseason && !ts.IsOffSeason {
 		// Sync Recruiting
 		managers.SyncCollegeRecruiting()
-	} else if ts.RunCron && ts.IsOffSeason && ts.TransferPortalPhase == 3 {
+	} else if ts.IsOffSeason && ts.TransferPortalPhase == 1 {
+		managers.SyncPromises()
+		managers.ProcessTransferIntention()
+	} else if ts.IsOffSeason && ts.TransferPortalPhase == 2 {
+		managers.EnterTheTransferPortal()
+	} else if ts.IsOffSeason && ts.TransferPortalPhase == 3 {
 		// Sync Transfer Portal
 		managers.SyncTransferPortal()
 		if ts.TransferPortalRound >= 10 {
