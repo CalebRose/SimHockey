@@ -1245,3 +1245,72 @@ func generateCHLGameRecord(teamA structs.CollegeTeam, teamB structs.CollegeTeam,
 		},
 	}
 }
+
+func FixDraftablePlayersTable() {
+	db := dbprovider.GetInstance().GetDB()
+
+	draftablePlayers := repository.FindAllDraftablePlayers(repository.PlayerQuery{})
+	proPlayers := repository.FindAllProPlayers(repository.PlayerQuery{})
+
+	draftablePlayerMap := MakeDraftablePlayerMapByID(draftablePlayers)
+	proPlayerMap := MakeProfessionalPlayerMap(proPlayers)
+
+	historicCollegePlayers := repository.FindAllHistoricCollegePlayers()
+	draftBatch := []structs.DraftablePlayer{}
+	proBatch := []structs.ProfessionalPlayer{}
+
+	for _, historicPlayer := range historicCollegePlayers {
+		draftablePlayer, exists := draftablePlayerMap[historicPlayer.ID]
+		if exists || draftablePlayer.ID > 0 {
+			continue
+		}
+		if historicPlayer.DraftedTeamID == 0 && historicPlayer.UpdatedAt.After(time.Date(2026, 8, 17, 13, 29, 31, 875000000, time.UTC)) {
+			newDraftablePlayer := structs.DraftablePlayer{
+				Model:               historicPlayer.Model,
+				BasePlayer:          historicPlayer.BasePlayer,
+				BasePotentials:      historicPlayer.BasePotentials,
+				CollegeID:           uint(historicPlayer.TeamID),
+				DraftablePlayerType: 1,
+				BaseLetterGrades: structs.BaseLetterGrades{
+					AgilityGrade:           util.GetLetterGrade(int(historicPlayer.Agility), historicPlayer.Year),
+					FaceoffsGrade:          util.GetLetterGrade(int(historicPlayer.Faceoffs), historicPlayer.Year),
+					LongShotAccuracyGrade:  util.GetLetterGrade(int(historicPlayer.LongShotAccuracy), historicPlayer.Year),
+					LongShotPowerGrade:     util.GetLetterGrade(int(historicPlayer.LongShotPower), historicPlayer.Year),
+					CloseShotAccuracyGrade: util.GetLetterGrade(int(historicPlayer.CloseShotAccuracy), historicPlayer.Year),
+					CloseShotPowerGrade:    util.GetLetterGrade(int(historicPlayer.CloseShotPower), historicPlayer.Year),
+					OneTimerGrade:          util.GetLetterGrade(int(historicPlayer.OneTimer), historicPlayer.Year),
+					PassingGrade:           util.GetLetterGrade(int(historicPlayer.Passing), historicPlayer.Year),
+					PuckHandlingGrade:      util.GetLetterGrade(int(historicPlayer.PuckHandling), historicPlayer.Year),
+					StrengthGrade:          util.GetLetterGrade(int(historicPlayer.Strength), historicPlayer.Year),
+					BodyCheckingGrade:      util.GetLetterGrade(int(historicPlayer.BodyChecking), historicPlayer.Year),
+					StickCheckingGrade:     util.GetLetterGrade(int(historicPlayer.StickChecking), historicPlayer.Year),
+					ShotBlockingGrade:      util.GetLetterGrade(int(historicPlayer.ShotBlocking), historicPlayer.Year),
+					GoalkeepingGrade:       util.GetLetterGrade(int(historicPlayer.Goalkeeping), historicPlayer.Year),
+					GoalieVisionGrade:      util.GetLetterGrade(int(historicPlayer.GoalieVision), historicPlayer.Year),
+				},
+			}
+			draftBatch = append(draftBatch, newDraftablePlayer)
+		}
+		// Continue if drafted Team ID was zero
+		if historicPlayer.DraftedTeamID == 0 {
+			continue
+		}
+		if _, exists := proPlayerMap[historicPlayer.ID]; exists {
+			continue
+		}
+		professionalPlayer := structs.ProfessionalPlayer{
+			Model:          historicPlayer.Model,
+			DraftedTeamID:  uint8(historicPlayer.DraftedTeamID),
+			BasePlayer:     historicPlayer.BasePlayer,
+			BasePotentials: historicPlayer.BasePotentials,
+			Year:           0,
+			HasProgressed:  true,
+		}
+		professionalPlayer.AssignTeam(historicPlayer.DraftedTeamID, historicPlayer.DraftedTeam, 1)
+		proBatch = append(proBatch, professionalPlayer)
+
+	}
+	repository.CreateDraftablePlayerRecordsBatch(db, draftBatch, 200)
+	repository.CreateProHockeyPlayerRecordsBatch(db, proBatch, 200)
+
+}

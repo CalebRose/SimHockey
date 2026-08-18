@@ -67,6 +67,8 @@ func MoveUpWeek() structs.Timestamp {
 	if ts.Week == 20 {
 		// Generate CHL Postseason tournament structure
 		// PrepareCHLPostSeasonGamesFormat(db, ts)
+		// Reset Progression flags
+		ResetProgressionFlags()
 	}
 	if ts.Week > 18 {
 		// Generate PHL Playoff Games
@@ -89,10 +91,11 @@ func MoveUpWeek() structs.Timestamp {
 	}
 
 	// Run Progressions
-	if ts.CollegeSeasonOver && ts.Week > 21 && !ts.ProgressedCollegePlayers {
-		GenerateWalkonCroots()
-		CollegeProgressionMain()
-	}
+	// if ts.NHLSeasonOver && ts.CollegeSeasonOver && ts.Week > 22 && !ts.ProgressedCollegePlayers && !ts.ProgressedProfessionalPlayers {
+	// GenerateWalkonCroots()
+	// 	CollegeProgressionMain()
+	// 	ProfessionalProgressionMain()
+	// }
 	if ts.NHLSeasonOver && ts.Week > 22 && !ts.ProgressedProfessionalPlayers {
 		ProfessionalProgressionMain()
 	}

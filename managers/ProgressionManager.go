@@ -11,9 +11,21 @@ import (
 	"golang.org/x/exp/rand"
 )
 
+func ResetProgressionFlags() {
+	db := dbprovider.GetInstance().GetDB()
+
+	db.Model(&structs.CollegeTeam{}).Where("players_progressed = ?", true).Update("players_progressed", false)
+	db.Model(&structs.ProfessionalTeam{}).Where("players_progressed = ?", true).Update("players_progressed", false)
+	db.Model(&structs.CollegePlayer{}).Where("has_progressed = ?", true).Update("has_progressed", false)
+	db.Model(&structs.ProfessionalPlayer{}).Where("has_progressed = ?", true).Update("has_progressed", false)
+}
+
 func CollegeProgressionMain() {
 	db := dbprovider.GetInstance().GetDB()
 	ts := GetTimestamp()
+	if ts.ProgressedCollegePlayers {
+		return
+	}
 	SeasonID := strconv.Itoa(int(ts.SeasonID))
 	collegePlayerGameStats := repository.FindCollegePlayerGameStatsRecords(SeasonID, "", "", "")
 	gameStatMap := MakeCollegePlayerGameStatsMap(collegePlayerGameStats)
@@ -196,8 +208,8 @@ func CollegeProgressionMain() {
 				DraftedTeamID:  uint8(player.DraftedTeamID),
 				BasePlayer:     player.BasePlayer,
 				BasePotentials: player.BasePotentials,
-
-				Year: 0,
+				Year:           0,
+				HasProgressed:  true,
 			}
 			collegePlayerIDs = append(collegePlayerIDs, id)
 			// Assign their drafted team ID if they have been drafted
@@ -247,6 +259,9 @@ func CollegeProgressionMain() {
 func ProfessionalProgressionMain() {
 	db := dbprovider.GetInstance().GetDB()
 	ts := GetTimestamp()
+	if ts.ProgressedProfessionalPlayers {
+		return
+	}
 	SeasonID := strconv.Itoa(int(ts.SeasonID))
 	proPlayerGameStats := repository.FindProPlayerGameStatsRecords(SeasonID, "", "", "")
 	proPlayerSeasonStats := repository.FindProPlayerSeasonStatsRecords("", "2")

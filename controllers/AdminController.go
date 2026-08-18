@@ -175,6 +175,7 @@ func GenerateProPlayoffGames(w http.ResponseWriter, r *http.Request) {
 }
 
 func ProgressCollegePlayers(w http.ResponseWriter, r *http.Request) {
+	// managers.ResetProgressionFlags()
 	managers.CollegeProgressionMain()
 
 	json.NewEncoder(w).Encode("Data Generated ran!")
