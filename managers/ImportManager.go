@@ -17,7 +17,7 @@ import (
 
 func ImportCollegeTeams() {
 	db := dbprovider.GetInstance().GetDB()
-	filePath := filepath.Join(os.Getenv("ROOT"), "data", "gen", "simchl_expansion_teams.csv")
+	filePath := filepath.Join(os.Getenv("ROOT"), "data", "2027", "gen", "simchl_expansion_teams.csv")
 	teamsCSV := util.ReadCSV(filePath)
 	teams := []structs.CollegeTeam{}
 	arenas := []structs.Arena{}
@@ -207,8 +207,9 @@ func ImportCollegeTeams() {
 	repository.CreateCollegeTeamRecordsBatch(db, teams, 30)
 	repository.CreateCollegeLineupRecordsBatch(db, collegeLineups, 50)
 
-	GenerateInitialRosters()
-	ImportTeamRecruitingProfiles()
+	RefillCHLRosters()
+	// GenerateInitialRosters()
+	// ImportTeamRecruitingProfiles()
 }
 
 func ImportProTeams() {

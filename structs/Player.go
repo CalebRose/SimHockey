@@ -716,6 +716,7 @@ func (cp *CollegePlayer) ProgressPlayer(progressions BasePlayerProgressions) {
 
 func (cp *CollegePlayer) ResetCHLCollegeYear() {
 	cp.Year = 0
+	cp.LeagueID = 2
 }
 
 func (cp *CollegePlayer) AssignID(id uint) {

@@ -1,48 +1,26 @@
 Sim College Hockey Teams,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
 id,Team Name,Mascot,Abbreviation,LeagueID,Conference ID,Conference,Coach (All schools are AI unless noted),City,State,Country,ArenaID,Arena,Arena Capacity,Record Attendance,First Played,Discord ID,Color One,Color Two,Color Three,Overall Grade,Offense Grade,Defense Grade,IsClub,IsActive,Players Progressed,Program,Prof. Development,Traditions,Facilities,Atmosphere,Coach Reputation,Academic Prestige
-95,Baie-Comeau,Drakkar,BCD,2,9,QMJHL,AI,Baie-Comeau,QC,Canada,0,Centre Henry-Leonard,3042,0,2027,,#000000,#FFCC02,#EC1C24,,,,0,0,0,1,1,1,1,1,1,1
-96,Chicoutimi,Sagueneens,CHIC,2,9,QMJHL,AI,Chicoutimi,QC,Canada,0,Centre Georges-Vezina,4724,0,2027,,#3AB4E7,#003263,#FFFFFF,,,,0,0,0,1,1,1,1,1,1,1
-97,Quebec,Remparts,QUER,2,9,QMJHL,AI,Quebec City,QC,Canada,0,Centre Videotron,18259,0,2027,,#E31836,#000000,#FFFFFF,,,,0,0,0,1,1,1,1,1,1,1
-98,Rimouski,Oceanic,RIMO,2,9,QMJHL,AI,Rimouski,QC,Canada,0,Colisee Financiere Sun Life,4030,0,2027,,#ABD8C0,#18124B,#FFFFFF,,,,0,0,0,1,1,1,1,1,1,1
-99,Cape Breton,Eagles,CBE,2,9,QMJHL,AI,Cape Breton,NS,Canada,0,Centre 200,5000,0,2027,,#C2C4C6,#FFFFFF,#FFFFFF,,,,0,0,0,1,1,1,1,1,1,1
-100,Charlottetown,Islanders,CHARL,2,9,QMJHL,AI,Charlottetown,PE,Canada,0,Eastlink Centre,3717,0,2027,,#A8996E,#000000,#FFFFFF,,,,0,0,0,1,1,1,1,1,1,1
-101,Halifax,Mooseheads,HALIF,2,9,QMJHL,AI,Halifax,NS,Canada,0,Scotiabank Centre,10595,0,2027,,#DEB408,#006F51,#FFFFFF,,,,0,0,0,1,1,1,1,1,1,1
-102,Moncton,Wildcats,MONCT,2,9,QMJHL,AI,Moncton,NB,Canada,0,Avenir Centre,880,0,2027,,#FDC13D,#D51E3C,#FFFFFF,,,,0,0,0,1,1,1,1,1,1,1
-103,Newfoundland,Regiment,NFR,2,9,QMJHL,AI,Newfoundland,NL,Canada,0,Mary Brown's Centre,7000,0,2027,,#8A2332,#0B2240,#FFFFFF,,,,0,0,0,1,1,1,1,1,1,1
-104,Saint John,Sea Dogs,SJSD,2,9,QMJHL,AI,Saint John,NL,Canada,0,TD Station,6308,0,2027,,#B1B6BD,#4274A6,#FFFFFF,,,,0,0,0,1,1,1,1,1,1,1
-105,Blainville-Boisbriand,Armada,BBA,2,9,QMJHL,AI,Blainville-Boisbriand,QC,Canada,0,Centre d'Excellence Sports Rousseau,3100,0,2027,,#000000,#FFFFFF,#FFFFFF,,,,0,0,0,1,1,1,1,1,1,1
-106,Gatineau,Olympiques,GATO,2,9,QMJHL,AI,Gatineau,QC,Canada,0,Centre Slush Puppie,4080,0,2027,,#717073,#000000,#FFFFFF,,,,0,0,0,1,1,1,1,1,1,1
-107,Royn-Noranda,Huskies,RNH,2,9,QMJHL,AI,Royn-Noranda,QC,Canada,0,Arena Glencore,2150,0,2027,,#ED1C2E,#000000,#FFFFFF,,,,0,0,0,1,1,1,1,1,1,1
-108,Val-d'Or,Foreurs,VOF,2,9,QMJHL,AI,Val-d'Or,QC,Canada,0,Centre Agnico Eagle,3504,0,2027,,#D5E4DF,#DDB208,#FFFFFF,,,,0,0,0,1,1,1,1,1,1,1
-109,Drummondville,Voltigeurs,DRUMM,2,9,QMJHL,AI,Drummondville,QC,Canada,0,Centre Marcel Dionne,4000,0,2027,,#EE3224,#000000,#FFFFFF,,,,0,0,0,1,1,1,1,1,1,1
-110,Shawinigan,Cataractes,SHAWI,2,9,QMJHL,AI,Shawinigan,QC,Canada,0,Centre Gervais Auto,4125,0,2027,,#002D62,#FFC425,#FFFFFF,,,,0,0,0,1,1,1,1,1,1,1
-111,Sherbrooke,Phoenix,SHER,2,9,QMJHL,AI,Sherbrooke,QC,Canada,0,Palais des Sports,3646,0,2027,,#F8F2D7,#051B54,#FFFFFF,,,,0,0,0,1,1,1,1,1,1,1
-112,Victoriaville,Tigres,VICTO,2,9,QMJHL,AI,Victoriaville,QC,Canada,0,Colisee Desjardins,3420,0,2027,,#FCB827,#000000,#FFFFFF,,,,0,0,0,1,1,1,1,1,1,1
-113,Calgary,Hitmen,CALG,2,10,WHL,AI,Calgary,AB,Canada,0,Scotiabank Saddledome,19289,0,2027,,#E13A3E,#9E7053,#FFFFFF,,,,0,0,0,1,1,1,1,1,1,1
-114,Edmonton,Oil Kings,EDMO,2,10,WHL,AI,Edmonton,AB,Canada,0,Rogers Place,18347,0,2027,,#00549B,#FFC42A,#FFFFFF,,,,0,0,0,1,1,1,1,1,1,1
-115,Lethbridge,Hurricanes,LETH,2,10,WHL,AI,Lethbridge,AB,Canada,0,VisitLethbridge Arena,5479,0,2027,,#CC1D30,#121942,#FFFFFF,,,,0,0,0,1,1,1,1,1,1,1
-116,Medicine Hat,Tigers,MHT,2,10,WHL,AI,Medicine Hat,AB,Canada,0,Co-op Place,7100,0,2027,,#E56B1F,#000000,#FFFFFF,,,,0,0,0,1,1,1,1,1,1,1
-117,Red Deer,Rebels,DEER,2,10,WHL,AI,Red Deer,AB,Canada,0,Marchant Crane Centrium,7111,0,2027,,#900028,#A7B1B7,#FFFFFF,,,,0,0,0,1,1,1,1,1,1,1
-118,Brandon Wheat,Kings,WHEAT,2,10,WHL,AI,Brandon Wheat,MB,Canada,0,Keystone Centre,5102,0,2027,,#E6BF2E,#AAABAB,#FFFFFF,,,,0,0,0,1,1,1,1,1,1,1
-119,Moose Jaw,Warriors,MOOSE,2,10,WHL,AI,Moose Jaw,SK,Canada,0,Mosaic Place,4714,0,2027,,#CC0000,#000000,#FFFFFF,,,,0,0,0,1,1,1,1,1,1,1
-120,Prince Albert,Raiders,PRIAL,2,10,WHL,AI,Prince Albert,SK,Canada,0,Art Hauser Centre,2580,0,2027,,#0D843E,#DAC796,#FFFFFF,,,,0,0,0,1,1,1,1,1,1,1
-121,Regina,Pats,REGI,2,10,WHL,AI,Regina,SK,Canada,0,Brandt Centre,6000,0,2027,,#1A3668,#EF3342,#FFFFFF,,,,0,0,0,1,1,1,1,1,1,1
-122,Saskatoon,Blades,SASKA,2,10,WHL,AI,Saskatoon,SK,Canada,0,SaskTel Centre,15100,0,2027,,#FFCD36,#262266,#FFFFFF,,,,0,0,0,1,1,1,1,1,1,1
-123,Swift Current,Broncos,SWIFT,2,10,WHL,AI,Swift Current,SK,Canada,0,InnovationPlex,2879,0,2027,,#FFFFFF,#026937,#001F5B,,,,0,0,0,1,1,1,1,1,1,1
-124,Chilliwack,Bruins,CHILI,2,10,WHL,AI,Chilliwack,BC,Canada,0,Chilliwack Coliseum,5000,0,2027,,#000000,#FFFFFF,#FFFFFF,,,,0,0,0,1,1,1,1,1,1,1
-125,Kamloops,Blazers,KAM,2,10,WHL,AI,Kamloops,BC,Canada,0,Sandman Centre,5464,0,2027,,#FFFFFF,#032C62,#FFFFFF,,,,0,0,0,1,1,1,1,1,1,1
-126,Kelowna,Rockets,KELO,2,10,WHL,AI,Kelowna,BC,Canada,0,Prospera Place,6886,0,2027,,#E13A3E,#008394,#FFFFFF,,,,0,0,0,1,1,1,1,1,1,1
-127,Penticton,Vees,PENT,2,10,WHL,AI,Penticton,BC,Canada,0,South Okanagan Events Centre,5000,0,2027,,#002370,#7F7F7F,#FFFFFF,,,,0,0,0,1,1,1,1,1,1,1
-128,Prince George,Cougars,PRIGE,2,10,WHL,AI,Prince George,BC,Canada,0,CN Centre,5971,0,2027,,#6A0000,#D0A176,#FFFFFF,,,,0,0,0,1,1,1,1,1,1,1
-129,Vancouver,Giants,VANC,2,10,WHL,AI,Langley,BC,Canada,0,Langley Events Centre,5276,0,2027,,#97002E,#B5B7B9,#FFFFFF,,,,0,0,0,1,1,1,1,1,1,1
-130,Victoria,Royals,VICRO,2,10,WHL,AI,Victoria,BC,Canada,0,Save-On-Foods Memorial Centre,7006,0,2027,,#013974,#A4ADB4,#FFFFFF,,,,0,0,0,1,1,1,1,1,1,1
-131,Everett,Silvertips,EVRET,2,10,WHL,AI,Everett,WA,USA,0,Angel of the Winds Arena,8149,0,2027,,#BC8448,#045B41,#FFFFFF,,,,0,0,0,1,1,1,1,1,1,1
-132,Portland,Winterhawks,PORT,2,10,WHL,AI,Portland,OR,USA,0,Veterans Memorial Coliseum,12000,0,2027,,#7899AE,#000000,#FFFFFF,,,,0,0,0,1,1,1,1,1,1,1
-133,Seattle,Thunderbirds,SEATL,2,10,WHL,AI,Seattle,WA,USA,0,accesso ShoWare Center,7141,0,2027,,#003876,#008357,#B8C0D8,,,,0,0,0,1,1,1,1,1,1,1
-134,Spokane,Chiefs,SPOK,2,10,WHL,AI,Spokane,WA,USA,0,Spokane Veterans Memorial Arena,10366,0,2027,,#C41230,#013A81,#FFFFFF,,,,0,0,0,1,1,1,1,1,1,1
-135,Tri-City,Americans,TRI,2,10,WHL,AI,Tri-City,WA,USA,0,Toyota Center,5694,0,2027,,#0D1D41,#B1B1B1,#FFFFFF,,,,0,0,0,1,1,1,1,1,1,1
-136,Wenatchee,Wild,WENA,2,10,WHL,AI,Wenatchee,WA,USA,0,Town Toyota Center,4300,0,2027,,#026FA8,#002F87,#FFFFFF,,,,0,0,0,1,1,1,1,1,1,1
-137,Maryville,Saints,MARY,1,7,Independent,AI,Chesterfield,MO,USA,0,Maryville Univercity Hockey Center,2000,0,2027,,#003263,#C9CBCC,#FFFFFF,,,,1,1,0,1,1,1,2,2,1,2
-138,South Dakota State,Jackrabbits,SDST,1,7,Independent,AI,Brookings,SD,USA,0,Larson Ice Center,2600,0,2027,,#FFC425,#B0B7BC,#FFFFFF,,,,1,1,0,1,1,1,1,1,1,1
-139,Florida Gulf Coast,Eagles,FGCU,1,7,Independent,AI,Fort Myers,FL,USA,0,Hertz Arena,7084,0,2027,,#002D72,#007749,#B9975B,,,,,,,,,,,,,
-140,Oklahoma State,Cowboys,OKST,1,7,Independent,AI,Stillwater,OK,USA,0,WeStreet Ice Center,1000,0,2027,,#FF7300,#000000,#FFFFFF,,,,,,,,,,,,,
+95,Calgary,Hitmen,CALG,2,9,WHL,AI,Calgary,AB,Canada,151,Scotiabank Saddledome,19289,0,2027,,#E13A3E,#9E7053,#FFFFFF,,,,0,0,0,1,1,1,1,1,1,1
+96,Edmonton,Oil Kings,EDMO,2,9,WHL,AI,Edmonton,AB,Canada,152,Rogers Place,18347,0,2027,,#00549B,#FFC42A,#FFFFFF,,,,0,0,0,1,1,1,1,1,1,1
+97,Lethbridge,Hurricanes,LETH,2,9,WHL,AI,Lethbridge,AB,Canada,153,VisitLethbridge Arena,5479,0,2027,,#CC1D30,#121942,#FFFFFF,,,,0,0,0,1,1,1,1,1,1,1
+98,Medicine Hat,Tigers,MHT,2,9,WHL,AI,Medicine Hat,AB,Canada,154,Co-op Place,7100,0,2027,,#E56B1F,#000000,#FFFFFF,,,,0,0,0,1,1,1,1,1,1,1
+99,Red Deer,Rebels,DEER,2,9,WHL,AI,Red Deer,AB,Canada,155,Marchant Crane Centrium,7111,0,2027,,#900028,#A7B1B7,#FFFFFF,,,,0,0,0,1,1,1,1,1,1,1
+100,Brandon Wheat,Kings,WHEAT,2,9,WHL,AI,Brandon Wheat,MB,Canada,156,Keystone Centre,5102,0,2027,,#E6BF2E,#AAABAB,#FFFFFF,,,,0,0,0,1,1,1,1,1,1,1
+101,Moose Jaw,Warriors,MOOSE,2,9,WHL,AI,Moose Jaw,SK,Canada,157,Mosaic Place,4714,0,2027,,#CC0000,#000000,#FFFFFF,,,,0,0,0,1,1,1,1,1,1,1
+102,Prince Albert,Raiders,PRIAL,2,9,WHL,AI,Prince Albert,SK,Canada,158,Art Hauser Centre,2580,0,2027,,#0D843E,#DAC796,#FFFFFF,,,,0,0,0,1,1,1,1,1,1,1
+103,Regina,Pats,REGI,2,9,WHL,AI,Regina,SK,Canada,159,Brandt Centre,6000,0,2027,,#1A3668,#EF3342,#FFFFFF,,,,0,0,0,1,1,1,1,1,1,1
+104,Saskatoon,Blades,SASKA,2,9,WHL,AI,Saskatoon,SK,Canada,160,SaskTel Centre,15100,0,2027,,#FFCD36,#262266,#FFFFFF,,,,0,0,0,1,1,1,1,1,1,1
+105,Swift Current,Broncos,SWIFT,2,9,WHL,AI,Swift Current,SK,Canada,161,InnovationPlex,2879,0,2027,,#FFFFFF,#026937,#001F5B,,,,0,0,0,1,1,1,1,1,1,1
+106,Chilliwack,Bruins,CHILI,2,9,WHL,AI,Chilliwack,BC,Canada,162,Chilliwack Coliseum,5000,0,2027,,#000000,#FFFFFF,#FFFFFF,,,,0,0,0,1,1,1,1,1,1,1
+107,Kamloops,Blazers,KAM,2,9,WHL,AI,Kamloops,BC,Canada,163,Sandman Centre,5464,0,2027,,#FFFFFF,#032C62,#FFFFFF,,,,0,0,0,1,1,1,1,1,1,1
+108,Kelowna,Rockets,KELO,2,9,WHL,AI,Kelowna,BC,Canada,164,Prospera Place,6886,0,2027,,#E13A3E,#008394,#FFFFFF,,,,0,0,0,1,1,1,1,1,1,1
+109,Penticton,Vees,PENT,2,9,WHL,AI,Penticton,BC,Canada,165,South Okanagan Events Centre,5000,0,2027,,#002370,#7F7F7F,#FFFFFF,,,,0,0,0,1,1,1,1,1,1,1
+110,Prince George,Cougars,PRIGE,2,9,WHL,AI,Prince George,BC,Canada,166,CN Centre,5971,0,2027,,#6A0000,#D0A176,#FFFFFF,,,,0,0,0,1,1,1,1,1,1,1
+111,Vancouver,Giants,VANC,2,9,WHL,AI,Langley,BC,Canada,167,Langley Events Centre,5276,0,2027,,#97002E,#B5B7B9,#FFFFFF,,,,0,0,0,1,1,1,1,1,1,1
+112,Victoria,Royals,VICRO,2,9,WHL,AI,Victoria,BC,Canada,168,Save-On-Foods Memorial Centre,7006,0,2027,,#013974,#A4ADB4,#FFFFFF,,,,0,0,0,1,1,1,1,1,1,1
+113,Everett,Silvertips,EVRET,2,9,WHL,AI,Everett,WA,USA,169,Angel of the Winds Arena,8149,0,2027,,#BC8448,#045B41,#FFFFFF,,,,0,0,0,1,1,1,1,1,1,1
+114,Portland,Winterhawks,PORT,2,9,WHL,AI,Portland,OR,USA,170,Veterans Memorial Coliseum,12000,0,2027,,#7899AE,#000000,#FFFFFF,,,,0,0,0,1,1,1,1,1,1,1
+115,Seattle,Thunderbirds,SEATL,2,9,WHL,AI,Seattle,WA,USA,171,accesso ShoWare Center,7141,0,2027,,#003876,#008357,#B8C0D8,,,,0,0,0,1,1,1,1,1,1,1
+116,Spokane,Chiefs,SPOK,2,9,WHL,AI,Spokane,WA,USA,172,Spokane Veterans Memorial Arena,10366,0,2027,,#C41230,#013A81,#FFFFFF,,,,0,0,0,1,1,1,1,1,1,1
+117,Tri-City,Americans,TRI,2,9,WHL,AI,Tri-City,WA,USA,173,Toyota Center,5694,0,2027,,#0D1D41,#B1B1B1,#FFFFFF,,,,0,0,0,1,1,1,1,1,1,1
+118,Wenatchee,Wild,WENA,2,9,WHL,AI,Wenatchee,WA,USA,174,Town Toyota Center,4300,0,2027,,#026FA8,#002F87,#FFFFFF,,,,0,0,0,1,1,1,1,1,1,1

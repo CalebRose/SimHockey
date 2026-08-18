@@ -80,7 +80,7 @@ func handleRequests() http.Handler {
 	// apiRouter.HandleFunc("/admin/show/results/", controllers.ShowGameResults).Methods("GET")
 	// apiRouter.HandleFunc("/admin/sync/week/", controllers.SyncToNextWeek).Methods("GET")
 	// 	// apiRouter.HandleFunc("/admin/assign/ranks/", controllers.AssignAllRecruitRanks).Methods("GET")
-	// apiRouter.HandleFunc("/admin/generate/test/college/teams/", controllers.GenerateCollegeTeams).Methods("GET")
+	apiRouter.HandleFunc("/admin/generate/test/college/teams/", controllers.GenerateCollegeTeams).Methods("GET")
 	// apiRouter.HandleFunc("/admin/generate/init/college/rosters/", controllers.GenerateInitialRosters).Methods("GET")
 	// apiRouter.HandleFunc("/admin/generate/chl/rosters/", controllers.GenerateCHLRosters).Methods("GET")
 	// apiRouter.HandleFunc("/admin/generate/college/recruits/", controllers.GenerateCroots).Methods("GET")
