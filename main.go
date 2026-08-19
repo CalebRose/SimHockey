@@ -99,8 +99,11 @@ func handleRequests() http.Handler {
 	// apiRouter.HandleFunc("/admin/generate/fa/preferences/", controllers.AddFAPreferences).Methods("GET")
 	// apiRouter.HandleFunc("/admin/generate/recruiting/systems/", controllers.GenerateSystemsForRecruitingProfile).Methods("GET")
 
-	// Import
+	// Import / Fix
 	// apiRouter.HandleFunc("/admin/import/phl/order/", controllers.ImportPHLDraftOrder).Methods("GET")
+	// apiRouter.HandleFunc("/simhck/fix/standings/tables/", controllers.FixStandingsTables).Methods("GET")
+	// apiRouter.HandleFunc("/simhck/fix/missing/rookie/contracts/", controllers.FixAddingRookieContracts).Methods("GET")
+	// apiRouter.HandleFunc("/simhck/fix/postseason/tournament/", controllers.PrepareCHLPostSeasonGamesFormat).Methods("GET")
 
 	// Run
 	// apiRouter.HandleFunc("/admin/run/fa/sync/", controllers.TestFASync).Methods("GET")
@@ -109,8 +112,6 @@ func handleRequests() http.Handler {
 	// apiRouter.HandleFunc("/admin/ai/sync/boards", controllers.SyncAIBoards).Methods("GET")
 	// apiRouter.HandleFunc("/simhck/sync/recruiting/", controllers.SyncRecruiting).Methods("GET")
 	// apiRouter.HandleFunc("/simhck/update/team/ranks/", controllers.UpdateTeamRankings).Methods("GET")
-	// apiRouter.HandleFunc("/simhck/fix/standings/tables/", controllers.FixStandingsTables).Methods("GET")
-	// apiRouter.HandleFunc("/simhck/fix/postseason/tournament/", controllers.PrepareCHLPostSeasonGamesFormat).Methods("GET")
 
 	// Postseason
 	// apiRouter.HandleFunc("/admin/postseason/college/walkons/", controllers.GenerateWalkons).Methods("GET")

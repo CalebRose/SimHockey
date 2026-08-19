@@ -1334,3 +1334,43 @@ func FixAddingRecruitsToCollege() {
 	}
 	repository.CreateCollegeHockeyPlayerRecordsBatch(db, playersToAdd, 200)
 }
+
+func FixRookieContracts() {
+	db := dbprovider.GetInstance().GetDB()
+	rookieContracts := repository.FindAllProContracts(true)
+	contractMap := MakeContractMap(rookieContracts)
+	proPlayers := repository.FindAllProPlayers(repository.PlayerQuery{LeagueID: "1"})
+	newContracts := []structs.ProContract{}
+	for _, p := range proPlayers {
+		if p.Year > 1 {
+			continue
+		}
+		existingContract := contractMap[p.ID]
+		if existingContract.ID > 0 {
+			continue
+		}
+		// year1Salary := util.GetDrafteeSalary(pick.DraftNumber, 1, pick.DraftRound, true)
+		// year2Salary := util.GetDrafteeSalary(pick.DraftNumber, 2, pick.DraftRound, true)
+		// year3Salary := util.GetDrafteeSalary(pick.DraftNumber, 3, pick.DraftRound, true)
+		// year4Salary := util.GetDrafteeSalary(pick.DraftNumber, 4, pick.DraftRound, true)
+		year1Salary := float32(1.0)
+		year2Salary := float32(1.0)
+		year3Salary := float32(1.0)
+		year4Salary := float32(1.0)
+		yearsRemaining := 4
+		contract := structs.ProContract{
+			PlayerID:       p.ID,
+			TeamID:         uint(p.TeamID),
+			OriginalTeamID: uint(p.TeamID),
+			ContractLength: yearsRemaining,
+			ContractType:   "Rookie",
+			Y1BaseSalary:   year1Salary,
+			Y2BaseSalary:   year2Salary,
+			Y3BaseSalary:   year3Salary,
+			Y4BaseSalary:   year4Salary,
+			IsActive:       true,
+		}
+		newContracts = append(newContracts, contract)
+	}
+	repository.CreateProContractRecordsBatch(db, newContracts, 200)
+}

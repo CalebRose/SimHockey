@@ -11,7 +11,7 @@ import (
 )
 
 func ProcessTransferIntention(w http.ResponseWriter, r *http.Request) {
-	managers.ProcessTransferIntention(w)
+	managers.ProcessTransferIntention()
 }
 
 func ProcessPrePortalPromises(w http.ResponseWriter, r *http.Request) {

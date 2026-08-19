@@ -39,6 +39,7 @@ func CollegeProgressionMain() {
 	historicRecords := []structs.HistoricCollegePlayer{}
 	collegePlayerIDs := []string{}
 	playersToAdd := []structs.CollegePlayer{}
+	newContractRecords := []structs.ProContract{}
 
 	for _, team := range collegeTeams {
 		teamID := strconv.Itoa(int(team.ID))
@@ -77,6 +78,28 @@ func CollegeProgressionMain() {
 					collegePlayerIDs = append(collegePlayerIDs, id)
 					// Assign their drafted team ID if they have been drafted
 					professionalPlayer.AssignTeam(player.DraftedTeamID, player.DraftedTeam, 1)
+					// year1Salary := util.GetDrafteeSalary(pick.DraftNumber, 1, pick.DraftRound, true)
+					// year2Salary := util.GetDrafteeSalary(pick.DraftNumber, 2, pick.DraftRound, true)
+					// year3Salary := util.GetDrafteeSalary(pick.DraftNumber, 3, pick.DraftRound, true)
+					// year4Salary := util.GetDrafteeSalary(pick.DraftNumber, 4, pick.DraftRound, true)
+					year1Salary := float32(1.0)
+					year2Salary := float32(1.0)
+					year3Salary := float32(1.0)
+					year4Salary := float32(1.0)
+					yearsRemaining := 4
+					contract := structs.ProContract{
+						PlayerID:       professionalPlayer.ID,
+						TeamID:         uint(professionalPlayer.TeamID),
+						OriginalTeamID: uint(professionalPlayer.TeamID),
+						ContractLength: yearsRemaining,
+						ContractType:   "Rookie",
+						Y1BaseSalary:   year1Salary,
+						Y2BaseSalary:   year2Salary,
+						Y3BaseSalary:   year3Salary,
+						Y4BaseSalary:   year4Salary,
+						IsActive:       true,
+					}
+					newContractRecords = append(newContractRecords, contract)
 					graduatingPlayers = append(graduatingPlayers, professionalPlayer)
 				} else if willDeclare && player.DraftedTeamID == 0 {
 					collegePlayerIDs = append(collegePlayerIDs, id)
@@ -250,6 +273,7 @@ func CollegeProgressionMain() {
 		unsignedRecruitBatch = append(unsignedRecruitBatch, cp)
 	}
 
+	repository.CreateProContractRecordsBatch(db, newContractRecords, 100)
 	repository.CreateCollegeHockeyPlayerRecordsBatch(db, playersToAdd, 100)
 	repository.CreateCollegeHockeyPlayerRecordsBatch(db, unsignedRecruitBatch, 100)
 	repository.CreateProHockeyPlayerRecordsBatch(db, graduatingPlayers, 200)

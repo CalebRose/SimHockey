@@ -35,3 +35,8 @@ func FixAddingCroots(w http.ResponseWriter, r *http.Request) {
 	managers.FixAddingRecruitsToCollege()
 	json.NewEncoder(w).Encode("Recruiting Sync Complete")
 }
+
+func FixAddingRookieContracts(w http.ResponseWriter, r *http.Request) {
+	managers.FixRookieContracts()
+	json.NewEncoder(w).Encode("Recruiting Sync Complete")
+}
