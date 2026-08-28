@@ -634,10 +634,15 @@ func UpdateStandings(ts structs.Timestamp, gameDay string) structs.Timestamp {
 							Country:       country,
 							IsPlayoffGame: true,
 						},
+						IsStanleyCup:    series.IsTheFinals,
 						SeriesID:        series.ID,
 						IsInternational: series.IsInternational,
 					}
-					repository.CreatePHLGamesRecordsBatch(db, []structs.ProfessionalGame{nextGame}, 1)
+					// Do not generate on D days, it will generate in a later function.
+					if game.GameDay != "D" {
+						repository.CreatePHLGamesRecordsBatch(db, []structs.ProfessionalGame{nextGame}, 1)
+
+					}
 				} else {
 					if !series.IsTheFinals && series.NextSeriesID > 0 {
 						// Promote Team to Next Series
@@ -666,7 +671,9 @@ func UpdateStandings(ts structs.Timestamp, gameDay string) structs.Timestamp {
 						ts.EndTheProfessionalSeason()
 					}
 				}
+
 				repository.SavePlayoffSeriesRecord(series, db)
+
 			}
 		}
 	}

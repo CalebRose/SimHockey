@@ -280,7 +280,7 @@ type CollegePlayerSeasonStats struct {
 	PointsPerGamePlayed float32
 }
 
-func (s *CollegePlayerSeasonStats) AddStatsToSeasonRecord(stat BasePlayerStats) {
+func (s *CollegePlayerSeasonStats) AddStatsToSeasonRecord(stat BasePlayerStats, isHomeTeam, homeTeamWon, isOvertime bool) {
 	// accumulate raw counts & ids
 	s.BasePlayerStats.AddStatsToSeasonRecord(stat)
 	if stat.StartedGame {
@@ -289,6 +289,17 @@ func (s *CollegePlayerSeasonStats) AddStatsToSeasonRecord(stat BasePlayerStats) 
 	s.StatType = 1
 	s.GameType = stat.GameType
 	s.GamesPlayed++
+
+	isGoalie := stat.ShotsAgainst > 0
+	if isGoalie {
+		if (isHomeTeam && homeTeamWon) || (!isHomeTeam && !homeTeamWon) {
+			s.GoalieWins += 1
+		} else if isOvertime {
+			s.OvertimeLosses += 1
+		} else {
+			s.GoalieLosses += 1
+		}
+	}
 	// If `stat` had a `Started` flag, you could do:
 	// if stat.Started { s.GamesStarted++ }
 
@@ -323,10 +334,23 @@ type ProfessionalPlayerSeasonStats struct {
 	BasePlayerStats
 }
 
-func (s *ProfessionalPlayerSeasonStats) AddStatsToSeasonRecord(stat BasePlayerStats) {
+func (s *ProfessionalPlayerSeasonStats) AddStatsToSeasonRecord(stat BasePlayerStats, isHomeTeam, homeTeamWon, isOvertime bool) {
 	s.StatType = 1
 	if stat.StartedGame {
 		s.GamesStarted++
+	}
+	isGoalie := stat.ShotsAgainst > 0
+	if isGoalie {
+		if (isHomeTeam && homeTeamWon) || (!isHomeTeam && !homeTeamWon) {
+			s.GoalieWins += 1
+		} else if isOvertime {
+			s.OvertimeLosses += 1
+		} else {
+			s.GoalieLosses += 1
+		}
+		if s.GoalsAgainst == 0 {
+			s.Shutouts += 1
+		}
 	}
 	// accumulate player counts
 	s.BasePlayerStats.AddStatsToSeasonRecord(stat)
