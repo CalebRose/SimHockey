@@ -123,12 +123,16 @@ func (t *ProfessionalTeam) TogglePlayersProgressed() {
 func (t *ProfessionalTeam) AssignUser(username, role string) {
 	switch role {
 	case "Owner":
+	case "o":
 		t.Owner = username
 	case "GM":
+	case "gm":
 		t.GM = username
 	case "Scout":
+	case "a":
 		t.Scout = username
 	case "Coach":
+	case "hc":
 		t.Coach = username
 	default:
 		t.Marketing = username
