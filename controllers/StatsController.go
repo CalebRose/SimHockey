@@ -58,6 +58,25 @@ func GetProStatsPageContent(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(response)
 }
 
+func ExportExpansionPlayerSheet(w http.ResponseWriter, r *http.Request) {
+	enableCors(&w)
+	vars := mux.Vars(r)
+	seasonID := vars["seasonID"]
+	viewType := vars["viewType"]
+	weekID := vars["weekID"]
+	gameType := vars["gameType"]
+
+	if len(viewType) == 0 {
+		panic("User did not provide view type")
+	}
+
+	if len(seasonID) == 0 {
+		panic("User did not provide TeamID")
+	}
+
+	managers.ExportSeasonalProStatsForExpansion(seasonID, weekID, viewType, gameType, w)
+}
+
 func ExportProStatsPageContent(w http.ResponseWriter, r *http.Request) {
 	enableCors(&w)
 	vars := mux.Vars(r)

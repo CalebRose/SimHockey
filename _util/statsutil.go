@@ -16,6 +16,24 @@ func GetCHLPlayerHeaderRows() []string {
 	}
 }
 
+func GetExpansionPHLPlayerHeaderRows() []string {
+	return []string{
+		"ID", "First Name", "Last Name", "Position",
+		"Archetype", "Year", "Team", "Division", "Height", "Weight", "City", "Region", "Country", "Age", "Overall",
+		"Agility", "Faceoffs", "Long Shot Accuracy", "Long Shot Power", "Close Shot Accuracy",
+		"Close Shot Power", "Passing", "Puck Handling", "Strength", "Body Checking", "Stick Checking",
+		"Shot Blocking", "Goalkeeping", "Goalie Vision", "Stamina", "Injury Rating",
+		"Goals", "Assists", "Points", "+/-",
+		"Penalty Minutes", "Even Strength Goals", "Even Strength Points", "Power Play Goals",
+		"Power Play Points", "Shorthanded Goals", "Shorthanded Points", "Overtime Goals",
+		"Game Winning Goals", "Shots", "Shooting Percentage", "Time One Ice",
+		"Faceoff Win Percentage", "Faceoffs Won", "Faceoffs", "Goalie Wins",
+		"Goalie Losses", "Goalie Ties", "OT Losses", "Shots Against",
+		"Saves", "Goals Against", "Save Percentage", "Shutouts",
+		"Shots Blocked", "Body Checks", "Stick Checks",
+	}
+}
+
 func GetPHLPlayerHeaderRows() []string {
 	return []string{
 		"ID", "First Name", "Last Name", "Position",
@@ -27,8 +45,7 @@ func GetPHLPlayerHeaderRows() []string {
 		"Faceoff Win Percentage", "Faceoffs Won", "Faceoffs", "Goalie Wins",
 		"Goalie Losses", "Goalie Ties", "OT Losses", "Shots Against",
 		"Saves", "Goals Against", "Save Percentage", "Shutouts",
-		"Shots Blocked", "Body Checks", "Stick Checks", "Injured?",
-		"Injury", "Injury Severity", "Will play for the National Antarctic Team at the first chance when they join the hockey sim?",
+		"Shots Blocked", "Body Checks", "Stick Checks",
 	}
 }
 
