@@ -111,7 +111,7 @@ func CreateCHLTeamRequest(request structs.CollegeTeamRequest) {
 	repository.SaveCHLTeamRequest(db, existingRequest)
 
 	chlTeam := repository.FindCollegeTeamRecord(strconv.Itoa(int(request.TeamID)))
-	CreateCHLJobApplicationThread(request, chlTeam.TeamName, chlTeam.Mascot)
+	go CreateCHLJobApplicationThread(request, chlTeam.TeamName, chlTeam.Mascot)
 }
 
 func CreatePHLTeamRequest(request structs.ProTeamRequest) {
@@ -131,7 +131,7 @@ func CreatePHLTeamRequest(request structs.ProTeamRequest) {
 	repository.SavePHLTeamRequest(db, structs.ProTeamRequest(existingRequest))
 
 	proTeam := repository.FindProTeamRecord(strconv.Itoa(int(request.TeamID)))
-	CreatePHLJobApplicationThread(request, proTeam)
+	go CreatePHLJobApplicationThread(request, proTeam)
 }
 
 func ApproveCHLTeamRequest(request structs.CollegeTeamRequest) structs.CollegeTeamRequest {

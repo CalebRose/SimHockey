@@ -1223,7 +1223,7 @@ func createRecruit(position, arch string, stars int, firstName, lastName string,
 		HasProgressed:       false,
 		BaseInjuryData:      injuryData,
 	}
-
+	basePlayer.RetirementAge = basePlayer.PrimeAge + uint8(util.GenerateIntFromRange(4, 7))
 	basePlayer.GetOverall()
 
 	return structs.Recruit{
