@@ -390,6 +390,7 @@ type BasePlayer struct {
 	DisciplineDeviation  uint8 // Modifier that adjusts the player's behavior in games
 	InjuryDeviation      uint8 // Modifier that adjusts the player's injury rating in games
 	PrimeAge             uint8 // The peak age of the player
+	RetirementAge        uint8 // The age where the player will most likely retire
 	Clutch               int8  // Determines how well the player performs in big games. Modifier on all attributes applied prior to start of a game
 	HighSchool           string
 	City                 string

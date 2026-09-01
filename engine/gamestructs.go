@@ -1,6 +1,7 @@
 package engine
 
 import (
+	util "github.com/CalebRose/SimHockey/_util"
 	"github.com/CalebRose/SimHockey/structs"
 )
 
@@ -208,7 +209,7 @@ func (gs *GameState) SetPuckBearer(player *GamePlayer, isLongerPass bool) {
 			gs.ResetMomentum()
 			gs.AssistingPlayer = &GamePlayer{}
 		} else {
-			gs.Momentum += 0.175
+			gs.Momentum += gs.GetMomentumBonus()
 			if isLongerPass {
 				gs.Momentum += .05
 			}
@@ -221,12 +222,24 @@ func (gs *GameState) SetPuckBearer(player *GamePlayer, isLongerPass bool) {
 	}
 }
 
+func (gs *GameState) GetMomentumBonus() float64 {
+	floor := 0.2
+	ceiling := gs.PuckCarrier.PassMod / 5
+	if floor > ceiling {
+		temp := floor
+		floor = ceiling
+		ceiling = temp
+	}
+
+	return util.GenerateFloatFromRange(floor, ceiling)
+}
+
 func (gs *GameState) TriggerBreakaway() {
-	gs.Momentum += 0.325
+	gs.Momentum += 0.75
 }
 
 func (gs *GameState) ResetMomentum() {
-	gs.Momentum = 0
+	gs.Momentum = -0.75
 }
 
 func (gs *GameState) GetCenter(isHome bool) *GamePlayer {

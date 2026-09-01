@@ -1,7 +1,6 @@
 package managers
 
 import (
-	"fmt"
 	"strconv"
 
 	util "github.com/CalebRose/SimHockey/_util"
@@ -280,6 +279,8 @@ func CollegeProgressionMain() {
 	repository.CreateDraftablePlayerRecordsBatch(db, draftablePlayers, 200)
 	repository.CreateHistoricCollegePlayerRecordsBatch(db, historicRecords, 200)
 	repository.MassDeleteCollegePlayerRecords(db, collegePlayerIDs)
+	ts.ToggleCollegeProgression()
+	repository.SaveTimestamp(ts, db)
 }
 
 func ProfessionalProgressionMain() {
@@ -297,7 +298,7 @@ func ProfessionalProgressionMain() {
 	freeAgents := GetAllFreeAgents()
 	proContracts := repository.FindAllProContracts(true)
 	proContractMap := MakeContractMap(proContracts)
-	extensions := repository.FindAllProExtensions(true)
+	extensions := repository.FindAllProExtensions(false, true)
 	extensionMap := MakeExtensionMap(extensions)
 
 	for _, team := range proTeams {
@@ -306,9 +307,6 @@ func ProfessionalProgressionMain() {
 
 		if !team.PlayersProgressed {
 			for _, player := range roster {
-				if player.ID == 18 {
-					fmt.Println(("Stop here"))
-				}
 				if player.HasProgressed {
 					continue
 				}
@@ -332,7 +330,10 @@ func ProfessionalProgressionMain() {
 						if extension.ID > 0 && extension.IsAccepted && extension.IsActive {
 							// Apply Extension
 							contract.MapExtension(extension)
-							message := "Breaking News: " + player.Position + " " + player.FirstName + " " + player.LastName + " has official signed his extended offer with " + player.Team + " for $" + strconv.Itoa(int(contract.ContractValue)) + " Million Dollars!"
+							// convert below to string from float without converting to int
+							contractValue := float64(contract.ContractValue)
+							contractValueStr := strconv.FormatFloat(contractValue, 'f', 2, 64)
+							message := "Breaking News: " + player.Position + " " + player.FirstName + " " + player.LastName + " has official signed his extended offer with " + player.Team + " for $" + contractValueStr + " Million Dollars!"
 							CreateNewsLog("PHL", message, "Free Agency", int(player.TeamID), ts, true)
 							repository.DeleteExtensionRecord(extension, db)
 						} else {
@@ -595,7 +596,7 @@ func DetermineIfRetiring(player structs.ProfessionalPlayer, statMap map[uint][]s
 		return totalMinutes == 0
 	}
 
-	if player.Age <= player.PrimeAge {
+	if player.Age < player.RetirementAge {
 		return false
 	}
 
@@ -604,20 +605,20 @@ func DetermineIfRetiring(player structs.ProfessionalPlayer, statMap map[uint][]s
 	*/
 	benchmark := 0
 	age := int(player.Age)
-	primeAge := int(player.PrimeAge)
-	retirementAge := primeAge + util.GenerateIntFromRange(4, 7)
+	// retirementAge := primeAge + util.GenerateIntFromRange(4, 7)
+	retirementAge := int(player.RetirementAge)
 	overall := player.Overall
-	if age > retirementAge {
-		benchmark += 33
+	if age >= retirementAge {
+		benchmark = 25
 	}
-	if age > primeAge && overall < 20 {
-		benchmark += (15 * (age - primeAge))
-	} else if age > primeAge && overall < 30 {
-		benchmark += (7 * (age - primeAge))
-	} else if age > primeAge && overall < 40 {
-		benchmark += (4 * (age - primeAge))
-	} else if age > primeAge && overall < 50 {
-		benchmark += (1 * (age - primeAge))
+	if age >= retirementAge && overall < 20 {
+		benchmark += (15 * (age - retirementAge))
+	} else if age >= retirementAge && overall < 30 {
+		benchmark += (7 * (age - retirementAge))
+	} else if age >= retirementAge && overall < 40 {
+		benchmark += (4 * (age - retirementAge))
+	} else if age >= retirementAge && overall < 50 {
+		benchmark += (1 * (age - retirementAge))
 	}
 	diceRoll := util.GenerateIntFromRange(1, 100)
 	// If the roll is less than the benchmark, player will retire. Otherwise, they are staying.

@@ -558,7 +558,7 @@ func GenerateInitialRosters() {
 		pickedEthnicity:   "",
 	}
 	for _, team := range teams {
-		if team.ID < 73 || team.LeagueID == 2 {
+		if team.ID < 118 || team.LeagueID == 2 {
 			continue
 		}
 		teamID := team.ID
@@ -1223,7 +1223,7 @@ func createRecruit(position, arch string, stars int, firstName, lastName string,
 		HasProgressed:       false,
 		BaseInjuryData:      injuryData,
 	}
-
+	basePlayer.RetirementAge = basePlayer.PrimeAge + uint8(util.GenerateIntFromRange(4, 7))
 	basePlayer.GetOverall()
 
 	return structs.Recruit{

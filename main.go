@@ -81,6 +81,7 @@ func handleRequests() http.Handler {
 	// apiRouter.HandleFunc("/admin/sync/week/", controllers.SyncToNextWeek).Methods("GET")
 	// 	// apiRouter.HandleFunc("/admin/assign/ranks/", controllers.AssignAllRecruitRanks).Methods("GET")
 	// apiRouter.HandleFunc("/admin/generate/test/college/teams/", controllers.GenerateCollegeTeams).Methods("GET")
+	// apiRouter.HandleFunc("/admin/import/phl/teams/", controllers.GenerateProTeams).Methods("GET")
 	// apiRouter.HandleFunc("/admin/generate/init/college/rosters/", controllers.GenerateInitialRosters).Methods("GET")
 	// apiRouter.HandleFunc("/admin/generate/chl/rosters/", controllers.GenerateCHLRosters).Methods("GET")
 	// apiRouter.HandleFunc("/admin/generate/college/recruits/", controllers.GenerateCroots).Methods("GET")
@@ -91,6 +92,7 @@ func handleRequests() http.Handler {
 	// apiRouter.HandleFunc("/admin/generate/phl/playoff/games/", controllers.GenerateProPlayoffGames).Methods("GET")
 	// apiRouter.HandleFunc("/admin/generate/pairwise/ranks/", controllers.GeneratePairwiseRanks).Methods("GET")
 	// apiRouter.HandleFunc("/admin/generate/phl/draft/warrooms/", controllers.GeneratePHLDraftWarRooms).Methods("GET")
+	// apiRouter.HandleFunc("/admin/season/migration/", controllers.SeasonMigration).Methods("GET")
 
 	// apiRouter.HandleFunc("/admin/generate/pre/schedule/", controllers.GeneratePreseasonGames).Methods("GET")
 	// apiRouter.HandleFunc("/admin/generate/canada/schedule/", controllers.GenerateCanadaGames).Methods("GET")
@@ -104,6 +106,10 @@ func handleRequests() http.Handler {
 	// apiRouter.HandleFunc("/simhck/fix/standings/tables/", controllers.FixStandingsTables).Methods("GET")
 	// apiRouter.HandleFunc("/simhck/fix/missing/rookie/contracts/", controllers.FixAddingRookieContracts).Methods("GET")
 	// apiRouter.HandleFunc("/simhck/fix/postseason/tournament/", controllers.PrepareCHLPostSeasonGamesFormat).Methods("GET")
+	// apiRouter.HandleFunc("/simhck/fix/graduated/pro/players/", controllers.FixGraduatedProPlayers).Methods("GET")
+	// apiRouter.HandleFunc("/simhck/add/retirement/age/", controllers.AddRetirementAge).Methods("GET")
+	// apiRouter.HandleFunc("/simhck/extend/phl/players/", controllers.ExtendPHLPlayers).Methods("GET")
+	// apiRouter.HandleFunc("/simhck/fix/sim/phl/retired/players/", controllers.FixSimPHLRetiredPlayers).Methods("GET")
 
 	// Run
 	// apiRouter.HandleFunc("/admin/run/fa/sync/", controllers.TestFASync).Methods("GET")
@@ -145,6 +151,7 @@ func handleRequests() http.Handler {
 	apiRouter.HandleFunc("/export/pro/freeagents", controllers.ExportProFreeAgents).Methods("GET")
 	apiRouter.HandleFunc("/export/stats/chl/{seasonID}/{weekID}/{viewType}/{gameType}", controllers.ExportCHLStatsPageContentForSeason).Methods("GET")
 	apiRouter.HandleFunc("/export/stats/phl/{seasonID}/{weekID}/{viewType}/{gameType}", controllers.ExportProStatsPageContent).Methods("GET")
+	apiRouter.HandleFunc("/export/stats/phl/expansion/{seasonID}/{weekID}/{viewType}/{gameType}", controllers.ExportExpansionPlayerSheet).Methods("GET")
 	apiRouter.HandleFunc("/games/export/results/{seasonID}/{weekID}/{timeslot}", controllers.ExportHCKGameResults).Methods("GET")
 	apiRouter.HandleFunc("/games/result/export/chl/{gameID}", controllers.ExportCollegePlayByPlayResults).Methods("GET")
 	apiRouter.HandleFunc("/games/result/export/phl/{gameID}", controllers.ExportProPlayByPlayResults).Methods("GET")

@@ -32,7 +32,7 @@ func GetContractMap() map[uint]structs.ProContract {
 }
 
 func GetExtensionMap() map[uint]structs.ExtensionOffer {
-	extensions := repository.FindAllProExtensions(true)
+	extensions := repository.FindAllProExtensions(true, false)
 	return MakeExtensionMap(extensions)
 }
 
@@ -503,7 +503,7 @@ func SyncExtensionOffers() {
 	proPlayerMap := MakeProfessionalPlayerMapByTeamID(professionalPlayers)
 	phlTeams := GetAllProfessionalTeams()
 	phlTeamMap := MakeProTeamMap(phlTeams)
-	extensions := repository.FindAllProExtensions(true)
+	extensions := repository.FindAllProExtensions(true, false)
 	extensionMap := MakeExtensionMap(extensions)
 	proContracts := repository.FindAllProContracts(true)
 	contractMap := MakeContractMap(proContracts)

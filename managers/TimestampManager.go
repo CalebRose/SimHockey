@@ -91,13 +91,12 @@ func MoveUpWeek() structs.Timestamp {
 	}
 
 	// Run Progressions
-	// if ts.NHLSeasonOver && ts.CollegeSeasonOver && ts.Week > 22 && !ts.ProgressedCollegePlayers && !ts.ProgressedProfessionalPlayers {
-	// GenerateWalkonCroots()
-	// 	CollegeProgressionMain()
-	// 	ProfessionalProgressionMain()
-	// }
-	if ts.NHLSeasonOver && ts.Week > 22 && !ts.ProgressedProfessionalPlayers {
+	if ts.NHLSeasonOver && ts.CollegeSeasonOver && ts.Week > 22 && !ts.ProgressedCollegePlayers && !ts.ProgressedProfessionalPlayers {
+		GenerateWalkonCroots()
 		ProfessionalProgressionMain()
+		CollegeProgressionMain()
+		ts.ProgressedCollegePlayers = true
+		ts.ProgressedProfessionalPlayers = true
 	}
 
 	GenerateCHLTeamLetterGrades()

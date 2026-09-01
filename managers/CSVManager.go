@@ -903,6 +903,59 @@ func ExportCollegeStats(seasonID, weekID, viewType, gameType string, w http.Resp
 	})
 }
 
+func ExportSeasonalProStatsForExpansion(seasonID, weekID, viewType, gameType string, w http.ResponseWriter) {
+	stats := SearchProStats(seasonID, weekID, viewType, gameType)
+	seasonStatMap := MakeProPlayerSeasonStatMap(stats.PHLPlayerSeasonStats)
+	seasonIDNum := util.ConvertStringToInt(seasonID)
+	seasonIDNum += 2024
+	seasonStr := strconv.Itoa(seasonIDNum)
+	baseName := fmt.Sprintf("phl_seasonal_stats_%s", seasonStr)
+
+	w.Header().Set("Content-Type", "application/zip")
+	w.Header().Set("Content-Disposition", fmt.Sprintf("attachment; filename=\"%s.zip\"", baseName))
+	w.Header().Set("Transfer-Encoding", "chunked")
+	zipWriter := zip.NewWriter(w)
+	defer zipWriter.Close()
+
+	fileName := "expansion_phl_player_stats_" + seasonStr + ".csv"
+	proPlayers := repository.FindAllProPlayers(repository.PlayerQuery{})
+	phlTeamMap := GetProTeamMap()
+
+	writeCSVIntoZip(zipWriter, fileName, func(csvW *csv.Writer) error {
+		header := util.GetExpansionPHLPlayerHeaderRows()
+		if err := csvW.Write(header); err != nil {
+			return err
+		}
+
+		for _, p := range proPlayers {
+			team := phlTeamMap[uint(p.TeamID)]
+			seasonStats := seasonStatMap[p.ID]
+			row := []string{
+				strconv.Itoa(int(p.ID)), p.FirstName, p.LastName, p.Position,
+				p.Archetype, strconv.Itoa(p.Year), p.Team, team.Division, strconv.Itoa(int(p.Height)), strconv.Itoa(int(p.Weight)), p.City, p.State, p.Country, strconv.Itoa(int(p.Age)), strconv.Itoa(int(p.Overall)),
+				strconv.Itoa(int(p.Agility)), strconv.Itoa(int(p.Faceoffs)), strconv.Itoa(int(p.LongShotAccuracy)), strconv.Itoa(int(p.LongShotPower)), strconv.Itoa(int(p.CloseShotAccuracy)),
+				strconv.Itoa(int(p.CloseShotPower)), strconv.Itoa(int(p.Passing)), strconv.Itoa(int(p.PuckHandling)), strconv.Itoa(int(p.Strength)), strconv.Itoa(int(p.BodyChecking)), strconv.Itoa(int(p.StickChecking)),
+				strconv.Itoa(int(p.ShotBlocking)), strconv.Itoa(int(p.Goalkeeping)), strconv.Itoa(int(p.GoalieVision)), strconv.Itoa(int(p.Stamina)), strconv.Itoa(int(p.InjuryRating)),
+				strconv.Itoa(int(seasonStats.Goals)), strconv.Itoa(int(seasonStats.Assists)), strconv.Itoa(int(seasonStats.Points)), strconv.Itoa(int(seasonStats.PlusMinus)),
+				strconv.Itoa(int(seasonStats.PenaltyMinutes)), strconv.Itoa(int(seasonStats.EvenStrengthGoals)), strconv.Itoa(int(seasonStats.EvenStrengthPoints)), strconv.Itoa(int(seasonStats.PowerPlayGoals)),
+				strconv.Itoa(int(seasonStats.PowerPlayPoints)), strconv.Itoa(int(seasonStats.ShorthandedGoals)), strconv.Itoa(int(seasonStats.ShorthandedPoints)), strconv.Itoa(int(seasonStats.OvertimeGoals)),
+				strconv.Itoa(int(seasonStats.GameWinningGoals)), strconv.Itoa(int(seasonStats.Shots)), strconv.FormatFloat(float64(seasonStats.ShootingPercentage), 'f', 2, 64), strconv.Itoa(int(seasonStats.TimeOnIce)),
+				strconv.FormatFloat(float64(seasonStats.FaceOffWinPercentage), 'f', 2, 64), strconv.Itoa(int(seasonStats.FaceOffsWon)), strconv.Itoa(int(seasonStats.FaceOffs)), strconv.Itoa(int(seasonStats.GoalieWins)),
+				strconv.Itoa(int(seasonStats.GoalieLosses)), strconv.Itoa(int(seasonStats.GoalieTies)), strconv.Itoa(int(seasonStats.OvertimeLosses)), strconv.Itoa(int(seasonStats.ShotsAgainst)),
+				strconv.Itoa(int(seasonStats.Saves)), strconv.Itoa(int(seasonStats.GoalsAgainst)), strconv.FormatFloat(float64(seasonStats.SavePercentage), 'f', 2, 64), strconv.Itoa(int(seasonStats.Shutouts)),
+				strconv.Itoa(int(seasonStats.ShotsBlocked)), strconv.Itoa(int(seasonStats.BodyChecks)), strconv.Itoa(int(seasonStats.StickChecks)),
+			}
+			err := csvW.Write(row)
+			if err != nil {
+				return err
+			}
+		}
+
+		csvW.Flush()
+		return csvW.Error()
+	})
+}
+
 func ExportProStats(seasonID, weekID, viewType, gameType string, w http.ResponseWriter) {
 	stats := SearchProStats(seasonID, weekID, viewType, gameType)
 	seasonIDNum := util.ConvertStringToInt(seasonID)
@@ -912,7 +965,7 @@ func ExportProStats(seasonID, weekID, viewType, gameType string, w http.Response
 	if viewType != "SEASON" && (weekID != "" && weekID != "0") {
 		weekNum := util.ConvertStringToInt(weekID)
 		weekNum = weekNum - 2500
-		weekStr = "WEEK_" + strconv.Itoa(weekNum) + "_"
+		weekStr = "_WEEK_" + strconv.Itoa(weekNum) + "_"
 	}
 	baseName := fmt.Sprintf("phl_stats_%s_%s", seasonStr, viewType)
 	w.Header().Set("Content-Type", "application/zip")
@@ -921,8 +974,8 @@ func ExportProStats(seasonID, weekID, viewType, gameType string, w http.Response
 	zipWriter := zip.NewWriter(w)
 	defer zipWriter.Close()
 	// Initialize writer
-	fileName := "phl_player_stats_" + seasonStr + "_" + weekStr + ".csv"
-	teamFileName := "phl_team_stats_" + seasonStr + "_" + weekStr + ".csv"
+	fileName := "phl_player_stats_" + seasonStr + weekStr + ".csv"
+	teamFileName := "phl_team_stats_" + seasonStr + weekStr + ".csv"
 
 	proPlayers := repository.FindAllProPlayers(repository.PlayerQuery{})
 	historicProPlayers := repository.FindAllHistoricProPlayers()
@@ -959,7 +1012,7 @@ func ExportProStats(seasonID, weekID, viewType, gameType string, w http.Response
 				timeOnIce := FormatTimeToClock(uint16(stat.TimeOnIce))
 
 				pr := []string{strconv.Itoa(int(p.ID)), p.FirstName, p.LastName, p.Position,
-					p.Archetype, strconv.Itoa(p.Year), p.Team, team.Division, strconv.Itoa(int(p.Age)), strconv.Itoa(int(p.Stars)),
+					p.Archetype, strconv.Itoa(p.Year), p.Team, team.Division, strconv.Itoa(int(p.Age)), strconv.Itoa(int(p.Overall)),
 					strconv.Itoa(int(stat.Goals)), strconv.Itoa(int(stat.Assists)), strconv.Itoa(int(stat.Points)), strconv.Itoa(int(stat.PlusMinus)),
 					strconv.Itoa(int(stat.PenaltyMinutes)), strconv.Itoa(int(stat.EvenStrengthGoals)), strconv.Itoa(int(stat.EvenStrengthPoints)), strconv.Itoa(int(stat.PowerPlayGoals)),
 					strconv.Itoa(int(stat.PowerPlayPoints)), strconv.Itoa(int(stat.ShorthandedGoals)), strconv.Itoa(int(stat.ShorthandedPoints)), strconv.Itoa(int(stat.OvertimeGoals)),

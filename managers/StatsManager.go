@@ -56,7 +56,7 @@ func UpdateSeasonStats(ts structs.Timestamp, gameDay string) {
 				continue
 			}
 			playerSeasonStats := collegePlayerSeasonStatMap[stat.PlayerID]
-			playerSeasonStats.AddStatsToSeasonRecord(stat.BasePlayerStats)
+			playerSeasonStats.AddStatsToSeasonRecord(stat.BasePlayerStats, stat.TeamID == game.HomeTeamID, game.HomeTeamWin, game.IsOvertime || game.IsShootout)
 
 			// if stat.IsInjured {
 			// id := strconv.Itoa(int(stat.PlayerID))
@@ -107,7 +107,7 @@ func UpdateSeasonStats(ts structs.Timestamp, gameDay string) {
 				continue
 			}
 			playerSeasonStats := proPlayerSeasonStatMap[stat.PlayerID]
-			playerSeasonStats.AddStatsToSeasonRecord(stat.BasePlayerStats)
+			playerSeasonStats.AddStatsToSeasonRecord(stat.BasePlayerStats, stat.TeamID == game.HomeTeamID, game.HomeTeamWin, game.IsOvertime || game.IsShootout)
 
 			// if stat.IsInjured {
 			// id := strconv.Itoa(int(stat.PlayerID))

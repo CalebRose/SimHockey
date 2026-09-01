@@ -39,8 +39,8 @@ func HandleRecruitingTables() {
 	recruitModel := structs.Recruit{}
 
 	// Delete all existing records.
-	db.Delete(&recruitProfileModel)
-	db.Delete(&recruitModel)
+	db.Where("id > 0").Delete(&recruitProfileModel)
+	db.Where("id > 0").Delete(&recruitModel)
 }
 
 func HandleTeamProfileValues(ts structs.Timestamp) structs.Timestamp {
@@ -58,6 +58,9 @@ func HandleTeamProfileValues(ts structs.Timestamp) structs.Timestamp {
 
 	for _, t := range collegeTeams {
 		if t.ID > 72 && ts.SeasonID == 1 {
+			continue
+		}
+		if t.ID > 74 && ts.SeasonID == 2 {
 			continue
 		}
 
@@ -199,14 +202,14 @@ func HandleTransferPortalTables() {
 	db := dbprovider.GetInstance().GetDB()
 
 	// Delete All Records in the Scouting Profile Table
-	db.Delete(&structs.TransferPortalProfile{})
+	db.Where("id > 0").Delete(&structs.TransferPortalProfile{})
 }
 
 func HandleDraftTables() {
 	db := dbprovider.GetInstance().GetDB()
 
 	// Delete All Records in the Scouting Profile Table
-	db.Delete(&structs.ScoutingProfile{})
+	db.Where("id > 0").Delete(&structs.ScoutingProfile{})
 	// Reset War Rooms
 	db.Model(&structs.ProWarRoom{}).Where("spent_points > 0").Update("spent_points", 0)
 }

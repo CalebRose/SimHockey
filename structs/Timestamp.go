@@ -208,6 +208,7 @@ func (t *Timestamp) EnactPromisePhase() {
 
 func (t *Timestamp) EnactPortalPhase() {
 	t.TransferPortalPhase = 3
+	t.TransferPortalRound = 1
 }
 
 func (t *Timestamp) IncrementTransferPortalRound() {
@@ -229,11 +230,11 @@ func (t *Timestamp) ToggleGeneratedCroots() {
 }
 
 func (t *Timestamp) ToggleCollegeProgression() {
-	t.ProgressedCollegePlayers = !t.ProgressedCollegePlayers
+	t.ProgressedCollegePlayers = true
 }
 
 func (t *Timestamp) ToggleProfessionalProgression() {
-	t.ProgressedProfessionalPlayers = !t.ProgressedProfessionalPlayers
+	t.ProgressedProfessionalPlayers = true
 	t.IsFreeAgencyLocked = false
 	t.IsDraftTime = true
 }
