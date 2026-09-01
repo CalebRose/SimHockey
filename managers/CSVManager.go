@@ -912,7 +912,7 @@ func ExportProStats(seasonID, weekID, viewType, gameType string, w http.Response
 	if viewType != "SEASON" && (weekID != "" && weekID != "0") {
 		weekNum := util.ConvertStringToInt(weekID)
 		weekNum = weekNum - 2500
-		weekStr = "WEEK_" + strconv.Itoa(weekNum) + "_"
+		weekStr = "_WEEK_" + strconv.Itoa(weekNum) + "_"
 	}
 	baseName := fmt.Sprintf("phl_stats_%s_%s", seasonStr, viewType)
 	w.Header().Set("Content-Type", "application/zip")
@@ -921,8 +921,8 @@ func ExportProStats(seasonID, weekID, viewType, gameType string, w http.Response
 	zipWriter := zip.NewWriter(w)
 	defer zipWriter.Close()
 	// Initialize writer
-	fileName := "phl_player_stats_" + seasonStr + "_" + weekStr + ".csv"
-	teamFileName := "phl_team_stats_" + seasonStr + "_" + weekStr + ".csv"
+	fileName := "phl_player_stats_" + seasonStr + weekStr + ".csv"
+	teamFileName := "phl_team_stats_" + seasonStr + weekStr + ".csv"
 
 	proPlayers := repository.FindAllProPlayers(repository.PlayerQuery{})
 	historicProPlayers := repository.FindAllHistoricProPlayers()
@@ -959,7 +959,7 @@ func ExportProStats(seasonID, weekID, viewType, gameType string, w http.Response
 				timeOnIce := FormatTimeToClock(uint16(stat.TimeOnIce))
 
 				pr := []string{strconv.Itoa(int(p.ID)), p.FirstName, p.LastName, p.Position,
-					p.Archetype, strconv.Itoa(p.Year), p.Team, team.Division, strconv.Itoa(int(p.Age)), strconv.Itoa(int(p.Stars)),
+					p.Archetype, strconv.Itoa(p.Year), p.Team, team.Division, strconv.Itoa(int(p.Age)), strconv.Itoa(int(p.Overall)),
 					strconv.Itoa(int(stat.Goals)), strconv.Itoa(int(stat.Assists)), strconv.Itoa(int(stat.Points)), strconv.Itoa(int(stat.PlusMinus)),
 					strconv.Itoa(int(stat.PenaltyMinutes)), strconv.Itoa(int(stat.EvenStrengthGoals)), strconv.Itoa(int(stat.EvenStrengthPoints)), strconv.Itoa(int(stat.PowerPlayGoals)),
 					strconv.Itoa(int(stat.PowerPlayPoints)), strconv.Itoa(int(stat.ShorthandedGoals)), strconv.Itoa(int(stat.ShorthandedPoints)), strconv.Itoa(int(stat.OvertimeGoals)),

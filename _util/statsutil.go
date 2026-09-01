@@ -19,7 +19,7 @@ func GetCHLPlayerHeaderRows() []string {
 func GetPHLPlayerHeaderRows() []string {
 	return []string{
 		"ID", "First Name", "Last Name", "Position",
-		"Archetype", "Year", "Team", "Division", "Age", "Stars",
+		"Archetype", "Year", "Team", "Division", "Age", "Overall",
 		"Goals", "Assists", "Points", "+/-",
 		"Penalty Minutes", "Even Strength Goals", "Even Strength Points", "Power Play Goals",
 		"Power Play Points", "Shorthanded Goals", "Shorthanded Points", "Overtime Goals",
