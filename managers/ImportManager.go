@@ -17,7 +17,7 @@ import (
 
 func ImportCollegeTeams() {
 	db := dbprovider.GetInstance().GetDB()
-	filePath := filepath.Join(os.Getenv("ROOT"), "data", "2027", "gen", "simchl_expansion_teams.csv")
+	filePath := filepath.Join(os.Getenv("ROOT"), "data", "2027", "gen", "simchl_expansion_teams_acha.csv")
 	teamsCSV := util.ReadCSV(filePath)
 	teams := []structs.CollegeTeam{}
 	arenas := []structs.Arena{}
@@ -41,7 +41,7 @@ func ImportCollegeTeams() {
 		arenaName := team[12]
 		capacity := util.ConvertStringToInt(team[13])
 		record := 0
-		firstYear := 2026
+		firstYear := 2027
 		discordId := ""
 		colorOne := team[17]
 		colorTwo := team[18]
@@ -207,14 +207,14 @@ func ImportCollegeTeams() {
 	repository.CreateCollegeTeamRecordsBatch(db, teams, 30)
 	repository.CreateCollegeLineupRecordsBatch(db, collegeLineups, 50)
 
-	RefillCHLRosters()
-	// GenerateInitialRosters()
-	// ImportTeamRecruitingProfiles()
+	// RefillCHLRosters()
+	GenerateInitialRosters()
+	ImportTeamRecruitingProfiles()
 }
 
 func ImportProTeams() {
 	db := dbprovider.GetInstance().GetDB()
-	filePath := filepath.Join(os.Getenv("ROOT"), "data", "phl_teams.csv")
+	filePath := filepath.Join(os.Getenv("ROOT"), "data", "gen", "phl_teams_expansion_one.csv")
 	teamsCSV := util.ReadCSV(filePath)
 	teams := []structs.ProfessionalTeam{}
 	arenas := []structs.Arena{}
@@ -389,7 +389,7 @@ func ImportProTeams() {
 		}
 	}
 
-	repository.CreateArenaRecordsBatch(db, arenas, 20)
+	// repository.CreateArenaRecordsBatch(db, arenas, 20)
 	repository.CreateProTeamRecordsBatch(db, teams, 24)
 	repository.CreateProfessionalLineupRecordsBatch(db, proLineups, 50)
 }
@@ -867,11 +867,22 @@ func FixSeasonStatTables() {
 	proPlayerSeasonStatMap := make(map[uint]*structs.ProfessionalPlayerSeasonStats)
 	collegeTeamSeasonStatMap := make(map[uint]*structs.CollegeTeamSeasonStats)
 	proTeamSeasonStatMap := make(map[uint]*structs.ProfessionalTeamSeasonStats)
+	gameMap := make(map[uint]structs.CollegeGame)
+	proGameMap := make(map[uint]structs.ProfessionalGame)
 
 	collegePlayerGameStats := repository.FindCollegePlayerGameStatsRecords(seasonId, "", collegeGameType, "")
 	collegeTeamGameStats := repository.FindCollegeTeamGameStatsRecords(seasonId, "", collegeGameType, "")
 	proPlayerGameStats := repository.FindProPlayerGameStatsRecords(seasonId, "", proGameType, "")
 	proTeamGameStats := repository.FindProTeamGameStatsRecords(seasonId, "", proGameType, "")
+	collegeGames := repository.FindCollegeGames(repository.GamesClauses{SeasonID: seasonId})
+	proGames := repository.FindProfessionalGames(repository.GamesClauses{SeasonID: seasonId})
+
+	for _, c := range collegeGames {
+		gameMap[c.ID] = c
+	}
+	for _, p := range proGames {
+		proGameMap[p.ID] = p
+	}
 
 	for _, stat := range collegePlayerGameStats {
 		if stat.GameType == 1 {
@@ -880,7 +891,8 @@ func FixSeasonStatTables() {
 		if _, ok := collegePlayerSeasonStatMap[stat.PlayerID]; !ok {
 			collegePlayerSeasonStatMap[stat.PlayerID] = &structs.CollegePlayerSeasonStats{}
 		}
-		collegePlayerSeasonStatMap[stat.PlayerID].AddStatsToSeasonRecord(stat.BasePlayerStats)
+		game := gameMap[stat.GameID]
+		collegePlayerSeasonStatMap[stat.PlayerID].AddStatsToSeasonRecord(stat.BasePlayerStats, game.HomeTeamID == stat.TeamID, game.HomeTeamWin, game.IsOvertime)
 	}
 
 	for _, stat := range collegeTeamGameStats {
@@ -901,7 +913,8 @@ func FixSeasonStatTables() {
 		if _, ok := proPlayerSeasonStatMap[stat.PlayerID]; !ok {
 			proPlayerSeasonStatMap[stat.PlayerID] = &structs.ProfessionalPlayerSeasonStats{}
 		}
-		proPlayerSeasonStatMap[stat.PlayerID].AddStatsToSeasonRecord(stat.BasePlayerStats)
+		proGame := proGameMap[stat.GameID]
+		proPlayerSeasonStatMap[stat.PlayerID].AddStatsToSeasonRecord(stat.BasePlayerStats, proGame.HomeTeamID == stat.TeamID, proGame.HomeTeamWin, proGame.IsOvertime)
 	}
 
 	for _, stat := range proTeamGameStats {
@@ -1373,4 +1386,189 @@ func FixRookieContracts() {
 		newContracts = append(newContracts, contract)
 	}
 	repository.CreateProContractRecordsBatch(db, newContracts, 200)
+}
+
+func FixGraduatedProPlayers() {
+	db := dbprovider.GetInstance().GetDB()
+	historicCollegePlayers := repository.FindAllHistoricCollegePlayers()
+	proPlayers := repository.FindAllProPlayers(repository.PlayerQuery{LeagueID: "1"})
+	proPlayerMap := MakeProfessionalPlayerMap(proPlayers)
+
+	fixProPlayerMap := map[uint]bool{
+		656:  true,
+		666:  true,
+		679:  true,
+		715:  true,
+		750:  true,
+		786:  true,
+		822:  true,
+		823:  true,
+		835:  true,
+		855:  true,
+		856:  true,
+		864:  true,
+		870:  true,
+		1009: true,
+		1102: true,
+		1162: true,
+		1186: true,
+		1188: true,
+		1261: true,
+		1586: true,
+		1678: true,
+		1708: true,
+		1835: true,
+		1887: true,
+		1890: true,
+		1949: true,
+		2027: true,
+		2086: true,
+		2111: true,
+		2134: true,
+		2179: true,
+		2181: true,
+		2346: true,
+		2352: true,
+		2404: true,
+		2424: true,
+		2427: true,
+		2481: true,
+		4441: true,
+		4467: true,
+		4471: true,
+	}
+
+	for _, hcp := range historicCollegePlayers {
+		proPlayer, exists := proPlayerMap[hcp.ID]
+		if !exists {
+			continue
+		}
+		if fixProPlayerMap[proPlayer.ID] == false {
+			continue
+		}
+		teamID := proPlayer.TeamID
+		team := proPlayer.Team
+		proPlayer.BasePlayer = hcp.BasePlayer
+		proPlayer.Year = 1
+		proPlayer.AssignTeam(uint(teamID), team, 1)
+		proPlayer.OriginalTeamID = uint(teamID)
+		proPlayer.OriginalTeam = team
+		repository.SaveProPlayerRecord(proPlayer, db)
+	}
+}
+
+func AddRetirementAge() {
+	db := dbprovider.GetInstance().GetDB()
+	collegePlayers := repository.FindAllCollegePlayers(repository.PlayerQuery{})
+	proPlayers := repository.FindAllProPlayers(repository.PlayerQuery{})
+
+	for _, cp := range collegePlayers {
+		cp.RetirementAge = cp.PrimeAge + uint8(util.GenerateIntFromRange(4, 7))
+		repository.SaveCollegeHockeyPlayerRecord(cp, db)
+	}
+
+	for _, pp := range proPlayers {
+		pp.RetirementAge = pp.PrimeAge + uint8(util.GenerateIntFromRange(4, 7))
+		repository.SaveProPlayerRecord(pp, db)
+	}
+}
+
+func ExtendPHLPlayers() {
+	db := dbprovider.GetInstance().GetDB()
+	proPlayers := repository.FindAllProPlayers(repository.PlayerQuery{LeagueID: "1"})
+	proTeamMap := MakeProTeamMap(GetAllProfessionalTeams())
+	proPlayerMap := MakeProfessionalPlayerMap(proPlayers)
+	extensionOffers := repository.FindAllProExtensions(false, true)
+
+	for _, offer := range extensionOffers {
+		proPlayer, exists := proPlayerMap[offer.PlayerID]
+		if !exists {
+			continue
+		}
+		// If offer was created before may 30th, 2026, continue
+		if offer.CreatedAt.Before(time.Date(2026, time.May, 30, 0, 0, 0, 0, time.UTC)) {
+			continue
+		}
+		playerId := strconv.Itoa(int(proPlayer.ID))
+		contract := repository.FindProContract(playerId)
+		if contract.ContractLength == 0 {
+			contract.MapExtension(offer)
+		}
+		team := proTeamMap[offer.TeamID]
+		proPlayer.AssignTeam(team.ID, team.Abbreviation, 1)
+		if proPlayer.IsFreeAgent {
+			proPlayer.ToggleIsFreeAgent()
+		}
+		repository.SaveProPlayerRecord(proPlayer, db)
+		repository.SaveProContractRecord(contract, db)
+		repository.DeleteExtensionRecord(offer, db)
+	}
+}
+
+func FixSimPHLRetiredPlayers() {
+	db := dbprovider.GetInstance().GetDB()
+	proPlayerSeasonStats := repository.FindProPlayerSeasonStatsRecords("", "2")
+	seasonStatMap := MakeHistoricProPlayerSeasonStatMap(proPlayerSeasonStats)
+	retiredPlayers := repository.FindAllHistoricProPlayers()
+	proContracts := repository.FindAllProContracts(false)
+	proContractMap := MakeContractMap(proContracts)
+	proPlayerList := []structs.ProfessionalPlayer{}
+	proPlayersToUnretire := []structs.ProfessionalPlayer{}
+
+	for _, p := range retiredPlayers {
+		if p.UpdatedAt.Before(time.Date(2026, time.January, 1, 0, 0, 0, 0, time.UTC)) {
+			continue
+		}
+		proPlayerRecord := structs.ProfessionalPlayer{
+			Model:                 p.Model,
+			BasePlayer:            p.BasePlayer,
+			BasePotentials:        p.BasePotentials,
+			CollegeID:             p.CollegeID,
+			Year:                  p.Year,
+			IsAffiliatePlayer:     p.IsAffiliatePlayer,
+			IsWaived:              p.IsWaived,
+			IsFreeAgent:           p.IsFreeAgent,
+			IsOnTradeBlock:        p.IsOnTradeBlock,
+			IsAcceptingOffers:     p.IsAcceptingOffers,
+			IsNegotiating:         p.IsNegotiating,
+			DraftedTeamID:         p.DraftedTeamID,
+			DraftedTeam:           p.DraftedTeam,
+			DraftedRound:          p.DraftedRound,
+			DraftPickID:           p.DraftPickID,
+			DraftedPick:           p.DraftedPick,
+			DraftedYearID:         p.DraftedYearID,
+			MinimumValue:          p.MinimumValue,
+			HasProgressed:         p.HasProgressed,
+			Rejections:            p.Rejections,
+			AffiliateTeamID:       p.AffiliateTeamID,
+			Marketability:         p.Marketability, // How marketable / in demand a player's jersey will be
+			JerseyPrice:           p.JerseyPrice,   // Price of jersey, can be set by user
+			MarketPreference:      p.MarketPreference,
+			CompetitivePreference: p.CompetitivePreference,
+			FinancialPreference:   p.FinancialPreference,
+			IsEligibleForPlay:     p.IsEligibleForPlay,
+			IsUDFA:                p.IsUDFA,
+		}
+
+		proPlayerList = append(proPlayerList, proPlayerRecord)
+	}
+
+	for _, p := range proPlayerList {
+		p.RetirementAge = p.PrimeAge + uint8(util.GenerateIntFromRange(4, 7))
+		willRetire := DetermineIfRetiring(p, seasonStatMap)
+
+		if !willRetire {
+			proPlayersToUnretire = append(proPlayersToUnretire, p)
+		}
+	}
+
+	for _, p := range proPlayersToUnretire {
+		contract := proContractMap[p.ID]
+		if contract.PlayerRetired {
+			contract.PlayerRetired = false
+			// repository.SaveProContractRecord(contract, db)
+		}
+	}
+
+	repository.CreateProHockeyPlayerRecordsBatch(db, proPlayersToUnretire, 20)
 }

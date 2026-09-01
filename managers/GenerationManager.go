@@ -558,7 +558,7 @@ func GenerateInitialRosters() {
 		pickedEthnicity:   "",
 	}
 	for _, team := range teams {
-		if team.ID < 73 || team.LeagueID == 2 {
+		if team.ID < 118 || team.LeagueID == 2 {
 			continue
 		}
 		teamID := team.ID

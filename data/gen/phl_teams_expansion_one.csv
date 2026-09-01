@@ -1,0 +1,5 @@
+id,Team Name,Mascot,Abbreviation,Conference ID,Conference,Division ID,Division,Owner,GM,Coach,Scout,Marketing Officer (MO),City,State,Country,ArenaID,Arena,Arena Capacity,Record Attendance,First Played,Discord ID,Color One,Color Two,Color Three,Overall Grade,Offense Grade,Defense Grade,IsClub,IsActive,Players Progressed
+25,Boston,Bruins,BOS,1,Eastern,1,Atlantic,,,,,,Boston,MA,USA,67,TD Garden,17850,0,2027,,#FFB81C,#000000,#FFFFFF,,,,,,
+26,Buffalo,Sabres,BUF,1,Eastern,2,Metro,,,,,,Buffalo,NY,USA,68,KeyBank Center,19070,0,2027,,#003087,#FFB81C,#FFFFFF,,,,,,
+27,Columbus,Blue Jackets,CBJ,1,Eastern,2,Metro,,,,,,Columbus,OH,USA,76,Nationwide Arena,18144,0,2027,,#002654,#ce1126,#A4A9AD,,,,,,
+28,Edmonton,Oilers,EDM,2,Western,4,Pacific,,,,,,Edmonton,AB,Canada,93,Rogers Place,18347,0,2027,,#041E42,#FF4C00,#FFFFFF,,,,,,

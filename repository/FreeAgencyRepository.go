@@ -229,7 +229,7 @@ func FindAllProContracts(onlyActive bool) []structs.ProContract {
 	return offers
 }
 
-func FindAllProExtensions(onlyActive bool) []structs.ExtensionOffer {
+func FindAllProExtensions(onlyActive, isAccepted bool) []structs.ExtensionOffer {
 	db := dbprovider.GetInstance().GetDB()
 
 	offers := []structs.ExtensionOffer{}
@@ -238,6 +238,9 @@ func FindAllProExtensions(onlyActive bool) []structs.ExtensionOffer {
 
 	if onlyActive {
 		query = query.Where("is_active = ?", true)
+	}
+	if isAccepted {
+		query = query.Where("is_accepted = ?", true)
 	}
 
 	if err := query.Find(&offers).Error; err != nil {
