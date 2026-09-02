@@ -14,9 +14,12 @@ type TeamRecordResponse struct {
 	CurrentSeasonLosses     int
 	PostSeasonWins          int
 	PostSeasonLosses        int
+	Playoffs                []string
+	FrozenFours             []string
 	ConferenceChampionships []string
 	DivisionTitles          []string
 	NationalChampionships   []string
+	RunnerUps               []string
 	TopPlayers              []TopPlayer
 }
 

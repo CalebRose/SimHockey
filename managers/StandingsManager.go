@@ -67,9 +67,13 @@ func GetHistoricalRecordsByTeamID(TeamID string) structs.TeamRecordResponse {
 	close(tsChn)
 
 	historicGames := repository.FindCollegeGames(repository.GamesClauses{TeamID: TeamID, IsPreseason: false})
+	historicStandings := repository.FindAllCollegeStandings(repository.StandingsQuery{TeamID: TeamID})
 	var conferenceChampionships []string
 	var divisionTitles []string
 	var nationalChampionships []string
+	var runnerUps []string
+	var frozenFour []string
+	var playoffs []string
 	overallWins := 0
 	overallLosses := 0
 	currentSeasonWins := 0
@@ -112,6 +116,23 @@ func GetHistoricalRecordsByTeamID(TeamID string) structs.TeamRecordResponse {
 		}
 	}
 
+	for _, s := range historicStandings {
+		season := s.Season
+		if s.IsConferenceTournamentChampion {
+			conferenceChampionships = append(conferenceChampionships, strconv.Itoa(int(season)))
+		}
+
+		if s.IsFrozenFour {
+			frozenFour = append(frozenFour, strconv.Itoa(int(season)))
+		}
+		if s.IsPostSeasonQualified {
+			playoffs = append(playoffs, strconv.Itoa(int(season)))
+		}
+		if s.IsRunnerUp {
+			runnerUps = append(runnerUps, strconv.Itoa(int(season)))
+		}
+	}
+
 	response := structs.TeamRecordResponse{
 		OverallWins:             overallWins,
 		OverallLosses:           overallLosses,
@@ -122,6 +143,9 @@ func GetHistoricalRecordsByTeamID(TeamID string) structs.TeamRecordResponse {
 		ConferenceChampionships: conferenceChampionships,
 		DivisionTitles:          divisionTitles,
 		NationalChampionships:   nationalChampionships,
+		FrozenFours:             frozenFour,
+		Playoffs:                playoffs,
+		RunnerUps:               runnerUps,
 	}
 
 	return response
