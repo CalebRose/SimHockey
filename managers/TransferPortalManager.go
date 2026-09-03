@@ -951,10 +951,10 @@ func AICoachAllocateAndPromisePhase() {
 					} else if p.Overall < 7 {
 						promiseBenchmark -= 6
 					}
-					promiseWeight = getPromiseWeightByTimeOrWins("Time on Ice", promiseBenchmark)
+					promiseWeight = getPromiseWeightByTimeOrWins("Lineup", promiseBenchmark)
 					if p.SeasonMomentumPref > 6 || p.ProgramPref > 6 {
 						// Promise based on wins
-						promiseBenchmark = 15
+						promiseBenchmark = 2
 						promiseType = "Wins"
 						if team.SeasonMomentum > 8 {
 							promiseBenchmark += 10
@@ -1639,7 +1639,7 @@ func FilterOutCollegePlayer(transferPlayers []structs.CollegePlayer, u uint) []s
 func SyncPromises() {
 	db := dbprovider.GetInstance().GetDB()
 	ts := GetTimestamp()
-	seasonID := strconv.Itoa(int(ts.SeasonID))
+	seasonID := strconv.Itoa(int(ts.SeasonID - 1)) // Get Previous Season ID
 	teamProfiles := repository.FindTeamRecruitingProfiles(false)
 	teamProfileMap := MakeTeamProfileMap(teamProfiles)
 	activePromises := GetAllCollegePromises()
@@ -1656,7 +1656,7 @@ func SyncPromises() {
 	collegeGamesMap := MakeCollegeGameMapByTeamID(collegeGames)
 
 	for _, promise := range activePromises {
-		if !promise.IsActive || !promise.PromiseMade {
+		if !promise.IsActive && !promise.PromiseMade {
 			continue
 		}
 		isHistoric := false
@@ -1690,9 +1690,9 @@ func SyncPromises() {
 			if standings.TotalWins >= uint8(promise.Benchmark) {
 				promise.FulfillPromise()
 			}
-		} else if promise.PromiseType == "Time On Ice" || promise.PromiseType == "Minutes" {
+		} else if promise.PromiseType == "Time On Ice" || promise.PromiseType == "Time on Ice" || promise.PromiseType == "Minutes" {
 			if seasonStats.TimeOnIce > 0 {
-				minutesPerGame := float64(seasonStats.TimeOnIce) / float64(seasonStats.GamesPlayed)
+				minutesPerGame := float64(seasonStats.TimeOnIce) / float64(seasonStats.GamesPlayed) / 60 // Dividing by games played and then converting from seconds to minutes
 				result = util.ConvertFloatToString(minutesPerGame)
 				if minutesPerGame >= float64(promise.Benchmark) {
 					promise.FulfillPromise()
@@ -1712,7 +1712,7 @@ func SyncPromises() {
 			}
 		} else if promise.PromiseType == "No Redshirt" {
 			result = "Was Redshirted"
-			if !player.IsRedshirting {
+			if !player.IsRedshirt {
 				result = ""
 				promise.FulfillPromise()
 			}

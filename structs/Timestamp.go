@@ -42,6 +42,7 @@ type Timestamp struct {
 	PreseasonPhase                uint
 	IsPreseason                   bool
 	SeasonPhase                   uint
+	Phase                         uint
 	IsTesting                     bool
 	TestRunNum                    uint16
 }
@@ -90,6 +91,10 @@ func (t *Timestamp) MoveUpFreeAgencyRound() {
 	}
 }
 
+func (t *Timestamp) MoveUpPhase() {
+	t.Phase++
+}
+
 func (t *Timestamp) DraftIsOver() {
 	t.IsDraftTime = false
 	t.IsOffSeason = false
@@ -100,6 +105,7 @@ func (t *Timestamp) DraftIsOver() {
 func (t *Timestamp) MoveUpSeason() {
 	t.SeasonID++
 	t.Season++
+	t.Phase = 1
 	t.Week = 0
 	baseSeason := t.Season - 2000
 	multSeason := baseSeason * 100

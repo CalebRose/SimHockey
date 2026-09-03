@@ -188,3 +188,9 @@ func RefillCollegeTeamsWithPortalPlayers(w http.ResponseWriter, r *http.Request)
 
 	json.NewEncoder(w).Encode("College teams refilled with transfer portal players.")
 }
+
+func SyncPromises(w http.ResponseWriter, r *http.Request) {
+	managers.SyncPromises()
+
+	json.NewEncoder(w).Encode("Promises synced.")
+}

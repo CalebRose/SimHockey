@@ -256,6 +256,7 @@ func handleRequests() http.Handler {
 	apiRouter.HandleFunc("/portal/profile/remove", controllers.RemovePlayerFromTransferPortalBoard).Methods("POST")
 	apiRouter.HandleFunc("/portal/saveboard", controllers.SaveTransferBoard).Methods("POST")
 	apiRouter.HandleFunc("/portal/promise/create", controllers.CreatePromise).Methods("POST")
+	apiRouter.HandleFunc("/portal/promise/sync", controllers.SyncPromises).Methods("GET")
 	apiRouter.HandleFunc("/portal/promise/cancel/{promiseID}", controllers.CancelPromise).Methods("GET")
 	apiRouter.HandleFunc("/portal/promise/player/{playerID}/{teamID}", controllers.GetPromiseByPlayerID).Methods("GET")
 	// apiRouter.HandleFunc("/portal/player/scout/{id}", controllers.GetScoutingDataByTransfer).Methods("GET")
