@@ -23,6 +23,7 @@ func HandlePostSeasonMigration() {
 	HandleTeamProfileValues(ts)
 	HandleRecruitingTeamProfileReset()
 	ts.MoveUpSeason()
+	ImportDraftPicksForSeason(ts.SeasonID+5, ts.Season+5)
 	GenerateStandingsForNewSeason(ts)
 	// SimCHL Conference Schedule
 	GenerateSimCHLConferenceSchedules(ts)

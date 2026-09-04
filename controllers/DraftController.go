@@ -97,3 +97,9 @@ func BringUpCollegePlayerToPros(w http.ResponseWriter, r *http.Request) {
 
 	json.NewEncoder(w).Encode(data)
 }
+
+func AddExpansionDraftPickData(w http.ResponseWriter, r *http.Request) {
+	// managers.ImportDraftPicksForSeason(8, 2032)
+
+	json.NewEncoder(w).Encode(true)
+}
