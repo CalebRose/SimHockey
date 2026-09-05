@@ -7,6 +7,7 @@ import (
 	"net"
 	"sync"
 
+	"github.com/CalebRose/SimHockey/structs"
 	"golang.org/x/crypto/ssh"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
@@ -81,7 +82,7 @@ func (p *Provider) InitDatabase() bool {
 	// db.AutoMigrate(&structs.ProfessionalTeamFranchise{})
 	// db.AutoMigrate(&structs.ProfessionalTeamGameStats{})
 	// db.AutoMigrate(&structs.ProfessionalTeamSeasonStats{})
-	// db.AutoMigrate(&structs.ProfessionalPlayer{})
+	db.AutoMigrate(&structs.ProfessionalPlayer{})
 	// db.AutoMigrate(&structs.RetiredPlayer{})
 	// db.AutoMigrate(&structs.ProGameplan{})
 	// db.AutoMigrate(&structs.ProfessionalLineup{})

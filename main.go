@@ -119,6 +119,7 @@ func handleRequests() http.Handler {
 	// apiRouter.HandleFunc("/admin/ai/sync/boards", controllers.SyncAIBoards).Methods("GET")
 	// apiRouter.HandleFunc("/simhck/sync/recruiting/", controllers.SyncRecruiting).Methods("GET")
 	// apiRouter.HandleFunc("/simhck/update/team/ranks/", controllers.UpdateTeamRankings).Methods("GET")
+	apiRouter.HandleFunc("/simhck/calculate/minimum/values/", controllers.CalculatePlayerMinimumValues).Methods("GET")
 
 	// Postseason
 	// apiRouter.HandleFunc("/admin/postseason/college/walkons/", controllers.GenerateWalkons).Methods("GET")

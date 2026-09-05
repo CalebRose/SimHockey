@@ -808,6 +808,7 @@ type ProfessionalPlayer struct {
 	DraftedPick           uint16
 	DraftedYearID         uint
 	MinimumValue          float32
+	OriginalMinimumValue  float32
 	HasProgressed         bool
 	Rejections            int8
 	AffiliateTeamID       uint16
@@ -903,6 +904,11 @@ func (np *ProfessionalPlayer) ToggleIsNegotiating() {
 func (np *ProfessionalPlayer) WaitUntilAfterDraft() {
 	np.IsNegotiating = false
 	np.IsAcceptingOffers = false
+}
+
+func (np *ProfessionalPlayer) AssignCalculatedValues(adjustedVal float64) {
+	np.MinimumValue = float32(adjustedVal)
+	np.OriginalMinimumValue = float32(adjustedVal)
 }
 
 func (np *ProfessionalPlayer) TradePlayer(id uint, team string) {

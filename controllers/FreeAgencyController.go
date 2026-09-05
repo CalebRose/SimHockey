@@ -78,3 +78,9 @@ func TestExtensionSyncs(w http.ResponseWriter, r *http.Request) {
 
 	json.NewEncoder(w).Encode(true)
 }
+
+func CalculatePlayerMinimumValues(w http.ResponseWriter, r *http.Request) {
+	managers.CalculatePlayerMinimumValues(w)
+
+	json.NewEncoder(w).Encode(true)
+}
