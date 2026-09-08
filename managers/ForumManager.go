@@ -18,7 +18,11 @@ import (
 
 // PostGameForumID is the Firestore document ID of the forum category used for
 // post-game discussion threads.
-const PostGameForumID = "postgame-discussions"
+const (
+	PostGameForumID = "postgame-discussions"
+	phlMediaForumID = "media-simphl"
+	chlMediaForumID = "media-simchl"
+)
 
 // ─────────────────────────────────────────────
 // Post-game discussion threads
@@ -1094,4 +1098,199 @@ func buildPHLJobApplicationParagraphs(request structs.ProTeamRequest, team struc
 	paragraphs = append(paragraphs, fmt.Sprintf("About %s: %s", request.Username, request.AboutYourself))
 
 	return paragraphs
+}
+
+// ─────────────────────────────────────────────
+// PHL Draft Lottery forum thread
+// ─────────────────────────────────────────────
+
+// CreateDraftLotteryForumThread creates a system-generated forum thread
+// summarising the PHL draft lottery results for the given season.
+// draftPicks should include all lottery picks (typically the first 14 R1 picks).
+// The operation is idempotent: calling it twice for the same season has no effect.
+func CreateDraftLotteryForumThread(season int, draftPicks []structs.DraftPick) {
+	ctx := context.Background()
+
+	title := fmt.Sprintf("SimPHL: Season %d Draft Lottery Results", season)
+	eventKey := fmt.Sprintf("draft_lottery:phl:season%d", season)
+
+	nodes := buildDraftLotteryNodes(season, draftPicks)
+	bodyText := nodesToPlainText(nodes)
+	richBody := buildRichDoc(nodes)
+
+	input := fbsvc.CreateForumThreadInput{
+		ForumID:           phlMediaForumID,
+		ForumPath:         []string{"media", "simphl"},
+		Title:             title,
+		AuthorUID:         "system",
+		AuthorUsername:    "SimSN",
+		AuthorDisplayName: "SimSN System",
+		CreatedByType:     fbsvc.CreatedBySystem,
+		ThreadType:        fbsvc.ThreadTypeStandard,
+		FirstPostBodyText: bodyText,
+		FirstPostBody:     richBody,
+		ReferencedLeague:  "phl",
+		ExternalEventKey:  eventKey,
+	}
+
+	thread, err := fbsvc.CreateThread(ctx, input)
+	if err != nil {
+		log.Printf("ForumManager: failed to create draft lottery thread for season %d: %v", season, err)
+		return
+	}
+
+	log.Printf("ForumManager: created draft lottery thread %s for season %d", thread.ID, season)
+}
+
+// buildDraftLotteryNodes builds the rich-text node list for a draft lottery thread.
+func buildDraftLotteryNodes(season int, draftPicks []structs.DraftPick) []map[string]interface{} {
+	nodes := []map[string]interface{}{}
+
+	nodes = append(nodes, rtBoldParagraph(fmt.Sprintf("Season %d PHL Draft Lottery", season)))
+	nodes = append(nodes, rtParagraph("The draft lottery has been conducted. Here are the results:"))
+
+	// Separate and sort picks by round then pick number.
+	var r1, r2, r3, r4, r5, r6, r7 []structs.DraftPick
+	for _, p := range draftPicks {
+		if p.DraftRound == 1 {
+			r1 = append(r1, p)
+		} else if p.DraftRound == 2 {
+			r2 = append(r2, p)
+		} else if p.DraftRound == 3 {
+			r3 = append(r3, p)
+		} else if p.DraftRound == 4 {
+			r4 = append(r4, p)
+		} else if p.DraftRound == 5 {
+			r5 = append(r5, p)
+		} else if p.DraftRound == 6 {
+			r6 = append(r6, p)
+		} else if p.DraftRound == 7 {
+			r7 = append(r7, p)
+		}
+	}
+	sort.Slice(r1, func(i, j int) bool { return r1[i].DraftNumber < r1[j].DraftNumber })
+	sort.Slice(r2, func(i, j int) bool { return r2[i].DraftNumber < r2[j].DraftNumber })
+	sort.Slice(r3, func(i, j int) bool { return r3[i].DraftNumber < r3[j].DraftNumber })
+	sort.Slice(r4, func(i, j int) bool { return r4[i].DraftNumber < r4[j].DraftNumber })
+	sort.Slice(r5, func(i, j int) bool { return r5[i].DraftNumber < r5[j].DraftNumber })
+	sort.Slice(r6, func(i, j int) bool { return r6[i].DraftNumber < r6[j].DraftNumber })
+	sort.Slice(r7, func(i, j int) bool { return r7[i].DraftNumber < r7[j].DraftNumber })
+
+	if len(r1) > 0 {
+		nodes = append(nodes, rtHeading(3, "Round 1 Pick Order"))
+		pickRows := make([][]string, 0, len(r1))
+		for _, p := range r1 {
+			notes := p.Notes
+			if notes == "" {
+				notes = "—"
+			}
+			pickRows = append(pickRows, []string{
+				fmt.Sprintf("#%d", p.DraftNumber),
+				p.Team,
+				notes,
+			})
+		}
+		nodes = append(nodes, rtTableNode([]string{"Pick", "Team", "Via"}, pickRows))
+	}
+
+	if len(r2) > 0 {
+		nodes = append(nodes, rtHeading(3, "Round 2 Pick Order"))
+		pickRows := make([][]string, 0, len(r2))
+		for _, p := range r2 {
+			notes := p.Notes
+			if notes == "" {
+				notes = "—"
+			}
+			pickRows = append(pickRows, []string{
+				fmt.Sprintf("#%d", p.DraftNumber),
+				p.Team,
+				notes,
+			})
+		}
+		nodes = append(nodes, rtTableNode([]string{"Pick", "Team", "Via"}, pickRows))
+	}
+
+	if len(r3) > 0 {
+		nodes = append(nodes, rtHeading(3, "Round 3 Pick Order"))
+		pickRows := make([][]string, 0, len(r3))
+		for _, p := range r3 {
+			notes := p.Notes
+			if notes == "" {
+				notes = "—"
+			}
+			pickRows = append(pickRows, []string{
+				fmt.Sprintf("#%d", p.DraftNumber),
+				p.Team,
+				notes,
+			})
+		}
+		nodes = append(nodes, rtTableNode([]string{"Pick", "Team", "Via"}, pickRows))
+	}
+	if len(r4) > 0 {
+		nodes = append(nodes, rtHeading(3, "Round 4 Pick Order"))
+		pickRows := make([][]string, 0, len(r4))
+		for _, p := range r4 {
+			notes := p.Notes
+			if notes == "" {
+				notes = "—"
+			}
+			pickRows = append(pickRows, []string{
+				fmt.Sprintf("#%d", p.DraftNumber),
+				p.Team,
+				notes,
+			})
+		}
+		nodes = append(nodes, rtTableNode([]string{"Pick", "Team", "Via"}, pickRows))
+	}
+	if len(r5) > 0 {
+		nodes = append(nodes, rtHeading(3, "Round 5 Pick Order"))
+		pickRows := make([][]string, 0, len(r5))
+		for _, p := range r5 {
+			notes := p.Notes
+			if notes == "" {
+				notes = "—"
+			}
+			pickRows = append(pickRows, []string{
+				fmt.Sprintf("#%d", p.DraftNumber),
+				p.Team,
+				notes,
+			})
+		}
+		nodes = append(nodes, rtTableNode([]string{"Pick", "Team", "Via"}, pickRows))
+	}
+	if len(r6) > 0 {
+		nodes = append(nodes, rtHeading(3, "Round 6 Pick Order"))
+		pickRows := make([][]string, 0, len(r6))
+		for _, p := range r6 {
+			notes := p.Notes
+			if notes == "" {
+				notes = "—"
+			}
+			pickRows = append(pickRows, []string{
+				fmt.Sprintf("#%d", p.DraftNumber),
+				p.Team,
+				notes,
+			})
+		}
+		nodes = append(nodes, rtTableNode([]string{"Pick", "Team", "Via"}, pickRows))
+	}
+	if len(r7) > 0 {
+		nodes = append(nodes, rtHeading(3, "Round 7 Pick Order"))
+		pickRows := make([][]string, 0, len(r7))
+		for _, p := range r7 {
+			notes := p.Notes
+			if notes == "" {
+				notes = "—"
+			}
+			pickRows = append(pickRows, []string{
+				fmt.Sprintf("#%d", p.DraftNumber),
+				p.Team,
+				notes,
+			})
+		}
+		nodes = append(nodes, rtTableNode([]string{"Pick", "Team", "Via"}, pickRows))
+	}
+
+	nodes = append(nodes, rtParagraph("React to the draft lottery results below!"))
+	return nodes
 }

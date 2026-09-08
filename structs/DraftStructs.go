@@ -26,6 +26,10 @@ type DraftPick struct {
 	IsVoid                 bool
 }
 
+func (p *DraftPick) AssignDraftNumber(num uint) {
+	p.DraftNumber = num
+}
+
 func (p *DraftPick) TradePick(id uint, team string) {
 	p.PreviousTeamID = p.TeamID
 	p.PreviousTeam = p.Team
@@ -167,4 +171,37 @@ type ProDraftPageResponse struct {
 	DraftablePlayers []DraftablePlayer
 	ScoutingProfiles []ScoutingProfile
 	DraftPicks       map[uint][]DraftPick
+}
+
+type DraftLottery struct {
+	ID            uint
+	Round         string
+	Team          string
+	Chances       []uint
+	CurrentChance uint
+	Selection     uint
+}
+
+func (dl *DraftLottery) ApplyCurrentChance(pick int) {
+	dl.CurrentChance = dl.Chances[pick]
+}
+
+// Sorting Funcs
+type ByDraftChance []DraftLottery
+
+func (fo ByDraftChance) Len() int      { return len(fo) }
+func (fo ByDraftChance) Swap(i, j int) { fo[i], fo[j] = fo[j], fo[i] }
+func (fo ByDraftChance) Less(i, j int) bool {
+	return fo[i].CurrentChance < fo[j].CurrentChance
+}
+
+type ByDraftNumber []DraftPick
+
+func (fo ByDraftNumber) Len() int      { return len(fo) }
+func (fo ByDraftNumber) Swap(i, j int) { fo[i], fo[j] = fo[j], fo[i] }
+func (fo ByDraftNumber) Less(i, j int) bool {
+	if fo[i].DraftRound != fo[j].DraftRound {
+		return fo[i].DraftRound < fo[j].DraftRound
+	}
+	return fo[i].DraftNumber < fo[j].DraftNumber
 }

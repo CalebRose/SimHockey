@@ -45,11 +45,11 @@ type rankedGroupEntry struct {
 func getTopTierCount(group string) int {
 	switch group {
 	case "F":
-		return 10
+		return 12
 	case "D":
-		return 8
+		return 10
 	default:
-		return 5
+		return 8
 	}
 }
 
@@ -70,15 +70,15 @@ func getAgeExclusionThreshold(group string) int {
 // getAgeAdjustmentFactor returns the decimal adjustment factor for a player's
 // age and position group (e.g., +0.15 means +15%, -0.10 means −10%).
 func getAgeAdjustmentFactor(age int) float64 {
-	if age >= 34 {
+	if age >= 41 {
 		return -0.90
 	}
 	factors := map[int]float64{
 		23: 0.15, 24: 0.10, 25: 0.05, 26: 0.00,
-		27: -0.10, 28: -0.20, 29: -0.30, 30: -0.40,
-		31: -0.50, 32: -0.60, 33: -0.75, 34: -0.90,
-		35: -1.00, 36: -1.10, 37: -1.20, 38: -1.30, 39: -1.40,
-		40: -1.50,
+		27: -0.05, 28: -0.10, 29: -0.15, 30: -0.20,
+		31: -0.35, 32: -0.50, 33: -0.65, 34: -0.80,
+		35: -0.95, 36: -1.00, 37: -1.05, 38: -1.10, 39: -1.15,
+		40: -1.20,
 	}
 	if f, ok := factors[age]; ok {
 		return f
@@ -142,12 +142,12 @@ func computeGroupExtensionValues(group string, entries []playerGroupEntry) []str
 	topTierCount := getTopTierCount(group)
 	ageThreshold := getAgeExclusionThreshold(group)
 
-	// Step 2: compute adjusted overall (age <= 25 gets +4 bonus for ranking)
+	// Step 2: compute adjusted overall (age <= 24 gets +2 bonus for ranking)
 	ranked := make([]rankedGroupEntry, len(entries))
 	for i, e := range entries {
 		adj := int(e.Player.Overall)
-		if int(e.Player.Age) <= 25 {
-			adj += 4
+		if int(e.Player.Age) <= 24 {
+			adj += 2
 		}
 		ranked[i] = rankedGroupEntry{Entry: e, AdjOverall: adj}
 	}
