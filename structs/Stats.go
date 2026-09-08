@@ -50,6 +50,8 @@ type BasePlayerStats struct {
 	InjuryName           string
 	InjuryType           string
 	GameType             uint8
+	LineType             uint8 // 1== Forward, 2== Defender, 3== Goalie
+	Line                 uint8 // 1, 2, 3, 4 (line number within the type)
 }
 
 func (s *BasePlayerStats) AddStatsToSeasonRecord(stat BasePlayerStats) {
@@ -272,8 +274,31 @@ func (s *TeamSeasonStats) AddStatsToSeasonRecord(stat BaseTeamStats, isPostSeaso
 	s.PenaltyKillNetPercentage = s.PenaltyKillPercentage - s.PowerPlayPercentage
 }
 
+type BasePlayerSeasonStats struct {
+	LineType         uint8
+	FirstLinePlayed  uint8
+	SecondLinePlayed uint8
+	ThirdLinePlayed  uint8
+	FourthLinePlayed uint8
+}
+
+func (s *BasePlayerSeasonStats) AddLineStats(stat BasePlayerStats) {
+	s.LineType = stat.LineType
+	switch stat.LineType {
+	case 1:
+		s.FirstLinePlayed++
+	case 2:
+		s.SecondLinePlayed++
+	case 3:
+		s.ThirdLinePlayed++
+	case 4:
+		s.FourthLinePlayed++
+	}
+}
+
 type CollegePlayerSeasonStats struct {
 	BasePlayerStats
+	BasePlayerSeasonStats
 	StatType            uint8
 	GamesPlayed         uint8
 	GamesStarted        uint8
@@ -283,6 +308,7 @@ type CollegePlayerSeasonStats struct {
 func (s *CollegePlayerSeasonStats) AddStatsToSeasonRecord(stat BasePlayerStats, isHomeTeam, homeTeamWon, isOvertime bool) {
 	// accumulate raw counts & ids
 	s.BasePlayerStats.AddStatsToSeasonRecord(stat)
+	s.BasePlayerSeasonStats.AddLineStats(stat)
 	if stat.StartedGame {
 		s.GamesStarted++
 	}
@@ -332,6 +358,7 @@ type ProfessionalPlayerSeasonStats struct {
 	GamesPlayed  uint8
 	GamesStarted uint8
 	BasePlayerStats
+	BasePlayerSeasonStats
 }
 
 func (s *ProfessionalPlayerSeasonStats) AddStatsToSeasonRecord(stat BasePlayerStats, isHomeTeam, homeTeamWon, isOvertime bool) {
@@ -354,6 +381,7 @@ func (s *ProfessionalPlayerSeasonStats) AddStatsToSeasonRecord(stat BasePlayerSt
 	}
 	// accumulate player counts
 	s.BasePlayerStats.AddStatsToSeasonRecord(stat)
+	s.BasePlayerSeasonStats.AddLineStats(stat)
 }
 
 type ProfessionalPlayerGameStats struct {
