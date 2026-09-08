@@ -6,6 +6,7 @@ import (
 	"sort"
 	"strconv"
 	"sync"
+	"time"
 
 	util "github.com/CalebRose/SimHockey/_util"
 	"github.com/CalebRose/SimHockey/dbprovider"
@@ -360,7 +361,10 @@ func SyncAIOffers() {
 
 func SyncFreeAgencyOffers() {
 	db := dbprovider.GetInstance().GetDB()
-
+	// If time is before September 15th 2026, skip syncing extension offers
+	if time.Now().Year() == 2026 && time.Now().Month() == time.September && time.Now().Day() < 15 {
+		return
+	}
 	ts := GetTimestamp()
 	if !ts.IsFreeAgencyLocked {
 		ts.ToggleFALock()
