@@ -1052,7 +1052,7 @@ func GenerateDraftWarRooms() {
 
 func ImportPhlDraftOrder() {
 	db := dbprovider.GetInstance().GetDB()
-	filePath := filepath.Join(os.Getenv("ROOT"), "data", "2026", "2026_simphl_draft_pick_ownership.csv")
+	filePath := filepath.Join(os.Getenv("ROOT"), "data", "2027", "2027_simphl_draft_pick_ownership.csv")
 	picksCSV := util.ReadCSV(filePath)
 	ts := GetTimestamp()
 
