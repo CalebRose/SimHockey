@@ -1100,9 +1100,9 @@ func ImportPhlDraftOrder() {
 			notes = "Traded from " + originalTeam.Abbreviation
 		}
 		draftPick.TeamID = team.ID
-		draftPick.Team = team.Abbreviation
+		draftPick.Team = team.TeamName + " " + team.Mascot
 		draftPick.OriginalTeamID = originalTeam.ID
-		draftPick.OriginalTeam = originalTeam.Abbreviation
+		draftPick.OriginalTeam = originalTeam.TeamName + " " + originalTeam.Mascot
 		draftPick.PreviousTeamID = previousTeamID
 		draftPick.PreviousTeam = previousTeam
 		draftPick.Notes = notes
