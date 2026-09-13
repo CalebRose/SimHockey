@@ -1419,12 +1419,13 @@ func ExportTransferPortalToCSV(w http.ResponseWriter) {
 }
 
 func ExportDraftablePlayersToCSV(w http.ResponseWriter) {
-	// Get Team Data
-	w.Header().Set("Content-Disposition", "attachment;filename=Official_Draft_List.csv")
-	w.Header().Set("Transfer-Encoding", "chunked")
-	// Initialize writer
-	writer := csv.NewWriter(w)
 	ts := GetTimestamp()
+	season := ts.Season
+	seasonStr := strconv.Itoa(int(season))
+	// Initialize writer
+	w.Header().Set("Content-Disposition", "attachment;filename="+seasonStr+"_Official_Draft_List.csv")
+	w.Header().Set("Transfer-Encoding", "chunked")
+	writer := csv.NewWriter(w)
 	previousSeasonID := strconv.Itoa(int(ts.SeasonID) - 1)
 	stats := SearchCollegeStats(previousSeasonID, "", "SEASON", "2")
 	statMap := MakeCollegePlayerSeasonStatMap(stats.CHLPlayerSeasonStats)

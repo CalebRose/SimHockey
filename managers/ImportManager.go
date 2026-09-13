@@ -1052,7 +1052,7 @@ func GenerateDraftWarRooms() {
 
 func ImportPhlDraftOrder() {
 	db := dbprovider.GetInstance().GetDB()
-	filePath := filepath.Join(os.Getenv("ROOT"), "data", "2026", "2026_simphl_draft_pick_ownership.csv")
+	filePath := filepath.Join(os.Getenv("ROOT"), "data", "2027", "2027_simphl_draft_pick_ownership.csv")
 	picksCSV := util.ReadCSV(filePath)
 	ts := GetTimestamp()
 
@@ -1100,9 +1100,9 @@ func ImportPhlDraftOrder() {
 			notes = "Traded from " + originalTeam.Abbreviation
 		}
 		draftPick.TeamID = team.ID
-		draftPick.Team = team.Abbreviation
+		draftPick.Team = team.TeamName + " " + team.Mascot
 		draftPick.OriginalTeamID = originalTeam.ID
-		draftPick.OriginalTeam = originalTeam.Abbreviation
+		draftPick.OriginalTeam = originalTeam.TeamName + " " + originalTeam.Mascot
 		draftPick.PreviousTeamID = previousTeamID
 		draftPick.PreviousTeam = previousTeam
 		draftPick.Notes = notes
