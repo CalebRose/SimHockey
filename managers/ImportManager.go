@@ -1572,3 +1572,58 @@ func FixSimPHLRetiredPlayers() {
 
 	repository.CreateProHockeyPlayerRecordsBatch(db, proPlayersToUnretire, 20)
 }
+
+func ImportHockeyInvitationals() {
+	// db := dbprovider.GetInstance().GetDB()
+
+	// beanpotInvitational := structs.HockeyInvitational{
+	// 	Name:                "Bean Pot Invitational",
+	// 	ArenaID:             67,
+	// 	TotalTeams:          4,
+	// 	Week:                3,
+	// 	IsTournament:        true,
+	// 	InterConferenceOnly: false,
+	// }
+
+	// greatLakesInvitational := structs.HockeyInvitational{
+	// 	Name:                "Great Lakes Invitational",
+	// 	ArenaID:             180,
+	// 	TotalTeams:          4,
+	// 	Week:                3,
+	// 	IsTournament:        true,
+	// 	InterConferenceOnly: true,
+	// }
+
+	// lakePlacidInvitational := structs.HockeyInvitational{
+	// 	Name:                "Lake Placid Invitational",
+	// 	ArenaID:             179,
+	// 	TotalTeams:          4,
+	// 	Week:                3,
+	// 	IsTournament:        true,
+	// 	InterConferenceOnly: false,
+	// }
+
+	// statenIslandInvitational := structs.HockeyInvitational{
+	// 	Name:                "Staten Island Invitational",
+	// 	ArenaID:             78,
+	// 	TotalTeams:          4,
+	// 	Week:                3,
+	// 	IsTournament:        true,
+	// 	InterConferenceOnly: true,
+	// }
+
+	// cactusCup := structs.HockeyInvitational{
+	// 	Name:                "Cactus Cup",
+	// 	ArenaID:             181,
+	// 	TotalTeams:          4,
+	// 	Week:                3,
+	// 	IsTournament:        true,
+	// 	InterConferenceOnly: true,
+	// }
+
+	// db.Create(&beanpotInvitational)
+	// db.Create(&greatLakesInvitational)
+	// db.Create(&lakePlacidInvitational)
+	// db.Create(&statenIslandInvitational)
+	// db.Create(&cactusCup)
+}

@@ -121,10 +121,10 @@ var eightTeamSchedule = []scheduleEntry{
 // confPair names two teams (by Abbr) that share a protected home-and-away
 // series in the 18-team schedule. Slot assignment: pair[i] occupies
 // positions i and (n-1-i) in the teams slice.
-type confPair struct {
-	abbrA string
-	abbrB string
-}
+// type confPair struct {
+// 	abbrA string
+// 	abbrB string
+// }
 
 // ------------------------------------------------------------------
 // 9-Team Conference  (24 games – weeks 7-15, slots A & B)

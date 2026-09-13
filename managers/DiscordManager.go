@@ -965,9 +965,10 @@ func RevealPHLGameOnInterface(gameID string) {
 	homePlayerStats := make([]structs.ProfessionalPlayerGameStats, 0)
 	awayPlayerStats := make([]structs.ProfessionalPlayerGameStats, 0)
 	for _, s := range allProPlayerStats {
-		if s.TeamID == game.HomeTeamID {
+		switch s.TeamID {
+		case game.HomeTeamID:
 			homePlayerStats = append(homePlayerStats, s)
-		} else if s.TeamID == game.AwayTeamID {
+		case game.AwayTeamID:
 			awayPlayerStats = append(awayPlayerStats, s)
 		}
 	}

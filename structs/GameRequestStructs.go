@@ -18,6 +18,7 @@ type GameRequest struct {
 	WeekID           uint
 	Week             uint
 	Timeslot         string
+	IsPreseason      bool
 }
 
 func (g *GameRequest) Accepted() {
@@ -30,5 +31,9 @@ func (g *GameRequest) Approved() {
 
 // CHLGameRequest represents an OOC game scheduling request for SimCHL.
 type CHLGameRequest struct {
+	GameRequest
+}
+
+type PHLGameRequest struct {
 	GameRequest
 }

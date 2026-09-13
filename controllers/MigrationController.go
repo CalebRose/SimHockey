@@ -26,6 +26,11 @@ func ImportPHLDraftOrder(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode("Fix Sync Complete")
 }
 
+func ImportHockeyInvitationals(w http.ResponseWriter, r *http.Request) {
+	managers.ImportHockeyInvitationals()
+	json.NewEncoder(w).Encode("Fix Sync Complete")
+}
+
 func FixDraftablePlayersTable(w http.ResponseWriter, r *http.Request) {
 	managers.FixDraftablePlayersTable()
 	json.NewEncoder(w).Encode("Fix Sync Complete")

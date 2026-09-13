@@ -15,8 +15,7 @@ import "gorm.io/gorm"
 type HockeyInvitational struct {
 	gorm.Model
 	Name                string
-	ArenaID             string
-	Arena               string
+	ArenaID             uint8
 	TotalTeams          uint8 // Usually 4
 	Week                uint8 // Reserve for week 3. Slots B and C.
 	IsTournament        bool  // For Beanpot & Lake Placid only. All teams must face each other due to intraconference.
@@ -30,4 +29,14 @@ type HockeyInvitationalRequest struct {
 	InvitationalID uint
 	SeasonID       uint
 	ConferenceID   uint
+	IsAccepted     bool
+	IsApproved     bool
+}
+
+func (g *HockeyInvitationalRequest) Accepted() {
+	g.IsAccepted = true
+}
+
+func (g *HockeyInvitationalRequest) Approved() {
+	g.IsApproved = true
 }

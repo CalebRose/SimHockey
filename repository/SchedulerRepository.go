@@ -52,3 +52,40 @@ func SaveCHLGameRequest(request structs.CHLGameRequest, db *gorm.DB) {
 func DeleteCHLGameRequest(request structs.CHLGameRequest, db *gorm.DB) {
 	db.Delete(&request)
 }
+
+func FindInvitationalRecords(q SchedulerQuery) []structs.HockeyInvitational {
+	db := dbprovider.GetInstance().GetDB()
+	var requests []structs.HockeyInvitational
+	query := db.Model(&structs.HockeyInvitational{})
+	query.Find(&requests)
+	return requests
+}
+
+func FindInvitationalRequestRecords(q SchedulerQuery) []structs.HockeyInvitationalRequest {
+	db := dbprovider.GetInstance().GetDB()
+	var requests []structs.HockeyInvitationalRequest
+	query := db.Model(&structs.HockeyInvitationalRequest{})
+	if q.TeamID != "" {
+		query = query.Where("team_id = ?", q.TeamID)
+	}
+	if q.SeasonID != "" {
+		query = query.Where("season_id = ?", q.SeasonID)
+	}
+	if q.WeekID != "" {
+		query = query.Where("week_id = ?", q.WeekID)
+	}
+	query.Find(&requests)
+	return requests
+}
+
+func CreateInvitationalRequest(request structs.HockeyInvitationalRequest, db *gorm.DB) {
+	db.Create(&request)
+}
+
+func SaveInvitationalRequest(request structs.HockeyInvitationalRequest, db *gorm.DB) {
+	db.Save(&request)
+}
+
+func DeleteInvitationalRequest(request structs.HockeyInvitationalRequest, db *gorm.DB) {
+	db.Delete(&request)
+}

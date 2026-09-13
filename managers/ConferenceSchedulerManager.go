@@ -56,7 +56,7 @@ func GenerateSimCHLConferenceSchedules(ts structs.Timestamp) {
 			continue
 		}
 
-		scheduleTemplate := getScheduleTemplate(len(teams), conferenceID)
+		scheduleTemplate := getScheduleTemplate(len(teams))
 
 		matches := GenerateConferenceSchedule(teams, scheduleTemplate, ts, conferenceID)
 		collegeGamesBatch = append(collegeGamesBatch, matches...)
@@ -115,7 +115,7 @@ func GenerateConferenceSchedule(teams []structs.CollegeTeam, entries []scheduleE
 	return matches
 }
 
-func getScheduleTemplate(numOfTeams int, conferenceID uint8) []scheduleEntry {
+func getScheduleTemplate(numOfTeams int) []scheduleEntry {
 	switch numOfTeams {
 	case 8:
 		return eightTeamSchedule

@@ -1983,9 +1983,9 @@ func runTestGamesOnly(collegeGames []structs.CollegeGame, ts structs.Timestamp, 
 
 	// For testing mode, we need to check if we have the required data or create minimal fallbacks
 	if !hasRequiredTestData() {
-		fmt.Println("Warning: Missing required game data for testing. Creating minimal test games...")
-		gameDTOs := createMinimalTestGameDTOs(collegeGames, ts)
-		runMinimalTestGames(gameDTOs, ts)
+		fmt.Println("Warning: Missing required game data for testing.")
+		// gameDTOs := createMinimalTestGameDTOs(collegeGames, ts)
+		// runMinimalTestGames(gameDTOs, ts)
 		return
 	}
 
