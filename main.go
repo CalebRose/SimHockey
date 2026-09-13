@@ -103,7 +103,7 @@ func handleRequests() http.Handler {
 
 	// Import / Fix
 	// apiRouter.HandleFunc("/admin/import/phl/order/", controllers.ImportPHLDraftOrder).Methods("GET")
-	apiRouter.HandleFunc("/admin/import/hockey/invitationals/", controllers.ImportHockeyInvitationals).Methods("GET")
+	// apiRouter.HandleFunc("/admin/import/hockey/invitationals/", controllers.ImportHockeyInvitationals).Methods("GET")
 	// apiRouter.HandleFunc("/simhck/fix/standings/tables/", controllers.FixStandingsTables).Methods("GET")
 	// apiRouter.HandleFunc("/simhck/fix/missing/rookie/contracts/", controllers.FixAddingRookieContracts).Methods("GET")
 	// apiRouter.HandleFunc("/simhck/fix/postseason/tournament/", controllers.PrepareCHLPostSeasonGamesFormat).Methods("GET")
