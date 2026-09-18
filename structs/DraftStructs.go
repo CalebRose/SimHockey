@@ -24,6 +24,7 @@ type DraftPick struct {
 	PickupStatus           uint8
 	IsCompensation         bool
 	IsVoid                 bool
+	IsCalledUp             bool
 }
 
 func (p *DraftPick) TradePick(id uint, team string) {

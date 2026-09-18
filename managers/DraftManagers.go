@@ -395,5 +395,8 @@ func BringUpCollegePlayerToPros(pickID string) bool {
 	// Delete College Player Record
 	repository.DeleteCollegeHockeyPlayerRecord(db, collegePlayer)
 
+	// Toggle Draft Pick as called up
+	draftPick.IsCalledUp = true
+	repository.SaveDraftPickRecord(draftPick, db)
 	return true
 }
