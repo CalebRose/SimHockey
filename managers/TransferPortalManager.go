@@ -671,8 +671,19 @@ func AICoachFillBoardsPhase() {
 		}
 		profileCount := len(teamPortalProfiles)
 
+		maxCount := 100
+		if rosterSize > 30 {
+			maxCount = 25
+		} else if rosterSize > 27 {
+			maxCount = 50
+		} else if rosterSize > 18 {
+			maxCount = 75
+		} else if rosterSize < 10 {
+			maxCount = 150
+		}
+
 		for _, tp := range transferPortalPlayers {
-			if profileCount >= 100 {
+			if profileCount >= maxCount {
 				break
 			}
 			badOffenseFit := IsBadOffenseFit(teamProfile.OffensiveSystem, tp.Archetype)
@@ -939,17 +950,15 @@ func AICoachAllocateAndPromisePhase() {
 					benchmarkStr := ""
 					promiseBenchmark := 0
 
-					promiseType = "Minutes"
-					promiseBenchmark = 10
+					promiseType = "Lineup"
+					promiseBenchmark = 2
 
 					if p.Overall > 20 {
-						promiseBenchmark += 6
-					} else if p.Overall > 16 {
-						promiseBenchmark += 3
+						promiseBenchmark = 1
 					} else if p.Overall < 10 {
-						promiseBenchmark -= 3
+						promiseBenchmark = 3
 					} else if p.Overall < 7 {
-						promiseBenchmark -= 6
+						promiseBenchmark = 4
 					}
 					promiseWeight = getPromiseWeightByTimeOrWins("Lineup", promiseBenchmark)
 					if p.SeasonMomentumPref > 6 || p.ProgramPref > 6 {

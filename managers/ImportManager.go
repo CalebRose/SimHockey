@@ -15,6 +15,42 @@ import (
 	"github.com/CalebRose/SimHockey/structs"
 )
 
+func ImportExpansionDraftCSV() {
+	db := dbprovider.GetInstance().GetDB()
+	filePath := filepath.Join(os.Getenv("ROOT"), "data", "2027", "2027_SimPHL_Expansion_Sheet.csv")
+	expansionDraftCSV := util.ReadCSV(filePath)
+
+	professionalPlayers := repository.FindAllProPlayers(repository.PlayerQuery{})
+	proContracts := repository.FindAllProContracts(true)
+	professionalPlayerMap := MakeProfessionalPlayerMap(professionalPlayers)
+	proContractMap := MakeContractMap(proContracts)
+	professionalTeams := repository.FindAllProTeams(repository.TeamClauses{})
+	proTeamMap := MakeProTeamMap(professionalTeams)
+
+	for id, row := range expansionDraftCSV {
+		if id == 0 {
+			continue
+		}
+		teamIDString := row[0]
+		playerIDString := row[1]
+		teamID := util.ConvertStringToInt(teamIDString)
+		playerID := util.ConvertStringToInt(playerIDString)
+
+		team := proTeamMap[uint(teamID)]
+		player := professionalPlayerMap[uint(playerID)]
+		contract := proContractMap[uint(playerID)]
+		player.PreviousTeamID = uint8(player.TeamID)
+		player.PreviousTeam = player.Team
+		player.TeamID = uint16(team.ID)
+		player.Team = team.Abbreviation
+		contract.TeamID = team.ID
+
+		repository.SaveProPlayerRecord(player, db)
+		repository.SaveProContractRecord(contract, db)
+	}
+	AllocateCapsheets()
+}
+
 func ImportCollegeTeams() {
 	db := dbprovider.GetInstance().GetDB()
 	filePath := filepath.Join(os.Getenv("ROOT"), "data", "2027", "gen", "simchl_expansion_teams_acha.csv")

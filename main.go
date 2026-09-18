@@ -112,6 +112,7 @@ func handleRequests() http.Handler {
 	// apiRouter.HandleFunc("/simhck/extend/phl/players/", controllers.ExtendPHLPlayers).Methods("GET")
 	// apiRouter.HandleFunc("/simhck/fix/sim/phl/retired/players/", controllers.FixSimPHLRetiredPlayers).Methods("GET")
 	// apiRouter.HandleFunc("/simhck/add/expansion/picks/", controllers.AddExpansionDraftPickData).Methods("GET")
+	// apiRouter.HandleFunc("/simhck/run/expansion/draft/", controllers.RunExpansionDraftCSV).Methods("GET")
 
 	// Run
 	// apiRouter.HandleFunc("/admin/run/fa/sync/", controllers.TestFASync).Methods("GET")

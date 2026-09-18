@@ -103,3 +103,9 @@ func AddExpansionDraftPickData(w http.ResponseWriter, r *http.Request) {
 
 	json.NewEncoder(w).Encode(true)
 }
+
+func RunExpansionDraftCSV(w http.ResponseWriter, r *http.Request) {
+	managers.ImportExpansionDraftCSV()
+
+	json.NewEncoder(w).Encode(true)
+}

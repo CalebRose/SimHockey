@@ -335,7 +335,7 @@ func BringUpCollegePlayerToPros(pickID string) bool {
 		return false
 	}
 	draftPick := repository.FindDraftPickRecord(pickID)
-	if draftPick.ID == 0 || draftPick.DrafteeID == 0 || draftPick.SeasonID >= ts.Season {
+	if draftPick.ID == 0 || draftPick.DrafteeID == 0 || draftPick.SeasonID >= ts.SeasonID {
 		return false
 	}
 
