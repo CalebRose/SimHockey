@@ -2146,7 +2146,7 @@ func hasRequiredTestData() bool {
 }
 
 // createMinimalTestGameDTOs provides a fallback when full data isn't available
-func createMinimalTestGameDTOs(collegeGames []structs.CollegeGame, ts structs.Timestamp) []structs.GameDTO {
+func CreateMinimalTestGameDTOs(collegeGames []structs.CollegeGame, ts structs.Timestamp) []structs.GameDTO {
 	fmt.Println("ERROR: Cannot run test games without database setup.")
 	fmt.Println("Testing mode requires:")
 	fmt.Println("  1. College teams with players in the database")
@@ -2163,7 +2163,7 @@ func createMinimalTestGameDTOs(collegeGames []structs.CollegeGame, ts structs.Ti
 }
 
 // runMinimalTestGames provides error information when testing can't proceed
-func runMinimalTestGames(gameDTOs []structs.GameDTO, ts structs.Timestamp) {
+func RunMinimalTestGames(gameDTOs []structs.GameDTO, ts structs.Timestamp) {
 	fmt.Println("Test games cannot be run due to missing database setup.")
 	fmt.Println("Please initialize the application with proper team and player data first.")
 }

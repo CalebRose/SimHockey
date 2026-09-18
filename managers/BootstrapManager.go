@@ -109,8 +109,31 @@ func GetBootstrapData(collegeID, proID string) structs.BootstrapData {
 
 	// Start concurrent queries
 
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		collegePlayers := GetAllCollegePlayers()
+		chlStats := GetCollegePlayerSeasonStatsBySeason(seasonID, collegeGameType)
+
+		var teamID uint = 0
+		if len(collegeID) > 0 && collegeID != "0" {
+			parsed, _ := strconv.Atoi(collegeID)
+			teamID = uint(parsed)
+		}
+
+		mu.Lock()
+		collegePlayerMap = MakeCollegePlayerMapByTeamID(collegePlayers)
+		collegePlayerIndvMap := MakeCollegePlayerMap(collegePlayers)
+		chlGoals = GetCollegeOrderedListByStatType("GOALS", teamID, chlStats, collegePlayerIndvMap)
+		chlAssists = GetCollegeOrderedListByStatType("ASSISTS", teamID, chlStats, collegePlayerIndvMap)
+		chlSaves = GetCollegeOrderedListByStatType("SAVES", teamID, chlStats, collegePlayerIndvMap)
+		injuredCollegePlayers = MakeCollegeInjuryList(collegePlayers)
+		portalPlayers = MakeCollegePortalList(collegePlayers)
+		mu.Unlock()
+	}()
+
 	if len(collegeID) > 0 && collegeID != "0" {
-		wg.Add(5)
+		wg.Add(4)
 		go func() {
 			defer wg.Done()
 			mu.Lock()
@@ -123,20 +146,6 @@ func GetBootstrapData(collegeID, proID string) structs.BootstrapData {
 			defer wg.Done()
 			teamProfiles := repository.FindTeamRecruitingProfiles(false)
 			teamProfileMap = MakeTeamProfileMap(teamProfiles)
-		}()
-		go func() {
-			defer wg.Done()
-			collegePlayers := GetAllCollegePlayers()
-			chlStats := GetCollegePlayerSeasonStatsBySeason(seasonID, collegeGameType)
-			mu.Lock()
-			collegePlayerMap = MakeCollegePlayerMapByTeamID(collegePlayers)
-			collegePlayerIndvMap := MakeCollegePlayerMap(collegePlayers)
-			chlGoals = GetCollegeOrderedListByStatType("GOALS", collegeTeam.ID, chlStats, collegePlayerIndvMap)
-			chlAssists = GetCollegeOrderedListByStatType("ASSISTS", collegeTeam.ID, chlStats, collegePlayerIndvMap)
-			chlSaves = GetCollegeOrderedListByStatType("SAVES", collegeTeam.ID, chlStats, collegePlayerIndvMap)
-			injuredCollegePlayers = MakeCollegeInjuryList(collegePlayers)
-			portalPlayers = MakeCollegePortalList(collegePlayers)
-			mu.Unlock()
 		}()
 		go func() {
 			defer wg.Done()
@@ -392,15 +401,11 @@ func GetStatsBootstrap(collegeID, proID string) BootstrapDataStats {
 		retiredPlayers         []structs.RetiredPlayer
 	)
 
-	if len(collegeID) > 0 && collegeID != "0" {
-		wg.Add(1)
-
-		go func() {
-			defer wg.Done()
-			historicCollegePlayers = GetAllHistoricCollegePlayers()
-		}()
-		log.Println("Initiated all College data queries.")
-	}
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		historicCollegePlayers = GetAllHistoricCollegePlayers()
+	}()
 
 	if len(proID) > 0 && proID != "0" {
 		wg.Add(1)
