@@ -1375,7 +1375,7 @@ func adjustIntensityForSystemCompatibility(baseIntensity uint8, offensiveScore, 
 }
 
 // getDetailedSystemAnalysis provides comprehensive analysis for a team's optimal systems
-func getDetailedSystemAnalysis(roster []structs.BasePlayer) string {
+func GetDetailedSystemAnalysis(roster []structs.BasePlayer) string {
 	archCounts := analyzeArchetypeComposition(roster)
 	avgOverall := calculateAverageOverall(roster)
 	intensity := determineOptimalIntensity(archCounts, avgOverall)

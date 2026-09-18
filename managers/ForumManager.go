@@ -283,7 +283,7 @@ func buildHockeyPostGameNodes(
 }
 
 // formatPeriods returns a single line showing per-period scoring for a team.
-func formatPeriods(team string, s structs.BaseTeamStats, shootoutScore int, isShootout bool) string {
+func FormatPeriods(team string, s structs.BaseTeamStats, shootoutScore int, isShootout bool) string {
 	line := fmt.Sprintf("  %-20s  P1: %2d  P2: %2d  P3: %2d",
 		team, s.Period1Score, s.Period2Score, s.Period3Score)
 	if s.OTScore > 0 {

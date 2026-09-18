@@ -1918,7 +1918,7 @@ func getAttributeBlob() map[string]map[string]map[string]map[string]interface{} 
 	return payload
 }
 
-func getCollegeGenList(id uint) []structs.CollegeGenObj {
+func getCollegeGenList(_ uint) []structs.CollegeGenObj {
 	return []structs.CollegeGenObj{{Year: 4, Pos: "C"}, {Year: 4, Pos: "F"}, {Year: 4, Pos: "F"}, {Year: 4, Pos: "D"}, {Year: 4, Pos: "D"}, {Year: 4, Pos: "G"}, {Year: 4, Pos: util.PickFromStringList([]string{"C", "F", "D"})},
 		{Year: 3, Pos: "C"}, {Year: 3, Pos: "F"}, {Year: 3, Pos: "F"}, {Year: 3, Pos: "D"}, {Year: 3, Pos: "D"}, {Year: 3, Pos: "G"}, {Year: 3, Pos: util.PickFromStringList([]string{"C", "F", "D"})},
 		{Year: 2, Pos: "C"}, {Year: 2, Pos: "F"}, {Year: 2, Pos: "F"}, {Year: 2, Pos: "D"}, {Year: 2, Pos: "D"}, {Year: 2, Pos: "G"}, {Year: 2, Pos: util.PickFromStringList([]string{"C", "F", "D"})},
