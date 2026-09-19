@@ -351,6 +351,11 @@ func BringUpCollegePlayerToPros(pickID string) bool {
 		return false
 	}
 
+	collegeID := collegePlayer.TeamID
+	if collegeID == 0 && collegePlayer.PreviousTeamID > 0 {
+		collegeID = uint16(collegePlayer.PreviousTeamID)
+	}
+
 	proPlayer := structs.ProfessionalPlayer{
 		Model:          collegePlayer.Model,
 		BasePlayer:     collegePlayer.BasePlayer, // Assuming BasePlayer fields are common
@@ -360,7 +365,7 @@ func BringUpCollegePlayerToPros(pickID string) bool {
 		DraftedRound:   uint8(draftPick.DraftRound),
 		DraftedPick:    uint16(draftPick.DraftNumber),
 		DraftedYearID:  draftPick.SeasonID,
-		CollegeID:      uint(collegePlayer.TeamID),
+		CollegeID:      uint(collegeID),
 		Year:           1,
 	}
 	proPlayer.AssignDraftedTeam(draftPick.TeamID, draftPick.Team, 1)
