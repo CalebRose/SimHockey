@@ -58,26 +58,40 @@ func (p *DraftPick) MapDraftPickResults(drafteeID uint) {
 
 type ScoutingProfile struct {
 	gorm.Model
-	PlayerID          uint
-	TeamID            uint
-	ShowAttribute1    bool
-	ShowAttribute2    bool
-	ShowAttribute3    bool
-	ShowAttribute4    bool
-	ShowAttribute5    bool
-	ShowAttribute6    bool
-	ShowAttribute7    bool
-	ShowAttribute8    bool
-	ShowPotAttribute1 bool
-	ShowPotAttribute2 bool
-	ShowPotAttribute3 bool
-	ShowPotAttribute4 bool
-	ShowPotAttribute5 bool
-	ShowPotAttribute6 bool
-	ShowPotAttribute7 bool
-	ShowPotAttribute8 bool
-	RemovedFromBoard  bool
-	ShowCount         uint8
+	PlayerID           uint
+	TeamID             uint
+	ShowAttribute1     bool
+	ShowAttribute2     bool
+	ShowAttribute3     bool
+	ShowAttribute4     bool
+	ShowAttribute5     bool
+	ShowAttribute6     bool
+	ShowAttribute7     bool
+	ShowAttribute8     bool
+	ShowAttribute9     bool
+	ShowAttribute10    bool
+	ShowAttribute11    bool
+	ShowAttribute12    bool
+	ShowAttribute13    bool
+	ShowAttribute14    bool
+	ShowAttribute15    bool
+	ShowPotAttribute1  bool
+	ShowPotAttribute2  bool
+	ShowPotAttribute3  bool
+	ShowPotAttribute4  bool
+	ShowPotAttribute5  bool
+	ShowPotAttribute6  bool
+	ShowPotAttribute7  bool
+	ShowPotAttribute8  bool
+	ShowPotAttribute9  bool
+	ShowPotAttribute10 bool
+	ShowPotAttribute11 bool
+	ShowPotAttribute12 bool
+	ShowPotAttribute13 bool
+	ShowPotAttribute14 bool
+	ShowPotAttribute15 bool
+	RemovedFromBoard   bool
+	ShowCount          uint8
 }
 
 func (sp *ScoutingProfile) RevealAttribute(attr string) {
@@ -98,6 +112,20 @@ func (sp *ScoutingProfile) RevealAttribute(attr string) {
 		sp.ShowAttribute7 = true
 	case "ShowAttribute8":
 		sp.ShowAttribute8 = true
+	case "ShowAttribute9":
+		sp.ShowAttribute9 = true
+	case "ShowAttribute10":
+		sp.ShowAttribute10 = true
+	case "ShowAttribute11":
+		sp.ShowAttribute11 = true
+	case "ShowAttribute12":
+		sp.ShowAttribute12 = true
+	case "ShowAttribute13":
+		sp.ShowAttribute13 = true
+	case "ShowAttribute14":
+		sp.ShowAttribute14 = true
+	case "ShowAttribute15":
+		sp.ShowAttribute15 = true
 	case "ShowPotAttribute1":
 		sp.ShowPotAttribute1 = true
 	case "ShowPotAttribute2":
@@ -114,6 +142,20 @@ func (sp *ScoutingProfile) RevealAttribute(attr string) {
 		sp.ShowPotAttribute7 = true
 	case "ShowPotAttribute8":
 		sp.ShowPotAttribute8 = true
+	case "ShowPotAttribute9":
+		sp.ShowPotAttribute9 = true
+	case "ShowPotAttribute10":
+		sp.ShowPotAttribute10 = true
+	case "ShowPotAttribute11":
+		sp.ShowPotAttribute11 = true
+	case "ShowPotAttribute12":
+		sp.ShowPotAttribute12 = true
+	case "ShowPotAttribute13":
+		sp.ShowPotAttribute13 = true
+	case "ShowPotAttribute14":
+		sp.ShowPotAttribute14 = true
+	case "ShowPotAttribute15":
+		sp.ShowPotAttribute15 = true
 	}
 	sp.ShowCount++
 }

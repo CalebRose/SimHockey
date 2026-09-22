@@ -38,6 +38,7 @@ export class BasePlayer {
     DisciplineDeviation: number;
     InjuryDeviation: number;
     PrimeAge: number;
+    RetirementAge: number;
     Clutch: number;
     HighSchool: string;
     City: string;
@@ -98,6 +99,7 @@ export class BasePlayer {
     InjuryCount: number;
     Regression: number;
     DecayRate: number;
+    IsInjuryReserve: boolean;
 
     constructor(source: any = {}) {
         if ('string' === typeof source) source = JSON.parse(source);
@@ -137,6 +139,7 @@ export class BasePlayer {
         this.DisciplineDeviation = source["DisciplineDeviation"];
         this.InjuryDeviation = source["InjuryDeviation"];
         this.PrimeAge = source["PrimeAge"];
+        this.RetirementAge = source["RetirementAge"];
         this.Clutch = source["Clutch"];
         this.HighSchool = source["HighSchool"];
         this.City = source["City"];
@@ -197,6 +200,7 @@ export class BasePlayer {
         this.InjuryCount = source["InjuryCount"];
         this.Regression = source["Regression"];
         this.DecayRate = source["DecayRate"];
+        this.IsInjuryReserve = source["IsInjuryReserve"];
     }
 }
 export class DeletedAt {
@@ -420,6 +424,7 @@ export class DraftPick {
     PickupStatus: number;
     IsCompensation: boolean;
     IsVoid: boolean;
+    IsCalledUp: boolean;
 
     constructor(source: any = {}) {
         if ('string' === typeof source) source = JSON.parse(source);
@@ -447,6 +452,7 @@ export class DraftPick {
         this.PickupStatus = source["PickupStatus"];
         this.IsCompensation = source["IsCompensation"];
         this.IsVoid = source["IsVoid"];
+        this.IsCalledUp = source["IsCalledUp"];
     }
 
 	convertValues(a: any, classs: any, asMap: boolean = false): any {
@@ -482,6 +488,13 @@ export class ScoutingProfile {
     ShowAttribute6: boolean;
     ShowAttribute7: boolean;
     ShowAttribute8: boolean;
+    ShowAttribute9: boolean;
+    ShowAttribute10: boolean;
+    ShowAttribute11: boolean;
+    ShowAttribute12: boolean;
+    ShowAttribute13: boolean;
+    ShowAttribute14: boolean;
+    ShowAttribute15: boolean;
     ShowPotAttribute1: boolean;
     ShowPotAttribute2: boolean;
     ShowPotAttribute3: boolean;
@@ -490,6 +503,13 @@ export class ScoutingProfile {
     ShowPotAttribute6: boolean;
     ShowPotAttribute7: boolean;
     ShowPotAttribute8: boolean;
+    ShowPotAttribute9: boolean;
+    ShowPotAttribute10: boolean;
+    ShowPotAttribute11: boolean;
+    ShowPotAttribute12: boolean;
+    ShowPotAttribute13: boolean;
+    ShowPotAttribute14: boolean;
+    ShowPotAttribute15: boolean;
     RemovedFromBoard: boolean;
     ShowCount: number;
 
@@ -509,6 +529,13 @@ export class ScoutingProfile {
         this.ShowAttribute6 = source["ShowAttribute6"];
         this.ShowAttribute7 = source["ShowAttribute7"];
         this.ShowAttribute8 = source["ShowAttribute8"];
+        this.ShowAttribute9 = source["ShowAttribute9"];
+        this.ShowAttribute10 = source["ShowAttribute10"];
+        this.ShowAttribute11 = source["ShowAttribute11"];
+        this.ShowAttribute12 = source["ShowAttribute12"];
+        this.ShowAttribute13 = source["ShowAttribute13"];
+        this.ShowAttribute14 = source["ShowAttribute14"];
+        this.ShowAttribute15 = source["ShowAttribute15"];
         this.ShowPotAttribute1 = source["ShowPotAttribute1"];
         this.ShowPotAttribute2 = source["ShowPotAttribute2"];
         this.ShowPotAttribute3 = source["ShowPotAttribute3"];
@@ -517,6 +544,13 @@ export class ScoutingProfile {
         this.ShowPotAttribute6 = source["ShowPotAttribute6"];
         this.ShowPotAttribute7 = source["ShowPotAttribute7"];
         this.ShowPotAttribute8 = source["ShowPotAttribute8"];
+        this.ShowPotAttribute9 = source["ShowPotAttribute9"];
+        this.ShowPotAttribute10 = source["ShowPotAttribute10"];
+        this.ShowPotAttribute11 = source["ShowPotAttribute11"];
+        this.ShowPotAttribute12 = source["ShowPotAttribute12"];
+        this.ShowPotAttribute13 = source["ShowPotAttribute13"];
+        this.ShowPotAttribute14 = source["ShowPotAttribute14"];
+        this.ShowPotAttribute15 = source["ShowPotAttribute15"];
         this.RemovedFromBoard = source["RemovedFromBoard"];
         this.ShowCount = source["ShowCount"];
     }
@@ -620,6 +654,7 @@ export class DraftablePlayer {
     DisciplineDeviation: number;
     InjuryDeviation: number;
     PrimeAge: number;
+    RetirementAge: number;
     Clutch: number;
     HighSchool: string;
     City: string;
@@ -680,6 +715,7 @@ export class DraftablePlayer {
     InjuryCount: number;
     Regression: number;
     DecayRate: number;
+    IsInjuryReserve: boolean;
     AgilityGrade: string;
     FaceoffsGrade: string;
     LongShotAccuracyGrade: string;
@@ -761,6 +797,7 @@ export class DraftablePlayer {
         this.DisciplineDeviation = source["DisciplineDeviation"];
         this.InjuryDeviation = source["InjuryDeviation"];
         this.PrimeAge = source["PrimeAge"];
+        this.RetirementAge = source["RetirementAge"];
         this.Clutch = source["Clutch"];
         this.HighSchool = source["HighSchool"];
         this.City = source["City"];
@@ -821,6 +858,7 @@ export class DraftablePlayer {
         this.InjuryCount = source["InjuryCount"];
         this.Regression = source["Regression"];
         this.DecayRate = source["DecayRate"];
+        this.IsInjuryReserve = source["IsInjuryReserve"];
         this.AgilityGrade = source["AgilityGrade"];
         this.FaceoffsGrade = source["FaceoffsGrade"];
         this.LongShotAccuracyGrade = source["LongShotAccuracyGrade"];
@@ -1142,6 +1180,8 @@ export class ProfessionalPlayerGameStats {
     InjuryName: string;
     InjuryType: string;
     GameType: number;
+    LineType: number;
+    Line: number;
 
     constructor(source: any = {}) {
         if ('string' === typeof source) source = JSON.parse(source);
@@ -1196,6 +1236,8 @@ export class ProfessionalPlayerGameStats {
         this.InjuryName = source["InjuryName"];
         this.InjuryType = source["InjuryType"];
         this.GameType = source["GameType"];
+        this.LineType = source["LineType"];
+        this.Line = source["Line"];
     }
 
 	convertValues(a: any, classs: any, asMap: boolean = false): any {
@@ -1330,6 +1372,8 @@ export class CollegePlayerGameStats {
     InjuryName: string;
     InjuryType: string;
     GameType: number;
+    LineType: number;
+    Line: number;
 
     constructor(source: any = {}) {
         if ('string' === typeof source) source = JSON.parse(source);
@@ -1384,6 +1428,8 @@ export class CollegePlayerGameStats {
         this.InjuryName = source["InjuryName"];
         this.InjuryType = source["InjuryType"];
         this.GameType = source["GameType"];
+        this.LineType = source["LineType"];
+        this.Line = source["Line"];
     }
 
 	convertValues(a: any, classs: any, asMap: boolean = false): any {
@@ -1720,6 +1766,13 @@ export class ProfessionalPlayerSeasonStats {
     InjuryName: string;
     InjuryType: string;
     GameType: number;
+    LineType: number;
+    Line: number;
+    LineType: number;
+    FirstLinePlayed: number;
+    SecondLinePlayed: number;
+    ThirdLinePlayed: number;
+    FourthLinePlayed: number;
 
     constructor(source: any = {}) {
         if ('string' === typeof source) source = JSON.parse(source);
@@ -1774,6 +1827,13 @@ export class ProfessionalPlayerSeasonStats {
         this.InjuryName = source["InjuryName"];
         this.InjuryType = source["InjuryType"];
         this.GameType = source["GameType"];
+        this.LineType = source["LineType"];
+        this.Line = source["Line"];
+        this.LineType = source["LineType"];
+        this.FirstLinePlayed = source["FirstLinePlayed"];
+        this.SecondLinePlayed = source["SecondLinePlayed"];
+        this.ThirdLinePlayed = source["ThirdLinePlayed"];
+        this.FourthLinePlayed = source["FourthLinePlayed"];
     }
 
 	convertValues(a: any, classs: any, asMap: boolean = false): any {
@@ -2069,6 +2129,13 @@ export class CollegePlayerSeasonStats {
     InjuryName: string;
     InjuryType: string;
     GameType: number;
+    LineType: number;
+    Line: number;
+    LineType: number;
+    FirstLinePlayed: number;
+    SecondLinePlayed: number;
+    ThirdLinePlayed: number;
+    FourthLinePlayed: number;
     StatType: number;
     GamesPlayed: number;
     GamesStarted: number;
@@ -2124,6 +2191,13 @@ export class CollegePlayerSeasonStats {
         this.InjuryName = source["InjuryName"];
         this.InjuryType = source["InjuryType"];
         this.GameType = source["GameType"];
+        this.LineType = source["LineType"];
+        this.Line = source["Line"];
+        this.LineType = source["LineType"];
+        this.FirstLinePlayed = source["FirstLinePlayed"];
+        this.SecondLinePlayed = source["SecondLinePlayed"];
+        this.ThirdLinePlayed = source["ThirdLinePlayed"];
+        this.FourthLinePlayed = source["FourthLinePlayed"];
         this.StatType = source["StatType"];
         this.GamesPlayed = source["GamesPlayed"];
         this.GamesStarted = source["GamesStarted"];
@@ -2294,6 +2368,7 @@ export class BaseInjuryData {
     InjuryCount: number;
     Regression: number;
     DecayRate: number;
+    IsInjuryReserve: boolean;
 
     constructor(source: any = {}) {
         if ('string' === typeof source) source = JSON.parse(source);
@@ -2304,6 +2379,7 @@ export class BaseInjuryData {
         this.InjuryCount = source["InjuryCount"];
         this.Regression = source["Regression"];
         this.DecayRate = source["DecayRate"];
+        this.IsInjuryReserve = source["IsInjuryReserve"];
     }
 }
 export class TransferPortalProfile {
@@ -2439,6 +2515,7 @@ export class CollegePlayer {
     DisciplineDeviation: number;
     InjuryDeviation: number;
     PrimeAge: number;
+    RetirementAge: number;
     Clutch: number;
     HighSchool: string;
     City: string;
@@ -2499,6 +2576,7 @@ export class CollegePlayer {
     InjuryCount: number;
     Regression: number;
     DecayRate: number;
+    IsInjuryReserve: boolean;
     AgilityPotential: number;
     FaceoffsPotential: number;
     CloseShotAccuracyPotential: number;
@@ -2571,6 +2649,7 @@ export class CollegePlayer {
         this.DisciplineDeviation = source["DisciplineDeviation"];
         this.InjuryDeviation = source["InjuryDeviation"];
         this.PrimeAge = source["PrimeAge"];
+        this.RetirementAge = source["RetirementAge"];
         this.Clutch = source["Clutch"];
         this.HighSchool = source["HighSchool"];
         this.City = source["City"];
@@ -2631,6 +2710,7 @@ export class CollegePlayer {
         this.InjuryCount = source["InjuryCount"];
         this.Regression = source["Regression"];
         this.DecayRate = source["DecayRate"];
+        this.IsInjuryReserve = source["IsInjuryReserve"];
         this.AgilityPotential = source["AgilityPotential"];
         this.FaceoffsPotential = source["FaceoffsPotential"];
         this.CloseShotAccuracyPotential = source["CloseShotAccuracyPotential"];
@@ -2945,6 +3025,7 @@ export class ProfessionalPlayer {
     DisciplineDeviation: number;
     InjuryDeviation: number;
     PrimeAge: number;
+    RetirementAge: number;
     Clutch: number;
     HighSchool: string;
     City: string;
@@ -3005,6 +3086,7 @@ export class ProfessionalPlayer {
     InjuryCount: number;
     Regression: number;
     DecayRate: number;
+    IsInjuryReserve: boolean;
     AgilityPotential: number;
     FaceoffsPotential: number;
     CloseShotAccuracyPotential: number;
@@ -3094,6 +3176,7 @@ export class ProfessionalPlayer {
         this.DisciplineDeviation = source["DisciplineDeviation"];
         this.InjuryDeviation = source["InjuryDeviation"];
         this.PrimeAge = source["PrimeAge"];
+        this.RetirementAge = source["RetirementAge"];
         this.Clutch = source["Clutch"];
         this.HighSchool = source["HighSchool"];
         this.City = source["City"];
@@ -3154,6 +3237,7 @@ export class ProfessionalPlayer {
         this.InjuryCount = source["InjuryCount"];
         this.Regression = source["Regression"];
         this.DecayRate = source["DecayRate"];
+        this.IsInjuryReserve = source["IsInjuryReserve"];
         this.AgilityPotential = source["AgilityPotential"];
         this.FaceoffsPotential = source["FaceoffsPotential"];
         this.CloseShotAccuracyPotential = source["CloseShotAccuracyPotential"];
@@ -3261,6 +3345,7 @@ export class HistoricCollegePlayer {
     DisciplineDeviation: number;
     InjuryDeviation: number;
     PrimeAge: number;
+    RetirementAge: number;
     Clutch: number;
     HighSchool: string;
     City: string;
@@ -3321,6 +3406,7 @@ export class HistoricCollegePlayer {
     InjuryCount: number;
     Regression: number;
     DecayRate: number;
+    IsInjuryReserve: boolean;
     AgilityPotential: number;
     FaceoffsPotential: number;
     CloseShotAccuracyPotential: number;
@@ -3393,6 +3479,7 @@ export class HistoricCollegePlayer {
         this.DisciplineDeviation = source["DisciplineDeviation"];
         this.InjuryDeviation = source["InjuryDeviation"];
         this.PrimeAge = source["PrimeAge"];
+        this.RetirementAge = source["RetirementAge"];
         this.Clutch = source["Clutch"];
         this.HighSchool = source["HighSchool"];
         this.City = source["City"];
@@ -3453,6 +3540,7 @@ export class HistoricCollegePlayer {
         this.InjuryCount = source["InjuryCount"];
         this.Regression = source["Regression"];
         this.DecayRate = source["DecayRate"];
+        this.IsInjuryReserve = source["IsInjuryReserve"];
         this.AgilityPotential = source["AgilityPotential"];
         this.FaceoffsPotential = source["FaceoffsPotential"];
         this.CloseShotAccuracyPotential = source["CloseShotAccuracyPotential"];
@@ -3543,6 +3631,7 @@ export class RetiredPlayer {
     DisciplineDeviation: number;
     InjuryDeviation: number;
     PrimeAge: number;
+    RetirementAge: number;
     Clutch: number;
     HighSchool: string;
     City: string;
@@ -3603,6 +3692,7 @@ export class RetiredPlayer {
     InjuryCount: number;
     Regression: number;
     DecayRate: number;
+    IsInjuryReserve: boolean;
     AgilityPotential: number;
     FaceoffsPotential: number;
     CloseShotAccuracyPotential: number;
@@ -3692,6 +3782,7 @@ export class RetiredPlayer {
         this.DisciplineDeviation = source["DisciplineDeviation"];
         this.InjuryDeviation = source["InjuryDeviation"];
         this.PrimeAge = source["PrimeAge"];
+        this.RetirementAge = source["RetirementAge"];
         this.Clutch = source["Clutch"];
         this.HighSchool = source["HighSchool"];
         this.City = source["City"];
@@ -3752,6 +3843,7 @@ export class RetiredPlayer {
         this.InjuryCount = source["InjuryCount"];
         this.Regression = source["Regression"];
         this.DecayRate = source["DecayRate"];
+        this.IsInjuryReserve = source["IsInjuryReserve"];
         this.AgilityPotential = source["AgilityPotential"];
         this.FaceoffsPotential = source["FaceoffsPotential"];
         this.CloseShotAccuracyPotential = source["CloseShotAccuracyPotential"];
@@ -4448,6 +4540,7 @@ export class ProfessionalGame {
     IsPlayoffGame: boolean;
     IsRivalryGame: boolean;
     GameComplete: boolean;
+    IsRevealed: boolean;
     IsOvertime: boolean;
     IsShootout: boolean;
     GameTitle: string;
@@ -4499,6 +4592,7 @@ export class ProfessionalGame {
         this.IsPlayoffGame = source["IsPlayoffGame"];
         this.IsRivalryGame = source["IsRivalryGame"];
         this.GameComplete = source["GameComplete"];
+        this.IsRevealed = source["IsRevealed"];
         this.IsOvertime = source["IsOvertime"];
         this.IsShootout = source["IsShootout"];
         this.GameTitle = source["GameTitle"];
@@ -5168,6 +5262,7 @@ export class CollegeGame {
     IsPlayoffGame: boolean;
     IsRivalryGame: boolean;
     GameComplete: boolean;
+    IsRevealed: boolean;
     IsOvertime: boolean;
     IsShootout: boolean;
     GameTitle: string;
@@ -5178,6 +5273,9 @@ export class CollegeGame {
     IsNationalChampionship: boolean;
     IsConferenceTournament: boolean;
     IsInvitational: boolean;
+    InvitationalID: number;
+    LosingGameID: number;
+    LosingGameHOA: string;
 
     constructor(source: any = {}) {
         if ('string' === typeof source) source = JSON.parse(source);
@@ -5218,6 +5316,7 @@ export class CollegeGame {
         this.IsPlayoffGame = source["IsPlayoffGame"];
         this.IsRivalryGame = source["IsRivalryGame"];
         this.GameComplete = source["GameComplete"];
+        this.IsRevealed = source["IsRevealed"];
         this.IsOvertime = source["IsOvertime"];
         this.IsShootout = source["IsShootout"];
         this.GameTitle = source["GameTitle"];
@@ -5228,6 +5327,9 @@ export class CollegeGame {
         this.IsNationalChampionship = source["IsNationalChampionship"];
         this.IsConferenceTournament = source["IsConferenceTournament"];
         this.IsInvitational = source["IsInvitational"];
+        this.InvitationalID = source["InvitationalID"];
+        this.LosingGameID = source["LosingGameID"];
+        this.LosingGameHOA = source["LosingGameHOA"];
     }
 
 	convertValues(a: any, classs: any, asMap: boolean = false): any {
@@ -5545,6 +5647,7 @@ export class Recruit {
     DisciplineDeviation: number;
     InjuryDeviation: number;
     PrimeAge: number;
+    RetirementAge: number;
     Clutch: number;
     HighSchool: string;
     City: string;
@@ -5605,6 +5708,7 @@ export class Recruit {
     InjuryCount: number;
     Regression: number;
     DecayRate: number;
+    IsInjuryReserve: boolean;
     AgilityPotential: number;
     FaceoffsPotential: number;
     CloseShotAccuracyPotential: number;
@@ -5676,6 +5780,7 @@ export class Recruit {
         this.DisciplineDeviation = source["DisciplineDeviation"];
         this.InjuryDeviation = source["InjuryDeviation"];
         this.PrimeAge = source["PrimeAge"];
+        this.RetirementAge = source["RetirementAge"];
         this.Clutch = source["Clutch"];
         this.HighSchool = source["HighSchool"];
         this.City = source["City"];
@@ -5736,6 +5841,7 @@ export class Recruit {
         this.InjuryCount = source["InjuryCount"];
         this.Regression = source["Regression"];
         this.DecayRate = source["DecayRate"];
+        this.IsInjuryReserve = source["IsInjuryReserve"];
         this.AgilityPotential = source["AgilityPotential"];
         this.FaceoffsPotential = source["FaceoffsPotential"];
         this.CloseShotAccuracyPotential = source["CloseShotAccuracyPotential"];
@@ -6711,6 +6817,11 @@ export class TeamRequest {
     IsApproved: boolean;
     IsActive: boolean;
     Role: string;
+    DiscordUsername: string;
+    HowMuchTimeAnswer: string;
+    HowDidYouHearAboutSimSN: string;
+    CommunityReference: string;
+    AboutYourself: string;
 
     constructor(source: any = {}) {
         if ('string' === typeof source) source = JSON.parse(source);
@@ -6719,6 +6830,11 @@ export class TeamRequest {
         this.IsApproved = source["IsApproved"];
         this.IsActive = source["IsActive"];
         this.Role = source["Role"];
+        this.DiscordUsername = source["DiscordUsername"];
+        this.HowMuchTimeAnswer = source["HowMuchTimeAnswer"];
+        this.HowDidYouHearAboutSimSN = source["HowDidYouHearAboutSimSN"];
+        this.CommunityReference = source["CommunityReference"];
+        this.AboutYourself = source["AboutYourself"];
     }
 }
 export class CollegeTeamRequest {
@@ -6731,6 +6847,11 @@ export class CollegeTeamRequest {
     IsApproved: boolean;
     IsActive: boolean;
     Role: string;
+    DiscordUsername: string;
+    HowMuchTimeAnswer: string;
+    HowDidYouHearAboutSimSN: string;
+    CommunityReference: string;
+    AboutYourself: string;
 
     constructor(source: any = {}) {
         if ('string' === typeof source) source = JSON.parse(source);
@@ -6743,6 +6864,11 @@ export class CollegeTeamRequest {
         this.IsApproved = source["IsApproved"];
         this.IsActive = source["IsActive"];
         this.Role = source["Role"];
+        this.DiscordUsername = source["DiscordUsername"];
+        this.HowMuchTimeAnswer = source["HowMuchTimeAnswer"];
+        this.HowDidYouHearAboutSimSN = source["HowDidYouHearAboutSimSN"];
+        this.CommunityReference = source["CommunityReference"];
+        this.AboutYourself = source["AboutYourself"];
     }
 
 	convertValues(a: any, classs: any, asMap: boolean = false): any {
@@ -6773,6 +6899,11 @@ export class ProTeamRequest {
     IsApproved: boolean;
     IsActive: boolean;
     Role: string;
+    DiscordUsername: string;
+    HowMuchTimeAnswer: string;
+    HowDidYouHearAboutSimSN: string;
+    CommunityReference: string;
+    AboutYourself: string;
 
     constructor(source: any = {}) {
         if ('string' === typeof source) source = JSON.parse(source);
@@ -6785,6 +6916,11 @@ export class ProTeamRequest {
         this.IsApproved = source["IsApproved"];
         this.IsActive = source["IsActive"];
         this.Role = source["Role"];
+        this.DiscordUsername = source["DiscordUsername"];
+        this.HowMuchTimeAnswer = source["HowMuchTimeAnswer"];
+        this.HowDidYouHearAboutSimSN = source["HowDidYouHearAboutSimSN"];
+        this.CommunityReference = source["CommunityReference"];
+        this.AboutYourself = source["AboutYourself"];
     }
 
 	convertValues(a: any, classs: any, asMap: boolean = false): any {
@@ -7080,9 +7216,12 @@ export class TeamRecordResponse {
     CurrentSeasonLosses: number;
     PostSeasonWins: number;
     PostSeasonLosses: number;
+    Playoffs: string[];
+    FrozenFours: string[];
     ConferenceChampionships: string[];
     DivisionTitles: string[];
     NationalChampionships: string[];
+    RunnerUps: string[];
     TopPlayers: TopPlayer[];
 
     constructor(source: any = {}) {
@@ -7093,9 +7232,12 @@ export class TeamRecordResponse {
         this.CurrentSeasonLosses = source["CurrentSeasonLosses"];
         this.PostSeasonWins = source["PostSeasonWins"];
         this.PostSeasonLosses = source["PostSeasonLosses"];
+        this.Playoffs = source["Playoffs"];
+        this.FrozenFours = source["FrozenFours"];
         this.ConferenceChampionships = source["ConferenceChampionships"];
         this.DivisionTitles = source["DivisionTitles"];
         this.NationalChampionships = source["NationalChampionships"];
+        this.RunnerUps = source["RunnerUps"];
         this.TopPlayers = this.convertValues(source["TopPlayers"], TopPlayer);
     }
 
@@ -7195,6 +7337,8 @@ export class BasePlayerStats {
     InjuryName: string;
     InjuryType: string;
     GameType: number;
+    LineType: number;
+    Line: number;
 
     constructor(source: any = {}) {
         if ('string' === typeof source) source = JSON.parse(source);
@@ -7246,6 +7390,8 @@ export class BasePlayerStats {
         this.InjuryName = source["InjuryName"];
         this.InjuryType = source["InjuryType"];
         this.GameType = source["GameType"];
+        this.LineType = source["LineType"];
+        this.Line = source["Line"];
     }
 
 	convertValues(a: any, classs: any, asMap: boolean = false): any {
@@ -7449,6 +7595,7 @@ export class Timestamp {
     PreseasonPhase: number;
     IsPreseason: boolean;
     SeasonPhase: number;
+    Phase: number;
     IsTesting: boolean;
     TestRunNum: number;
 
@@ -7496,6 +7643,7 @@ export class Timestamp {
         this.PreseasonPhase = source["PreseasonPhase"];
         this.IsPreseason = source["IsPreseason"];
         this.SeasonPhase = source["SeasonPhase"];
+        this.Phase = source["Phase"];
         this.IsTesting = source["IsTesting"];
         this.TestRunNum = source["TestRunNum"];
     }
