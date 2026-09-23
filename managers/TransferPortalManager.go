@@ -630,7 +630,18 @@ func AICoachFillBoardsPhase() {
 	rand.Shuffle(len(AITeams), func(i, j int) {
 		AITeams[i], AITeams[j] = AITeams[j], AITeams[i]
 	})
-	transferPortalPlayers := repository.FindAllCollegePlayers(repository.PlayerQuery{})
+	transferPortalPlayers := repository.FindAllCollegePlayers(repository.PlayerQuery{
+		TransferStatus: "2",
+	})
+
+	// Sort portal players by Overall
+	if len(transferPortalPlayers) == 0 {
+		return
+	}
+	sort.SliceStable(transferPortalPlayers, func(i, j int) bool {
+		return transferPortalPlayers[i].Overall > transferPortalPlayers[j].Overall
+	})
+
 	teamMap := GetCollegeTeamMap()
 	standingsMap := GetCollegeStandingsMap(seasonID)
 	profiles := []structs.TransferPortalProfile{}
@@ -1011,32 +1022,9 @@ func SyncTransferPortal() {
 	teamProfiles := repository.FindTeamRecruitingProfiles(false)
 	teamProfileMap := MakeTeamProfileMap(teamProfiles)
 	signingLabels := []string{}
-	initialPortalPlayersList := repository.FindAllCollegePlayers(repository.PlayerQuery{
+	transferPortalPlayers := repository.FindAllCollegePlayers(repository.PlayerQuery{
 		TransferStatus: "2",
 	})
-
-	canadianPlayers := repository.FindAllCollegePlayers(repository.PlayerQuery{
-		LeagueID: "2",
-	})
-
-	playerIDMap := make(map[uint]bool)
-
-	transferPortalPlayers := []structs.CollegePlayer{}
-	for _, player := range initialPortalPlayersList {
-		if playerIDMap[player.ID] {
-			continue
-		}
-		playerIDMap[player.ID] = true
-		transferPortalPlayers = append(transferPortalPlayers, player)
-	}
-
-	for _, player := range canadianPlayers {
-		if playerIDMap[player.ID] {
-			continue
-		}
-		playerIDMap[player.ID] = true
-		transferPortalPlayers = append(transferPortalPlayers, player)
-	}
 
 	// Only get players that are actively being recruited or have not been signed yet.
 	//
@@ -1057,6 +1045,7 @@ func SyncTransferPortal() {
 		if portalPlayer.TeamID > 0 && portalPlayer.LeagueID == 1 {
 			continue
 		}
+
 		portalProfiles := transferPortalProfileMap[portalPlayer.ID]
 		if len(portalProfiles) == 0 && ts.TransferPortalRound < uint(util.FinalPortalRound) {
 			continue
