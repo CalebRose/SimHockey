@@ -1011,9 +1011,33 @@ func SyncTransferPortal() {
 	teamProfiles := repository.FindTeamRecruitingProfiles(false)
 	teamProfileMap := MakeTeamProfileMap(teamProfiles)
 	signingLabels := []string{}
-	transferPortalPlayers := repository.FindAllCollegePlayers(repository.PlayerQuery{
+	initialPortalPlayersList := repository.FindAllCollegePlayers(repository.PlayerQuery{
 		TransferStatus: "2",
 	})
+
+	canadianPlayers := repository.FindAllCollegePlayers(repository.PlayerQuery{
+		LeagueID: "2",
+	})
+
+	playerIDMap := make(map[uint]bool)
+
+	transferPortalPlayers := []structs.CollegePlayer{}
+	for _, player := range initialPortalPlayersList {
+		if playerIDMap[player.ID] {
+			continue
+		}
+		playerIDMap[player.ID] = true
+		transferPortalPlayers = append(transferPortalPlayers, player)
+	}
+
+	for _, player := range canadianPlayers {
+		if playerIDMap[player.ID] {
+			continue
+		}
+		playerIDMap[player.ID] = true
+		transferPortalPlayers = append(transferPortalPlayers, player)
+	}
+
 	// Only get players that are actively being recruited or have not been signed yet.
 	//
 	transferPortalProfiles := repository.FindTransferPortalProfileRecords(repository.TransferPortalQuery{
@@ -1030,11 +1054,9 @@ func SyncTransferPortal() {
 	}
 
 	for _, portalPlayer := range transferPortalPlayers {
-		// Skip over players that have already transferred
-		if portalPlayer.TransferStatus != 2 {
+		if portalPlayer.TeamID > 0 && portalPlayer.LeagueID == 1 {
 			continue
 		}
-
 		portalProfiles := transferPortalProfileMap[portalPlayer.ID]
 		if len(portalProfiles) == 0 && ts.TransferPortalRound < uint(util.FinalPortalRound) {
 			continue
