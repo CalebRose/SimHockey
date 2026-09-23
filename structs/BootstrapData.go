@@ -1,28 +1,33 @@
 package structs
 
 type BootstrapData struct {
-	CollegeTeam               CollegeTeam
-	AllCollegeTeams           []CollegeTeam
-	CollegeStandings          []CollegeStandings
-	CollegeRosterMap          map[uint][]CollegePlayer
-	Recruits                  []Croot
-	RecruitProfiles           []RecruitPlayerProfile
-	TeamProfileMap            map[uint]*RecruitingTeamProfile
-	PortalPlayers             []CollegePlayer
-	TransferPortalProfiles    []TransferPortalProfile
-	CollegePromises           []CollegePromise
-	CollegeInjuryReport       []CollegePlayer
-	CollegeNews               []NewsLog
-	CollegeNotifications      []Notification
-	AllCollegeGames           []CollegeGame
-	CHLGameplanMap            map[uint]CollegeGameplan
-	CollegeTeamLineups        []CollegeLineup
-	CollegeTeamShootoutLineup CollegeShootoutLineup
-	TopCHLGoals               []CollegePlayer
-	TopCHLAssists             []CollegePlayer
-	TopCHLSaves               []CollegePlayer
-	CollegePoll               CollegePollSubmission
-	OfficialPolls             []CollegePollOfficial
+	CollegeTeam                CollegeTeam
+	AllCollegeTeams            []CollegeTeam
+	CollegeStandings           []CollegeStandings
+	CollegeRosterMap           map[uint][]CollegePlayer
+	Recruits                   []Croot
+	RecruitProfiles            []RecruitPlayerProfile
+	TeamProfileMap             map[uint]*RecruitingTeamProfile
+	PortalPlayers              []CollegePlayer
+	TransferPortalProfiles     []TransferPortalProfile
+	CollegePromises            []CollegePromise
+	CollegeInjuryReport        []CollegePlayer
+	CollegeNews                []NewsLog
+	CollegeNotifications       []Notification
+	AllCollegeGames            []CollegeGame
+	CHLGameplanMap             map[uint]CollegeGameplan
+	CollegeLineupsMap          map[uint][]CollegeLineup
+	CollegeTeamLineups         []CollegeLineup
+	CollegeTeamShootoutLineup  CollegeShootoutLineup
+	CollegeShootoutLineupsMap  map[uint]CollegeShootoutLineup
+	TopCHLGoals                []CollegePlayer
+	TopCHLAssists              []CollegePlayer
+	TopCHLSaves                []CollegePlayer
+	CollegePoll                CollegePollSubmission
+	OfficialPolls              []CollegePollOfficial
+	HockeyInvitationals        []HockeyInvitational
+	HockeyInvitationalRequests []HockeyInvitationalRequest
+	CollegeGameRequests        []CHLGameRequest
 	// Player Profiles by Team?
 	// Portal profiles?
 	ProTeam               ProfessionalTeam
@@ -41,7 +46,9 @@ type BootstrapData struct {
 	ProNotifications      []Notification
 	AllProGames           []ProfessionalGame
 	PHLGameplanMap        map[uint]ProGameplan
+	ProLineupsMap         map[uint][]ProfessionalLineup
 	ProTeamLineups        []ProfessionalLineup
+	ProShootoutLineupsMap map[uint]ProfessionalShootoutLineup
 	ProTeamShootoutLineup ProfessionalShootoutLineup
 	FaceData              map[uint]FaceDataResponse
 	ContractMap           map[uint]ProContract

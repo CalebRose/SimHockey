@@ -72,8 +72,6 @@ func GetBootstrapData(collegeID, proID string) structs.BootstrapData {
 		collegeLineups         []structs.CollegeLineup
 		collegeShootoutLineup  structs.CollegeShootoutLineup
 		faceDataMap            map[uint]structs.FaceDataResponse
-		poll                   structs.CollegePollSubmission
-		officialPolls          []structs.CollegePollOfficial
 		collegePromises        []structs.CollegePromise
 	)
 
@@ -156,7 +154,7 @@ func GetBootstrapData(collegeID, proID string) structs.BootstrapData {
 			transferPortalProfiles = repository.FindTransferPortalProfileRecords(repository.TransferPortalQuery{RemovedFromBoard: "N"})
 		}()
 		wg.Wait()
-		wg.Add(4)
+		wg.Add(3)
 		go func() {
 			defer wg.Done()
 			collegeGames = GetCollegeGamesBySeasonID("", ts.IsPreseason)
@@ -170,12 +168,8 @@ func GetBootstrapData(collegeID, proID string) structs.BootstrapData {
 			defer wg.Done()
 			collegeStandings = GetAllCollegeStandingsBySeasonID("")
 		}()
-		go func() {
-			defer wg.Done()
-			officialPolls = GetOfficialPollBySeasonID("")
-		}()
 		wg.Wait()
-		wg.Add(5)
+		wg.Add(4)
 		go func() {
 			defer wg.Done()
 			collegeLineups = GetCollegeLineupsByTeamID(collegeID)
@@ -192,10 +186,6 @@ func GetBootstrapData(collegeID, proID string) structs.BootstrapData {
 			defer wg.Done()
 			collegeGameplans := repository.FindCollegeGameplanRecords()
 			collegeGameplanMap = MakeCollegeGameplanMap(collegeGameplans)
-		}()
-		go func() {
-			defer wg.Done()
-			poll = GetPollSubmissionByUsernameWeekAndSeason(collegeTeam.Coach)
 		}()
 		wg.Wait()
 
@@ -352,8 +342,6 @@ func GetBootstrapData(collegeID, proID string) structs.BootstrapData {
 		ProTradeProposalMap:       tradeProposalMap,
 		ProTradePreferenceMap:     tradePreferencesMap,
 		DraftPicks:                draftPicks,
-		CollegePoll:               poll,
-		OfficialPolls:             officialPolls,
 	}
 }
 
@@ -422,5 +410,111 @@ func GetStatsBootstrap(collegeID, proID string) BootstrapDataStats {
 	return BootstrapDataStats{
 		HistoricCollegePlayers: historicCollegePlayers,
 		RetiredPlayers:         retiredPlayers,
+	}
+}
+
+func GetLineUpBootstrapData(collegeID, proID string) structs.BootstrapData {
+	var wg sync.WaitGroup
+
+	var (
+		collegeLineupsMap         map[uint][]structs.CollegeLineup
+		proLineupsMap             map[uint][]structs.ProfessionalLineup
+		collegeShootoutLineupsMap map[uint]structs.CollegeShootoutLineup
+		proShootoutLineupsMap     map[uint]structs.ProfessionalShootoutLineup
+	)
+
+	if len(collegeID) > 0 && collegeID != "0" {
+		wg.Add(2)
+		go func() {
+			defer wg.Done()
+			collegeLineups := repository.FindAllCollegeLineups()
+			collegeLineupsMap = MakeCollegeLineupMap(collegeLineups)
+		}()
+
+		go func() {
+			defer wg.Done()
+			collegeShootoutLineups := repository.FindAllCollegeShootoutLineups()
+			collegeShootoutLineupsMap = MakeCollegeShootoutLineupMap(collegeShootoutLineups)
+		}()
+	}
+
+	if len(proID) > 0 && proID != "0" {
+		wg.Add(2)
+		go func() {
+			defer wg.Done()
+			proShootoutLineups := repository.FindAllProShootoutLineups()
+			proShootoutLineupsMap = MakeProfessionalShootoutLineupMap(proShootoutLineups)
+		}()
+
+		go func() {
+			defer wg.Done()
+			proLineups := repository.FindAllProLineups()
+			proLineupsMap = MakeProfessionalLineupMap(proLineups)
+		}()
+	}
+
+	wg.Wait()
+
+	return structs.BootstrapData{
+		CollegeLineupsMap:         collegeLineupsMap,
+		ProLineupsMap:             proLineupsMap,
+		CollegeShootoutLineupsMap: collegeShootoutLineupsMap,
+		ProShootoutLineupsMap:     proShootoutLineupsMap,
+	}
+}
+
+func GetScheduleBootstrap(collegeID, username string) structs.BootstrapData {
+	ts := GetTimestamp()
+	seasonID := strconv.Itoa(int(ts.SeasonID))
+	var wg sync.WaitGroup
+
+	var (
+		hockeyInvitationals        []structs.HockeyInvitational
+		hockeyInvitationalRequests []structs.HockeyInvitationalRequest
+		collegeGameRequests        []structs.CHLGameRequest
+		poll                       structs.CollegePollSubmission
+		officialPolls              []structs.CollegePollOfficial
+	)
+
+	if len(collegeID) > 0 && collegeID != "0" {
+		wg.Add(5)
+
+		go func() {
+			defer wg.Done()
+			hockeyInvitationals = repository.FindInvitationalRecords(repository.SchedulerQuery{
+				SeasonID: seasonID,
+			})
+		}()
+
+		go func() {
+			defer wg.Done()
+			hockeyInvitationalRequests = repository.FindInvitationalRequestRecords(repository.SchedulerQuery{
+				SeasonID: seasonID,
+			})
+		}()
+		go func() {
+			defer wg.Done()
+			collegeGameRequests = repository.FindCHLGameRequestRecords(repository.SchedulerQuery{
+				SeasonID: seasonID,
+			})
+		}()
+
+		go func() {
+			defer wg.Done()
+			poll = GetPollSubmissionByUsernameWeekAndSeason(username)
+		}()
+		go func() {
+			defer wg.Done()
+			officialPolls = GetOfficialPollBySeasonID("")
+		}()
+	}
+	wg.Wait()
+
+	return structs.BootstrapData{
+		HockeyInvitationals:        hockeyInvitationals,
+		HockeyInvitationalRequests: hockeyInvitationalRequests,
+		CollegeGameRequests:        collegeGameRequests,
+		CollegePoll:                poll,
+		OfficialPolls:              officialPolls,
 	}
 }
