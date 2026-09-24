@@ -51,11 +51,7 @@ func BootstrapStatsData(w http.ResponseWriter, r *http.Request) {
 	collegeID := vars["collegeID"]
 	proID := vars["proID"]
 	data := managers.GetStatsBootstrap(collegeID, proID)
-	err := json.NewEncoder(w).Encode(data)
-	if err != nil {
-		log.Printf("Failed to encode JSON response: %v", err)
-		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
-	}
+	json.NewEncoder(w).Encode(data)
 }
 
 func BootstrapLineUpsData(w http.ResponseWriter, r *http.Request) {
@@ -63,12 +59,7 @@ func BootstrapLineUpsData(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	collegeID := vars["collegeID"]
 	proID := vars["proID"]
-	data := managers.GetLineUpBootstrapData(collegeID, proID)
-	err := json.NewEncoder(w).Encode(data)
-	if err != nil {
-		log.Printf("Failed to encode JSON response: %v", err)
-		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
-	}
+	managers.GetLineUpBootstrapData(collegeID, proID)
 }
 
 func BootstrapScheduleData(w http.ResponseWriter, r *http.Request) {
@@ -77,9 +68,5 @@ func BootstrapScheduleData(w http.ResponseWriter, r *http.Request) {
 	collegeID := vars["collegeID"]
 	username := vars["username"]
 	data := managers.GetScheduleBootstrap(collegeID, username)
-	err := json.NewEncoder(w).Encode(data)
-	if err != nil {
-		log.Printf("Failed to encode JSON response: %v", err)
-		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
-	}
+	json.NewEncoder(w).Encode(data)
 }
