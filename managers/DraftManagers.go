@@ -397,6 +397,9 @@ func BringUpCollegePlayerToPros(pickID string) bool {
 	}
 	repository.CreateHistoricCollegePlayerRecordsBatch(db, []structs.HistoricCollegePlayer{historicRecord}, 1)
 
+	// Delete Transfer Portal Profile Records if they exist
+	db.Where("college_player_id = ?", collegePlayer.ID).Delete(&structs.TransferPortalProfile{})
+
 	// Delete College Player Record
 	repository.DeleteCollegeHockeyPlayerRecord(db, collegePlayer)
 
