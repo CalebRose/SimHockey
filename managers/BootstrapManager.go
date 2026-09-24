@@ -252,7 +252,7 @@ func GetBootstrapData(collegeID, proID string) structs.BootstrapData {
 			proGameplans := repository.FindProfessionalGameplanRecords()
 			proGameplanMap = MakeProGameplanMap(proGameplans)
 		}()
-
+		wg.Wait()
 		wg.Add(8)
 		go func() {
 			defer wg.Done()
@@ -452,9 +452,7 @@ func GetLineUpBootstrapData(collegeID, proID string) structs.BootstrapData {
 			proLineupsMap = MakeProfessionalLineupMap(proLineups)
 		}()
 	}
-
 	wg.Wait()
-
 	return structs.BootstrapData{
 		CollegeLineupsMap:         collegeLineupsMap,
 		ProLineupsMap:             proLineupsMap,
@@ -507,8 +505,8 @@ func GetScheduleBootstrap(collegeID, username string) structs.BootstrapData {
 			defer wg.Done()
 			officialPolls = GetOfficialPollBySeasonID("")
 		}()
+		wg.Wait()
 	}
-	wg.Wait()
 
 	return structs.BootstrapData{
 		HockeyInvitationals:        hockeyInvitationals,
