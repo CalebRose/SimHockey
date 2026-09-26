@@ -377,7 +377,7 @@ func SyncFreeAgencyOffers() {
 	offerMap := MakeFreeAgencyOfferMap(offers)
 
 	for _, FA := range freeAgents {
-		if ts.IsOffSeason && !FA.IsAcceptingOffers {
+		if ts.IsOffSeason {
 			continue
 		}
 		offers := offerMap[FA.ID]
