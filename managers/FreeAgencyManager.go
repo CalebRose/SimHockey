@@ -377,7 +377,8 @@ func SyncFreeAgencyOffers() {
 	offerMap := MakeFreeAgencyOfferMap(offers)
 
 	for _, FA := range freeAgents {
-		if ts.IsOffSeason {
+		// Between phases 7 and 8, skip syncing free agency offers. That is draft and UDFA phase
+		if ts.Phase > 6 && ts.Phase < 9 {
 			continue
 		}
 		offers := offerMap[FA.ID]
