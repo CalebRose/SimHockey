@@ -885,7 +885,9 @@ func RevealCHLGameOnInterface(gameID string) {
 	playerMapChan := make(chan map[uint]structs.CollegePlayer, 1)
 
 	go func() { gameChan <- repository.FindCollegeGameRecord(gameID) }()
-	go func() { playerMapChan <- GetCollegePlayersMap() }()
+	go func() {
+		playerMapChan <- GetCollegePlayersMap()
+	}()
 
 	game := <-gameChan
 	if game.IsRevealed {
