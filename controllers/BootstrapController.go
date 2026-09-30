@@ -59,14 +59,16 @@ func BootstrapLineUpsData(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	collegeID := vars["collegeID"]
 	proID := vars["proID"]
-	managers.GetLineUpBootstrapData(collegeID, proID)
+	data := managers.GetLineUpBootstrapData(collegeID, proID)
+	json.NewEncoder(w).Encode(data)
 }
 
 func BootstrapScheduleData(w http.ResponseWriter, r *http.Request) {
 	enableCors(&w)
 	vars := mux.Vars(r)
 	collegeID := vars["collegeID"]
+	proID := vars["proID"]
 	username := vars["username"]
-	data := managers.GetScheduleBootstrap(collegeID, username)
+	data := managers.GetScheduleBootstrap(collegeID, proID, username)
 	json.NewEncoder(w).Encode(data)
 }

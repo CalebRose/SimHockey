@@ -461,7 +461,7 @@ func GetLineUpBootstrapData(collegeID, proID string) structs.BootstrapData {
 	}
 }
 
-func GetScheduleBootstrap(collegeID, username string) structs.BootstrapData {
+func GetScheduleBootstrap(collegeID, proID, username string) structs.BootstrapData {
 	ts := GetTimestamp()
 	seasonID := strconv.Itoa(int(ts.SeasonID))
 	var wg sync.WaitGroup
@@ -472,10 +472,21 @@ func GetScheduleBootstrap(collegeID, username string) structs.BootstrapData {
 		collegeGameRequests        []structs.CHLGameRequest
 		poll                       structs.CollegePollSubmission
 		officialPolls              []structs.CollegePollOfficial
+		historicCollegePlayers     []structs.HistoricCollegePlayer
+		collegePlayersList         []structs.CollegePlayer
+		retiredProPlayers          []structs.RetiredPlayer
+		proPlayersList             []structs.ProfessionalPlayer
 	)
 
 	if len(collegeID) > 0 && collegeID != "0" {
-		wg.Add(5)
+		wg.Add(6)
+		go func() {
+			defer wg.Done()
+			historicCollegePlayers = repository.FindAllHistoricCollegePlayers()
+			for _, hcp := range historicCollegePlayers {
+				collegePlayersList = append(collegePlayersList, hcp.CollegePlayer)
+			}
+		}()
 
 		go func() {
 			defer wg.Done()
@@ -505,14 +516,29 @@ func GetScheduleBootstrap(collegeID, username string) structs.BootstrapData {
 			defer wg.Done()
 			officialPolls = GetOfficialPollBySeasonID("")
 		}()
-		wg.Wait()
+
 	}
 
+	if len(proID) > 0 && proID != "0" {
+		wg.Add(1)
+
+		go func() {
+			defer wg.Done()
+			retiredProPlayers = repository.FindAllHistoricProPlayers()
+			for _, rpp := range retiredProPlayers {
+				proPlayersList = append(proPlayersList, rpp.ProfessionalPlayer)
+			}
+		}()
+
+	}
+	wg.Wait()
 	return structs.BootstrapData{
 		HockeyInvitationals:        hockeyInvitationals,
 		HockeyInvitationalRequests: hockeyInvitationalRequests,
 		CollegeGameRequests:        collegeGameRequests,
 		CollegePoll:                poll,
 		OfficialPolls:              officialPolls,
+		HistoricCollegePlayers:     collegePlayersList,
+		RetiredProPlayers:          proPlayersList,
 	}
 }
