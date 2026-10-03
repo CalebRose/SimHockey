@@ -115,7 +115,7 @@ func handleRequests() http.Handler {
 	// apiRouter.HandleFunc("/simhck/run/expansion/draft/", controllers.RunExpansionDraftCSV).Methods("GET")
 
 	// Run
-	apiRouter.HandleFunc("/admin/run/fa/sync/", controllers.TestFASync).Methods("GET")
+	// apiRouter.HandleFunc("/admin/run/fa/sync/", controllers.TestFASync).Methods("GET")
 	// apiRouter.HandleFunc("/admin/run/fa/sync/", controllers.TestFAOffers).Methods("GET")
 	// apiRouter.HandleFunc("/admin/ai/fill/boards", controllers.FillAIBoards).Methods("GET")
 	// apiRouter.HandleFunc("/admin/ai/sync/boards", controllers.SyncAIBoards).Methods("GET")

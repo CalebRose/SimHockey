@@ -51,7 +51,7 @@ func ShowGames() {
 func MoveUpWeek() structs.Timestamp {
 	db := dbprovider.GetInstance().GetDB()
 	ts := GetTimestamp()
-	if ts.Week < 21 && !ts.IsOffSeason {
+	if ts.Phase < 30 && !ts.IsOffSeason {
 		ResetCollegeStandingsRanks()
 	}
 
@@ -112,5 +112,5 @@ func ResetCollegeStandingsRanks() {
 	db := dbprovider.GetInstance().GetDB()
 	ts := GetTimestamp()
 	seasonID := strconv.Itoa(int(ts.SeasonID))
-	db.Model(&structs.CollegeStandings{}).Where("season_id = ?", seasonID).Updates(structs.CollegeStandings{Rank: 0})
+	db.Model(&structs.CollegeStandings{}).Where("season_id = ?", seasonID).Update("rank", 0)
 }
