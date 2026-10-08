@@ -161,7 +161,6 @@ func GetPHLPlayByPlayStreamData(streamType string) []structs.StreamResponse {
 			if homeTeam.Owner != "" || awayTeam.Owner != "" {
 				continue
 			}
-
 		}
 
 		gameID := strconv.Itoa(int(game.ID))

@@ -51,6 +51,12 @@ func ShowGames() {
 func MoveUpWeek() structs.Timestamp {
 	db := dbprovider.GetInstance().GetDB()
 	ts := GetTimestamp()
+	ts.MoveUpPhase()
+	repository.SaveTimestamp(ts, db)
+
+	if ts.Phase < 12 {
+		return ts
+	}
 	if ts.Phase < 30 && !ts.IsOffSeason {
 		ResetCollegeStandingsRanks()
 	}

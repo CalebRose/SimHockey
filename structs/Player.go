@@ -766,6 +766,10 @@ func (cp *CollegePlayer) WillReturn() {
 }
 
 func (cp *CollegePlayer) SignWithNewTeam(teamID int, teamAbbr string, leagueID uint8) {
+	if cp.TeamID > 0 {
+		cp.PreviousTeam = cp.Team
+		cp.PreviousTeamID = uint8(cp.TeamID)
+	}
 	cp.TransferStatus = 0
 	cp.Team = teamAbbr
 	cp.TeamID = uint16(teamID)
