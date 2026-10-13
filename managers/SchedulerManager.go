@@ -208,6 +208,33 @@ func ProcessCHLGameRequest(requestID string) {
 
 	request.Approved()
 	repository.SaveCHLGameRequest(request, db)
+
+	ctx := context.Background()
+	if isCHLUserTeam(homeTeam) {
+		uids := fbsvc.ResolveUIDsByUsernames(ctx, []string{homeTeam.Coach})
+		_ = fbsvc.NotifyScheduleEvent(ctx, fbsvc.ScheduleEventNotificationInput{
+			League:         "chl",
+			Domain:         fbsvc.DomainCHL,
+			TeamID:         homeTeam.ID,
+			RecipientUIDs:  uids,
+			Message:        fmt.Sprintf("Your game request against %s has been approved.", awayTeam.TeamName),
+			SourceEventKey: fbsvc.BuildSourceEventKey("gamerequest", "chl", "new", strconv.Itoa(int(request.ID))),
+		})
+
+	}
+
+	if isCHLUserTeam(awayTeam) {
+		uids := fbsvc.ResolveUIDsByUsernames(ctx, []string{awayTeam.Coach})
+		_ = fbsvc.NotifyScheduleEvent(ctx, fbsvc.ScheduleEventNotificationInput{
+			League:         "chl",
+			Domain:         fbsvc.DomainCHL,
+			TeamID:         awayTeam.ID,
+			RecipientUIDs:  uids,
+			Message:        fmt.Sprintf("Your game request against %s has been approved.", homeTeam.TeamName),
+			SourceEventKey: fbsvc.BuildSourceEventKey("gamerequest", "chl", "new", strconv.Itoa(int(request.ID))),
+		})
+	}
+
 }
 
 // VetoCHLGameRequest deletes the request and notifies both teams' coaches
