@@ -306,3 +306,12 @@ func SaveProSeriesRecord(gameRecord structs.ProSeries, db *gorm.DB) {
 		log.Panicln("Could not save college player " + strconv.Itoa(int(gameRecord.ID)))
 	}
 }
+
+func DeleteCollegeGameRecords(gameRecords []structs.CollegeGame, db *gorm.DB) {
+	for _, gameRecord := range gameRecords {
+		err := db.Delete(&gameRecord).Error
+		if err != nil {
+			log.Panicln("Could not delete college game " + strconv.Itoa(int(gameRecord.ID)))
+		}
+	}
+}

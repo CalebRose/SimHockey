@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"strconv"
 
+	util "github.com/CalebRose/SimHockey/_util"
 	"github.com/CalebRose/SimHockey/dbprovider"
 	fbsvc "github.com/CalebRose/SimHockey/firebase"
 	"github.com/CalebRose/SimHockey/repository"
@@ -36,14 +37,30 @@ func CancelCHLInvitationalRequest(requestID string) {
 	}
 }
 
-// ProcessHockeyInvitationalRequest
+// ProcessHockeyInvitationalRequest -- If there are any existing college games that the user has requested for, they should be removed that week
 func ProcessHockeyInvitationalRequest(requestID string) {
+	ts := GetTimestamp()
 	db := dbprovider.GetInstance().GetDB()
 	requests := repository.FindInvitationalRequestRecords(repository.SchedulerQuery{ID: requestID})
 	for _, request := range requests {
 		request.Approved()
 		repository.SaveInvitationalRequest(request, db)
+		teamID := strconv.Itoa(int(request.TeamID))
 		sendingTeam := GetCollegeTeamByTeamID(strconv.Itoa(int(request.TeamID)))
+		invitational := repository.FindInvitationalRecords(repository.SchedulerQuery{ID: strconv.Itoa(int(request.InvitationalID))})
+		if len(invitational) == 0 {
+			continue
+		}
+		week := invitational[0].Week
+		weekID := util.GetWeekID(ts.SeasonID, uint(week))
+
+		gamesToRemove := []structs.CollegeGame{}
+		collegeGames := repository.FindCollegeGames(repository.GamesClauses{WeekID: strconv.Itoa(int(weekID)), TeamID: teamID})
+		for _, game := range collegeGames {
+			if !game.IsConference && game.WeekID == weekID && (game.HomeTeamID == request.TeamID || game.AwayTeamID == request.TeamID) {
+				gamesToRemove = append(gamesToRemove, game)
+			}
+		}
 		if isCHLUserTeam(sendingTeam) {
 			receivingTeam := GetCollegeTeamByTeamID(strconv.Itoa(int(request.TeamID)))
 			ctx := context.Background()
