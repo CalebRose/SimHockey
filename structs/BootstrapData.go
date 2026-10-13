@@ -59,4 +59,5 @@ type BootstrapData struct {
 	ProTradePreferenceMap map[uint]TradePreferences
 	DraftPicks            map[uint][]DraftPick
 	DraftablePlayers      []DraftablePlayer
+	Arenas                []Arena
 }

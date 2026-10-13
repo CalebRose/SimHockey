@@ -476,7 +476,14 @@ func GetScheduleBootstrap(collegeID, proID, username string) structs.BootstrapDa
 		collegePlayersList         []structs.CollegePlayer
 		retiredProPlayers          []structs.RetiredPlayer
 		proPlayersList             []structs.ProfessionalPlayer
+		arenas                     []structs.Arena
 	)
+
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		arenas = repository.FindAllArenas(repository.ArenaQuery{})
+	}()
 
 	if len(collegeID) > 0 && collegeID != "0" {
 		wg.Add(6)
@@ -540,5 +547,6 @@ func GetScheduleBootstrap(collegeID, proID, username string) structs.BootstrapDa
 		OfficialPolls:              officialPolls,
 		HistoricCollegePlayers:     collegePlayersList,
 		RetiredProPlayers:          proPlayersList,
+		Arenas:                     arenas,
 	}
 }
