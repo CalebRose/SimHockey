@@ -21,6 +21,68 @@ func CreateCHLGameRequest(request structs.CHLGameRequest) {
 	repository.CreateCHLGameRequest(request, db)
 }
 
+// CreateCHLInvitationalRequest
+func CreateCHLInvitationalRequest(request structs.HockeyInvitationalRequest) {
+	db := dbprovider.GetInstance().GetDB()
+	repository.CreateInvitationalRequest(request, db)
+}
+
+// CancelCHLInvitationalRequest
+func CancelCHLInvitationalRequest(requestID string) {
+	db := dbprovider.GetInstance().GetDB()
+	requests := repository.FindInvitationalRequestRecords(repository.SchedulerQuery{ID: requestID})
+	for _, request := range requests {
+		repository.DeleteInvitationalRequest(request, db)
+	}
+}
+
+// ProcessHockeyInvitationalRequest
+func ProcessHockeyInvitationalRequest(requestID string) {
+	db := dbprovider.GetInstance().GetDB()
+	requests := repository.FindInvitationalRequestRecords(repository.SchedulerQuery{ID: requestID})
+	for _, request := range requests {
+		request.Approved()
+		repository.SaveInvitationalRequest(request, db)
+		sendingTeam := GetCollegeTeamByTeamID(strconv.Itoa(int(request.TeamID)))
+		if isCHLUserTeam(sendingTeam) {
+			receivingTeam := GetCollegeTeamByTeamID(strconv.Itoa(int(request.TeamID)))
+			ctx := context.Background()
+			uids := fbsvc.ResolveUIDsByUsernames(ctx, []string{sendingTeam.Coach})
+			_ = fbsvc.NotifyScheduleEvent(ctx, fbsvc.ScheduleEventNotificationInput{
+				League:         "chl",
+				Domain:         fbsvc.DomainCHL,
+				TeamID:         sendingTeam.ID,
+				RecipientUIDs:  uids,
+				Message:        fmt.Sprintf("%s has accepted your CHL Invitational request.", receivingTeam.TeamName),
+				SourceEventKey: fbsvc.BuildSourceEventKey("gamerequest", "chl", "accept", requestID),
+			})
+		}
+	}
+}
+
+// VetoHockeyInvitationalRequest marks the request as vetoed and saves it to the database.
+func VetoHockeyInvitationalRequest(requestID string) {
+	db := dbprovider.GetInstance().GetDB()
+	requests := repository.FindInvitationalRequestRecords(repository.SchedulerQuery{ID: requestID})
+	for _, request := range requests {
+		repository.DeleteInvitationalRequest(request, db)
+		sendingTeam := GetCollegeTeamByTeamID(strconv.Itoa(int(request.TeamID)))
+		if isCHLUserTeam(sendingTeam) {
+			receivingTeam := GetCollegeTeamByTeamID(strconv.Itoa(int(request.TeamID)))
+			ctx := context.Background()
+			uids := fbsvc.ResolveUIDsByUsernames(ctx, []string{sendingTeam.Coach})
+			_ = fbsvc.NotifyScheduleEvent(ctx, fbsvc.ScheduleEventNotificationInput{
+				League:         "chl",
+				Domain:         fbsvc.DomainCHL,
+				TeamID:         sendingTeam.ID,
+				RecipientUIDs:  uids,
+				Message:        fmt.Sprintf("%s has vetoed your CHL Invitational request.", receivingTeam.TeamName),
+				SourceEventKey: fbsvc.BuildSourceEventKey("gamerequest", "chl", "accept", requestID),
+			})
+		}
+	}
+}
+
 // AcceptCHLGameRequest marks the request as accepted and notifies the sending
 // team's coach if they are a user-managed team.
 func AcceptCHLGameRequest(requestID string) {
@@ -41,7 +103,7 @@ func AcceptCHLGameRequest(requestID string) {
 			Domain:         fbsvc.DomainCHL,
 			TeamID:         sendingTeam.ID,
 			RecipientUIDs:  uids,
-			Message:        fmt.Sprintf("%s has accepted your game request for Week %d.", receivingTeam.TeamName, request.Week),
+			Message:        fmt.Sprintf("%s has accepted your CHL game request for Week %d.", receivingTeam.TeamName, request.Week),
 			SourceEventKey: fbsvc.BuildSourceEventKey("gamerequest", "chl", "accept", requestID),
 		})
 	}

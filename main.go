@@ -293,6 +293,10 @@ func handleRequests() http.Handler {
 	apiRouter.HandleFunc("/chl/scheduler/game/request/reject/{requestID}", controllers.RejectCHLGameRequest).Methods("GET")
 	apiRouter.HandleFunc("/chl/scheduler/game/request/process/{requestID}", controllers.ProcessCHLGameRequest).Methods("GET")
 	apiRouter.HandleFunc("/chl/scheduler/game/request/veto/{requestID}", controllers.VetoCHLGameRequest).Methods("GET")
+	apiRouter.HandleFunc("/chl/scheduler/invitational/request/create", controllers.CreateCHLInvitationalRequest).Methods("POST")
+	apiRouter.HandleFunc("/chl/scheduler/invitational/request/process/{requestID}", controllers.ProcessHockeyInvitationalRequest).Methods("GET")
+	apiRouter.HandleFunc("/chl/scheduler/invitational/request/veto/{requestID}", controllers.VetoHockeyInvitationalRequest).Methods("GET")
+	apiRouter.HandleFunc("/chl/scheduler/invitational/request/cancel/{requestID}", controllers.CancelCHLInvitationalRequest).Methods("GET")
 
 	// Games
 	apiRouter.HandleFunc("/games/result/chl/{gameID}", controllers.GetCollegeGameResultsByGameID).Methods("GET")

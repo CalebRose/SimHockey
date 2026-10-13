@@ -63,3 +63,47 @@ func VetoCHLGameRequest(w http.ResponseWriter, r *http.Request) {
 	managers.VetoCHLGameRequest(requestID)
 	json.NewEncoder(w).Encode(true)
 }
+
+// CreateCHLInvitationalRequest accepts a CHLInvitationalRequest body and persists it.
+func CreateCHLInvitationalRequest(w http.ResponseWriter, r *http.Request) {
+	var request structs.HockeyInvitationalRequest
+	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+	managers.CreateCHLInvitationalRequest(request)
+	json.NewEncoder(w).Encode(true)
+}
+
+// CancelCHLInvitationalRequest deletes the request.
+func CancelCHLInvitationalRequest(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	requestID := vars["requestID"]
+	if len(requestID) == 0 {
+		panic("User did not provide a requestID")
+	}
+	managers.CancelCHLInvitationalRequest(requestID)
+	json.NewEncoder(w).Encode(true)
+}
+
+// ProcessHockeyInvitationalRequest converts an accepted request into a CollegeGame record.
+func ProcessHockeyInvitationalRequest(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	requestID := vars["requestID"]
+	if len(requestID) == 0 {
+		panic("User did not provide a requestID")
+	}
+	managers.ProcessHockeyInvitationalRequest(requestID)
+	json.NewEncoder(w).Encode(true)
+}
+
+// VetoHockeyInvitationalRequest deletes the request via admin veto.
+func VetoHockeyInvitationalRequest(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	requestID := vars["requestID"]
+	if len(requestID) == 0 {
+		panic("User did not provide a requestID")
+	}
+	managers.VetoHockeyInvitationalRequest(requestID)
+	json.NewEncoder(w).Encode(true)
+}
