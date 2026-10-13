@@ -19,6 +19,23 @@ import (
 // CreateCHLGameRequest saves a new CHLGameRequest record to the database.
 func CreateCHLGameRequest(request structs.CHLGameRequest) {
 	db := dbprovider.GetInstance().GetDB()
+
+	sendingTeam := GetCollegeTeamByTeamID(strconv.Itoa(int(request.SendingTeamID)))
+	receivingTeam := GetCollegeTeamByTeamID(strconv.Itoa(int(request.RequestingTeamID)))
+	if !isCHLUserTeam(receivingTeam) {
+		request.Accepted()
+	} else {
+		ctx := context.Background()
+		uids := fbsvc.ResolveUIDsByUsernames(ctx, []string{receivingTeam.Coach})
+		_ = fbsvc.NotifyScheduleEvent(ctx, fbsvc.ScheduleEventNotificationInput{
+			League:         "chl",
+			Domain:         fbsvc.DomainCHL,
+			TeamID:         receivingTeam.ID,
+			RecipientUIDs:  uids,
+			Message:        fmt.Sprintf("You have received a new CHL game request from %s.", sendingTeam.TeamName),
+			SourceEventKey: fbsvc.BuildSourceEventKey("gamerequest", "chl", "new", strconv.Itoa(int(request.ID))),
+		})
+	}
 	repository.CreateCHLGameRequest(request, db)
 }
 
