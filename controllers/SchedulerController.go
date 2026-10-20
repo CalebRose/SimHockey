@@ -107,3 +107,9 @@ func VetoHockeyInvitationalRequest(w http.ResponseWriter, r *http.Request) {
 	managers.VetoHockeyInvitationalRequest(requestID)
 	json.NewEncoder(w).Encode(true)
 }
+
+func GeneratePermanentInvitationals(w http.ResponseWriter, r *http.Request) {
+	ts := managers.GetTimestamp()
+	managers.GeneratePermanentInvitationals(ts)
+	json.NewEncoder(w).Encode(true)
+}
