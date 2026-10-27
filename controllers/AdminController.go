@@ -101,7 +101,7 @@ func AddFAPreferences(w http.ResponseWriter, r *http.Request) {
 }
 
 func GeneratePHLSchedule(w http.ResponseWriter, r *http.Request) {
-	managers.ImportPHLSeasonSchedule()
+	managers.GeneratePHLSeasonSchedule()
 	json.NewEncoder(w).Encode("Data Generated ran!")
 }
 

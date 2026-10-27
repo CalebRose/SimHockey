@@ -33,6 +33,9 @@ func HandlePostSeasonMigration() {
 	// Generate Beanpot and Lake Placid Invitationals
 	GeneratePermanentInvitationals(ts)
 
+	// Generate PHL Season Schedule
+	GeneratePHLSeasonSchedule()
+
 	GenerateCroots()
 
 	repository.SaveTimestamp(ts, db)

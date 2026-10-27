@@ -29,7 +29,7 @@ func ShowGames() {
 		PrepareCollegeTournamentGamesFormat(db, ts)
 		GenerateCollegeTournamentQuarterfinalsGames(db, ts)
 	}
-	if ts.Week == 18 && gameDay == "A" {
+	if ts.Week == 18 && gameDay == "D" {
 		// Final PHL games have been ran, prepare playoff structure
 		PreparePHLPostSeasonGamesFormat(db, ts)
 	}
