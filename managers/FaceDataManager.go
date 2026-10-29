@@ -7,6 +7,7 @@ import (
 	"path/filepath"
 	"runtime"
 	"strconv"
+	"strings"
 	"sync"
 
 	util "github.com/CalebRose/SimHockey/_util"
@@ -321,6 +322,92 @@ func getBodySize(weight int) uint8 {
 		return uint8(util.GenerateIntFromRange(0, 2))
 	}
 	return uint8(util.GenerateIntFromRange(0, 4))
+}
+
+// blobIndex returns the index of value within list, or 0 if not found.
+func blobIndex(list []string, value string) uint8 {
+	for i, v := range list {
+		if v == value {
+			return uint8(i)
+		}
+	}
+	return 0
+}
+
+func blobContains(list []string, value string) bool {
+	for _, v := range list {
+		if v == value {
+			return true
+		}
+	}
+	return false
+}
+
+// ConvertFaceDataResponseToFaceData reverses the blob lookups performed in GetAllFaces,
+// converting a FaceDataResponse back into a FaceData record.
+func ConvertFaceDataResponseToFaceData(resp structs.FaceDataResponse) structs.FaceData {
+	blob := getFaceDataBlob()
+
+	// Skin tone isn't part of the response, so infer it from the hair and skin color values.
+	skinTone := "white"
+	found := false
+	for _, tone := range []string{"white", "asian", "brown", "black"} {
+		if blobContains(blob[tone+"Skin"], resp.SkinColor) && blobContains(blob[tone+"Hair"], resp.Hair) {
+			skinTone = tone
+			found = true
+			break
+		}
+	}
+	if !found {
+		for _, tone := range []string{"white", "asian", "brown", "black"} {
+			if blobContains(blob[tone+"Skin"], resp.SkinColor) {
+				skinTone = tone
+				break
+			}
+		}
+	}
+
+	// Response shave format is rgba(0,0,0,0.x)
+	shave := uint8(0)
+	if after, ok := strings.CutPrefix(resp.FacialHairShave, "rgba(0,0,0,0."); ok {
+		if n, err := strconv.Atoi(strings.TrimSuffix(after, ")")); err == nil && n >= 0 && n <= 255 {
+			shave = uint8(n)
+		}
+	}
+
+	return structs.FaceData{
+		PlayerID:        resp.PlayerID,
+		Accessories:     blobIndex(blob["accessories"], resp.Accessories),
+		Body:            blobIndex(blob["body"], resp.Body),
+		BodySize:        resp.BodySize,
+		Ear:             blobIndex(blob["ear"], resp.Ear),
+		EarSize:         resp.EarSize,
+		Eye:             blobIndex(blob["eye"], resp.Eye),
+		EyeAngle:        resp.EyeAngle,
+		EyeLine:         blobIndex(blob["eyeLine"], resp.EyeLine),
+		Eyebrow:         blobIndex(blob["eyebrow"], resp.Eyebrow),
+		EyeBrowAngle:    resp.EyeBrowAngle,
+		FaceSize:        resp.FaceSize,
+		FacialHair:      blobIndex(blob["facialHair"], resp.FacialHair),
+		FacialHairShave: shave,
+		Glasses:         blobIndex(blob["glasses"], resp.Glasses),
+		Hair:            blobIndex(blob[skinTone+"Hair"], resp.Hair),
+		HairColor:       blobIndex(blob[skinTone+"HairColor"], resp.HairColor),
+		HairBG:          blobIndex(blob["hairBg"], resp.HairBG),
+		HairFlip:        resp.HairFlip,
+		Head:            blobIndex(blob["head"], resp.Head),
+		Jersey:          blobIndex(blob["jersey"], resp.Jersey),
+		MiscLine:        blobIndex(blob["miscLine"], resp.MiscLine),
+		Mouth:           blobIndex(blob["mouth"], resp.Mouth),
+		MouthFlip:       resp.MouthFlip,
+		Nose:            blobIndex(blob["nose"], resp.Nose),
+		NoseFlip:        resp.NoseFlip,
+		NoseSize:        resp.NoseSize,
+		SmileLine:       blobIndex(blob["smileLine"], resp.SmileLine),
+		SmileLineSize:   resp.SmileLineSize,
+		SkinTone:        skinTone,
+		SkinColor:       blobIndex(blob[skinTone+"Skin"], resp.SkinColor),
+	}
 }
 
 func getFacialHair(len int) uint8 {

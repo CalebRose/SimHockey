@@ -946,6 +946,26 @@ type RetiredPlayer struct {
 	ProfessionalPlayer
 }
 
+type CustomRecruitDTO struct {
+	FirstName        string
+	LastName         string
+	City             string
+	HighSchool       string
+	State            string
+	Country          string
+	PreferenceOne    string
+	PreferenceTwo    string
+	ExistingRelative uint
+	Ethnicity        string
+	Bio              string
+	Position         string
+	Archetype        string
+	Height           uint
+	Weight           uint
+	CustomCrootFor   string
+	FaceData         FaceDataResponse
+}
+
 type Recruit struct {
 	gorm.Model
 	BasePlayer

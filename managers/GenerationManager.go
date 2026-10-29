@@ -179,7 +179,7 @@ func (pg *CrootGenerator) generatePlayer() (structs.Recruit, structs.GlobalPlaye
 	case util.Russia:
 		crootLocations = pg.ruCrootLocations[state]
 	}
-	player := createRecruit(pickedPosition, "", star, firstName, lastName, pg.attributeBlob, country, state, "", "", crootLocations)
+	player := CreateRecruit(pickedPosition, "", star, firstName, lastName, pg.attributeBlob, country, state, "", "", crootLocations)
 	player.AssignRelativeData(uint(relativeID), uint(relativeType), uint(coachTeamID), coachTeamAbbr, notes)
 	globalPlayer := structs.GlobalPlayer{
 		CollegePlayerID:      pg.newID,
@@ -222,7 +222,7 @@ func (pg *CrootGenerator) generateTwin(player *structs.Recruit) (structs.Recruit
 		crootLocations = pg.cnCrootLocations[player.State]
 	}
 	twinNotes := "Twin Brother of " + strconv.Itoa(int(player.Stars)) + " Star Recruit " + player.Position + " " + player.FirstName + " " + player.LastName
-	twinPlayer := createRecruit(twinPosition, "", stars, twinN, player.LastName, pg.attributeBlob, player.Country, player.State, "", "", crootLocations)
+	twinPlayer := CreateRecruit(twinPosition, "", stars, twinN, player.LastName, pg.attributeBlob, player.Country, player.State, "", "", crootLocations)
 	twinPlayer.AssignRelativeData(uint(firstTwinRelativeID), 4, 0, "", twinNotes)
 	twinPlayer.AssignTwinData(player.LastName, player.City, player.State, player.HighSchool)
 	notes := "Twin Brother of " + strconv.Itoa(int(twinPlayer.Stars)) + " Star Recruit " + twinPlayer.Position + " " + twinPlayer.FirstName + " " + twinPlayer.LastName
@@ -316,7 +316,7 @@ func GenerateCroots() {
 		cnCrootLocations:  getCrootLocations("CanadianHS"),
 		svCrootLocations:  getCrootLocations("SwedenHS"),
 		ruCrootLocations:  getCrootLocations("RussianHS"),
-		attributeBlob:     getAttributeBlob(),
+		attributeBlob:     GetAttributeBlob(),
 		positionList:      util.GetPositionList(),
 		newID:             lastPlayerRecord.ID + 1,
 		requiredPlayers:   util.GenerateIntFromRange(518, 660),
@@ -360,7 +360,7 @@ func GenerateCustomCroots() {
 	filePath := filepath.Join(os.Getenv("ROOT"), "data", "2026", "gen", "custom_croots.csv")
 	playersCSV := util.ReadCSV(filePath)
 	pg := CrootGenerator{
-		attributeBlob: getAttributeBlob(),
+		attributeBlob: GetAttributeBlob(),
 		faceDataBlob:  getFaceDataBlob(),
 	}
 	for idx, row := range playersCSV {
@@ -380,7 +380,7 @@ func GenerateCustomCroots() {
 		height := util.ConvertStringToInt(row[8])
 		weight := util.ConvertStringToInt(row[9])
 		crootFor := row[10]
-		player := createRecruit(position, archetype, star, fName, lName, pg.attributeBlob, country, state, city, hs, []structs.CrootLocation{})
+		player := CreateRecruit(position, archetype, star, fName, lName, pg.attributeBlob, country, state, city, hs, []structs.CrootLocation{})
 		player.AssignHeightAndWeight(height, weight)
 		player.ToggleCustomCroot(crootFor)
 
@@ -431,7 +431,7 @@ func GenerateWalkonCroots() {
 		nameMap:          getInternationalNameMap(),
 		usCrootLocations: getCrootLocations("HS"),
 		cnCrootLocations: getCrootLocations("CanadianHS"),
-		attributeBlob:    getAttributeBlob(),
+		attributeBlob:    GetAttributeBlob(),
 		newID:            lastPlayerRecord.ID + 1,
 		faceDataBlob:     getFaceDataBlob(),
 		caser:            cases.Title(language.English),
@@ -481,7 +481,7 @@ func GenerateWalkonCroots() {
 			stars := util.GetStarRating(false, false, true)
 			lastName := util.PickFromStringList(lastNameList)
 			casedLastName := generator.caser.String(strings.ToLower(lastName))
-			recruit := createRecruit(pos, arch, stars, util.PickFromStringList(firstNameList), casedLastName, generator.attributeBlob, country, state, city, hs, crootLocations)
+			recruit := CreateRecruit(pos, arch, stars, util.PickFromStringList(firstNameList), casedLastName, generator.attributeBlob, country, state, city, hs, crootLocations)
 
 			recruit.AssignWalkon(team.Team, int(team.ID), newID)
 
@@ -540,7 +540,7 @@ func GenerateInitialRosters() {
 		cnCrootLocations:  getCrootLocations("CanadianHS"),
 		svCrootLocations:  getCrootLocations("SwedenHS"),
 		ruCrootLocations:  getCrootLocations("RussianHS"),
-		attributeBlob:     getAttributeBlob(),
+		attributeBlob:     GetAttributeBlob(),
 		positionList:      util.GetPositionList(),
 		newID:             1,
 		requiredPlayers:   util.GenerateIntFromRange(6400, 6601),
@@ -618,7 +618,7 @@ func GenerateInitialCHLRosters() {
 		cnCrootLocations:  getCrootLocations("CanadianHS"),
 		svCrootLocations:  getCrootLocations("SwedenHS"),
 		ruCrootLocations:  getCrootLocations("RussianHS"),
-		attributeBlob:     getAttributeBlob(),
+		attributeBlob:     GetAttributeBlob(),
 		positionList:      util.GetPositionList(),
 		newID:             1,
 		requiredPlayers:   util.GenerateIntFromRange(6400, 6601),
@@ -712,7 +712,7 @@ func RefillCHLRosters() {
 		cnCrootLocations: getCrootLocations("CanadianHS"),
 		svCrootLocations: getCrootLocations("SwedenHS"),
 		ruCrootLocations: getCrootLocations("RussianHS"),
-		attributeBlob:    getAttributeBlob(),
+		attributeBlob:    GetAttributeBlob(),
 		positionList:     util.GetPositionList(),
 		newID:            1,
 		caser:            cases.Title(language.English),
@@ -848,7 +848,7 @@ func RefillCollegeHockeyRosters() {
 		cnCrootLocations: getCrootLocations("CanadianHS"),
 		svCrootLocations: getCrootLocations("SwedenHS"),
 		ruCrootLocations: getCrootLocations("RussianHS"),
-		attributeBlob:    getAttributeBlob(),
+		attributeBlob:    GetAttributeBlob(),
 		positionList:     util.GetPositionList(),
 		newID:            1,
 		caser:            cases.Title(language.English),
@@ -975,7 +975,7 @@ func GenerateInitialProPool() {
 		cnCrootLocations:  getCrootLocations("CanadianHS"),
 		svCrootLocations:  getCrootLocations("SwedenHS"),
 		ruCrootLocations:  getCrootLocations("RussianHS"),
-		attributeBlob:     getAttributeBlob(),
+		attributeBlob:     GetAttributeBlob(),
 		positionList:      util.GetPositionList(),
 		newID:             lastPlayerRecord.ID + 1,
 		requiredPlayers:   util.GenerateIntFromRange(6400, 6601),
@@ -1053,7 +1053,7 @@ func GenerateInitialProPool() {
 	repository.CreateGlobalPlayerRecordsBatch(db, globalList, 500)
 }
 
-func createRecruit(position, arch string, stars int, firstName, lastName string, blob map[string]map[string]map[string]map[string]interface{}, country, state, cit, hs string, hsBlob []structs.CrootLocation) structs.Recruit {
+func CreateRecruit(position, arch string, stars int, firstName, lastName string, blob map[string]map[string]map[string]map[string]interface{}, country, state, cit, hs string, hsBlob []structs.CrootLocation) structs.Recruit {
 	age := 18
 	city, highSchool := cit, hs
 	if state != "" && len(hsBlob) > 0 {
@@ -1349,7 +1349,7 @@ func (pg *CrootGenerator) createInitialPlayer(position string, isCHL, isWalkon b
 		crootLocations = pg.ruCrootLocations[state]
 	}
 
-	player := createRecruit(position, "", star, firstName, lastName, pg.attributeBlob, country, state, "", "", crootLocations)
+	player := CreateRecruit(position, "", star, firstName, lastName, pg.attributeBlob, country, state, "", "", crootLocations)
 	player.AssignAge(age)
 	player.AssignRelativeData(uint(relativeID), uint(relativeType), uint(coachTeamID), coachTeamAbbr, notes)
 	globalPlayer := structs.GlobalPlayer{
@@ -1904,7 +1904,7 @@ func getCrootLocations(locale string) map[string][]structs.CrootLocation {
 	return payload
 }
 
-func getAttributeBlob() map[string]map[string]map[string]map[string]interface{} {
+func GetAttributeBlob() map[string]map[string]map[string]map[string]interface{} {
 	path := filepath.Join(os.Getenv("ROOT"), "data", "attributeBlob.json")
 
 	content := util.ReadJson(path)

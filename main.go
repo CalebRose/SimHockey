@@ -204,6 +204,7 @@ func handleRequests() http.Handler {
 
 	// Recruiting
 	apiRouter.HandleFunc("/recruiting/add/recruit/", controllers.CreateRecruitPlayerProfile).Methods("POST")
+	apiRouter.HandleFunc("/recruiting/custom/croot/", controllers.CreateCustomCroot).Methods("POST")
 	apiRouter.HandleFunc("/recruiting/remove/recruit/", controllers.RemoveRecruitFromBoard).Methods("POST")
 	apiRouter.HandleFunc("/recruiting/toggle/scholarship/", controllers.SendScholarshipToRecruit).Methods("POST")
 	apiRouter.HandleFunc("/recruiting/scout/attribute/", controllers.ScoutAttribute).Methods("POST")

@@ -121,3 +121,16 @@ func GenerateSystemsForRecruitingProfile(w http.ResponseWriter, r *http.Request)
 	managers.GenerateOffensiveAndDefensiveSystemsForRecruiting()
 	json.NewEncoder(w).Encode("Offensive and Defensive Systems Generated for Recruiting Profiles")
 }
+
+func CreateCustomCroot(w http.ResponseWriter, r *http.Request) {
+	var customCrootDto structs.CustomRecruitDTO
+	err := json.NewDecoder(r.Body).Decode(&customCrootDto)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	profile := managers.CreateCustomCroot(customCrootDto)
+
+	json.NewEncoder(w).Encode(profile)
+}

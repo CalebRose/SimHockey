@@ -10,6 +10,7 @@ import (
 	"github.com/CalebRose/SimHockey/dbprovider"
 	"github.com/CalebRose/SimHockey/repository"
 	"github.com/CalebRose/SimHockey/structs"
+	"gorm.io/gorm"
 )
 
 func GetAllRecruitRecords() []structs.Recruit {
@@ -452,4 +453,37 @@ func ResetScoutingProfilesForRecruiting() {
 		team.ResetScoutingPoints(0)
 		repository.SaveTeamProfileRecord(db, team)
 	}
+}
+
+func CreateCustomCroot(dto structs.CustomRecruitDTO) structs.Recruit {
+	db := dbprovider.GetInstance().GetDB()
+	lastPlayerRecord := repository.FindLatestGlobalPlayerRecord()
+	latestID := lastPlayerRecord.ID + 1
+	attributeBlob := GetAttributeBlob()
+	// Generate Recruit
+	stars := util.GetStarRating(true, false, false)
+	recruit := CreateRecruit(dto.Position, dto.Archetype, stars, dto.FirstName, dto.LastName, attributeBlob, dto.Country, dto.State, dto.City, dto.HighSchool, []structs.CrootLocation{})
+	recruit.ID = latestID
+
+	// Generate Face Data
+	faceDataResponse := dto.FaceData
+
+	face := ConvertFaceDataResponseToFaceData(faceDataResponse)
+	face.PlayerID = recruit.ID
+
+	globalPlayer := structs.GlobalPlayer{
+		Model: gorm.Model{
+			ID: recruit.ID,
+		},
+		RecruitID:            latestID,
+		CollegePlayerID:      latestID,
+		ProfessionalPlayerID: latestID,
+	}
+	repository.CreateGlobalPlayerRecordsBatch(db, []structs.GlobalPlayer{globalPlayer}, 1)
+	repository.CreateHockeyRecruitRecordsBatch(db, []structs.Recruit{recruit}, 1)
+	repository.CreateFaceRecordsBatch(db, []structs.FaceData{face}, 1)
+
+	CreateCustomCrootForumThread(recruit.ID, dto)
+
+	return recruit
 }
