@@ -3,6 +3,7 @@ package util
 import (
 	"encoding/csv"
 	"fmt"
+	"hash/fnv"
 	"log"
 	"math/rand"
 	"os"
@@ -130,10 +131,10 @@ func GetLetterGrade(attr int, year int) string {
 		}
 		return "F"
 	}
-	if attr > 24 {
+	if attr > 22 {
 		return "A+"
 	}
-	if attr > 21 {
+	if attr > 20 {
 		return "A"
 	}
 	if attr > 18 {
@@ -161,6 +162,123 @@ func GetLetterGrade(attr int, year int) string {
 		return "D"
 	}
 	return "F"
+}
+
+
+var GradeScale = []string{
+	"F", "D", "C-", "C", "C+", "B-", "B", "B+", "A-", "A", "A+",
+}
+
+func GetDrafteeAttributeGrade(attr int) string {
+	if attr > 22 {
+		return "A+"
+	}
+	if attr > 20 {
+		return "A"
+	}
+	if attr > 18 {
+		return "A-"
+	}
+	if attr > 16 {
+		return "B+"
+	}
+	if attr > 14 {
+		return "B"
+	}
+	if attr > 12 {
+		return "B-"
+	}
+	if attr > 10 {
+		return "C+"
+	}
+	if attr > 8 {
+		return "C"
+	}
+	if attr > 6 {
+		return "C-"
+	}
+	if attr > 4 {
+		return "D"
+	}
+	return "F"
+}
+
+func GetDrafteeOverallGrade(overall int) string {
+	if overall >= 24 {
+		return "A+"
+	}
+	if overall >= 22 {
+		return "A"
+	}
+	if overall >= 20 {
+		return "A-"
+	}
+	if overall >= 18 {
+		return "B+"
+	}
+	if overall >= 16 {
+		return "B"
+	}
+	if overall >= 14 {
+		return "B-"
+	}
+	if overall >= 12 {
+		return "C+"
+	}
+	if overall >= 10 {
+		return "C"
+	}
+	if overall >= 8 {
+		return "C-"
+	}
+	if overall >= 6 {
+		return "D"
+	}
+	return "F"
+}
+
+func FuzzDraftGrade(playerID uint, attrName string, trueGrade string) string {
+	idx := -1
+	for i, g := range GradeScale {
+		if g == trueGrade {
+			idx = i
+			break
+		}
+	}
+	if idx == -1 {
+		return trueGrade
+	}
+
+	h := fnv.New32a()
+	h.Write([]byte(fmt.Sprintf("%d:%s", playerID, attrName)))
+	roll := int(h.Sum32() % 100)
+
+	if roll < 15 {
+		// +1 grade above true grade
+		if idx < len(GradeScale)-1 {
+			return GradeScale[idx+1]
+		}
+		return GradeScale[idx]
+	} else if roll < 30 {
+		// -1 grade below true grade
+		if idx > 0 {
+			return GradeScale[idx-1]
+		}
+		return GradeScale[idx]
+	}
+
+	// 70% chance true grade
+	return trueGrade
+}
+
+func GetDrafteeGrade(playerID uint, attrName string, value int, isOverall bool) string {
+	var trueGrade string
+	if isOverall {
+		trueGrade = GetDrafteeOverallGrade(value)
+	} else {
+		trueGrade = GetDrafteeAttributeGrade(value)
+	}
+	return FuzzDraftGrade(playerID, attrName, trueGrade)
 }
 
 func GetPotentialGrade(potential int) string {

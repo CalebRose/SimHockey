@@ -1074,6 +1074,7 @@ func (r *Recruit) AssignRecruitingModifier(recruitingMod float32) {
 }
 
 type BaseLetterGrades struct {
+	OverallGrade              string
 	AgilityGrade              string // How fast a player can go in a zone without a defense check
 	FaceoffsGrade             string // Ability to win faceoffs
 	LongShotAccuracyGrade     string // Accuracy on non-close shots
