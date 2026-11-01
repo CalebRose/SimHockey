@@ -7,6 +7,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"sort"
 	"strconv"
 
 	util "github.com/CalebRose/SimHockey/_util"
@@ -1438,8 +1439,15 @@ func ExportDraftablePlayersToCSV(w http.ResponseWriter) {
 	eligibleCollegePlayers := MakeDraftablePlayerList(players)
 	graduatedPlayersWithLetterGrades := MakeDraftablePlayerListWithGrades(graduatedPlayers)
 
-	draftablePlayers = append(draftablePlayers, eligibleCollegePlayers...)
 	draftablePlayers = append(draftablePlayers, graduatedPlayersWithLetterGrades...)
+	draftablePlayers = append(draftablePlayers, eligibleCollegePlayers...)
+
+	sort.Slice(draftablePlayers, func(i, j int) bool {
+		if draftablePlayers[i].Overall == draftablePlayers[j].Overall {
+			return draftablePlayers[i].Age > draftablePlayers[j].Age
+		}
+		return draftablePlayers[i].Overall > draftablePlayers[j].Overall
+	})
 
 	HeaderRow := []string{
 		"College", "ID", "First Name", "Last Name", "Position",
@@ -1474,7 +1482,7 @@ func ExportDraftablePlayersToCSV(w http.ResponseWriter) {
 		playerRow := []string{
 			team, idStr, p.FirstName, p.LastName, p.Position,
 			p.Archetype, strconv.Itoa(int(p.Height)), strconv.Itoa(int(p.Weight)), p.City, p.State, p.Country,
-			strconv.Itoa(int(p.Stars)), strconv.Itoa(int(p.Age)), util.GetLetterGrade(int(p.Overall), 3),
+			strconv.Itoa(int(p.Stars)), strconv.Itoa(int(p.Age)), p.OverallGrade,
 			p.AgilityGrade, p.FaceoffsGrade, p.LongShotAccuracyGrade,
 			p.LongShotPowerGrade, p.CloseShotAccuracyGrade, p.CloseShotPowerGrade, p.PassingGrade, p.PuckHandlingGrade, p.StrengthGrade,
 			p.BodyCheckingGrade, p.StickCheckingGrade, p.ShotBlockingGrade, p.GoalkeepingGrade, p.GoalieVisionGrade, util.GetPotentialGrade(int(p.Stamina)),
