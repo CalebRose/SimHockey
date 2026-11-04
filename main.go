@@ -331,20 +331,30 @@ func loadEnvs() {
 }
 
 func handleCron() *cron.Cron {
-	c := cron.New(cron.WithLocation(time.UTC))
+	location, err := time.LoadLocation("America/New_York")
+	if err != nil {
+		log.Fatalf("Unable to load cron timezone America/New_York: %v", err)
+	}
+	c := cron.New(cron.WithLocation(location))
 	runJobs := os.Getenv("RUN_JOBS")
 	if runJobs != "false" {
-		c.AddFunc("0 14 * * *", controllers.SyncFreeAgencyViaCron)
-		c.AddFunc("0 10 * * 0,2,4,6", controllers.RunAIGameplanViaCron)
-		c.AddFunc("0 14 * * 0,2,4,6", controllers.RunTheGamesViaCron)
-		c.AddFunc("30 14 * * 0,2,4,6", controllers.StreamCHLGamesToInterfaceViaCron)
-		c.AddFunc("35 14 * * 0,2,4,6", controllers.StreamPHLGamesToInterfaceViaCron)
-		c.AddFunc("0 20 * * 0,2,4,6", controllers.ShowResultsViaCron)
-		c.AddFunc("0 22 * * 0", controllers.SyncToNextWeekViaCron)
-		c.AddFunc("0 3 * * 1", controllers.RunPostSeasonMigrationViaCron)
-		c.AddFunc("0 16 * * 3", controllers.SyncRecruitingViaCron)
-		c.AddFunc("0 3 * * 4,6", controllers.SyncAIBoardsViaCron)
-		c.AddFunc("0 5 * * 4", controllers.FillAIBoardsViaCron)
+		// College Crons
+		c.AddFunc("0 12 * * 3", controllers.SyncRecruitingViaCron)
+		c.AddFunc("0 0 * * 4,6", controllers.SyncAIBoardsViaCron)
+		c.AddFunc("0 2 * * 4", controllers.FillAIBoardsViaCron)
+
+		// Pro Crons
+		c.AddFunc("30 12 * * *", controllers.SyncFreeAgencyViaCron)
+
+		// Game & Streaming Crons
+		c.AddFunc("0 7 * * 0,2,4,6", controllers.RunAIGameplanViaCron)
+		c.AddFunc("0 10 * * 0,2,4,6", controllers.RunTheGamesViaCron)
+		c.AddFunc("30 10 * * 0,2,4,6", controllers.StreamCHLGamesToInterfaceViaCron)
+		c.AddFunc("35 10 * * 0,2,4,6", controllers.StreamPHLGamesToInterfaceViaCron)
+		c.AddFunc("0 15 * * 0,2,4,6", controllers.ShowResultsViaCron)
+
+		c.AddFunc("0 19 * * 0", controllers.SyncToNextWeekViaCron)
+		c.AddFunc("0 0 * * 1", controllers.RunPostSeasonMigrationViaCron)
 	}
 
 	c.Start()
