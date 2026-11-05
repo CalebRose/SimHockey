@@ -9,6 +9,7 @@ import (
 	"os/signal"
 	"syscall"
 	"time"
+	_ "time/tzdata" // embed tz database; the alpine runtime image has none
 
 	"github.com/CalebRose/SimHockey/controllers"
 	"github.com/CalebRose/SimHockey/dbprovider"
