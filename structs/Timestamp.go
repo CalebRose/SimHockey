@@ -2,6 +2,18 @@ package structs
 
 import "gorm.io/gorm"
 
+type UpdateTimestampDTO struct {
+	WeekID      uint
+	Week        uint
+	SeasonID    uint
+	Phase       uint
+	IsPreseason bool
+	GamesARan   bool
+	GamesBRan   bool
+	GamesCRan   bool
+	GamesDRan   bool
+}
+
 type Timestamp struct {
 	gorm.Model
 	RunCron                       bool
