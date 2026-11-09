@@ -5,6 +5,8 @@ type BootstrapData struct {
 	AllCollegeTeams            []CollegeTeam
 	CollegeStandings           []CollegeStandings
 	CollegeRosterMap           map[uint][]CollegePlayer
+	HistoricCollegePlayers     []CollegePlayer
+	RetiredProPlayers          []ProfessionalPlayer
 	Recruits                   []Croot
 	RecruitProfiles            []RecruitPlayerProfile
 	TeamProfileMap             map[uint]*RecruitingTeamProfile
@@ -57,4 +59,5 @@ type BootstrapData struct {
 	ProTradePreferenceMap map[uint]TradePreferences
 	DraftPicks            map[uint][]DraftPick
 	DraftablePlayers      []DraftablePlayer
+	Arenas                []Arena
 }

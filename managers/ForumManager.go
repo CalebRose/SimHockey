@@ -19,6 +19,8 @@ import (
 // PostGameForumID is the Firestore document ID of the forum category used for
 // post-game discussion threads.
 const PostGameForumID = "postgame-discussions"
+const CHLMediaForumID = "media-simchl"
+const PHLMediaForumID = "media-simphl"
 
 // ─────────────────────────────────────────────
 // Post-game discussion threads
@@ -775,6 +777,44 @@ func CreateRecruitingSyncForumThread(season, week int, signings []string) {
 	}
 
 	log.Printf("ForumManager: created recruiting sync thread %s for season %d week %d", thread.ID, season, week)
+}
+
+// CreateCustomCrootForumThread posts a "Meet the Croots" thread to the SimCHL media forum.
+func CreateCustomCrootForumThread(recruitID uint, dto structs.CustomRecruitDTO) {
+	ctx := context.Background()
+
+	// Only the US, Canada, Sweden and Russia have states/provinces/regions.
+	locationParts := make([]string, 0, 3)
+	for _, part := range []string{dto.City, dto.State, dto.Country} {
+		if strings.TrimSpace(part) != "" {
+			locationParts = append(locationParts, strings.TrimSpace(part))
+		}
+	}
+	title := fmt.Sprintf("Meet the Croots: %s %s %s from %s",
+		dto.Position, dto.FirstName, dto.LastName, strings.Join(locationParts, ", "))
+
+	paragraphs := []string{dto.Bio}
+	input := fbsvc.CreateForumThreadInput{
+		ForumID:           "media-simchl",
+		ForumPath:         []string{"media", "simchl"},
+		Title:             title,
+		AuthorUID:         "system",
+		AuthorUsername:    "SimSN",
+		AuthorDisplayName: "SimSN System",
+		CreatedByType:     fbsvc.CreatedBySystem,
+		ThreadType:        fbsvc.ThreadTypeStandard,
+		FirstPostBodyText: dto.Bio,
+		FirstPostBody:     buildRichPostBody(paragraphs),
+		ReferencedLeague:  "chl",
+		ExternalEventKey:  fmt.Sprintf("custom_croot:chl:%d", recruitID),
+	}
+
+	thread, err := fbsvc.CreateThread(ctx, input)
+	if err != nil {
+		log.Printf("ForumManager: failed to create custom croot thread for recruit %d: %v", recruitID, err)
+		return
+	}
+	log.Printf("ForumManager: created custom croot thread %s for recruit %d", thread.ID, recruitID)
 }
 
 func buildRecruitingSyncParagraphs(season, week int, signings []string) []string {

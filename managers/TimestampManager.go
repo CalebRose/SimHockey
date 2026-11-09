@@ -29,7 +29,7 @@ func ShowGames() {
 		PrepareCollegeTournamentGamesFormat(db, ts)
 		GenerateCollegeTournamentQuarterfinalsGames(db, ts)
 	}
-	if ts.Week == 18 && gameDay == "A" {
+	if ts.Week == 18 && gameDay == "D" {
 		// Final PHL games have been ran, prepare playoff structure
 		PreparePHLPostSeasonGamesFormat(db, ts)
 	}
@@ -51,7 +51,13 @@ func ShowGames() {
 func MoveUpWeek() structs.Timestamp {
 	db := dbprovider.GetInstance().GetDB()
 	ts := GetTimestamp()
-	if ts.Week < 21 && !ts.IsOffSeason {
+	ts.MoveUpPhase()
+	repository.SaveTimestamp(ts, db)
+
+	if ts.Phase < 12 {
+		return ts
+	}
+	if ts.Phase < 30 && !ts.IsOffSeason {
 		ResetCollegeStandingsRanks()
 	}
 
@@ -112,5 +118,5 @@ func ResetCollegeStandingsRanks() {
 	db := dbprovider.GetInstance().GetDB()
 	ts := GetTimestamp()
 	seasonID := strconv.Itoa(int(ts.SeasonID))
-	db.Model(&structs.CollegeStandings{}).Where("season_id = ?", seasonID).Updates(structs.CollegeStandings{Rank: 0})
+	db.Model(&structs.CollegeStandings{}).Where("season_id = ?", seasonID).Update("rank", 0)
 }

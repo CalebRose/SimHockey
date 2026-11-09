@@ -9,6 +9,7 @@ import (
 	"os/signal"
 	"syscall"
 	"time"
+	_ "time/tzdata" // embed tz database; the alpine runtime image has none
 
 	"github.com/CalebRose/SimHockey/controllers"
 	"github.com/CalebRose/SimHockey/dbprovider"
@@ -136,7 +137,7 @@ func handleRequests() http.Handler {
 	apiRouter.HandleFunc("/bootstrap/news/{collegeID}/{proID}", controllers.BootstrapNewsData).Methods("GET")
 	apiRouter.HandleFunc("/bootstrap/stats/{collegeID}/{proID}", controllers.BootstrapStatsData).Methods("GET")
 	apiRouter.HandleFunc("/bootstrap/lineups/{collegeID}/{proID}", controllers.BootstrapLineUpsData).Methods("GET")
-	apiRouter.HandleFunc("/bootstrap/schedule/{collegeID}/{username}", controllers.BootstrapScheduleData).Methods("GET")
+	apiRouter.HandleFunc("/bootstrap/schedule/{collegeID}/{proID}/{username}", controllers.BootstrapScheduleData).Methods("GET")
 
 	// Draft
 	apiRouter.HandleFunc("/phl/draft/export/picks", controllers.ExportDraftedPicks).Methods("POST")
@@ -204,6 +205,7 @@ func handleRequests() http.Handler {
 
 	// Recruiting
 	apiRouter.HandleFunc("/recruiting/add/recruit/", controllers.CreateRecruitPlayerProfile).Methods("POST")
+	apiRouter.HandleFunc("/recruiting/custom/croot/", controllers.CreateCustomCroot).Methods("POST")
 	apiRouter.HandleFunc("/recruiting/remove/recruit/", controllers.RemoveRecruitFromBoard).Methods("POST")
 	apiRouter.HandleFunc("/recruiting/toggle/scholarship/", controllers.SendScholarshipToRecruit).Methods("POST")
 	apiRouter.HandleFunc("/recruiting/scout/attribute/", controllers.ScoutAttribute).Methods("POST")
@@ -293,6 +295,11 @@ func handleRequests() http.Handler {
 	apiRouter.HandleFunc("/chl/scheduler/game/request/reject/{requestID}", controllers.RejectCHLGameRequest).Methods("GET")
 	apiRouter.HandleFunc("/chl/scheduler/game/request/process/{requestID}", controllers.ProcessCHLGameRequest).Methods("GET")
 	apiRouter.HandleFunc("/chl/scheduler/game/request/veto/{requestID}", controllers.VetoCHLGameRequest).Methods("GET")
+	apiRouter.HandleFunc("/chl/scheduler/invitational/request/create", controllers.CreateCHLInvitationalRequest).Methods("POST")
+	apiRouter.HandleFunc("/chl/scheduler/invitational/request/process/{requestID}", controllers.ProcessHockeyInvitationalRequest).Methods("GET")
+	apiRouter.HandleFunc("/chl/scheduler/invitational/request/veto/{requestID}", controllers.VetoHockeyInvitationalRequest).Methods("GET")
+	apiRouter.HandleFunc("/chl/scheduler/invitational/request/cancel/{requestID}", controllers.CancelCHLInvitationalRequest).Methods("GET")
+	// apiRouter.HandleFunc("/chl/scheduler/invitational/generate/permanent", controllers.GeneratePermanentInvitationals).Methods("GET")
 
 	// Games
 	apiRouter.HandleFunc("/games/result/chl/{gameID}", controllers.GetCollegeGameResultsByGameID).Methods("GET")
@@ -325,20 +332,30 @@ func loadEnvs() {
 }
 
 func handleCron() *cron.Cron {
-	c := cron.New(cron.WithLocation(time.UTC))
+	location, err := time.LoadLocation("America/New_York")
+	if err != nil {
+		log.Fatalf("Unable to load cron timezone America/New_York: %v", err)
+	}
+	c := cron.New(cron.WithLocation(location))
 	runJobs := os.Getenv("RUN_JOBS")
 	if runJobs != "false" {
-		c.AddFunc("0 14 * * *", controllers.SyncFreeAgencyViaCron)
-		c.AddFunc("0 10 * * 0,2,4,6", controllers.RunAIGameplanViaCron)
-		c.AddFunc("0 14 * * 0,2,4,6", controllers.RunTheGamesViaCron)
-		c.AddFunc("30 14 * * 0,2,4,6", controllers.StreamCHLGamesToInterfaceViaCron)
-		c.AddFunc("35 14 * * 0,2,4,6", controllers.StreamPHLGamesToInterfaceViaCron)
-		c.AddFunc("0 20 * * 0,2,4,6", controllers.ShowResultsViaCron)
-		c.AddFunc("0 22 * * 0", controllers.SyncToNextWeekViaCron)
-		c.AddFunc("0 3 * * 1", controllers.RunPostSeasonMigrationViaCron)
-		c.AddFunc("0 16 * * 3", controllers.SyncRecruitingViaCron)
-		c.AddFunc("0 3 * * 4,6", controllers.SyncAIBoardsViaCron)
-		c.AddFunc("0 5 * * 4", controllers.FillAIBoardsViaCron)
+		// College Crons
+		c.AddFunc("0 12 * * 3", controllers.SyncRecruitingViaCron)
+		c.AddFunc("0 0 * * 4,6", controllers.SyncAIBoardsViaCron)
+		c.AddFunc("0 2 * * 4", controllers.FillAIBoardsViaCron)
+
+		// Pro Crons
+		c.AddFunc("30 12 * * *", controllers.SyncFreeAgencyViaCron)
+
+		// Game & Streaming Crons
+		c.AddFunc("0 7 * * 0,2,4,6", controllers.RunAIGameplanViaCron)
+		c.AddFunc("0 10 * * 0,2,4,6", controllers.RunTheGamesViaCron)
+		c.AddFunc("30 10 * * 0,2,4,6", controllers.StreamCHLGamesToInterfaceViaCron)
+		c.AddFunc("35 10 * * 0,2,4,6", controllers.StreamPHLGamesToInterfaceViaCron)
+		c.AddFunc("0 15 * * 0,2,4,6", controllers.ShowResultsViaCron)
+
+		c.AddFunc("0 19 * * 0", controllers.SyncToNextWeekViaCron)
+		c.AddFunc("0 0 * * 1", controllers.RunPostSeasonMigrationViaCron)
 	}
 
 	c.Start()

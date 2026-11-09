@@ -486,7 +486,12 @@ func GetCHLGameResultsByGameID(gameID string) structs.GameResultsResponse {
 	htID := strconv.Itoa(int(game.HomeTeamID))
 	atID := strconv.Itoa(int(game.AwayTeamID))
 	allStats := repository.FindCollegePlayerStatsRecordByGame(gameID)
-	collegePlayerMap := GetCollegePlayersMap()
+	collegePlayersList := GetAllCollegePlayers()
+	historicCollegePlayers := repository.FindAllHistoricCollegePlayers()
+	for _, hcp := range historicCollegePlayers {
+		collegePlayersList = append(collegePlayersList, hcp.CollegePlayer)
+	}
+	collegePlayerMap := MakeCollegePlayerMap(collegePlayersList)
 	teamMap := GetCollegeTeamMap()
 	homeTeamStats := repository.FindCollegeTeamStatsRecordByGame(gameID, htID)
 	awayTeamStats := repository.FindCollegeTeamStatsRecordByGame(gameID, atID)
@@ -522,7 +527,12 @@ func GetPHLGameResultsByGameID(gameID string) structs.GameResultsResponse {
 	htID := strconv.Itoa(int(game.HomeTeamID))
 	atID := strconv.Itoa(int(game.AwayTeamID))
 	allStats := repository.FindProPlayerStatsRecordByGame(gameID)
-	playerMap := GetProPlayersMap()
+	proPlayersList := GetAllProPlayers()
+	retiredProPlayers := repository.FindAllHistoricProPlayers()
+	for _, rpp := range retiredProPlayers {
+		proPlayersList = append(proPlayersList, rpp.ProfessionalPlayer)
+	}
+	playerMap := MakeProfessionalPlayerMap(proPlayersList)
 	teamMap := GetProTeamMap()
 	homeTeamStats := repository.FindProTeamStatsRecordByGame(gameID, htID)
 	awayTeamStats := repository.FindProTeamStatsRecordByGame(gameID, atID)

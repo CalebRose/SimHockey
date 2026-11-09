@@ -29,6 +29,13 @@ func HandlePostSeasonMigration() {
 	GenerateSimCHLConferenceSchedules(ts)
 	// Canadian Hockey League Schedule
 	GenerateCanadianHockeySchedule(ts)
+
+	// Generate Beanpot and Lake Placid Invitationals
+	GeneratePermanentInvitationals(ts)
+
+	// Generate PHL Season Schedule
+	GeneratePHLSeasonSchedule()
+
 	GenerateCroots()
 
 	repository.SaveTimestamp(ts, db)

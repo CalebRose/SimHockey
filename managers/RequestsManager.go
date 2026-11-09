@@ -156,6 +156,12 @@ func ApproveCHLTeamRequest(request structs.CollegeTeamRequest) structs.CollegeTe
 
 	repository.SaveCollegeTeamRecord(db, team)
 
+	standings := repository.FindAllCollegeStandings(repository.StandingsQuery{SeasonID: strconv.Itoa(int(ts.SeasonID)), TeamID: teamID})
+	for _, s := range standings {
+		s.Coach = req.Username
+		repository.SaveCollegeStandingsRecord(s, db)
+	}
+
 	games := repository.FindCollegeGames(repository.GamesClauses{SeasonID: strconv.Itoa(int(ts.SeasonID)), TeamID: teamID, IsPreseason: false})
 
 	for _, g := range games {
@@ -208,7 +214,23 @@ func ApprovePHLTeamRequest(request structs.ProTeamRequest) structs.ProTeamReques
 	team.AssignUser(request.Username, request.Role)
 	repository.SaveProTeamRecord(db, team)
 
-	CreateNewsLog("CHL", "Breaking News! The "+team.TeamName+" "+team.Mascot+" have hired "+req.Username+" as their new "+request.Role+" for the "+strconv.Itoa(int(ts.Season))+" season!", "CoachJob", 0, ts, true)
+	standings := repository.FindAllProfessionalStandings(repository.StandingsQuery{SeasonID: strconv.Itoa(int(ts.SeasonID)), TeamID: teamID})
+	games := repository.FindProfessionalGames(repository.GamesClauses{SeasonID: strconv.Itoa(int(ts.SeasonID)), TeamID: teamID, IsPreseason: false})
+	if request.Role == "Owner" || request.Role == "owner" || request.Role == "o" || request.Role == "O" ||
+		request.Role == "hc" || request.Role == "Coach" {
+		for _, s := range standings {
+			s.Coach = req.Username
+			repository.SaveProfessionalStandingsRecord(s, db)
+		}
+		for _, g := range games {
+			if g.Week >= int(ts.Week) {
+				g.UpdateCoach(req.TeamID, req.Username)
+				repository.SaveProfessionalGameRecord(g, db)
+			}
+		}
+	}
+
+	CreateNewsLog("PHL", "Breaking News! The "+team.TeamName+" "+team.Mascot+" have hired "+req.Username+" as their new "+request.Role+" for the "+strconv.Itoa(int(ts.Season))+" season!", "CoachJob", 0, ts, true)
 
 	return request
 }

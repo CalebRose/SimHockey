@@ -88,12 +88,14 @@ type CollegeTeam struct {
 func (t *CollegeTeam) AssignToUser(username string) {
 	t.IsUserCoached = true
 	t.Coach = username
+	t.UpdateLatestInstance()
 }
 
 func (t *CollegeTeam) RemoveUser() {
 	t.IsUserCoached = false
 	t.Coach = ""
 	t.DiscordID = ""
+	t.UpdateLatestInstance()
 }
 
 func (t *CollegeTeam) ToggleRecruitsAdded() {
@@ -144,6 +146,7 @@ func (t *ProfessionalTeam) RemoveUser(role string) {
 	case "Owner":
 		t.Owner = ""
 		t.DiscordID = ""
+		t.UpdateLatestInstance()
 	case "GM":
 		t.GM = ""
 	case "Scout":

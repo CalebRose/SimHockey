@@ -6,6 +6,7 @@ import (
 	"strconv"
 	"strings"
 
+	util "github.com/CalebRose/SimHockey/_util"
 	"github.com/CalebRose/SimHockey/dbprovider"
 	"github.com/CalebRose/SimHockey/repository"
 	"github.com/CalebRose/SimHockey/structs"
@@ -943,9 +944,11 @@ func CreateGameplans() {
 	proTeams := repository.FindAllProTeams(repository.TeamClauses{})
 
 	for _, team := range chlTeams {
-		if team.ID < 73 {
+		if team.ID < 95 {
 			continue
 		}
+		offensiveSystem := util.GenerateIntFromRange(1, 8)
+		defensiveSystem := util.GenerateIntFromRange(1, 8)
 		gameplan := structs.CollegeGameplan{
 			BaseGameplan: structs.BaseGameplan{
 				TeamID:                  team.ID,
@@ -959,6 +962,10 @@ func CreateGameplans() {
 				ForwardSortPreference1:  1,
 				DefenderSortPreference1: 1,
 				GoalieSortPreference:    1,
+				OffensiveSystem:         uint8(offensiveSystem),
+				DefensiveSystem:         uint8(defensiveSystem),
+				OffensiveIntensity:      5,
+				DefensiveIntensity:      5,
 			},
 		}
 

@@ -712,7 +712,7 @@ func AICoachFillBoardsPhase() {
 			// if coach.Prestige < playerPrestige {
 			// 	continue
 			// }
-			biasMod := 0
+			biasMod := 50
 			postSeasonStatus := teamStandings.PostSeasonStatus
 			collegeTeam := collegeTeamMap[uint(teamProfile.TeamID)]
 			programDiff := collegeTeam.ProgramPrestige - tp.ProgramPref
@@ -740,7 +740,7 @@ func AICoachFillBoardsPhase() {
 				} else if tp.ConferencePref > 9 {
 					biasMod += 20
 				} else if tp.ConferencePref < 4 {
-					biasMod -= 15
+					biasMod += 5
 				}
 			} else if collegeTeam.Academics > 7 {
 				if tp.AcademicsPref > 5 {
@@ -803,10 +803,10 @@ func AICoachFillBoardsPhase() {
 					biasMod -= 15
 				}
 			} else {
-				biasMod = 5
+				biasMod = 50
 			}
-
-			diceRoll := util.GenerateIntFromRange(1, 50)
+			biasMod = 50
+			diceRoll := util.GenerateIntFromRange(1, 100)
 			if diceRoll < biasMod {
 				profileCount++
 				portalProfile := structs.TransferPortalProfile{
@@ -877,7 +877,7 @@ func AICoachAllocateAndPromisePhase() {
 			// If player has already signed or if the position has been fulfilled
 			badOffenseFit := IsBadOffenseFit(teamProfile.OffensiveSystem, tp.Archetype)
 			badDefenseFit := IsBadDefenseSchemeFit(teamProfile.DefensiveSystem, tp.Archetype)
-			if (tp.Position != Defender && badOffenseFit) || (tp.Position == Defender && badDefenseFit) || tp.TeamID > 0 || tp.TransferStatus == 0 || tp.ID == 0 || !majorNeedsMap[tp.Position] {
+			if (tp.Position != Defender && badOffenseFit) || (tp.Position == Defender && badDefenseFit) || (tp.TeamID > 0 && tp.LeagueID == 1) || tp.TransferStatus == 0 || tp.ID == 0 || !majorNeedsMap[tp.Position] {
 				profile.Deactivate()
 				repository.SaveTransferPortalProfileRecord(profile, db)
 				continue
