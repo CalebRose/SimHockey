@@ -204,13 +204,13 @@ func SyncAcceptedTrade(proposalID string) {
 func SyncAcceptedDraftTrade(proposal structs.TradeProposal) {
 	db := dbprovider.GetInstance().GetDB()
 
-	options := append(proposal.TeamTradeOptions, proposal.RecepientTeamTradeOptions...)
+	SentOptions := proposal.TeamTradeOptions
 
 	proTeamMap := GetProTeamMap()
 	capsheetMap := GetProCapsheetMap()
 	contractMap := GetContractMap()
 
-	syncAcceptedOptions(db, options, proposal.TeamID, proposal.RecepientTeamID, proTeamMap, capsheetMap, contractMap)
+	syncAcceptedOptions(db, SentOptions, proposal.TeamID, proposal.RecepientTeamID, proTeamMap, capsheetMap, contractMap)
 }
 
 func syncAcceptedOptions(db *gorm.DB, options []structs.TradeOption, senderID uint, recepientID uint, proTeamMap map[uint]structs.ProfessionalTeam, capsheetMap map[uint]structs.ProCapsheet, contractMap map[uint]structs.ProContract) {
