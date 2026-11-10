@@ -131,7 +131,7 @@ func FindCollegeGames(clauses GamesClauses) []structs.CollegeGame {
 		query = query.Where("game_complete = ?", gameCompleted)
 	}
 
-	if err := query.Order("week_id asc").Where("is_preseason = ?", clauses.IsPreseason).Find(&games).Error; err != nil {
+	if err := query.Order("week_id asc").Find(&games).Error; err != nil {
 		return []structs.CollegeGame{}
 	}
 
@@ -161,7 +161,7 @@ func FindProfessionalGames(clauses GamesClauses) []structs.ProfessionalGame {
 		query = query.Where("game_complete = ?", gameCompleted)
 	}
 
-	if err := query.Order("week_id asc").Where("is_preseason = ?", clauses.IsPreseason).Find(&games).Error; err != nil {
+	if err := query.Order("week_id asc").Find(&games).Error; err != nil {
 		return []structs.ProfessionalGame{}
 	}
 	return games

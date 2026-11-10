@@ -45,6 +45,7 @@ type Timestamp struct {
 	IsFreeAgencyLocked            bool
 	FreeAgencyRound               uint
 	IsDraftTime                   bool
+	DraftComplete                 bool
 	Y1Capspace                    float64
 	Y2Capspace                    float64
 	Y3Capspace                    float64
@@ -241,6 +242,7 @@ func (t *Timestamp) EndTheProfessionalSeason() {
 	t.IsDraftTime = false
 	t.IsFreeAgencyLocked = true
 	t.NHLSeasonOver = true
+	t.DraftComplete = false
 }
 
 func (t *Timestamp) ToggleGeneratedCroots() {
@@ -269,4 +271,60 @@ func (t *Timestamp) GetCurrentGameType(isCollege bool) (int, string) {
 
 func (t *Timestamp) IncrementTestNumber() {
 	t.TestRunNum++
+}
+
+func (t *Timestamp) TimeForGeneratingRemainingRegularSeasonGames() bool {
+	return t.Phase == 12
+}
+
+func (t *Timestamp) TimeForGeneratingProSchedule() bool {
+	return t.Phase == 4
+}
+
+func (t *Timestamp) IsFreeAgencyOpen() bool {
+	return t.Phase != 7
+}
+
+func (ts *Timestamp) CanRefillCHLRosters() bool {
+	return (!ts.IsDraftTime && (!ts.IsOffSeason && !ts.IsPreseason)) || (ts.Phase == 8)
+}
+
+func (ts *Timestamp) CanRunRecruiting() bool {
+	return (!ts.CollegeSeasonOver && !ts.IsPreseason && !ts.IsOffSeason) || (ts.Phase > 12 && ts.Phase < 33)
+}
+
+func (ts *Timestamp) CanSyncCollegePromises() bool {
+	return (ts.IsOffSeason && ts.TransferPortalPhase == 1) || (ts.Phase == 1)
+}
+
+func (ts *Timestamp) CanOpenTransferPortal() bool {
+	return (ts.IsOffSeason && ts.TransferPortalPhase == 2) || (ts.Phase == 2)
+}
+
+func (ts *Timestamp) CanRunTransferPortal() bool {
+	return (ts.IsOffSeason && ts.TransferPortalPhase == 3) || (ts.Phase > 2 && ts.Phase < 13)
+}
+
+func (ts *Timestamp) CanRunAIFunctionsForTransferPortal() bool {
+	return (ts.TransferPortalPhase == 3) || (ts.Phase > 2 && ts.Phase < 13)
+}
+
+func (ts *Timestamp) CanRunAIFunctionsForCollegeRecruiting() bool {
+	return (!ts.IsOffSeason && !ts.CollegeSeasonOver && !ts.IsPreseason) || (ts.Phase > 12 && ts.Phase < 34)
+}
+
+func (ts *Timestamp) IsCollegeSeasonActive() bool {
+	return (!ts.IsOffSeason && !ts.CollegeSeasonOver) || (ts.Phase > 12 && ts.Phase < 36)
+}
+
+func (ts *Timestamp) IsProfessionalSeasonActive() bool {
+	return (!ts.IsOffSeason && !ts.NHLSeasonOver) || (ts.Phase > 12 && ts.Phase < 39)
+}
+
+func (ts *Timestamp) CanRunGames() bool {
+	return !ts.IsOffSeason && ts.RunGames
+}
+
+func (ts *Timestamp) IsBothSeasonsCompleted() bool {
+	return ts.CollegeSeasonOver && ts.NHLSeasonOver && ts.ProgressedCollegePlayers && ts.ProgressedProfessionalPlayers
 }

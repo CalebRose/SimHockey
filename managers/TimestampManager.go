@@ -54,16 +54,18 @@ func MoveUpWeek() structs.Timestamp {
 	ts.MoveUpPhase()
 	repository.SaveTimestamp(ts, db)
 
+	if ts.Phase == 11 {
+		// Generate Remaining OOC Games
+		GenerateOOCSchedule()
+		// Generate Preseason Games
+		GeneratePreseasonGames()
+	}
+
 	if ts.Phase < 12 {
 		return ts
 	}
 	if ts.Phase < 30 && !ts.IsOffSeason {
 		ResetCollegeStandingsRanks()
-	}
-
-	if ts.IsPreseason && ts.Week == 0 {
-		// Generate Preseason Games
-		GeneratePreseasonGames()
 	}
 
 	// Sync to Next Week

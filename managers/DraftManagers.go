@@ -324,6 +324,7 @@ func ExportDraftedPlayers(picks []structs.DraftPick) bool {
 	repository.CreateProContractRecordsBatch(db, newContractRecords, 250)
 
 	ts.DraftIsOver()
+	ts.DraftComplete = true
 	repository.SaveTimestamp(ts, db)
 	return true
 }

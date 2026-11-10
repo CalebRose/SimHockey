@@ -12,22 +12,22 @@ func CronTest() {
 
 func FillAIBoardsViaCron() {
 	ts := managers.GetTimestamp()
-	if ts.RunCron && !ts.IsOffSeason && !ts.CollegeSeasonOver && !ts.IsPreseason {
+	if ts.RunCron && ts.CanRunAIFunctionsForCollegeRecruiting() {
 		managers.FillAIRecruitingBoards()
 	}
 
-	if ts.RunCron && ts.Week == 0 && ts.TransferPortalPhase == 3 {
+	if ts.RunCron && ts.CanRunAIFunctionsForTransferPortal() {
 		managers.AICoachFillBoardsPhase()
 	}
 }
 
 func SyncAIBoardsViaCron() {
 	ts := managers.GetTimestamp()
-	if ts.RunCron && !ts.IsOffSeason && !ts.CollegeSeasonOver && !ts.IsPreseason {
+	if ts.RunCron && ts.CanRunAIFunctionsForCollegeRecruiting() {
 		managers.AllocatePointsToAIBoards()
 	}
 
-	if ts.RunCron && ts.Week == 0 && ts.TransferPortalPhase == 3 {
+	if ts.RunCron && ts.CanRunAIFunctionsForTransferPortal() {
 		// Portal Stuff
 		managers.AICoachAllocateAndPromisePhase()
 	}
@@ -38,19 +38,19 @@ func SyncRecruitingViaCron() {
 	if !ts.RunCron {
 		return
 	}
-	if !ts.IsDraftTime && (ts.IsOffSeason || ts.IsPreseason) {
+	if ts.CanRefillCHLRosters() {
 		managers.RefillCHLRosters()
 		managers.ResetScoutingProfilesForRecruiting()
 	}
-	if !ts.CollegeSeasonOver && !ts.IsPreseason && !ts.IsOffSeason {
+	if ts.CanRunRecruiting() {
 		// Sync Recruiting
 		managers.SyncCollegeRecruiting()
-	} else if ts.IsOffSeason && ts.TransferPortalPhase == 1 {
+	} else if ts.CanSyncCollegePromises() {
 		managers.SyncPromises()
 		managers.ProcessTransferIntention()
-	} else if ts.IsOffSeason && ts.TransferPortalPhase == 2 {
+	} else if ts.CanOpenTransferPortal() {
 		managers.EnterTheTransferPortal()
-	} else if ts.IsOffSeason && ts.TransferPortalPhase == 3 {
+	} else if ts.CanRunTransferPortal() {
 		// Sync Transfer Portal
 		managers.SyncTransferPortal()
 		if ts.TransferPortalRound >= 10 {
@@ -62,11 +62,11 @@ func SyncRecruitingViaCron() {
 
 func SyncFreeAgencyViaCron() {
 	ts := managers.GetTimestamp()
-	if ts.RunCron {
+	if ts.RunCron && ts.IsFreeAgencyOpen() {
 		managers.SyncAIOffers()
 		managers.SyncFreeAgencyOffers()
 		managers.AllocateCapsheets()
-		if ts.Week > 17 {
+		if ts.Week > 19 {
 			managers.SyncExtensionOffers()
 		}
 	}
@@ -82,17 +82,17 @@ func SyncToNextWeekViaCron() {
 
 func RunAIGameplanViaCron() {
 	ts := managers.GetTimestamp()
-	if ts.RunCron && !ts.IsOffSeason && !ts.CollegeSeasonOver {
+	if ts.RunCron && ts.IsCollegeSeasonActive() {
 		managers.RunLineupsForAICollegeTeams()
 	}
-	if ts.RunCron && !ts.IsOffSeason && !ts.NHLSeasonOver {
+	if ts.RunCron && ts.IsProfessionalSeasonActive() {
 		managers.RunLineupsForAIProTeams()
 	}
 }
 
 func RunTheGamesViaCron() {
 	ts := managers.GetTimestamp()
-	if ts.RunCron && !ts.IsOffSeason && ts.RunGames {
+	if ts.RunCron && ts.CanRunGames() {
 		// Run the Games!
 		managers.RunGames()
 	}
@@ -100,7 +100,7 @@ func RunTheGamesViaCron() {
 
 func ShowResultsViaCron() {
 	ts := managers.GetTimestamp()
-	if ts.RunCron && ts.RunGames && !ts.IsOffSeason {
+	if ts.RunCron && ts.CanRunGames() {
 		// Reveal Results+
 		managers.ShowGames()
 	}
@@ -108,7 +108,7 @@ func ShowResultsViaCron() {
 
 func RunPostSeasonMigrationViaCron() {
 	ts := managers.GetTimestamp()
-	if ts.RunCron && ts.CollegeSeasonOver && ts.NHLSeasonOver && ts.ProgressedCollegePlayers && ts.ProgressedProfessionalPlayers {
+	if ts.RunCron && ts.IsBothSeasonsCompleted() {
 		managers.HandlePostSeasonMigration()
 	}
 }
