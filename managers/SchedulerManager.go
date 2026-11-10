@@ -68,6 +68,7 @@ func ProcessHockeyInvitationalRequest(requestID string) {
 		if len(invitational) == 0 {
 			continue
 		}
+		invitationalName := invitational[0].Name
 		week := invitational[0].Week
 		weekID := util.GetWeekID(ts.SeasonID, uint(week))
 
@@ -87,7 +88,7 @@ func ProcessHockeyInvitationalRequest(requestID string) {
 				Domain:         fbsvc.DomainCHL,
 				TeamID:         sendingTeam.ID,
 				RecipientUIDs:  uids,
-				Message:        fmt.Sprintf("%s has accepted your CHL Invitational request.", receivingTeam.TeamName),
+				Message:        fmt.Sprintf("%s has been accepted to the %s Invitational.", receivingTeam.TeamName, invitationalName),
 				SourceEventKey: fbsvc.BuildSourceEventKey("gamerequest", "chl", "accept", requestID),
 			})
 		}
