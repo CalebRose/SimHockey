@@ -202,6 +202,7 @@ func ProcessCHLGameRequest(requestID string) {
 			GameDay:       request.Timeslot,
 			IsNeutralSite: request.IsNeutralSite,
 			IsConference:  homeTeam.ConferenceID == awayTeam.ConferenceID,
+			IsPreseason:   request.IsPreseason,
 		},
 	}
 
