@@ -3,6 +3,7 @@ package firebase
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"log"
 	"os"
 	"strings"
@@ -16,6 +17,7 @@ import (
 var (
 	once            sync.Once
 	firestoreClient *firestore.Client
+	firestoreErr    error
 )
 
 // GetFirestoreClient returns a singleton Firestore client.
@@ -25,6 +27,14 @@ var (
 //  2. FIREBASE_SERVICE_ACCOUNT_KEY env var treated as a file path.
 //  3. secrets/serviceAccountKey.json relative to the working directory (local dev).
 func GetFirestoreClient() *firestore.Client {
+	client, err := getFirestoreClient()
+	if err != nil {
+		log.Fatal(err)
+	}
+	return client
+}
+
+func getFirestoreClient() (*firestore.Client, error) {
 	once.Do(func() {
 		ctx := context.Background()
 
@@ -37,15 +47,17 @@ func GetFirestoreClient() *firestore.Client {
 
 		app, err := firebase.NewApp(ctx, nil, credOpt)
 		if err != nil {
-			log.Fatalf("firebase: failed to initialise app: %v", err)
+			firestoreErr = fmt.Errorf("firebase: failed to initialise app: %w", err)
+			return
 		}
 		client, err := app.Firestore(ctx)
 		if err != nil {
-			log.Fatalf("firebase: failed to create Firestore client: %v", err)
+			firestoreErr = fmt.Errorf("firebase: failed to create Firestore client: %w", err)
+			return
 		}
 		firestoreClient = client
 	})
-	return firestoreClient
+	return firestoreClient, firestoreErr
 }
 
 // buildCredentialsFromEnv assembles a service-account JSON document from

@@ -91,6 +91,16 @@ SimHockey is a Golang-based HTTP API designed to simulate hockey leagues (Colleg
 
 > _Details on cron jobs will be added at a later date._
 
+### Admin reports
+
+The recruiting sync writes pending reports to the Firestore `adminReports` collection for user-controlled CHL teams that spent no recruiting points, including teams with full recruiting classes. Reports include the team, recruiter (when available), week, and phase. A deterministic document ID prevents duplicate reports for the same team, week, and phase without overwriting an admin's updates.
+
+The `responseType` values are `0` (resignation), `1` (missed recruiting), `2` (broken gameplan), `3` (trade transaction), and `4` (other). Recruiting reports use `reportType: "missed_recruiting"` and `reportedBy: "system"`. Report write failures are logged; they are not retried after the sync resets recruiting points.
+
+CHL and PHL lineup runs also check all teams for incomplete rosters, including teams with manually managed or missing gameplans. Missing positions are reported with `reportType: "incomplete_roster"` and response type `2`, once per team, week, and phase. A later lineup run can retry a failed write; no report is generated until a lineup run checks the roster.
+
+Processed PHL trades produce an admin report with `reportType: "trade_transaction"` and response type `3`, identifying both teams and the transferred players and picks. Saved proposals use a stable report ID; draft trades without a proposal ID use a new ID per processing. Write failures are logged and are not automatically retried. Draft trades are submitted as JSON via `POST /api/trades/draft/accept/trade/process`.
+
 ## Getting Started
 
 > _Instructions for cloning, building, and running the API will be added soon._

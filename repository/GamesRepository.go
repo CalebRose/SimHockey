@@ -107,6 +107,14 @@ type GamesClauses struct {
 }
 
 func FindCollegeGames(clauses GamesClauses) []structs.CollegeGame {
+	games, err := FindCollegeGamesWithError(clauses)
+	if err != nil {
+		return []structs.CollegeGame{}
+	}
+	return games
+}
+
+func FindCollegeGamesWithError(clauses GamesClauses) ([]structs.CollegeGame, error) {
 	db := dbprovider.GetInstance().GetDB()
 
 	var games []structs.CollegeGame
@@ -131,11 +139,15 @@ func FindCollegeGames(clauses GamesClauses) []structs.CollegeGame {
 		query = query.Where("game_complete = ?", gameCompleted)
 	}
 
-	if err := query.Order("week_id asc").Find(&games).Error; err != nil {
-		return []structs.CollegeGame{}
+	if clauses.IsPreseason {
+		query = query.Where("is_preseason = ?", clauses.IsPreseason)
 	}
 
-	return games
+	if err := query.Order("week_id asc").Find(&games).Error; err != nil {
+		return nil, err
+	}
+
+	return games, nil
 }
 
 func FindProfessionalGames(clauses GamesClauses) []structs.ProfessionalGame {
@@ -159,6 +171,10 @@ func FindProfessionalGames(clauses GamesClauses) []structs.ProfessionalGame {
 	if len(clauses.GameCompleted) > 0 {
 		gameCompleted := clauses.GameCompleted == "Y"
 		query = query.Where("game_complete = ?", gameCompleted)
+	}
+
+	if clauses.IsPreseason {
+		query = query.Where("is_preseason = ?", clauses.IsPreseason)
 	}
 
 	if err := query.Order("week_id asc").Find(&games).Error; err != nil {

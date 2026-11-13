@@ -232,13 +232,14 @@ func ExportDraftedPlayers(picks []structs.DraftPick) bool {
 		}
 		playerId := strconv.Itoa(int(pick.DrafteeID))
 		draftee := repository.FindDraftablePlayerRecord(repository.ScoutProfileQuery{PlayerID: playerId})
-
+		isCalledUp := false
 		if draftee.DraftablePlayerType == 0 {
 			// Update college player record
 			collegePlayer := draftableCollegePlayerMap[pick.DrafteeID]
 			collegePlayer.AssignDraftedTeamData(pick)
 			repository.SaveCollegeHockeyPlayerRecord(collegePlayer, db)
 		} else if draftee.DraftablePlayerType == 1 {
+			isCalledUp = true
 			draftee.AssignDraftedTeam(pick.DraftNumber, pick.ID, pick.TeamID, pick.Team)
 			proPlayer := structs.ProfessionalPlayer{
 				Model:          draftee.Model,
@@ -289,6 +290,7 @@ func ExportDraftedPlayers(picks []structs.DraftPick) bool {
 		// Fetch Draft pick
 		draftPick := draftPickMap[pick.ID]
 		draftPick.MapDraftPickResults(pick.DrafteeID)
+		draftPick.IsCalledUp = isCalledUp
 		repository.SaveDraftPickRecord(draftPick, db)
 	}
 

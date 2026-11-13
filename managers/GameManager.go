@@ -777,19 +777,6 @@ func PrepareGames(collegeGames []structs.CollegeGame, proGames []structs.Profess
 	return gameDTOList
 }
 
-func GeneratePreseasonGames() {
-	db := dbprovider.GetInstance().GetDB()
-
-	collegeTeamMap := GetCollegeTeamMap()
-	proTeamMap := GetProTeamMap()
-
-	collegeGames := GetCollegeGamesForPreseason(collegeTeamMap)
-	proGames := GetProGamesForPreseason(proTeamMap)
-
-	repository.CreateCHLGamesRecordsBatch(db, collegeGames, 20)
-	repository.CreatePHLGamesRecordsBatch(db, proGames, 20)
-}
-
 func PrepareCollegeTournamentGamesFormat(db *gorm.DB, ts structs.Timestamp) {
 	seasonID := ts.SeasonID
 	nextGameID := repository.FindLatestCHLGameID() + 1
@@ -1404,115 +1391,6 @@ func GenerateProPlayoffGames(db *gorm.DB, ts structs.Timestamp) {
 	repository.CreatePHLGamesRecordsBatch(db, proGamesUpload, 50)
 }
 
-func GetCollegeGamesForPreseason(teamMap map[uint]structs.CollegeTeam) []structs.CollegeGame {
-	ts := GetTimestamp()
-	games := []structs.CollegeGame{}
-	teamIDs := make([]uint, 0, len(teamMap))
-	playedGameReference := make(map[uint]map[uint]bool)
-	for id := range teamMap {
-		teamIDs = append(teamIDs, id)
-		playedGameReference[id] = make(map[uint]bool)
-	}
-	gameDay := "A"
-
-	for round := 1; round <= 3; round++ {
-		var pairings [][2]uint
-		const maxTries = 1000
-		for tries := 0; tries < maxTries; tries++ {
-			// shuffle
-			rand.Shuffle(len(teamIDs), func(i, j int) {
-				teamIDs[i], teamIDs[j] = teamIDs[j], teamIDs[i]
-			})
-
-			// attempt to pair
-			var err error
-			pairings, err = createCollegeGamePairings(teamIDs, teamMap, playedGameReference)
-			if err == nil {
-				// success!
-				break
-			}
-		}
-		if len(pairings)*2 != len(teamIDs) {
-			log.Fatalf("couldn’t find a full pairing on round %d after %d tries", round, maxTries)
-		}
-
-		// generate the Game objects
-		for _, pair := range pairings {
-			game := generateCollegeGame(
-				ts.SeasonID, ts.WeekID,
-				ts.Week,
-				pair[0], pair[1],
-				gameDay, "", teamMap, true,
-			)
-			games = append(games, game)
-		}
-
-		// rotate gameDay A→B→C
-		switch gameDay {
-		case "A":
-			gameDay = "B"
-		case "B":
-			gameDay = "C"
-		}
-	}
-
-	return games
-}
-
-func GetProGamesForPreseason(teamMap map[uint]structs.ProfessionalTeam) []structs.ProfessionalGame {
-	ts := GetTimestamp()
-	playedGameReference := make(map[uint]map[uint]bool)
-	games := []structs.ProfessionalGame{}
-	gameDay := "A"
-	teamIDs := make([]uint, 0, len(teamMap))
-	for id := range teamMap {
-		teamIDs = append(teamIDs, id)
-		playedGameReference[id] = make(map[uint]bool)
-	}
-
-	for round := 1; round <= 3; round++ {
-		var pairings [][2]uint
-		const maxTries = 500
-		for tries := 0; tries < maxTries; tries++ {
-			// shuffle
-			rand.Shuffle(len(teamIDs), func(i, j int) {
-				teamIDs[i], teamIDs[j] = teamIDs[j], teamIDs[i]
-			})
-
-			// attempt to pair
-			var err error
-			pairings, err = createProGamePairings(teamIDs, teamMap, playedGameReference)
-			if err == nil {
-				// success!
-				break
-			}
-		}
-		if len(pairings)*2 != len(teamIDs) {
-			log.Fatalf("couldn’t find a full pairing on round %d after %d tries", round, maxTries)
-		}
-
-		// generate the Game objects
-		for _, pair := range pairings {
-			game := generateProfessionalGame(
-				ts.SeasonID, ts.WeekID,
-				ts.Week,
-				pair[0], pair[1],
-				gameDay, teamMap, true,
-			)
-			games = append(games, game)
-		}
-
-		// rotate gameDay A→B→C
-		switch gameDay {
-		case "A":
-			gameDay = "B"
-		case "B":
-			gameDay = "C"
-		}
-	}
-	return games
-}
-
 func createCollegeGamePairings(
 	teamIDs []uint,
 	teamMap map[uint]structs.CollegeTeam,
@@ -1644,19 +1522,19 @@ func GetProfessionalGamesForCurrentMatchup(weekID, seasonID, gameDay string, isP
 }
 
 func GetCollegeGamesByTeamIDAndSeasonID(teamID, seasonID string, isPreseason bool) []structs.CollegeGame {
-	return repository.FindCollegeGames(repository.GamesClauses{SeasonID: seasonID, TeamID: teamID, IsPreseason: isPreseason})
+	return repository.FindCollegeGames(repository.GamesClauses{SeasonID: seasonID, TeamID: teamID})
 }
 
 func GetProfessionalGamesByTeamIDAndSeasonID(teamID, seasonID string, isPreseason bool) []structs.ProfessionalGame {
-	return repository.FindProfessionalGames(repository.GamesClauses{SeasonID: seasonID, TeamID: teamID, IsPreseason: isPreseason})
+	return repository.FindProfessionalGames(repository.GamesClauses{SeasonID: seasonID, TeamID: teamID})
 }
 
 func GetCollegeGamesBySeasonID(seasonID string, isPreseason bool) []structs.CollegeGame {
-	return repository.FindCollegeGames(repository.GamesClauses{SeasonID: seasonID, IsPreseason: isPreseason})
+	return repository.FindCollegeGames(repository.GamesClauses{SeasonID: seasonID})
 }
 
 func GetProfessionalGamesBySeasonID(seasonID string, isPreseason bool) []structs.ProfessionalGame {
-	return repository.FindProfessionalGames(repository.GamesClauses{SeasonID: seasonID, IsPreseason: isPreseason})
+	return repository.FindProfessionalGames(repository.GamesClauses{SeasonID: seasonID})
 }
 
 func GetCollegeGameByID(id string) structs.CollegeGame {
@@ -2279,6 +2157,9 @@ func GetLiveGamesHubData(isCollege bool, reqSeason string, reqWeek string, reqTi
 		chlTeamMap := MakeCollegeTeamMap(allCollegeTeams)
 
 		for _, g := range games {
+			if g.IsRevealed {
+				continue
+			}
 			if reqTimeslot != "" && reqTimeslot != "undefined" {
 				if g.GameDay != reqTimeslot {
 					continue
@@ -2325,6 +2206,9 @@ func GetLiveGamesHubData(isCollege bool, reqSeason string, reqWeek string, reqTi
 		phlTeamMap := MakeProTeamMap(allProTeams)
 
 		for _, g := range games {
+			if g.IsRevealed {
+				continue
+			}
 			if reqTimeslot != "" && reqTimeslot != "undefined" {
 				if g.GameDay != reqTimeslot {
 					continue

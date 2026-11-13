@@ -139,16 +139,19 @@ func FindAllCollegePlayers(clauses PlayerQuery) []structs.CollegePlayer {
 }
 
 func FindCollegePlayersByTeamID(TeamID string) []structs.CollegePlayer {
-	db := dbprovider.GetInstance().GetDB()
-
-	var CollegePlayers []structs.CollegePlayer
-
-	err := db.Order("overall desc").Where("team_id = ?", TeamID).Find(&CollegePlayers).Error
+	players, err := FindCollegePlayersByTeamIDWithError(TeamID)
 	if err != nil {
 		fmt.Println(err.Error())
 	}
+	return players
+}
 
-	return CollegePlayers
+func FindCollegePlayersByTeamIDWithError(teamID string) ([]structs.CollegePlayer, error) {
+	db := dbprovider.GetInstance().GetDB()
+
+	var players []structs.CollegePlayer
+	err := db.Order("overall desc").Where("team_id = ?", teamID).Find(&players).Error
+	return players, err
 }
 
 func FindAllHistoricCollegePlayers() []structs.HistoricCollegePlayer {
@@ -165,6 +168,14 @@ func FindAllHistoricCollegePlayers() []structs.HistoricCollegePlayer {
 }
 
 // Professional Players
+func FindProPlayersByTeamIDWithError(teamID string) ([]structs.ProfessionalPlayer, error) {
+	db := dbprovider.GetInstance().GetDB()
+
+	var players []structs.ProfessionalPlayer
+	err := db.Where("team_id = ?", teamID).Find(&players).Error
+	return players, err
+}
+
 func FindAllProPlayers(clauses PlayerQuery) []structs.ProfessionalPlayer {
 	db := dbprovider.GetInstance().GetDB()
 

@@ -1,10 +1,19 @@
 package managers
 
 import (
+	"context"
+	"crypto/rand"
+	"encoding/hex"
+	"errors"
+	"fmt"
+	"log"
 	"strconv"
+	"strings"
+	"time"
 
 	util "github.com/CalebRose/SimHockey/_util"
 	"github.com/CalebRose/SimHockey/dbprovider"
+	fbsvc "github.com/CalebRose/SimHockey/firebase"
 	"github.com/CalebRose/SimHockey/repository"
 	"github.com/CalebRose/SimHockey/structs"
 	"gorm.io/gorm"
@@ -184,48 +193,185 @@ func GetTradeProposalsMap() map[uint][]structs.TradeProposal {
 	return MakeTradeProposalMap(proposals)
 }
 
-func SyncAcceptedTrade(proposalID string) {
+func SyncAcceptedTrade(proposalID string) error {
 	db := dbprovider.GetInstance().GetDB()
 
 	proposal := repository.FindTradeProposalRecord(repository.TradeClauses{PreloadTradeOptions: true}, proposalID)
+	if proposal.ID == 0 {
+		return fmt.Errorf("trade proposal %s was not found", proposalID)
+	}
 	SentOptions := proposal.TeamTradeOptions
+	if proposal.IsSynced {
+		return fmt.Errorf("trade proposal %s is already synced", proposalID)
+	}
+	if len(SentOptions) == 0 {
+		return fmt.Errorf("trade proposal %s has no assets to sync", proposalID)
+	}
 
 	proTeamMap := GetProTeamMap()
 	capsheetMap := GetProCapsheetMap()
 	contractMap := GetContractMap()
+	if err := validateTradeTeams(proposal, proTeamMap, capsheetMap); err != nil {
+		return err
+	}
 
-	syncAcceptedOptions(db, SentOptions, proposal.TeamID, proposal.RecepientTeamID, proTeamMap, capsheetMap, contractMap)
+	details, complete := syncAcceptedOptions(db, SentOptions, proposal.TeamID, proposal.RecepientTeamID, proTeamMap, capsheetMap, contractMap)
 
 	proposal.ToggleSyncStatus()
 
 	repository.SaveTradeProposalRecord(proposal, db)
+	if !complete {
+		return fmt.Errorf("trade proposal %s may be partially processed; check trade logs", proposalID)
+	}
+	reportProcessedTrade(proposal, proTeamMap, details, false)
+	return nil
 }
 
-func SyncAcceptedDraftTrade(proposal structs.TradeProposal) {
+var ErrInvalidDraftTrade = errors.New("invalid draft trade")
+
+func SyncAcceptedDraftTrade(proposal structs.TradeProposal) error {
+	if proposal.TeamID == 0 || proposal.RecepientTeamID == 0 || proposal.TeamID == proposal.RecepientTeamID {
+		return fmt.Errorf("%w: two distinct teams are required", ErrInvalidDraftTrade)
+	}
+	options, err := draftTradeOptions(proposal)
+	if err != nil {
+		return fmt.Errorf("%w: %v", ErrInvalidDraftTrade, err)
+	}
+	if len(options) == 0 {
+		return fmt.Errorf("%w: at least one asset is required", ErrInvalidDraftTrade)
+	}
+
 	db := dbprovider.GetInstance().GetDB()
-
-	SentOptions := proposal.TeamTradeOptions
-
 	proTeamMap := GetProTeamMap()
 	capsheetMap := GetProCapsheetMap()
 	contractMap := GetContractMap()
+	if err := validateTradeTeams(proposal, proTeamMap, capsheetMap); err != nil {
+		return err
+	}
 
-	syncAcceptedOptions(db, SentOptions, proposal.TeamID, proposal.RecepientTeamID, proTeamMap, capsheetMap, contractMap)
+	details, complete := syncAcceptedOptions(db, options, proposal.TeamID, proposal.RecepientTeamID, proTeamMap, capsheetMap, contractMap)
+	if !complete {
+		return fmt.Errorf("draft trade may be partially processed; check trade logs")
+	}
+	reportProcessedTrade(proposal, proTeamMap, details, true)
+	return nil
 }
 
-func syncAcceptedOptions(db *gorm.DB, options []structs.TradeOption, senderID uint, recepientID uint, proTeamMap map[uint]structs.ProfessionalTeam, capsheetMap map[uint]structs.ProCapsheet, contractMap map[uint]structs.ProContract) {
+func validateTradeTeams(proposal structs.TradeProposal, teams map[uint]structs.ProfessionalTeam, capsheets map[uint]structs.ProCapsheet) error {
+	if proposal.TeamID == 0 || proposal.RecepientTeamID == 0 || proposal.TeamID == proposal.RecepientTeamID ||
+		teams[proposal.TeamID].ID == 0 || teams[proposal.RecepientTeamID].ID == 0 ||
+		capsheets[proposal.TeamID].ID == 0 || capsheets[proposal.RecepientTeamID].ID == 0 {
+		return fmt.Errorf("trade teams %d and %d must exist and have capsheets", proposal.TeamID, proposal.RecepientTeamID)
+	}
+	return nil
+}
+
+func draftTradeOptions(proposal structs.TradeProposal) ([]structs.TradeOption, error) {
+	options := append([]structs.TradeOption(nil), proposal.TeamTradeOptions...)
+	indices := make(map[string]int, len(options))
+	combined := make([]structs.TradeOption, 0, len(options)+len(proposal.RecepientTeamTradeOptions))
+	options = append(options, proposal.RecepientTeamTradeOptions...)
+	for _, option := range options {
+		if (option.PlayerID == 0) == (option.DraftPickID == 0) {
+			return nil, fmt.Errorf("draft trade option must identify exactly one player or draft pick")
+		}
+		key := fmt.Sprintf("player:%d", option.PlayerID)
+		if option.DraftPickID != 0 {
+			key = fmt.Sprintf("pick:%d", option.DraftPickID)
+		}
+		if idx, exists := indices[key]; exists {
+			previous := combined[idx]
+			if previous.TeamID != option.TeamID || previous.SalaryPercentage != option.SalaryPercentage ||
+				(previous.ID != 0 && option.ID != 0 && previous.ID != option.ID) {
+				return nil, fmt.Errorf("conflicting draft trade options for %s", key)
+			}
+			if previous.ID == 0 && option.ID != 0 {
+				combined[idx] = option
+			}
+			continue
+		}
+		indices[key] = len(combined)
+		combined = append(combined, option)
+	}
+	return combined, nil
+}
+
+func reportProcessedTrade(proposal structs.TradeProposal, teams map[uint]structs.ProfessionalTeam, details []string, draft bool) {
+	ts := GetTimestamp()
+	if ts.ID == 0 {
+		log.Printf("TradeManager: cannot report trade %d: timestamp unavailable", proposal.ID)
+		return
+	}
+	id, message, err := tradeReportIdentityAndMessage(proposal, teams, details, draft)
+	if err != nil {
+		log.Printf("TradeManager: cannot report trade %d: %v", proposal.ID, err)
+		return
+	}
+	report, err := fbsvc.TradeTransactionReport(proposal.TeamID, message, ts)
+	if err != nil {
+		log.Printf("TradeManager: cannot report trade %d: %v", proposal.ID, err)
+		return
+	}
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+	if err := fbsvc.CreateAdminReport(ctx, id, report); err != nil {
+		log.Printf("TradeManager: failed to create report for trade %d: %v", proposal.ID, err)
+	}
+}
+
+func tradeReportIdentityAndMessage(proposal structs.TradeProposal, teams map[uint]structs.ProfessionalTeam, details []string, draft bool) (string, string, error) {
+	sender, senderOK := teams[proposal.TeamID]
+	recipient, recipientOK := teams[proposal.RecepientTeamID]
+	if !senderOK || !recipientOK || proposal.TeamID == 0 || proposal.RecepientTeamID == 0 || proposal.TeamID == proposal.RecepientTeamID {
+		return "", "", fmt.Errorf("invalid trade teams %d and %d", proposal.TeamID, proposal.RecepientTeamID)
+	}
+
+	label := fmt.Sprintf("Trade proposal #%d", proposal.ID)
+	id := fmt.Sprintf("trade-proposal-%d", proposal.ID)
+	if draft {
+		label = "Draft trade"
+		if proposal.ID != 0 {
+			label = fmt.Sprintf("Draft trade #%d", proposal.ID)
+			id = fmt.Sprintf("draft-trade-%d", proposal.ID)
+		} else {
+			var randomID [16]byte
+			if _, err := rand.Read(randomID[:]); err != nil {
+				return "", "", fmt.Errorf("generate draft trade report ID: %w", err)
+			}
+			id = "draft-trade-" + hex.EncodeToString(randomID[:])
+		}
+	}
+	message := fmt.Sprintf("%s processed between %s (team %d) and %s (team %d).\n%s",
+		label, sender.Abbreviation, proposal.TeamID, recipient.Abbreviation, proposal.RecepientTeamID, strings.Join(details, "\n"))
+	return id, message, nil
+}
+
+func syncAcceptedOptions(db *gorm.DB, options []structs.TradeOption, senderID uint, recepientID uint, proTeamMap map[uint]structs.ProfessionalTeam, capsheetMap map[uint]structs.ProCapsheet, contractMap map[uint]structs.ProContract) ([]string, bool) {
 	sendingTeam := proTeamMap[senderID]
 	receivingTeam := proTeamMap[recepientID]
 	SendersCapsheet := capsheetMap[senderID]
 	recepientCapsheet := capsheetMap[recepientID]
 	salaryMinimum := 0.5
+	details := make([]string, 0, len(options))
+	complete := true
 	for _, option := range options {
+		if (option.PlayerID == 0) == (option.DraftPickID == 0) {
+			log.Printf("TradeManager: trade option %d must identify exactly one player or draft pick", option.ID)
+			complete = false
+			continue
+		}
 		// Contract
 		percentage := option.SalaryPercentage
 		if option.PlayerID > 0 {
 			playerRecord := repository.FindProPlayer(strconv.Itoa(int(option.PlayerID)))
 			contract := contractMap[playerRecord.ID]
+			if playerRecord.ID == 0 || contract.ID == 0 || (uint(playerRecord.TeamID) != senderID && uint(playerRecord.TeamID) != recepientID) {
+				log.Printf("TradeManager: trade player %d has a missing player, contract, or valid team", option.PlayerID)
+				complete = false
+				continue
+			}
 			if playerRecord.TeamID == uint16(senderID) {
+				details = append(details, fmt.Sprintf("%s %s (player %d): %s to %s (salary retention input %.2f%%)", playerRecord.FirstName, playerRecord.LastName, option.PlayerID, sendingTeam.Abbreviation, receivingTeam.Abbreviation, percentage))
 				sendersPercentage := percentage * 0.01
 				receiversPercentage := (100 - percentage) * 0.01
 				sendingTeamPay := float64(contract.Y1BaseSalary) * sendersPercentage
@@ -244,6 +390,7 @@ func syncAcceptedOptions(db *gorm.DB, options []structs.TradeOption, senderID ui
 				playerRecord.TradePlayer(recepientID, receivingTeam.Abbreviation)
 				contract.TradePlayer(recepientID, receivingTeam.Abbreviation, float32(receiversPercentage))
 			} else {
+				details = append(details, fmt.Sprintf("%s %s (player %d): %s to %s (salary retention input %.2f%%)", playerRecord.FirstName, playerRecord.LastName, option.PlayerID, receivingTeam.Abbreviation, sendingTeam.Abbreviation, percentage))
 				receiversPercentage := percentage * 0.01
 				sendersPercentage := (100 - percentage) * 0.01
 				sendingTeamPay := float64(contract.Y1BaseSalary) * sendersPercentage
@@ -267,19 +414,32 @@ func syncAcceptedOptions(db *gorm.DB, options []structs.TradeOption, senderID ui
 
 		} else if option.DraftPickID > 0 {
 			draftPick := repository.FindDraftPickRecord(strconv.Itoa(int(option.DraftPickID)))
+			if draftPick.ID == 0 || (draftPick.TeamID != senderID && draftPick.TeamID != recepientID) {
+				log.Printf("TradeManager: trade draft pick %d is missing or has an invalid team", option.DraftPickID)
+				complete = false
+				continue
+			}
 			if draftPick.TeamID == senderID {
+				details = append(details, fmt.Sprintf("%d round %d pick (pick %d): %s to %s", draftPick.Season, draftPick.DraftRound, option.DraftPickID, sendingTeam.Abbreviation, receivingTeam.Abbreviation))
 				draftPick.TradePick(recepientID, receivingTeam.Abbreviation)
 			} else {
+				details = append(details, fmt.Sprintf("%d round %d pick (pick %d): %s to %s", draftPick.Season, draftPick.DraftRound, option.DraftPickID, receivingTeam.Abbreviation, sendingTeam.Abbreviation))
 				draftPick.TradePick(senderID, sendingTeam.Abbreviation)
 			}
 
 			repository.SaveDraftPickRecord(draftPick, db)
 		}
 
-		db.Delete(&option)
+		if option.ID != 0 {
+			if err := db.Delete(&option).Error; err != nil {
+				log.Printf("TradeManager: failed to delete trade option %d: %v", option.ID, err)
+				complete = false
+			}
+		}
 	}
 	repository.SaveProCapsheetRecord(SendersCapsheet, db)
 	repository.SaveProCapsheetRecord(recepientCapsheet, db)
+	return details, complete
 }
 
 func VetoTrade(proposalID string) {

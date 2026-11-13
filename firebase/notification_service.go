@@ -154,6 +154,24 @@ func NotifyGameplanIssue(ctx context.Context, input GameplanNotificationInput) e
 	})
 }
 
+// NotifyIncompleteRoster notifies a team's coach or owner about missing roster
+// positions. Idempotent via SourceEventKey.
+func NotifyIncompleteRoster(ctx context.Context, input IncompleteRosterNotificationInput) error {
+	if len(input.RecipientUIDs) == 0 {
+		return nil
+	}
+
+	return writeNotificationsIfNew(ctx, input.RecipientUIDs, ForumNotification{
+		Type:           NotificationTypeSystem,
+		Domain:         input.Domain,
+		LinkTo:         BuildTeamRosterRoute(input.League, input.TeamID),
+		Message:        input.Message,
+		ActorUsername:  "SimSN",
+		IsRead:         false,
+		SourceEventKey: input.SourceEventKey,
+	})
+}
+
 // NotifyScheduleEvent notifies a coach about a game-request lifecycle event
 // such as acceptance, rejection, or an admin veto. Idempotent via SourceEventKey.
 func NotifyScheduleEvent(ctx context.Context, input ScheduleEventNotificationInput) error {

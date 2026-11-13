@@ -1,13 +1,17 @@
 package managers
 
 import (
+	"context"
 	"fmt"
+	"log"
 	"sort"
 	"strconv"
 	"strings"
+	"time"
 
 	util "github.com/CalebRose/SimHockey/_util"
 	"github.com/CalebRose/SimHockey/dbprovider"
+	fbsvc "github.com/CalebRose/SimHockey/firebase"
 	"github.com/CalebRose/SimHockey/repository"
 	"github.com/CalebRose/SimHockey/structs"
 	"gorm.io/gorm"
@@ -315,28 +319,36 @@ func RunLineupsForAICollegeTeams() {
 	shootoutMap := GetCollegeShootoutLineups()
 	collegeGameplans := repository.FindCollegeGameplanRecords()
 	collegeGameplanMap := MakeCollegeGameplanMap(collegeGameplans)
+	ts := GetTimestamp()
+	reportRoster := func(league, message string, teamID uint) {
+		reportIncompleteRoster(league, message, teamID, ts)
+	}
 
-	for _, t := range teams {
-		gameplan := collegeGameplanMap[t.ID]
-		if gameplan.ID == 0 || !gameplan.IsAI {
+	for _, team := range teams {
+		gameplan := collegeGameplanMap[team.ID]
+		generateLineup := gameplan.ID != 0 && (!team.IsUserCoached || gameplan.IsAI)
+		teamID := strconv.Itoa(int(team.ID))
+		roster, err := repository.FindCollegePlayersByTeamIDWithError(teamID)
+		if err != nil {
+			log.Printf("GameplanManager: failed to load CHL roster for team %d: %v", team.ID, err)
 			continue
 		}
-		fmt.Println("Iterating over Team: " + t.Abbreviation)
-
-		teamID := strconv.Itoa(int(t.ID))
-
-		roster := GetCollegePlayersByTeamID(teamID)
 
 		// VALIDATE ROSTER BEFORE LINEUP GENERATION (warnings only)
-		rosterComplete := validateCollegeRoster(t, roster)
+		rosterComplete := validateCollegeRoster(team, roster, !team.IsUserCoached || gameplan.IsAI, generateLineup, reportRoster)
+		if !generateLineup {
+			continue
+		}
+		fmt.Println("Iterating over Team: " + team.Abbreviation)
 
 		// VALIDATE AND FIX LINEUPS (only if roster is reasonably complete)
 		if rosterComplete {
-			if !validateAndFixCollegeLineups(t, roster, db) {
-				fmt.Printf("WARNING: Team %s still has incomplete lineups after attempted fix\n", t.Abbreviation)
+			if !validateAndFixCollegeLineups(team, roster, db) {
+				fmt.Printf("WARNING: Team %s still has incomplete lineups after attempted fix\n", team.Abbreviation)
 			}
 		} else {
-			fmt.Printf("SKIPPING lineup generation for %s due to incomplete roster\n", t.Abbreviation)
+			fmt.Printf("SKIPPING lineup generation for %s due to incomplete roster\n", team.Abbreviation)
+			continue
 		}
 
 		lineups := GetCollegeLineupsByTeamID(teamID)
@@ -537,11 +549,11 @@ func RunLineupsForAICollegeTeams() {
 		dIdx := 0
 		cIdx := 0
 		count := 0
-		shootOutLineup := shootoutMap[t.ID]
+		shootOutLineup := shootoutMap[team.ID]
 		if shootOutLineup.TeamID == 0 {
 			shootOutLineup = structs.CollegeShootoutLineup{
 				ShootoutPlayerIDs: structs.ShootoutPlayerIDs{
-					TeamID: t.ID,
+					TeamID: team.ID,
 				},
 			}
 		}
@@ -625,20 +637,27 @@ func RunLineupsForAIProTeams() {
 	shootoutMap := GetProShootoutLineups()
 	gameplans := repository.FindProfessionalGameplanRecords()
 	proGameplanMap := MakeProGameplanMap(gameplans)
+	ts := GetTimestamp()
+	reportRoster := func(league, message string, teamID uint) {
+		reportIncompleteRoster(league, message, teamID, ts)
+	}
 
 	for _, t := range teams {
 		gameplan := proGameplanMap[t.ID]
-		if gameplan.ID == 0 || !gameplan.IsAI {
+		generateLineup := gameplan.ID != 0 && gameplan.IsAI
+		teamID := strconv.Itoa(int(t.ID))
+		roster, err := repository.FindProPlayersByTeamIDWithError(teamID)
+		if err != nil {
+			log.Printf("GameplanManager: failed to load PHL roster for team %d: %v", t.ID, err)
+			continue
+		}
+
+		// VALIDATE ROSTER BEFORE LINEUP GENERATION (warnings only)
+		rosterComplete := validateProRoster(t, roster, gameplan.IsAI, generateLineup, reportRoster)
+		if !generateLineup {
 			continue
 		}
 		fmt.Println("Iterating over Team: " + t.Abbreviation)
-
-		teamID := strconv.Itoa(int(t.ID))
-
-		roster := GetProPlayersByTeamID(teamID)
-
-		// VALIDATE ROSTER BEFORE LINEUP GENERATION (warnings only)
-		rosterComplete := validateProRoster(t, roster)
 
 		// Note: Pro lineup validation would be similar to college - implement if needed
 		if !rosterComplete {
@@ -1427,7 +1446,7 @@ func SelectOffensiveAndDefensiveSystemsForAllTeams_Offseason() {
 
 	for _, team := range collegeTeams {
 		gameplan := collegeGameplanMap[team.ID]
-		if gameplan.ID == 0 || !gameplan.IsAI {
+		if gameplan.ID == 0 || (!gameplan.IsAI && team.IsUserCoached) {
 			continue // Skip user-controlled teams
 		}
 
@@ -1548,7 +1567,7 @@ func getPlayerAttributeByPreference(pref uint8, player structs.BasePlayer) uint8
 // validateCollegeRoster checks if a team has the minimum required players by position
 // Required: 4 centers, 8 forwards, 6 defenders, 2 goalies
 // Returns true if roster is complete, false if missing players
-func validateCollegeRoster(team structs.CollegeTeam, roster []structs.CollegePlayer) bool {
+func validateCollegeRoster(team structs.CollegeTeam, roster []structs.CollegePlayer, isAIControlled, notify bool, report func(string, string, uint)) bool {
 	// Count current players by position
 	centers := 0
 	forwards := 0
@@ -1601,12 +1620,84 @@ func validateCollegeRoster(team structs.CollegeTeam, roster []structs.CollegePla
 	notificationMessage := fmt.Sprintf("⚠️  Team %s INCOMPLETE ROSTER - Missing: ", team.Abbreviation)
 	notificationMessage += strings.Join(missingPieces, ", ")
 	notificationMessage += " → Use recruiting/transfer portal to complete roster or generate walk-ons"
-	CreateNotification("CHL", notificationMessage, "Roster", team.ID)
+	var teamUsernames []string
+	if isCHLUserTeam(team) {
+		teamUsernames = append(teamUsernames, team.Coach)
+	}
+	report("CHL", notificationMessage, team.ID)
+	if notify {
+		notifyIncompleteRoster("CHL", notificationMessage, team.ID, !team.IsUserCoached && isAIControlled, missingPieces, teamUsernames)
+	}
+
 	return false
-} // validateProRoster checks if a pro team has the minimum required players by position
+}
+
+func reportIncompleteRoster(league, message string, teamID uint, ts structs.Timestamp) {
+	if ts.ID == 0 {
+		log.Printf("GameplanManager: cannot report incomplete %s roster for team %d: timestamp unavailable", league, teamID)
+		return
+	}
+	report, err := fbsvc.IncompleteRosterReport(league, message, teamID, ts)
+	if err != nil {
+		log.Printf("GameplanManager: cannot report incomplete %s roster for team %d: %v", league, teamID, err)
+		return
+	}
+	id := fmt.Sprintf("incomplete-roster-%s-%d-%d-%d", report.League, report.TeamID, report.WeekID, report.Phase)
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+	if err := fbsvc.CreateAdminReport(ctx, id, report); err != nil {
+		log.Printf("GameplanManager: failed to create incomplete %s roster report for team %d: %v", league, teamID, err)
+	}
+}
+
+func notifyIncompleteRoster(league, message string, teamID uint, isAIControlled bool, missingPieces, teamUsernames []string) {
+	usernames := append([]string(nil), teamUsernames...)
+	const aiRosterNotificationTeamID uint = 38
+	if isAIControlled && teamID != aiRosterNotificationTeamID {
+		if league == "PHL" {
+			aiTeam := GetProTeamByTeamID(strconv.Itoa(int(aiRosterNotificationTeamID)))
+			usernames = append(usernames, collectProTeamUsernames(aiTeam)...)
+		} else {
+			aiTeam := GetCollegeTeamByTeamID(strconv.Itoa(int(aiRosterNotificationTeamID)))
+			if aiTeam.Coach != "" && aiTeam.Coach != "AI" {
+				usernames = append(usernames, aiTeam.Coach)
+			}
+		}
+	}
+
+	ctx := context.Background()
+	uids := fbsvc.ResolveUIDsByUsernames(ctx, usernames)
+	if len(uids) == 0 {
+		return
+	}
+
+	ts := GetTimestamp()
+	eventKey := fbsvc.BuildSourceEventKey(
+		"incomplete_roster",
+		strings.ToLower(league),
+		strconv.Itoa(int(teamID)),
+		strconv.Itoa(int(ts.SeasonID)),
+		strconv.Itoa(int(ts.WeekID)),
+		strings.Join(missingPieces, ","),
+	)
+	domain := fbsvc.DomainCHL
+	if league == "PHL" {
+		domain = fbsvc.DomainPHL
+	}
+	_ = fbsvc.NotifyIncompleteRoster(ctx, fbsvc.IncompleteRosterNotificationInput{
+		League:         strings.ToLower(league),
+		Domain:         domain,
+		TeamID:         teamID,
+		Message:        message,
+		RecipientUIDs:  uids,
+		SourceEventKey: eventKey,
+	})
+}
+
+// validateProRoster checks if a pro team has the minimum required players by position
 // Required: 4 centers, 8 forwards, 6 defenders, 2 goalies
 // Returns true if roster is complete, false if missing players
-func validateProRoster(team structs.ProfessionalTeam, roster []structs.ProfessionalPlayer) bool {
+func validateProRoster(team structs.ProfessionalTeam, roster []structs.ProfessionalPlayer, isAIControlled, notify bool, report func(string, string, uint)) bool {
 	// Count current players by position
 	centers := 0
 	forwards := 0
@@ -1659,7 +1750,10 @@ func validateProRoster(team structs.ProfessionalTeam, roster []structs.Professio
 	notificationMessage := fmt.Sprintf("⚠️  Team %s INCOMPLETE ROSTER - Missing: ", team.Abbreviation)
 	notificationMessage += strings.Join(missingPieces, ", ")
 	notificationMessage += " → Use recruiting/transfer portal to complete roster."
-	CreateNotification("PHL", notificationMessage, "Roster", team.ID)
+	report("PHL", fmt.Sprintf("Team %s INCOMPLETE ROSTER - Missing: %s", team.Abbreviation, strings.Join(missingPieces, ", ")), team.ID)
+	if notify {
+		notifyIncompleteRoster("PHL", notificationMessage, team.ID, isAIControlled, missingPieces, collectProTeamUsernames(team))
+	}
 	return false
 }
 

@@ -82,6 +82,11 @@ func SyncToNextWeekViaCron() {
 
 func RunAIGameplanViaCron() {
 	ts := managers.GetTimestamp()
+	// Preseason Prep: Select optimal systems and run lineups for AI college teams
+	if ts.RunCron && ts.Phase == 10 {
+		managers.SelectOffensiveAndDefensiveSystemsForAllTeams_Offseason()
+		managers.RunLineupsForAICollegeTeams()
+	}
 	if ts.RunCron && ts.IsCollegeSeasonActive() {
 		managers.RunLineupsForAICollegeTeams()
 	}

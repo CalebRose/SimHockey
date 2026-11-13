@@ -34,6 +34,31 @@ type PostMention struct {
 	Username string `firestore:"username"`
 }
 
+const (
+	AdminReportResignation = iota
+	AdminReportMissedRecruiting
+	AdminReportBrokenGameplan
+	AdminReportTradeTransaction
+	AdminReportOther
+)
+
+type AdminReport struct {
+	League        string     `firestore:"league"`
+	TeamID        int64      `firestore:"teamId"`
+	ReportType    string     `firestore:"reportType"`
+	Message       string     `firestore:"message"`
+	ResponseType  int64      `firestore:"responseType"`
+	Status        string     `firestore:"status"`
+	CreatedAt     time.Time  `firestore:"createdAt"`
+	UpdatedAt     time.Time  `firestore:"updatedAt"`
+	AdminResponse string     `firestore:"adminResponse,omitempty"`
+	ResolvedBy    string     `firestore:"resolvedBy,omitempty"`
+	ResolvedAt    *time.Time `firestore:"resolvedAt,omitempty"`
+	Phase         int64      `firestore:"phase"`
+	WeekID        int64      `firestore:"weekId"`
+	ReportedBy    string     `firestore:"reportedBy"`
+}
+
 // ─────────────────────────────────────────────
 // Forum Thread
 // ─────────────────────────────────────────────
@@ -257,6 +282,17 @@ type GameplanNotificationInput struct {
 	TeamID         uint
 	TeamName       string
 	TeamAbbr       string
+	Message        string
+	RecipientUIDs  []string
+	SourceEventKey string
+}
+
+// IncompleteRosterNotificationInput carries the context needed to notify a
+// team's staff that its roster is missing players by position.
+type IncompleteRosterNotificationInput struct {
+	League         string
+	Domain         string
+	TeamID         uint
 	Message        string
 	RecipientUIDs  []string
 	SourceEventKey string

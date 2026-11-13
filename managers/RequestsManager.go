@@ -162,7 +162,7 @@ func ApproveCHLTeamRequest(request structs.CollegeTeamRequest) structs.CollegeTe
 		repository.SaveCollegeStandingsRecord(s, db)
 	}
 
-	games := repository.FindCollegeGames(repository.GamesClauses{SeasonID: strconv.Itoa(int(ts.SeasonID)), TeamID: teamID, IsPreseason: false})
+	games := repository.FindCollegeGames(repository.GamesClauses{SeasonID: strconv.Itoa(int(ts.SeasonID)), TeamID: teamID})
 
 	for _, g := range games {
 		if g.Week >= int(ts.Week) {
@@ -170,6 +170,10 @@ func ApproveCHLTeamRequest(request structs.CollegeTeamRequest) structs.CollegeTe
 			repository.SaveCollegeGameRecord(g, db)
 		}
 	}
+
+	gameplan := repository.FindCollegeGameplanRecord(teamID)
+	gameplan.IsAI = false
+	repository.SaveCollegeGameplanRecord(gameplan, db)
 
 	recruitingProfile := repository.FindTeamRecruitingProfile(teamID, false, false)
 
@@ -274,6 +278,10 @@ func RemoveUserFromCollegeTeam(teamID string) {
 	recruitingProfile.ActivateAI()
 
 	repository.SaveTeamProfileRecord(db, recruitingProfile)
+
+	gameplan := repository.FindCollegeGameplanRecord(teamID)
+	gameplan.IsAI = true
+	repository.SaveCollegeGameplanRecord(gameplan, db)
 
 	CreateNewsLog("CHL", username+" has decided to step down as the head coach of the "+team.TeamName+" "+team.Mascot+"!", "CoachJob", 0, ts, true)
 }

@@ -3,12 +3,15 @@ package managers
 import (
 	"context"
 	"fmt"
+	"log"
 	"math"
 	"math/rand"
 	"sort"
 	"strconv"
+	"time"
 
 	"github.com/CalebRose/SimHockey/dbprovider"
+	"github.com/CalebRose/SimHockey/firebase"
 	fbsvc "github.com/CalebRose/SimHockey/firebase"
 	"github.com/CalebRose/SimHockey/repository"
 	"github.com/CalebRose/SimHockey/structs"
@@ -198,6 +201,16 @@ func SyncCollegeRecruiting() {
 
 	repository.CreatePointAllocationsRecordsBatch(db, pointAllocations, 100)
 	repository.CreateNewsLogRecordsBatch(db, logs, 50)
+
+	for _, report := range firebase.MissedRecruitingReports(teamProfiles, ts) {
+		id := fmt.Sprintf("missed-recruiting-chl-%d-%d-%d", report.TeamID, report.WeekID, report.Phase)
+		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+		err := fbsvc.CreateAdminReport(ctx, id, report)
+		cancel()
+		if err != nil {
+			log.Printf("RecruitingSyncManager: failed to create missed recruiting report for team %d: %v", report.TeamID, err)
+		}
+	}
 
 	updateTeamRankings(teamProfiles, teamProfileMap, teamPointsMap, db, int(ts.Week))
 

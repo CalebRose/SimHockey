@@ -1188,12 +1188,12 @@ func ExportHCKGameResults(w http.ResponseWriter, seasonID, weekID, timeslot stri
 	phlMatchChn := make(chan []structs.ProfessionalGame)
 
 	go func() {
-		matches := repository.FindCollegeGames(repository.GamesClauses{WeekID: weekID, Timeslot: timeslot, IsPreseason: ts.IsPreseason})
+		matches := repository.FindCollegeGames(repository.GamesClauses{WeekID: weekID, Timeslot: timeslot})
 		matchChn <- matches
 	}()
 
 	go func() {
-		proGames := repository.FindProfessionalGames(repository.GamesClauses{WeekID: weekID, Timeslot: timeslot, IsPreseason: ts.IsPreseason})
+		proGames := repository.FindProfessionalGames(repository.GamesClauses{WeekID: weekID, Timeslot: timeslot})
 		phlMatchChn <- proGames
 	}()
 

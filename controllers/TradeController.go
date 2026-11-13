@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"net/http"
 
@@ -87,7 +88,10 @@ func SyncAcceptedTrade(w http.ResponseWriter, r *http.Request) {
 		panic("User did not provide a proposalID")
 	}
 
-	managers.SyncAcceptedTrade(proposalID)
+	if err := managers.SyncAcceptedTrade(proposalID); err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
 }
 
 func SyncAcceptedDraftTrade(w http.ResponseWriter, r *http.Request) {
@@ -98,7 +102,14 @@ func SyncAcceptedDraftTrade(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	managers.SyncAcceptedDraftTrade(tradeProposalDTO)
+	if err := managers.SyncAcceptedDraftTrade(tradeProposalDTO); err != nil {
+		status := http.StatusInternalServerError
+		if errors.Is(err, managers.ErrInvalidDraftTrade) {
+			status = http.StatusBadRequest
+		}
+		http.Error(w, err.Error(), status)
+		return
+	}
 }
 
 // SyncAcceptedTrade -- Admin approve a trade
