@@ -409,8 +409,12 @@ func syncAcceptedOptions(db *gorm.DB, options []structs.TradeOption, senderID ui
 				contract.TradePlayer(senderID, sendingTeam.Abbreviation, float32(sendersPercentage))
 			}
 
-			repository.SaveProPlayerRecord(playerRecord, db)
-			repository.SaveProContractRecord(contract, db)
+			if playerRecord.ID > 0 {
+				repository.SaveProPlayerRecord(playerRecord, db)
+			}
+			if contract.ID > 0 {
+				repository.SaveProContractRecord(contract, db)
+			}
 
 		} else if option.DraftPickID > 0 {
 			draftPick := repository.FindDraftPickRecord(strconv.Itoa(int(option.DraftPickID)))
@@ -427,7 +431,9 @@ func syncAcceptedOptions(db *gorm.DB, options []structs.TradeOption, senderID ui
 				draftPick.TradePick(senderID, sendingTeam.Abbreviation)
 			}
 
-			repository.SaveDraftPickRecord(draftPick, db)
+			if draftPick.ID > 0 {
+				repository.SaveDraftPickRecord(draftPick, db)
+			}
 		}
 
 		if option.ID != 0 {
