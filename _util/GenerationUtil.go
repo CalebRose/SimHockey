@@ -23,15 +23,15 @@ func GetStarRating(isCustom, isCHL, isWalkon bool) int {
 		if roll < 30 {
 			return 4
 		}
-		if roll < 275 {
+		if roll < 75 {
 			return 3
 		}
-		if roll < 650 {
+		if roll < 400 {
 			return 2
 		}
 		return 1
 	}
-	if isCustom {
+	if isCustom && !isWalkon {
 		roll -= 100
 	} else if isWalkon {
 		roll += 43

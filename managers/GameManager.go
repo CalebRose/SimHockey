@@ -1799,13 +1799,13 @@ func generateAndRunTestGames(ts structs.Timestamp, db *gorm.DB) {
 	fmt.Println("Generating test games with proper team pairings...")
 
 	// Get all college teams for matchups
-	allTeams := GetAllCollegeTeams()
+	allTeams := repository.FindAllCollegeTeams(repository.TeamClauses{LeagueID: "1"})
 	if len(allTeams) < 2 {
 		fmt.Println("Not enough teams to generate test games")
 		return
 	}
 
-	teamMap := GetCollegeTeamMap()
+	teamMap := MakeCollegeTeamMap(allTeams)
 
 	// Create team pairings to ensure each team plays
 	teamPairings := createTeamPairings(allTeams)

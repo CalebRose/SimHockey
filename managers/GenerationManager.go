@@ -721,9 +721,6 @@ func RefillCHLRosters() {
 		pickedEthnicity:  "",
 	}
 
-	// Spread of years used when filling roster spots (CHL ages 16-18)
-	fillYears := []int{1, 2, 3, 1, 2, 3, 1, 2}
-
 	cpList := []structs.CollegePlayer{}
 	globalList := []structs.GlobalPlayer{}
 
@@ -777,9 +774,8 @@ func RefillCHLRosters() {
 			centerCount, forwardCount, defenderCount, goalieCount,
 			minCenters, minForwards, minDefenders, minGoalies)
 
-		for idx, pos := range needed {
-			year := fillYears[idx%len(fillYears)]
-			age := 16 + year - 1
+		for _, pos := range needed {
+			age := util.GenerateIntFromRange(15, 17)
 
 			p, _ := generator.createInitialPlayer(pos, true, false, age)
 			cp := structs.CollegePlayer{
@@ -790,10 +786,6 @@ func RefillCHLRosters() {
 			cp.AssignTeam(team.ID, team.Abbreviation, 1)
 			cp.AssignID(latestID)
 
-			// Progress the player from base age 16 up to their actual age
-			for j := uint8(16); j < uint8(age); j++ {
-				cp = ProgressCollegePlayer(cp, "1", []structs.CollegePlayerGameStats{}, true)
-			}
 			cp.ResetCHLCollegeYear()
 			skinColor := getSkinColor(cp.Country)
 			face := getFace(latestID, int(cp.Weight), skinColor, generator.faceDataBlob)

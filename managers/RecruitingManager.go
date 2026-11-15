@@ -464,6 +464,8 @@ func CreateCustomCroot(dto structs.CustomRecruitDTO) structs.Recruit {
 	stars := util.GetStarRating(true, false, false)
 	recruit := CreateRecruit(dto.Position, dto.Archetype, stars, dto.FirstName, dto.LastName, attributeBlob, dto.Country, dto.State, dto.City, dto.HighSchool, []structs.CrootLocation{})
 	recruit.ID = latestID
+	recruit.IsCustomCroot = true
+	recruit.CustomCrootFor = dto.CustomCrootFor
 
 	// Generate Face Data
 	faceDataResponse := dto.FaceData
