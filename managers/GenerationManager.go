@@ -1048,7 +1048,7 @@ func GenerateInitialProPool() {
 func CreateRecruit(position, arch string, stars int, firstName, lastName string, blob map[string]map[string]map[string]map[string]interface{}, country, state, cit, hs string, hsBlob []structs.CrootLocation) structs.Recruit {
 	age := 18
 	city, highSchool := cit, hs
-	if state != "" && len(hsBlob) > 0 {
+	if (state != "" && len(hsBlob) > 0) && city == "" && highSchool == "" {
 		city, highSchool = getCityAndHighSchool(hsBlob)
 	}
 	archetype := util.GetArchetype(position)

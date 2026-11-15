@@ -793,7 +793,7 @@ func CreateCustomCrootForumThread(recruitID uint, dto structs.CustomRecruitDTO) 
 	title := fmt.Sprintf("Meet the Croots: %s %s %s from %s",
 		dto.Position, dto.FirstName, dto.LastName, strings.Join(locationParts, ", "))
 
-	paragraphs := []string{dto.Bio}
+	paragraphs := []string{fmt.Sprintf("Croot Made by %s", dto.CustomCrootFor), dto.Bio}
 	input := fbsvc.CreateForumThreadInput{
 		ForumID:           "media-simchl",
 		ForumPath:         []string{"media", "simchl"},
