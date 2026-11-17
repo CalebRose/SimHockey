@@ -1105,6 +1105,8 @@ func CreateRecruit(position, arch string, stars int, firstName, lastName string,
 	conferencePrestige := util.GenerateNormalizedIntFromRange(1, 9)
 	coachPref := util.GenerateNormalizedIntFromRange(1, 9)
 	seasonMomentumPref := util.GenerateNormalizedIntFromRange(1, 9)
+	campusLife := util.GenerateNormalizedIntFromRange(1, 9)
+	media := util.GenerateNormalizedIntFromRange(1, 9)
 	playtime := util.GenerateNormalizedIntFromRange(1, 9)
 	competitiveness := util.GenerateNormalizedIntFromRange(1, 9)
 
@@ -1202,6 +1204,8 @@ func CreateRecruit(position, arch string, stars int, firstName, lastName string,
 			ConferencePref:     uint8(conferencePrestige),
 			CoachPref:          uint8(coachPref),
 			SeasonMomentumPref: uint8(seasonMomentumPref),
+			CampusLifePref:     uint8(campusLife),
+			MediaPref:          uint8(media),
 		},
 
 		PlaytimePreference:  uint8(playtime),

@@ -163,6 +163,9 @@ func handleRequests() http.Handler {
 	apiRouter.HandleFunc("/games/result/export/chl/{gameID}", controllers.ExportCollegePlayByPlayResults).Methods("GET")
 	apiRouter.HandleFunc("/games/result/export/phl/{gameID}", controllers.ExportProPlayByPlayResults).Methods("GET")
 
+	// Fixes
+	apiRouter.HandleFunc("/fixes/profile/modifiers", controllers.FixRecruitProfileModifiers)
+
 	// Free Agency
 	apiRouter.HandleFunc("/phl/freeagency/toggle", controllers.ToggleFreeAgency).Methods("GET")
 	apiRouter.HandleFunc("/phl/freeagency/create/offer", controllers.CreateFreeAgencyOffer).Methods("POST")

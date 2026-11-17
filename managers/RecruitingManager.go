@@ -144,16 +144,19 @@ func CalculateModifierTowardsRecruit(prefs structs.PlayerPreferences, team struc
 	conferenceMod := calculateMultiplier(uint(team.ConferencePrestige), uint(prefs.ConferencePref))
 	coachMod := calculateMultiplier(uint(team.CoachRating), uint(prefs.CoachPref))
 	seasonMod := calculateMultiplier(uint(team.SeasonMomentum), uint(prefs.SeasonMomentumPref))
+	campusLifeMod := calculateMultiplier(uint(team.CampusLife), uint(prefs.CampusLifePref))
+	mediaMod := calculateMultiplier(uint(team.MediaSpotlight), uint(prefs.MediaPref))
 
-	return (programMod + professionalDevMod + traditionsMod + facilitiesMod + atmosphereMod + academicsMod + conferenceMod + coachMod + seasonMod) / 9
+	largeMod := programMod + professionalDevMod + traditionsMod + facilitiesMod + atmosphereMod + academicsMod + conferenceMod + coachMod + seasonMod + campusLifeMod + mediaMod
+	return largeMod / 15.7
 }
 
 func calculateBaseModifier(attr int) float32 {
-	return 1 + float32(attr-5)/5
+	return 1 + float32(attr-5)/9
 }
 
 func calculateAdjustmentFactor(teamAttr, playerPref int) float32 {
-	return 1 + float32(teamAttr-playerPref)/10
+	return 1 + float32(teamAttr-playerPref)/9
 }
 
 func calculateMultiplier(teamAttr uint, playerPref uint) float32 {

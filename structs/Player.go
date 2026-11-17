@@ -425,6 +425,8 @@ type PlayerPreferences struct {
 	ConferencePref     uint8
 	CoachPref          uint8
 	SeasonMomentumPref uint8
+	CampusLifePref     uint8
+	MediaPref          uint8
 }
 
 type BasePlayerProgressions struct {

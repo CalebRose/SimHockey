@@ -58,6 +58,8 @@ type ProfileAttributes struct {
 	ConferencePrestige   uint8
 	CoachRating          uint8
 	SeasonMomentum       uint8
+	CampusLife           uint8
+	MediaSpotlight       uint8
 }
 
 func (pa *ProfileAttributes) UpdateRecordRatings(programPrestige, coachRating, seasonMomentum uint8) {
