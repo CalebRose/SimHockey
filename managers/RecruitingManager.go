@@ -147,8 +147,12 @@ func CalculateModifierTowardsRecruit(prefs structs.PlayerPreferences, team struc
 	campusLifeMod := calculateMultiplier(uint(team.CampusLife), uint(prefs.CampusLifePref))
 	mediaMod := calculateMultiplier(uint(team.MediaSpotlight), uint(prefs.MediaPref))
 
-	largeMod := programMod + professionalDevMod + traditionsMod + facilitiesMod + atmosphereMod + academicsMod + conferenceMod + coachMod + seasonMod + campusLifeMod + mediaMod
-	return largeMod / 15.7
+	// largeMod := programMod + professionalDevMod + traditionsMod + facilitiesMod + atmosphereMod + academicsMod + conferenceMod + coachMod + seasonMod + campusLifeMod + mediaMod
+	dynamicModSum := (programMod + professionalDevMod + traditionsMod + conferenceMod + coachMod + seasonMod + mediaMod) * 1.7
+	staticMod := (facilitiesMod + atmosphereMod + academicsMod + campusLifeMod) * 0.3
+	largeMod := dynamicModSum + staticMod
+
+	return largeMod / 14.7
 }
 
 func calculateBaseModifier(attr int) float32 {

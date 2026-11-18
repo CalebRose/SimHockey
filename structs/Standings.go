@@ -91,7 +91,13 @@ func (cs *CollegeStandings) UpdateSeasonStatus(game CollegeGame) {
 			cs.IsPostSeasonQualified = true
 		}
 	} else {
-		if game.IsPlayoffGame && game.IsNationalChampionship {
+		if game.IsPlayoffGame && strings.Contains(game.GameTitle, "Quarterfinals") {
+			cs.PostSeasonStatus = game.GameTitle
+			cs.IsQuarterfinals = true
+		} else if game.IsPlayoffGame && strings.Contains(game.GameTitle, "Frozen Four") {
+			cs.PostSeasonStatus = game.GameTitle
+			cs.IsFrozenFour = true
+		} else if game.IsPlayoffGame && game.IsNationalChampionship {
 			cs.PostSeasonStatus = "National Champion Runner-Up"
 			cs.IsRunnerUp = true
 		}
