@@ -39,8 +39,10 @@ func SyncRecruitingViaCron() {
 		return
 	}
 	if ts.CanRefillCHLRosters() {
-		managers.RefillCHLRosters()
-		managers.ResetScoutingProfilesForRecruiting()
+		// managers.RefillCHLRosters()
+		// managers.ResetScoutingProfilesForRecruiting()
+		// managers.RefillTeamsWithPortalPlayers()
+
 	}
 	if ts.CanRunRecruiting() {
 		// Sync Recruiting

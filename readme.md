@@ -35,6 +35,8 @@ SimHockey is a Golang-based HTTP API designed to simulate hockey leagues (Colleg
 - **repository/**: CRUD operations against the database models defined in `structs/`.
 - **ws/**: WebSocket entrypoint (`WebsocketController.go`) and broadcasting logic (`broadcast.go`) for pushing timestamp updates to clients.
 
+Test-run box scores append each skater's and goalie's archetype to their statistics rows. Older test results do not include archetypes.
+
 ## API Endpoints
 
 ### Health Check

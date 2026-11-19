@@ -471,55 +471,55 @@ func WriteBoxScoreFile(r engine.GameState, filename string) error {
 	writer.Write([]string{r.AwayTeam, strconv.Itoa(int(ats.Period1Score)), strconv.Itoa(int(ats.Period2Score)), strconv.Itoa(int(ats.Period3Score)), strconv.Itoa(int(ats.OTScore)), strconv.Itoa(int(ats.Points)), awayOffensiveSystem, awayDefensiveSystem})
 	writer.Write([]string{})
 	writer.Write([]string{"Home Team"})
-	writer.Write([]string{"Position", "Name", "G", "A", "P", "+/-", "PIM", "TOI", "PPG", "S", "BLK", "BCHK", "STCHK", "FO"})
+	writer.Write([]string{"Position", "Archetype", "Name", "G", "A", "P", "+/-", "PIM", "TOI", "PPG", "S", "BLK", "BCHK", "STCHK", "FO"})
 	hpb := r.HomeStrategy
 	for _, line := range hpb.Forwards {
 		players := line.Players
 		for _, p := range players {
 			s := p.Stats
-			writer.Write([]string{p.Position, p.FirstName + " " + p.LastName, strconv.Itoa(int(s.Goals)), strconv.Itoa(int(s.Assists)), strconv.Itoa(int(s.Points)), strconv.Itoa(int(s.PlusMinus)), FormatTimeToClock(s.PenaltyMinutes), FormatTimeToClock(uint16(s.TimeOnIce)), strconv.Itoa(int(s.PowerPlayGoals)), strconv.Itoa(int(s.Shots)), strconv.Itoa(int(s.ShotsBlocked)), strconv.Itoa(int(s.BodyChecks)), strconv.Itoa(int(s.StickChecks)), strconv.Itoa(int(s.FaceOffsWon))})
+			writer.Write([]string{p.Position, p.Archetype, p.FirstName + " " + p.LastName, strconv.Itoa(int(s.Goals)), strconv.Itoa(int(s.Assists)), strconv.Itoa(int(s.Points)), strconv.Itoa(int(s.PlusMinus)), FormatTimeToClock(s.PenaltyMinutes), FormatTimeToClock(uint16(s.TimeOnIce)), strconv.Itoa(int(s.PowerPlayGoals)), strconv.Itoa(int(s.Shots)), strconv.Itoa(int(s.ShotsBlocked)), strconv.Itoa(int(s.BodyChecks)), strconv.Itoa(int(s.StickChecks)), strconv.Itoa(int(s.FaceOffsWon))})
 		}
 	}
 	for _, line := range hpb.Defenders {
 		players := line.Players
 		for _, p := range players {
 			s := p.Stats
-			writer.Write([]string{p.Position, p.FirstName + " " + p.LastName, strconv.Itoa(int(s.Goals)), strconv.Itoa(int(s.Assists)), strconv.Itoa(int(s.Points)), strconv.Itoa(int(s.PlusMinus)), FormatTimeToClock(s.PenaltyMinutes), FormatTimeToClock(uint16(s.TimeOnIce)), strconv.Itoa(int(s.PowerPlayGoals)), strconv.Itoa(int(s.Shots)), strconv.Itoa(int(s.ShotsBlocked)), strconv.Itoa(int(s.BodyChecks)), strconv.Itoa(int(s.StickChecks)), strconv.Itoa(int(s.FaceOffsWon))})
+			writer.Write([]string{p.Position, p.Archetype, p.FirstName + " " + p.LastName, strconv.Itoa(int(s.Goals)), strconv.Itoa(int(s.Assists)), strconv.Itoa(int(s.Points)), strconv.Itoa(int(s.PlusMinus)), FormatTimeToClock(s.PenaltyMinutes), FormatTimeToClock(uint16(s.TimeOnIce)), strconv.Itoa(int(s.PowerPlayGoals)), strconv.Itoa(int(s.Shots)), strconv.Itoa(int(s.ShotsBlocked)), strconv.Itoa(int(s.BodyChecks)), strconv.Itoa(int(s.StickChecks)), strconv.Itoa(int(s.FaceOffsWon))})
 		}
 	}
-	writer.Write([]string{"Position", "Name", "SA", "SV", "GA", "SV%", "TOI"})
+	writer.Write([]string{"Position", "Archetype", "Name", "SA", "SV", "GA", "SV%", "TOI"})
 	for _, line := range hpb.Goalies {
 		players := line.Players
 		for _, p := range players {
 			s := p.Stats
-			writer.Write([]string{p.Position, p.FirstName + " " + p.LastName, strconv.Itoa(int(s.ShotsAgainst)), strconv.Itoa(int(s.Saves)), strconv.Itoa(int(s.GoalsAgainst)), strconv.Itoa(int(s.SavePercentage)), FormatTimeToClock(uint16(s.TimeOnIce))})
+			writer.Write([]string{p.Position, p.Archetype, p.FirstName + " " + p.LastName, strconv.Itoa(int(s.ShotsAgainst)), strconv.Itoa(int(s.Saves)), strconv.Itoa(int(s.GoalsAgainst)), strconv.Itoa(int(s.SavePercentage)), FormatTimeToClock(uint16(s.TimeOnIce))})
 		}
 	}
 	// Iterate through play by play data to generate []string
 	writer.Write([]string{})
 	writer.Write([]string{"Away Team"})
-	writer.Write([]string{"Position", "Name", "G", "A", "P", "+/-", "PIM", "TOI", "PPG", "S", "BLK", "BCHK", "STCHK", "FO"})
+	writer.Write([]string{"Position", "Archetype", "Name", "G", "A", "P", "+/-", "PIM", "TOI", "PPG", "S", "BLK", "BCHK", "STCHK", "FO"})
 	apb := r.AwayStrategy
 	for _, line := range apb.Forwards {
 		players := line.Players
 		for _, p := range players {
 			s := p.Stats
-			writer.Write([]string{p.Position, p.FirstName + " " + p.LastName, strconv.Itoa(int(s.Goals)), strconv.Itoa(int(s.Assists)), strconv.Itoa(int(s.Points)), strconv.Itoa(int(s.PlusMinus)), FormatTimeToClock(s.PenaltyMinutes), FormatTimeToClock(uint16(s.TimeOnIce)), strconv.Itoa(int(s.PowerPlayGoals)), strconv.Itoa(int(s.Shots)), strconv.Itoa(int(s.ShotsBlocked)), strconv.Itoa(int(s.BodyChecks)), strconv.Itoa(int(s.StickChecks)), strconv.Itoa(int(s.FaceOffsWon))})
+			writer.Write([]string{p.Position, p.Archetype, p.FirstName + " " + p.LastName, strconv.Itoa(int(s.Goals)), strconv.Itoa(int(s.Assists)), strconv.Itoa(int(s.Points)), strconv.Itoa(int(s.PlusMinus)), FormatTimeToClock(s.PenaltyMinutes), FormatTimeToClock(uint16(s.TimeOnIce)), strconv.Itoa(int(s.PowerPlayGoals)), strconv.Itoa(int(s.Shots)), strconv.Itoa(int(s.ShotsBlocked)), strconv.Itoa(int(s.BodyChecks)), strconv.Itoa(int(s.StickChecks)), strconv.Itoa(int(s.FaceOffsWon))})
 		}
 	}
 	for _, line := range apb.Defenders {
 		players := line.Players
 		for _, p := range players {
 			s := p.Stats
-			writer.Write([]string{p.Position, p.FirstName + " " + p.LastName, strconv.Itoa(int(s.Goals)), strconv.Itoa(int(s.Assists)), strconv.Itoa(int(s.Points)), strconv.Itoa(int(s.PlusMinus)), FormatTimeToClock(s.PenaltyMinutes), FormatTimeToClock(uint16(s.TimeOnIce)), strconv.Itoa(int(s.PowerPlayGoals)), strconv.Itoa(int(s.Shots)), strconv.Itoa(int(s.ShotsBlocked)), strconv.Itoa(int(s.BodyChecks)), strconv.Itoa(int(s.StickChecks)), strconv.Itoa(int(s.FaceOffsWon))})
+			writer.Write([]string{p.Position, p.Archetype, p.FirstName + " " + p.LastName, strconv.Itoa(int(s.Goals)), strconv.Itoa(int(s.Assists)), strconv.Itoa(int(s.Points)), strconv.Itoa(int(s.PlusMinus)), FormatTimeToClock(s.PenaltyMinutes), FormatTimeToClock(uint16(s.TimeOnIce)), strconv.Itoa(int(s.PowerPlayGoals)), strconv.Itoa(int(s.Shots)), strconv.Itoa(int(s.ShotsBlocked)), strconv.Itoa(int(s.BodyChecks)), strconv.Itoa(int(s.StickChecks)), strconv.Itoa(int(s.FaceOffsWon))})
 		}
 	}
-	writer.Write([]string{"Position", "Name", "SA", "SV", "GA", "SV%", "TOI"})
+	writer.Write([]string{"Position", "Archetype", "Name", "SA", "SV", "GA", "SV%", "TOI"})
 	for _, line := range apb.Goalies {
 		players := line.Players
 		for _, p := range players {
 			s := p.Stats
-			writer.Write([]string{p.Position, p.FirstName + " " + p.LastName, strconv.Itoa(int(s.ShotsAgainst)), strconv.Itoa(int(s.Saves)), strconv.Itoa(int(s.GoalsAgainst)), strconv.Itoa(int(s.SavePercentage)), FormatTimeToClock(uint16(s.TimeOnIce))})
+			writer.Write([]string{p.Position, p.Archetype, p.FirstName + " " + p.LastName, strconv.Itoa(int(s.ShotsAgainst)), strconv.Itoa(int(s.Saves)), strconv.Itoa(int(s.GoalsAgainst)), strconv.Itoa(int(s.SavePercentage)), FormatTimeToClock(uint16(s.TimeOnIce))})
 		}
 	}
 	writer.Write([]string{"Injury Report"})
